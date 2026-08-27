@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="fragments/head :: head(${pageTitle})"></head>
+<body class="sheet-page import-form-page customs-page">
+<div class="app-shell">
+    <aside th:replace="fragments/sidebar :: sidebar(${activeMenu})"></aside>
+    <div class="app-main">
+        <header th:replace="fragments/topbar :: topbar"></header>
+        <main class="page-content">
+            <div class="dash-head">
+                <div>
+                    <h1>Customs clearance</h1>
+                    <p class="form-lead">Upload page 1 (JEVIC), page 2 (customs declaration), and page 3 (assessment notice). Edit the fields, then click Save on that page.</p>
+                </div>
+            </div>
+
+            <div th:replace="fragments/clearance-pipeline :: clearancePipelineSteps('clearance', ${vehicle.chassisNo}, ${jevicReady}, ${declarationReady}, ${assessmentReady}, ${vehicle.model}, false)"></div>
+
+            <p th:if="${notice}" class="alert alert-warn" th:text="${notice}"></p>
+            <p th:if="${successMessage}" class="alert alert-ok" th:text="${successMessage}"></p>
+            <p th:if="${errorMessage}" class="alert alert-error" th:text="${errorMessage}"></p>
+
+            <form th:action="@{/customs/{chassisNo}(chassisNo=${vehicle.chassisNo})}"
+                  th:object="${record}" method="post" class="vehicle-form clearance-form" id="clearanceForm">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                <input type="hidden" th:field="*{chassisNo}">
+                <input type="hidden" th:field="*{page1OriginalName}" id="page1OriginalName">
+                <input type="hidden" th:field="*{page1StoredName}" id="page1StoredName">
+                <input type="hidden" th:field="*{page1ContentType}" id="page1ContentType">
+                <input type="hidden" th:field="*{page2OriginalName}" id="page2OriginalName">
+                <input type="hidden" th:field="*{page2StoredName}" id="page2StoredName">
+                <input type="hidden" th:field="*{page2ContentType}" id="page2ContentType">
+                <input type="hidden" th:field="*{page3OriginalName}" id="page3OriginalName">
+                <input type="hidden" th:field="*{page3StoredName}" id="page3StoredName">
+                <input type="hidden" th:field="*{page3ContentType}" id="page3ContentType">
+                <input type="hidden" th:field="*{ocrTextPage1}" id="ocrTextPage1">
+                <input type="hidden" th:field="*{ocrTextPage2}" id="ocrTextPage2">
+                <input type="hidden" th:field="*{ocrTextPage3}" id="ocrTextPage3">
+                <input type="hidden" th:field="*{assessmentOffice}" id="assessmentOffice">
+                <input type="hidden" th:field="*{assessmentNoticeRef}" id="assessmentNoticeRef">
+                <input type="hidden" th:field="*{assessmentModel}" id="assessmentModel">
+                <input type="hidden" th:field="*{assessmentPackages}" id="assessmentPackages">
+                <input type="hidden" th:field="*{assessmentCustomsReference}" id="assessmentCustomsReference">
+                <input type="hidden" th:field="*{assessmentDeclarantReference}" id="assessmentDeclarantReference">
+                <input type="hidden" th:field="*{assessmentReference}" id="assessmentReference">
+
+                <nav class="clearance-tabs panel" aria-label="Clearance pages">
+                    <button type="button" class="clearance-tab is-active" data-tab="1" id="clearanceTab1">
+                        <span class="clearance-tab-num">1</span>
+                        <span class="clearance-tab-label">JEVIC certificate</span>
+                        <em class="clearance-tab-badge" id="tabBadge1" hidden>Uploaded</em>
+                    </button>
+                    <button type="button" class="clearance-tab" data-tab="2" id="clearanceTab2">
+                        <span class="clearance-tab-num">2</span>
+                        <span class="clearance-tab-label">Customs declaration</span>
+                        <em class="clearance-tab-badge" id="tabBadge2" hidden>Uploaded</em>
+                    </button>
+                    <button type="button" class="clearance-tab" data-tab="3" id="clearanceTab3">
+                        <span class="clearance-tab-num">3</span>
+                        <span class="clearance-tab-label">Assessment notice</span>
+                        <em class="clearance-tab-badge" id="tabBadge3" hidden>Uploaded</em>
+                    </button>
+                </nav>
+
+                <!-- Tab 1: JEVIC -->
+                <section class="clearance-tab-panel is-active" data-tab-panel="1">
+                    <div class="sheet-layout">
+                        <div class="sheet-document-col">
+                        <aside class="panel sheet-document" id="sheetPreview1"
+                               th:classappend="${record.page1StoredName != null and !#strings.isEmpty(record.page1StoredName)} ? ' has-file' : ''">
+                            <div class="panel-head">
+                                <h2>Document preview</h2>
+                            </div>
+                            <div class="sheet-preview-frame" id="sheetPreviewFrame1">
+                                <div class="sheet-preview-empty" id="sheetPreviewEmpty1"
+                                     th:hidden="${record.page1StoredName != null and !#strings.isEmpty(record.page1StoredName)}">
+                                    <i class="fa-solid fa-file-circle-plus"></i>
+                                    <strong>No preview yet</strong>
+                                    <span>Use <strong>Choose file</strong> below to upload page 1.</span>
+                                </div>
+                                <img id="sheetPreviewImage1" alt="Page 1 preview" hidden>
+                                <iframe id="sheetPreviewPdf1" title="Page 1 PDF" hidden></iframe>
+                            </div>
+                        </aside>
+
+                        <div th:replace="fragments/document-upload-toolbar :: documentUploadToolbar(
+                                'JEVIC certificate',
+                                '1',
+                                ${record.page1OriginalName},
+                                'Choose a JPG, PNG, or PDF JEVIC certificate to upload and preview.')"></div>
+                        </div>
+
+                        <div class="sheet-fields">
+                            <article class="panel">
+                                <div class="panel-head"><h2>JEVIC odometer certificate</h2></div>
+                                <div class="field-grid">
+                                    <label>Chassis / VIN <input type="text" th:field="*{jevicChassisVin}" id="jevicChassisVin"></label>
+                                    <label>Make <input type="text" th:field="*{jevicMake}" id="jevicMake"></label>
+                                    <label>Model <input type="text" th:field="*{jevicModel}" id="jevicModel"></label>
+                                    <label>Date of inspection <input type="text" th:field="*{jevicInspectionDate}" id="jevicInspectionDate"></label>
+                                    <label>Location <input type="text" th:field="*{jevicLocation}" id="jevicLocation"></label>
+                                    <label>Certificate no. <input type="text" th:field="*{jevicCertificateNo}" id="jevicCertificateNo"></label>
+                                    <label>Date of issue <input type="text" th:field="*{jevicIssueDate}" id="jevicIssueDate"></label>
+                                    <label>Current odometer reading <input type="text" th:field="*{jevicCurrentOdometer}" id="jevicCurrentOdometer"></label>
+                                    <label>Auction reading / date <input type="text" th:field="*{jevicAuctionReadingDate}" id="jevicAuctionReadingDate"></label>
+                                    <label>Dealer reading / date <input type="text" th:field="*{jevicDealerReadingDate}" id="jevicDealerReadingDate"></label>
+                                    <label>De-registration reading / date <input type="text" th:field="*{jevicDeregistrationReadingDate}" id="jevicDeregistrationReadingDate"></label>
+                                </div>
+                            </article>
+                        </div>
+                    </div>
+                    <footer class="clearance-tab-footer">
+                        <button type="submit" class="panel-btn import-form-submit">Save</button>
+                        <button type="button" class="panel-btn" data-tab-goto="2">
+                            Next — Customs declaration <i class="fa-solid fa-arrow-right"></i>
+                        </button>
+                    </footer>
+                </section>
+
+                <!-- Tab 2: CUSDEC -->
+                <section class="clearance-tab-panel" data-tab-panel="2" hidden>
+                    <div class="sheet-layout">
+                        <div class="sheet-document-col">
+                        <aside class="panel sheet-document" id="sheetPreview2"
+                               th:classappend="${record.page2StoredName != null and !#strings.isEmpty(record.page2StoredName)} ? ' has-file' : ''">
+                            <div class="panel-head">
+                                <h2>Document preview</h2>
+                            </div>
+                            <div class="sheet-preview-frame" id="sheetPreviewFrame2">
+                                <div class="sheet-preview-empty" id="sheetPreviewEmpty2"
+                                     th:hidden="${record.page2StoredName != null and !#strings.isEmpty(record.page2StoredName)}">
+                                    <i class="fa-solid fa-file-circle-plus"></i>
+                                    <strong>No preview yet</strong>
+                                    <span>Use <strong>Choose file</strong> below to upload page 2.</span>
+                                </div>
+                                <img id="sheetPreviewImage2" alt="Page 2 preview" hidden>
+                                <iframe id="sheetPreviewPdf2" title="Page 2 PDF" hidden></iframe>
+                            </div>
+                        </aside>
+
+                        <div th:replace="fragments/document-upload-toolbar :: documentUploadToolbar(
+                                'Customs declaration',
+                                '2',
+                                ${record.page2OriginalName},
+                                'Choose a JPG, PNG, or PDF customs declaration to upload and preview.')"></div>
+                        </div>
+
+                        <div class="sheet-fields">
+                            <article class="panel">
+                                <div class="panel-head"><h2>Declaration header &amp; parties</h2></div>
+                                <div class="field-grid">
+                                    <label>Customs reference <input type="text" th:field="*{customsReference}" id="customsReference"></label>
+                                    <label>Declaration type <input type="text" th:field="*{declarationType}" id="declarationType"></label>
+                                    <label>Total packages <input type="text" th:field="*{totalPackages}" id="totalPackages"></label>
+                                    <label>Exporter name <input type="text" th:field="*{exporterName}" id="exporterName"></label>
+                                    <label class="field-span-2">Exporter address <textarea th:field="*{exporterAddress}" id="exporterAddress" rows="2"></textarea></label>
+                                    <label>Consignee name <input type="text" th:field="*{consigneeName}" id="consigneeName"></label>
+                                    <label>Consignee TIN <input type="text" th:field="*{consigneeTin}" id="consigneeTin"></label>
+                                    <label class="field-span-2">Consignee address <textarea th:field="*{consigneeAddress}" id="consigneeAddress" rows="2"></textarea></label>
+                                    <label>Declarant name <input type="text" th:field="*{declarantName}" id="declarantName"></label>
+                                    <label>Declarant TIN <input type="text" th:field="*{declarantTin}" id="declarantTin"></label>
+                                    <label class="field-span-2">Declarant address <textarea th:field="*{declarantAddress}" id="declarantAddress" rows="2"></textarea></label>
+                                </div>
+                            </article>
+
+                            <article class="panel">
+                                <div class="panel-head"><h2>Shipping &amp; finance</h2></div>
+                                <div class="field-grid">
+                                    <label>Country of export <input type="text" th:field="*{countryExport}" id="countryExport"></label>
+                                    <label>Country of destination <input type="text" th:field="*{countryDestination}" id="countryDestination"></label>
+                                    <label>Country of origin <input type="text" th:field="*{countryOrigin}" id="countryOrigin"></label>
+                                    <label>Vessel / flight <input type="text" th:field="*{vesselFlight}" id="vesselFlight"></label>
+                                    <label>Delivery terms <input type="text" th:field="*{deliveryTerms}" id="deliveryTerms"></label>
+                                    <label>Voyage no. / date <input type="text" th:field="*{voyageNoDate}" id="voyageNoDate"></label>
+                                    <label>Place of loading / discharging <input type="text" th:field="*{placeLoadingDischarging}" id="placeLoadingDischarging"></label>
+                                    <label>Currency <input type="text" th:field="*{currencyInvoiced}" id="currencyInvoiced"></label>
+                                    <label>Total amount invoiced <input type="text" th:field="*{totalAmountInvoiced}" id="totalAmountInvoiced"></label>
+                                    <label>Exchange rate <input type="text" th:field="*{exchangeRate}" id="exchangeRate"></label>
+                                    <label>Payment terms <input type="text" th:field="*{paymentTerms}" id="paymentTerms"></label>
+                                    <label>Bank code <input type="text" th:field="*{bankCode}" id="bankCode"></label>
+                                    <label>Bank name <input type="text" th:field="*{bankName}" id="bankName"></label>
+                                    <label>Bank branch <input type="text" th:field="*{bankBranch}" id="bankBranch"></label>
+                                    <label>Bank reference <input type="text" th:field="*{bankReference}" id="bankReference"></label>
+                                    <label>Location of goods <input type="text" th:field="*{locationOfGoods}" id="locationOfGoods"></label>
+                                </div>
+                            </article>
+
+                            <article class="panel">
+                                <div class="panel-head"><h2>Goods &amp; vehicle</h2></div>
+                                <div class="field-grid">
+                                    <label>HS code <input type="text" th:field="*{hsCode}" id="hsCode"></label>
+                                    <label>Gross mass (kg) <input type="text" th:field="*{grossMassKg}" id="grossMassKg"></label>
+                                    <label>Net mass (kg) <input type="text" th:field="*{netMassKg}" id="netMassKg"></label>
+                                    <label>BL / AWB no. <input type="text" th:field="*{blAwbNo}" id="blAwbNo"></label>
+                                    <label class="field-span-2">Goods description <textarea th:field="*{goodsDescription}" id="goodsDescription" rows="2"></textarea></label>
+                                    <label class="field-span-2">Model / spec <textarea th:field="*{modelSpec}" id="modelSpec" rows="2"></textarea></label>
+                                    <label>Year of manufacture <input type="text" th:field="*{yearOfManufacture}" id="yearOfManufacture"></label>
+                                    <label>Date of registration <input type="text" th:field="*{dateOfRegistration}" id="dateOfRegistration"></label>
+                                    <label>Chassis no. <input type="text" th:field="*{clearanceChassisNo}" id="clearanceChassisNo"></label>
+                                    <label>Engine no. <input type="text" th:field="*{clearanceEngineNo}" id="clearanceEngineNo"></label>
+                                    <label>Item price <input type="text" th:field="*{itemPrice}" id="itemPrice"></label>
+                                    <label>Value (NCY) <input type="text" th:field="*{valueNcy}" id="valueNcy"></label>
+                                    <label>Engine capacity <input type="text" th:field="*{engineCapacityCc}" id="engineCapacityCc"></label>
+                                </div>
+                            </article>
+
+                            <article class="panel">
+                                <div class="panel-head"><h2>Taxes &amp; invoice</h2></div>
+                                <div class="field-grid">
+                                    <label>CID <input type="text" th:field="*{taxCid}" id="taxCid"></label>
+                                    <label>SUR <input type="text" th:field="*{taxSur}" id="taxSur"></label>
+                                    <label>VAT <input type="text" th:field="*{taxVat}" id="taxVat"></label>
+                                    <label>XID <input type="text" th:field="*{taxXid}" id="taxXid"></label>
+                                    <label>VEL <input type="text" th:field="*{taxVel}" id="taxVel"></label>
+                                    <label>Other levies <input type="text" th:field="*{taxOther}" id="taxOther"></label>
+                                    <label>Total tax <input type="text" th:field="*{totalTaxAmount}" id="totalTaxAmount"></label>
+                                    <label>FOB / CIF <input type="text" th:field="*{invoiceFob}" id="invoiceFob"></label>
+                                    <label>Freight <input type="text" th:field="*{invoiceFreight}" id="invoiceFreight"></label>
+                                    <label>Insurance <input type="text" th:field="*{invoiceInsurance}" id="invoiceInsurance"></label>
+                                    <label>Invoice total <input type="text" th:field="*{invoiceTotal}" id="invoiceTotal"></label>
+                                    <label>Declarant date <input type="text" th:field="*{declarantDate}" id="declarantDate"></label>
+                                </div>
+                            </article>
+                        </div>
+                    </div>
+                    <footer class="clearance-tab-footer">
+                        <button type="button" class="panel-btn ghost" data-tab-goto="1">
+                            <i class="fa-solid fa-arrow-left"></i> Previous — JEVIC
+                        </button>
+                        <button type="submit" class="panel-btn import-form-submit">Save</button>
+                        <button type="button" class="panel-btn" data-tab-goto="3">
+                            Next — Assessment notice <i class="fa-solid fa-arrow-right"></i>
+                        </button>
+                    </footer>
+                </section>
+
+                <!-- Tab 3: Assessment notice -->
+                <section class="clearance-tab-panel" data-tab-panel="3" hidden>
+                    <div class="sheet-layout">
+                        <div class="sheet-document-col">
+                        <aside class="panel sheet-document" id="sheetPreview3"
+                               th:classappend="${record.page3StoredName != null and !#strings.isEmpty(record.page3StoredName)} ? ' has-file' : ''">
+                            <div class="panel-head">
+                                <h2>Document preview</h2>
+                            </div>
+                            <div class="sheet-preview-frame" id="sheetPreviewFrame3">
+                                <div class="sheet-preview-empty" id="sheetPreviewEmpty3"
+                                     th:hidden="${record.page3StoredName != null and !#strings.isEmpty(record.page3StoredName)}">
+                                    <i class="fa-solid fa-file-circle-plus"></i>
+                                    <strong>No preview yet</strong>
+                                    <span>Use <strong>Choose file</strong> below to upload page 3.</span>
+                                </div>
+                                <img id="sheetPreviewImage3" alt="Page 3 preview" hidden>
+                                <iframe id="sheetPreviewPdf3" title="Page 3 PDF" hidden></iframe>
+                            </div>
+                        </aside>
+
+                        <div th:replace="fragments/document-upload-toolbar :: documentUploadToolbar(
+                                'Assessment notice',
+                                '3',
+                                ${record.page3OriginalName},
+                                'Choose a JPG, PNG, or PDF assessment notice to upload and preview.')"></div>
+                        </div>
+
+                        <div class="sheet-fields">
+                            <article class="panel">
+                                <div class="panel-head"><h2>Declarant &amp; consignee</h2></div>
+                                <div class="field-grid">
+                                    <label>Declarant ID <input type="text" th:field="*{assessmentDeclarantId}" id="assessmentDeclarantId"></label>
+                                    <label>Declarant name <input type="text" th:field="*{assessmentDeclarantName}" id="assessmentDeclarantName"></label>
+                                    <label class="span-2">Declarant address <textarea th:field="*{assessmentDeclarantAddress}" id="assessmentDeclarantAddress" rows="2"></textarea></label>
+                                    <label>CHA expiry <input type="text" th:field="*{assessmentDeclarantChaExp}" id="assessmentDeclarantChaExp"></label>
+                                    <label>Consignee ID <input type="text" th:field="*{assessmentConsigneeId}" id="assessmentConsigneeId"></label>
+                                    <label>Consignee name <input type="text" th:field="*{assessmentConsigneeName}" id="assessmentConsigneeName"></label>
+                                    <label class="span-2">Consignee address <textarea th:field="*{assessmentConsigneeAddress}" id="assessmentConsigneeAddress" rows="2"></textarea></label>
+                                </div>
+                            </article>
+
+                            <article class="panel">
+                                <div class="panel-head"><h2>Global taxes</h2></div>
+                                <div class="field-grid">
+                                    <label>OTC · Over time charges <input type="text" th:field="*{assessmentTaxOtc}" id="assessmentTaxOtc"></label>
+                                    <label>COM · Computer fee <input type="text" th:field="*{assessmentTaxCom}" id="assessmentTaxCom"></label>
+                                    <label>EXM · Examination fees <input type="text" th:field="*{assessmentTaxExm}" id="assessmentTaxExm"></label>
+                                </div>
+                            </article>
+
+                            <article class="panel">
+                                <div class="panel-head"><h2>Item taxes &amp; totals</h2></div>
+                                <div class="field-grid">
+                                    <label>CID · Customs import duty <input type="text" th:field="*{assessmentTaxCid}" id="assessmentTaxCid"></label>
+                                    <label>SUR · Surcharge <input type="text" th:field="*{assessmentTaxSur}" id="assessmentTaxSur"></label>
+                                    <label>XID · Excise duty <input type="text" th:field="*{assessmentTaxXid}" id="assessmentTaxXid"></label>
+                                    <label>VAT · Value added tax <input type="text" th:field="*{assessmentTaxVat}" id="assessmentTaxVat"></label>
+                                    <label>VEL · Vehicle entitlement levy <input type="text" th:field="*{assessmentTaxVel}" id="assessmentTaxVel"></label>
+                                    <label>Total assessed <input type="text" th:field="*{assessmentTotalAssessed}" id="assessmentTotalAssessed"></label>
+                                    <label>Total amount paid <input type="text" th:field="*{assessmentTotalPaid}" id="assessmentTotalPaid"></label>
+                                </div>
+                            </article>
+                        </div>
+                    </div>
+                    <footer class="clearance-tab-footer">
+                        <button type="button" class="panel-btn ghost" data-tab-goto="2">
+                            <i class="fa-solid fa-arrow-left"></i> Previous — Declaration
+                        </button>
+                        <button type="submit" class="panel-btn import-form-submit">Save</button>
+                    </footer>
+                </section>
+            </form>
+        </main>
+    </div>
+</div>
+
+<div th:replace="fragments/document-viewer :: documentViewer"></div>
+
+<div class="fill-loader" id="fillLoader" hidden>
+    <div class="fill-loader-card">
+        <div class="fill-loader-spinner"></div>
+        <strong>Reading document…</strong>
+    </div>
+</div>
+<script th:src="@{/js/app.js(v=20260821g)}"></script>
+<script th:src="@{/js/document-viewer.js(v=20260826d)}"></script>
+<script th:src="@{/js/clearance.js(v=20260826d)}"></script>
+</body>
+</html>

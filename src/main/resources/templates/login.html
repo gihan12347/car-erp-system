@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign in · CAR ERP</title>
+    <link rel="icon" type="image/svg+xml" th:href="@{/images/favicon.svg}">
+    <link rel="icon" type="image/png" sizes="32x32" th:href="@{/images/favicon-32.png}">
+    <link rel="apple-touch-icon" th:href="@{/images/apple-touch-icon.png}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/css/login.css(v=20260823b)}">
+</head>
+<body>
+<div class="login-shell">
+    <img class="login-bg" th:src="@{/images/login-bg.jpg}" alt="" width="2400" height="1600">
+    <section class="brand-panel">
+        <div class="brand-glow"></div>
+        <div class="brand-head">
+            <span class="brand-mark"><i class="fa-solid fa-car"></i></span>
+            <div>
+                <strong>CAR ERP</strong>
+                <p>Auction to driveway, in one desk.</p>
+            </div>
+        </div>
+        <h1>Run every pipeline from a single login.</h1>
+        <ul>
+            <li><i class="fa-solid fa-gavel"></i> Auction wins and lot tracking</li>
+            <li><i class="fa-solid fa-ship"></i> Import, customs clearance, and yard</li>
+            <li><i class="fa-solid fa-tags"></i> Workshop, sales, and finance</li>
+        </ul>
+    </section>
+
+    <section class="form-panel">
+        <div class="form-card">
+            <p class="eyebrow">Welcome back</p>
+            <h2>Sign in to your workspace</h2>
+            <p class="form-lead">Sign in to open the dashboard.</p>
+
+            <div class="alert alert-error" th:if="${param.error}">
+                <i class="fa-solid fa-circle-exclamation"></i>
+                Sign-in details are incorrect. Please try again.
+            </div>
+            <div class="alert alert-ok" th:if="${param.logout}">
+                <i class="fa-solid fa-circle-check"></i>
+                You have been signed out.
+            </div>
+
+            <form th:action="@{/login}" method="post" class="login-form" id="loginForm">
+                <label class="sr-only" for="username">Username</label>
+                <div class="field">
+                    <i class="fa-regular fa-user"></i>
+                    <input id="username" type="text" name="username" autocomplete="username" required autofocus>
+                </div>
+
+                <label class="sr-only" for="password">Password</label>
+                <div class="field">
+                    <i class="fa-solid fa-lock"></i>
+                    <input id="password" type="password" name="password" autocomplete="current-password" required>
+                    <button type="button" class="peek" id="togglePassword" aria-label="Show password">
+                        <i class="fa-regular fa-eye"></i>
+                    </button>
+                </div>
+
+                <button type="submit" class="submit-btn">Sign in <i class="fa-solid fa-arrow-right"></i></button>
+            </form>
+
+            <div class="demo-box">
+                <p>Demo roles — click one to sign in</p>
+                <div class="demo-grid">
+                    <button type="button" class="demo-fill" data-user="gihan" data-pass="Gihan@123">
+                        Super Admin
+                    </button>
+                    <button type="button" class="demo-fill" data-user="admin" data-pass="Admin@123">
+                        Admin
+                    </button>
+                    <button type="button" class="demo-fill" data-user="staff" data-pass="User@123">
+                        User
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+<script th:src="@{/js/login.js(v=20260823a)}"></script>
+</body>
+</html>

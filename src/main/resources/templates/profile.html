@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="en">
+<head th:replace="fragments/head :: head(${pageTitle})"></head>
+<body>
+<div class="app-shell">
+    <aside th:replace="fragments/sidebar :: sidebar(${activeMenu})"></aside>
+    <div class="app-main">
+        <header th:replace="fragments/topbar :: topbar"></header>
+        <main class="page-content">
+            <div class="page-intro">
+                <div>
+                    <p class="eyebrow">Account</p>
+                    <h1>Profile</h1>
+                </div>
+            </div>
+            <article class="panel profile-card">
+                <div class="profile-hero">
+                    <span class="avatar lg" th:text="${#strings.substring(#authentication.principal.fullName,0,1)}">G</span>
+                    <div>
+                        <h2 sec:authentication="principal.fullName">Gihan</h2>
+                        <p sec:authentication="principal.username">gihan</p>
+                    </div>
+                </div>
+                <dl class="profile-meta">
+                    <div>
+                        <dt>Email</dt>
+                        <dd th:text="${#authentication.principal.user.email}">gihan@carerp.local</dd>
+                    </div>
+                    <div>
+                        <dt>Roles</dt>
+                        <dd>
+                            <th:block th:each="role, iter : ${#authentication.principal.user.roles}">
+                                <span th:text="${role.name.displayName}">Admin</span><th:block th:if="${!iter.last}">, </th:block>
+                            </th:block>
+                        </dd>
+                    </div>
+                    <div>
+                        <dt>Status</dt>
+                        <dd>Active</dd>
+                    </div>
+                </dl>
+            </article>
+        </main>
+    </div>
+</div>
+<script th:src="@{/js/app.js(v=20260818g)}"></script>
+</body>
+</html>

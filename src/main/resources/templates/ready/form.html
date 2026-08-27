@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="fragments/head :: head(${pageTitle})"></head>
+<body class="prep-page">
+<div class="app-shell">
+    <aside th:replace="fragments/sidebar :: sidebar(${activeMenu})"></aside>
+    <div class="app-main">
+        <header th:replace="fragments/topbar :: topbar"></header>
+        <main class="page-content">
+            <div class="dash-head">
+                <div>
+                    <h1>Ready for sale pipeline</h1>
+                    <p class="form-lead">Set the asking price and list this vehicle after the preparation pipeline is complete.</p>
+                </div>
+                <div th:replace="fragments/pipeline-delete :: pipelineDeleteBtn(
+                        @{/ready-for-sale/{c}/delete(c=${vehicle.chassisNo})},
+                        'Delete this sale listing?')"></div>
+            </div>
+
+            <div th:replace="fragments/prep-pipeline :: prepPipelineSteps(
+                    'ready',
+                    ${vehicle.chassisNo},
+                    ${workshopReady},
+                    ${yardReady},
+                    ${vehicle.model},
+                    false)"></div>
+
+            <p th:if="${successMessage}" class="alert alert-ok" th:text="${successMessage}"></p>
+            <p th:if="${errorMessage}" class="alert alert-error" th:text="${errorMessage}"></p>
+            <p th:if="${notice}" class="alert alert-warn" th:text="${notice}"></p>
+
+            <form th:action="@{/ready-for-sale/{chassisNo}(chassisNo=${vehicle.chassisNo})}"
+                  th:object="${record}" method="post" class="vehicle-form prep-form">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                <input type="hidden" th:field="*{chassisNo}">
+
+                <label class="complete-check panel">
+                    <input type="checkbox" th:field="*{listed}">
+                    <span>
+                        <strong>Mark as listed / available for sale</strong>
+                        <small>The vehicle is priced and can be shown to buyers.</small>
+                    </span>
+                </label>
+
+                <article class="panel">
+                    <div class="panel-head"><h2>Pricing</h2></div>
+                    <div class="field-grid">
+                        <label>Asking price <input type="text" th:field="*{askingPrice}" placeholder="Rs."></label>
+                        <label>Advertised price <input type="text" th:field="*{advertisedPrice}" placeholder="Rs."></label>
+                        <label>Condition
+                            <select th:field="*{saleCondition}">
+                                <option value="">Select</option>
+                                <option value="Excellent">Excellent</option>
+                                <option value="Good">Good</option>
+                                <option value="Fair">Fair</option>
+                                <option value="Needs work">Needs work</option>
+                            </select>
+                        </label>
+                        <label>Listed on <input type="text" th:field="*{listedOn}" placeholder="2026-08-23"></label>
+                    </div>
+                </article>
+
+                <article class="panel">
+                    <div class="panel-head"><h2>Sale notes</h2></div>
+                    <div class="field-grid">
+                        <label class="span-2">Listing notes
+                            <textarea th:field="*{listingNotes}" rows="3" placeholder="Features to highlight for buyers"></textarea>
+                        </label>
+                        <label class="span-2">Internal notes
+                            <textarea th:field="*{notes}" rows="3"></textarea>
+                        </label>
+                    </div>
+                </article>
+
+                <div class="import-view-actions">
+                    <a th:href="@{/workshop-yard/{c}(c=${vehicle.chassisNo}, stage=1)}"
+                       class="panel-btn ghost import-form-submit">
+                        <i class="fa-solid fa-chevron-left"></i>
+                        Previous · Yard
+                    </a>
+                    <button type="submit" class="panel-btn import-form-submit">Save listing</button>
+                    <a th:href="@{/ready-for-sale}" class="panel-btn ghost import-form-submit">All ready vehicles</a>
+                    <a th:href="@{/sales}" class="panel-btn ghost import-form-submit">Open sales</a>
+                </div>
+            </form>
+        </main>
+    </div>
+</div>
+<script th:src="@{/js/app.js(v=20260822n)}"></script>
+</body>
+</html>

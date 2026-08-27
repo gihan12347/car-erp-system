@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<div th:fragment="documentViewer" id="sheetViewer" class="sheet-viewer" hidden>
+    <div class="sheet-viewer-toolbar">
+        <strong id="sheetViewerTitle">Document preview</strong>
+        <div class="sheet-viewer-tools">
+            <button type="button" class="panel-btn ghost" id="sheetZoomOut" title="Zoom out">−</button>
+            <button type="button" class="panel-btn ghost" id="sheetZoomIn" title="Zoom in">+</button>
+            <button type="button" class="panel-btn ghost" id="sheetViewerClose" title="Close preview">Close</button>
+        </div>
+    </div>
+    <div class="sheet-viewer-body" id="sheetViewerBody">
+        <img id="sheetViewerImage" alt="Document preview">
+        <iframe id="sheetViewerPdf" title="Document PDF" hidden></iframe>
+    </div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="en">
+<head th:replace="fragments/head :: head(${pageTitle})"></head>
+<body>
+<div class="app-shell">
+    <aside th:replace="fragments/sidebar :: sidebar(${activeMenu})"></aside>
+    <div class="app-main">
+        <header th:replace="fragments/topbar :: topbar"></header>
+        <main class="page-content dashboard-page">
+            <section class="dash-head reveal">
+                <div class="welcome-block">
+                    <img class="welcome-art" th:src="@{/images/dashboard/illu-sun.svg}" alt="">
+                    <div>
+                        <h2>Good Morning, <span sec:authentication="principal.fullName">Gihan</span></h2>
+                        <p>Here's what's happening with your vehicle business.</p>
+                    </div>
+                </div>
+                <label class="period-select">
+                    <select id="periodFilter" name="period" aria-label="Select period">
+                        <option value="today">Today</option>
+                        <option value="week">This week</option>
+                        <option value="month" selected>This month</option>
+                        <option value="quarter">This quarter</option>
+                        <option value="year">This year</option>
+                    </select>
+                </label>
+            </section>
+
+            <section class="stat-grid">
+                <article class="kpi-card reveal">
+                    <img class="kpi-art" th:src="@{/images/dashboard/illu-car.svg}" alt="Cars">
+                    <div class="kpi-copy">
+                        <strong data-count="128">0</strong>
+                        <span>Total Cars</span>
+                        <small>+8 this month</small>
+                    </div>
+                </article>
+                <article class="kpi-card reveal">
+                    <img class="kpi-art" th:src="@{/images/dashboard/illu-ship.svg}" alt="Shipping">
+                    <div class="kpi-copy">
+                        <strong data-count="18">0</strong>
+                        <span>Shipping</span>
+                        <small>4 arriving</small>
+                    </div>
+                </article>
+                <article class="kpi-card reveal">
+                    <img class="kpi-art" th:src="@{/images/dashboard/illu-workshop.svg}" alt="Workshop">
+                    <div class="kpi-copy">
+                        <strong data-count="12">0</strong>
+                        <span>Workshop</span>
+                        <small>3 completed</small>
+                    </div>
+                </article>
+                <article class="kpi-card reveal">
+                    <img class="kpi-art" th:src="@{/images/dashboard/illu-sold.svg}" alt="Sold">
+                    <div class="kpi-copy">
+                        <strong data-count="35">0</strong>
+                        <span>Sold</span>
+                        <small>+12%</small>
+                    </div>
+                </article>
+            </section>
+
+            <section class="equal-grid">
+                <article class="panel reveal">
+                    <div class="panel-head">
+                        <h2>Vehicle Pipeline</h2>
+                    </div>
+                    <ul class="pipe-list">
+                        <li>
+                            <span>Purchased</span>
+                            <div class="bar"><i data-width="57"></i></div>
+                            <strong>20</strong>
+                        </li>
+                        <li>
+                            <span>Shipping</span>
+                            <div class="bar sea"><i data-width="51"></i></div>
+                            <strong>18</strong>
+                        </li>
+                        <li>
+                            <span>Customs</span>
+                            <div class="bar rust"><i data-width="23"></i></div>
+                            <strong>8</strong>
+                        </li>
+                        <li>
+                            <span>Workshop</span>
+                            <div class="bar gold"><i data-width="34"></i></div>
+                            <strong>12</strong>
+                        </li>
+                        <li>
+                            <span>Ready for sale pipeline</span>
+                            <div class="bar leaf"><i data-width="71"></i></div>
+                            <strong>25</strong>
+                        </li>
+                        <li>
+                            <span>Reserved</span>
+                            <div class="bar muted"><i data-width="11"></i></div>
+                            <strong>4</strong>
+                        </li>
+                        <li>
+                            <span>Sold</span>
+                            <div class="bar leaf"><i data-width="100"></i></div>
+                            <strong>35</strong>
+                        </li>
+                    </ul>
+                </article>
+
+                <article class="panel reveal">
+                    <div class="panel-head">
+                        <h2>Financial Summary</h2>
+                    </div>
+                    <ul class="finance-list">
+                        <li><span>Inventory Value</span><strong>Rs. 120M</strong></li>
+                        <li><span>Total Investment</span><strong>Rs. 100M</strong></li>
+                        <li><span>Sales This Month</span><strong>Rs. 45M</strong></li>
+                        <li><span>Gross Profit</span><strong class="up">Rs. 8M</strong></li>
+                        <li><span>Pending Payments</span><strong class="warn">Rs. 12M</strong></li>
+                    </ul>
+                    <a th:href="@{/reports}" class="panel-btn">View Financial Reports</a>
+                </article>
+            </section>
+
+            <article class="panel action-panel reveal">
+                <div class="panel-head">
+                    <img class="panel-art" th:src="@{/images/dashboard/illu-alert.svg}" alt="">
+                    <h2>Action Required</h2>
+                </div>
+                <ul class="action-list">
+                    <li>
+                        <img th:src="@{/images/dashboard/illu-docs.svg}" alt="">
+                        <span>12 documents waiting for review</span>
+                        <a th:href="@{/documents}">Review</a>
+                    </li>
+                    <li>
+                        <img th:src="@{/images/dashboard/illu-ship.svg}" alt="">
+                        <span>4 shipments arriving this week</span>
+                        <a th:href="@{/shipping}">View</a>
+                    </li>
+                    <li>
+                        <img th:src="@{/images/dashboard/illu-customs.svg}" alt="">
+                        <span>5 vehicles waiting for customs clearance</span>
+                        <a th:href="@{/customs}">View</a>
+                    </li>
+                    <li>
+                        <img th:src="@{/images/dashboard/illu-workshop.svg}" alt="">
+                        <span>3 repair jobs overdue</span>
+                        <a th:href="@{/workshop-yard}">View</a>
+                    </li>
+                    <li>
+                        <img th:src="@{/images/dashboard/illu-pay.svg}" alt="">
+                        <span>6 customer payments pending</span>
+                        <a th:href="@{/finance}">View</a>
+                    </li>
+                </ul>
+            </article>
+
+            <section class="equal-grid">
+                <article class="panel reveal">
+                    <div class="panel-head">
+                        <h2>Recent Auction Lots</h2>
+                    </div>
+                    <ul class="record-list">
+                        <li>
+                            <img class="record-art" th:src="@{/images/dashboard/illu-ship.svg}" alt="">
+                            <div>
+                                <strong>V001</strong>
+                                <span>Toyota Prius</span>
+                            </div>
+                            <em class="pill sea">Shipping</em>
+                        </li>
+                        <li>
+                            <img class="record-art" th:src="@{/images/dashboard/illu-workshop.svg}" alt="">
+                            <div>
+                                <strong>V002</strong>
+                                <span>Honda Vezel</span>
+                            </div>
+                            <em class="pill gold">Workshop</em>
+                        </li>
+                        <li>
+                            <img class="record-art" th:src="@{/images/dashboard/illu-car.svg}" alt="">
+                            <div>
+                                <strong>V003</strong>
+                                <span>Toyota Aqua</span>
+                            </div>
+                            <em class="pill leaf">Ready</em>
+                        </li>
+                    </ul>
+                    <a th:href="@{/auction}" class="panel-btn ghost">View Auction</a>
+                </article>
+
+                <article class="panel reveal">
+                    <div class="panel-head">
+                        <h2>Recent Sales</h2>
+                    </div>
+                    <ul class="record-list">
+                        <li>
+                            <img class="record-art" th:src="@{/images/dashboard/illu-sold.svg}" alt="">
+                            <div>
+                                <strong>V092</strong>
+                                <span>Toyota Aqua</span>
+                            </div>
+                            <em class="sale-amt">Rs. 9.5M</em>
+                        </li>
+                        <li>
+                            <img class="record-art" th:src="@{/images/dashboard/illu-sold.svg}" alt="">
+                            <div>
+                                <strong>V088</strong>
+                                <span>Honda Fit</span>
+                            </div>
+                            <em class="sale-amt">Rs. 7.8M</em>
+                        </li>
+                        <li>
+                            <img class="record-art" th:src="@{/images/dashboard/illu-sold.svg}" alt="">
+                            <div>
+                                <strong>V085</strong>
+                                <span>Toyota Vitz</span>
+                            </div>
+                            <em class="sale-amt">Rs. 6.9M</em>
+                        </li>
+                    </ul>
+                    <a th:href="@{/sales}" class="panel-btn ghost">View All Sales</a>
+                </article>
+            </section>
+        </main>
+    </div>
+</div>
+<script th:src="@{/js/app.js(v=20260818g)}"></script>
+</body>
+</html>

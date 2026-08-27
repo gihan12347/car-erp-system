@@ -1,0 +1,50 @@
+package com.carsale.erp.dto;
+
+import java.util.LinkedHashMap;
+import java.util.Map;
+
+public class AuctionParseResult {
+
+    private boolean success;
+    private String message;
+    private String rawText;
+    private Map<String, String> fields = new LinkedHashMap<String, String>();
+
+    public boolean isSuccess() {
+        return success;
+    }
+
+    public void setSuccess(boolean success) {
+        this.success = success;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
+    }
+
+    public String getRawText() {
+        return rawText;
+    }
+
+    public void setRawText(String rawText) {
+        this.rawText = rawText;
+    }
+
+    public Map<String, String> getFields() {
+        return fields;
+    }
+
+    public void setFields(Map<String, String> fields) {
+        this.fields = fields;
+    }
+
+    public void put(String key, String value) {
+        if (value != null && value.trim().length() > 0) {
+            this.fields.put(key, value.trim());
+        }
+    }
+}

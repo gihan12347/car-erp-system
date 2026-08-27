@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="fragments/head :: head(${pageTitle})"></head>
+<body class="sheet-page import-form-page preship-page">
+<div class="app-shell">
+    <aside th:replace="fragments/sidebar :: sidebar(${activeMenu})"></aside>
+    <div class="app-main">
+        <header th:replace="fragments/topbar :: topbar"></header>
+        <main class="page-content">
+            <div class="dash-head">
+                <div>
+                    <h1 th:text="${'Step ' + @pipelineStageService.displayNumber('IMPORT', 'preshipment') + ' · Pre-shipment certificate'}">Step 2 · Pre-shipment certificate</h1>
+                    <p class="form-lead">Upload the Bureau Veritas certificate. Auto-fill reads the document; save when you are ready.</p>
+                </div>
+            </div>
+
+            <div th:replace="fragments/import-pipeline :: importPipelineSteps('preshipment', ${vehicle.chassisNo}, ${auctionDocReady}, ${preshipReady}, ${equipmentReady}, ${vehicle.model}, false, false)"></div>
+
+            <p th:if="${successMessage}" class="alert alert-ok" th:text="${successMessage}"></p>
+            <p th:if="${errorMessage}" class="alert alert-error" th:text="${errorMessage}"></p>
+
+            <form th:action="@{/shipping/{chassisNo}(chassisNo=${vehicle.chassisNo})}"
+                  th:object="${record}" method="post" class="vehicle-form preship-form" id="preshipForm">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                <input type="hidden" name="hub" th:value="${hubMode}">
+                <input type="hidden" th:field="*{chassisNo}" id="chassisNo">
+                <input type="hidden" th:field="*{ocrText}" id="ocrText">
+                <input type="hidden" th:field="*{documentOriginalName}" id="documentOriginalName">
+                <input type="hidden" th:field="*{documentStoredName}" id="documentStoredName">
+                <input type="hidden" th:field="*{documentContentType}" id="documentContentType">
+
+                <div class="sheet-layout preship-layout">
+                    <div class="sheet-document-col">
+                    <aside class="panel sheet-document" id="sheetPreview"
+                           th:classappend="${record.documentStoredName != null and !#strings.isEmpty(record.documentStoredName)} ? ' has-file' : ''">
+                        <div class="panel-head">
+                            <h2>Document preview</h2>
+                        </div>
+
+                        <div class="sheet-preview-frame" id="sheetPreviewFrame"
+                             th:with="hasDoc=${record.documentStoredName != null and !#strings.isEmpty(record.documentStoredName)},
+                                      isPdf=${record.documentStoredName != null and ((record.documentContentType != null and #strings.contains(record.documentContentType, 'pdf')) or #strings.endsWith(record.documentStoredName, '.pdf'))}">
+                            <div class="sheet-preview-empty" id="sheetPreviewEmpty"
+                                 th:hidden="${hasDoc}">
+                                <i class="fa-solid fa-file-circle-plus"></i>
+                                <strong>No preview yet</strong>
+                                <span>Use <strong>Choose file</strong> below to upload the certificate.</span>
+                            </div>
+                            <img id="sheetPreviewImage"
+                                 alt="Certificate preview"
+                                 th:hidden="${!hasDoc or isPdf}"
+                                 th:src="${hasDoc and !isPdf} ? @{/shipping/documents/{name}(name=${record.documentStoredName})} : null">
+                            <iframe id="sheetPreviewPdf"
+                                    title="Certificate PDF"
+                                    th:hidden="${!hasDoc or !isPdf}"
+                                    th:src="${hasDoc and isPdf} ? @{/shipping/documents/{name}(name=${record.documentStoredName})} : null"></iframe>
+                        </div>
+                    </aside>
+
+                    <div th:replace="fragments/document-upload-toolbar :: documentUploadToolbar(
+                            'Certificate file',
+                            '',
+                            ${record.documentOriginalName},
+                            'Choose a JPG, PNG, or PDF certificate to upload and preview.')"></div>
+                    </div>
+
+                    <div class="sheet-fields preship-fields">
+                        <article class="panel">
+                            <div class="panel-head"><h2>Document header</h2></div>
+                            <div class="field-grid">
+                                <label>Document no. <input type="text" th:field="*{certificateReference}" id="certificateReference"></label>
+                                <label class="span-2">Document title <input type="text" th:field="*{documentTitle}" id="documentTitle"></label>
+                                <label>Page <input type="text" th:field="*{pageInfo}" id="pageInfo"></label>
+                                <label>Date <input type="text" th:field="*{certificateDate}" id="certificateDate"></label>
+                                <label>BV no. <input type="text" th:field="*{bvNumber}" id="bvNumber"></label>
+                            </div>
+                        </article>
+
+                        <article class="panel">
+                            <div class="panel-head"><h2>Inspection organisation</h2></div>
+                            <div class="field-grid">
+                                <label class="span-2">Name <input type="text" th:field="*{inspectionOrgName}" id="inspectionOrgName"></label>
+                                <label class="span-2">Address
+                                    <textarea th:field="*{inspectionOrgAddress}" id="inspectionOrgAddress" rows="3"></textarea>
+                                </label>
+                                <label>Tel <input type="text" th:field="*{inspectionOrgTel}" id="inspectionOrgTel"></label>
+                                <label>Fax <input type="text" th:field="*{inspectionOrgFax}" id="inspectionOrgFax"></label>
+                                <label class="span-2">Email <input type="text" th:field="*{inspectionOrgEmail}" id="inspectionOrgEmail"></label>
+                                <label class="span-2">Place of inspection <input type="text" th:field="*{placeOfInspection}" id="placeOfInspection"></label>
+                                <label>Date of inspection <input type="text" th:field="*{dateOfInspection}" id="dateOfInspection"></label>
+                            </div>
+                        </article>
+
+                        <article class="panel">
+                            <div class="panel-head"><h2>Applicant</h2></div>
+                            <div class="field-grid">
+                                <label class="span-2">Name <input type="text" th:field="*{applicantName}" id="applicantName"></label>
+                                <label class="span-2">Address
+                                    <textarea th:field="*{applicantAddress}" id="applicantAddress" rows="3"></textarea>
+                                </label>
+                                <label>Tel <input type="text" th:field="*{applicantTel}" id="applicantTel"></label>
+                                <label>Fax <input type="text" th:field="*{applicantFax}" id="applicantFax"></label>
+                                <label class="span-2">Email <input type="text" th:field="*{applicantEmail}" id="applicantEmail"></label>
+                            </div>
+                        </article>
+
+                        <article class="panel">
+                            <div class="panel-head"><h2>Vehicle particulars</h2></div>
+                            <div class="field-grid">
+                                <label>Type of vehicle <input type="text" th:field="*{vehicleType}" id="vehicleType"></label>
+                                <label>Make <input type="text" th:field="*{make}" id="make"></label>
+                                <label>Model <input type="text" th:field="*{model}" id="model"></label>
+                                <label>Commonly called <input type="text" th:field="*{commonName}" id="commonName"></label>
+                                <label>Manufacture grade <input type="text" th:field="*{manufactureGrade}" id="manufactureGrade"></label>
+                                <label>Auction grade <input type="text" th:field="*{preshipAuctionGrade}" id="preshipAuctionGrade"></label>
+                                <label>Body colour <input type="text" th:field="*{bodyColour}" id="bodyColour"></label>
+                                <label>Fuel type <input type="text" th:field="*{fuelType}" id="fuelType"></label>
+                                <label>First registration <input type="text" th:field="*{firstRegistration}" id="firstRegistration"></label>
+                                <label>Inspection mileage <input type="text" th:field="*{inspectionMileage}" id="inspectionMileage"></label>
+                                <label>Engine capacity <input type="text" th:field="*{engineCapacity}" id="engineCapacity"></label>
+                                <label>Chassis no. <input type="text" th:value="*{chassisNo}" id="chassisNoDisplay" readonly class="readonly-field"></label>
+                                <label>Engine no. <input type="text" th:field="*{engineNo}" id="engineNo"></label>
+                                <label>Driving system <input type="text" th:field="*{drivingSystem}" id="drivingSystem"></label>
+                                <label>Accident marks on chassis <input type="text" th:field="*{accidentMarksOnChassis}" id="accidentMarksOnChassis"></label>
+                                <label>Chassis condition <input type="text" th:field="*{chassisCondition}" id="chassisCondition"></label>
+                                <label>Full model no. <input type="text" th:field="*{fullModelNo}" id="fullModelNo"></label>
+                                <label>Year of manufacture <input type="text" th:field="*{yearOfManufacture}" id="yearOfManufacture"></label>
+                            </div>
+                        </article>
+
+                        <button type="submit" class="panel-btn import-form-submit">Save &amp; continue</button>
+                    </div>
+                </div>
+            </form>
+        </main>
+    </div>
+</div>
+
+<div id="sheetViewer" class="sheet-viewer" hidden>
+    <div class="sheet-viewer-toolbar">
+        <strong id="sheetViewerTitle">Pre-shipment certificate</strong>
+        <div class="sheet-viewer-tools">
+            <button type="button" class="panel-btn ghost" id="sheetPrevEmptyField" title="Previous empty field">Prev</button>
+            <button type="button" class="panel-btn ghost" id="sheetZoomOut" title="Zoom out">−</button>
+            <button type="button" class="panel-btn ghost" id="sheetZoomIn" title="Zoom in">+</button>
+            <button type="button" class="panel-btn ghost" id="sheetNextEmptyField" title="Next empty field">Next</button>
+            <button type="button" class="panel-btn ghost" id="sheetViewerClose">Close</button>
+        </div>
+    </div>
+    <div class="sheet-viewer-body" id="sheetViewerBody">
+        <img id="sheetViewerImage" alt="Pre-shipment certificate">
+        <iframe id="sheetViewerPdf" title="Certificate PDF" hidden></iframe>
+    </div>
+</div>
+
+<div id="fillLoader" class="fill-loader" hidden>
+    <div class="fill-loader-card">
+        <img th:src="@{/images/loading.svg}" alt="Loading" width="72" height="72">
+        <p>Reading the certificate and filling fields...</p>
+    </div>
+</div>
+
+<script th:src="@{/js/app.js(v=20260822o)}"></script>
+<script th:src="@{/js/document-viewer.js(v=20260826d)}"></script>
+<script th:src="@{/js/preshipment.js(v=20260826d)}"></script>
+</body>
+</html>

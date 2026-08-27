@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<header th:fragment="topbar" class="topbar">
+    <button type="button" class="icon-btn sidebar-toggle" id="sidebarToggle" aria-label="Toggle menu">
+        <i class="fa-solid fa-bars"></i>
+    </button>
+
+    <div class="topbar-actions">
+        <div class="dropdown" data-dropdown>
+            <button type="button" class="icon-btn notify-btn" data-dropdown-trigger aria-label="Notifications">
+                <i class="fa-regular fa-bell"></i>
+                <span class="badge">5</span>
+            </button>
+            <div class="dropdown-panel notify-panel">
+                <div class="dropdown-head">
+                    <strong>Notifications</strong>
+                    <span>5 new</span>
+                </div>
+                <a href="#"><i class="fa-solid fa-gavel"></i> Aqua 2018 won at USS Tokyo</a>
+                <a href="#"><i class="fa-solid fa-ship"></i> Vessel MOL Treasure departed</a>
+                <a href="#"><i class="fa-solid fa-passport"></i> Customs hold on X-Trail</a>
+                <a href="#"><i class="fa-solid fa-wrench"></i> Fit hybrid ready for QC</a>
+                <a href="#"><i class="fa-solid fa-user"></i> New inquiry from Saman</a>
+            </div>
+        </div>
+
+        <div class="dropdown" data-dropdown>
+            <button type="button" class="user-chip" data-dropdown-trigger>
+                <span class="avatar" th:text="${#strings.substring(#authentication.principal.fullName,0,1)}">G</span>
+                <span class="user-meta">
+                    <strong sec:authentication="principal.fullName">Gihan</strong>
+                    <small>
+                        <th:block th:each="role, iter : ${#authentication.principal.user.roles}">
+                            <span th:text="${role.name.displayName}">Admin</span><th:block th:if="${!iter.last}"> · </th:block>
+                        </th:block>
+                    </small>
+                </span>
+                <i class="fa-solid fa-chevron-down"></i>
+            </button>
+            <div class="dropdown-panel user-panel">
+                <a th:href="@{/profile}"><i class="fa-regular fa-user"></i> Profile</a>
+                <a th:href="@{/settings}" sec:authorize="hasAnyRole('ADMIN','SUPER_ADMIN')">
+                    <i class="fa-solid fa-gear"></i> Settings
+                </a>
+                <form th:action="@{/logout}" method="post">
+                    <button type="submit"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</header>
+</html>

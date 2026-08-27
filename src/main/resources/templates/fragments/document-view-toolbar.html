@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!-- Read-only document bar for import view pages: Preview · Edit -->
+<div th:fragment="documentViewToolbar(title, fileName, previewUrl, editUrl)"
+     class="doc-upload-toolbar panel doc-view-toolbar">
+    <div class="doc-upload-toolbar-copy">
+        <strong th:text="${title}">Document file</strong>
+        <p th:text="${fileName != null and !#strings.isEmpty(fileName) ? fileName : 'No file uploaded yet'}">No file uploaded yet</p>
+    </div>
+    <div class="doc-upload-toolbar-actions">
+        <a th:if="${editUrl != null}" th:href="${editUrl}" class="panel-btn auto-fill-btn doc-view-edit-btn">
+            <i class="fa-solid fa-pen"></i>
+            Edit
+        </a>
+        <a th:if="${previewUrl != null and !#strings.isEmpty(previewUrl)}"
+           th:href="${previewUrl}"
+           target="_blank"
+           rel="noopener"
+           class="panel-btn ghost">
+            <i class="fa-solid fa-expand"></i>
+            Preview
+        </a>
+    </div>
+    <p class="upload-status ok"
+       th:if="${fileName != null and !#strings.isEmpty(fileName)}">
+        Document on file. Preview it or edit to update.
+    </p>
+    <p class="upload-status"
+       th:unless="${fileName != null and !#strings.isEmpty(fileName)}">
+        No document uploaded for this stage yet.
+    </p>
+</div>
+
+</body>
+</html>

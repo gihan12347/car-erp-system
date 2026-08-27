@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="en">
+<head th:replace="fragments/head :: head(${pageTitle})"></head>
+<body>
+<div class="app-shell">
+    <aside th:replace="fragments/sidebar :: sidebar(${activeMenu})"></aside>
+    <div class="app-main">
+        <header th:replace="fragments/topbar :: topbar"></header>
+        <main class="page-content">
+            <div class="page-intro">
+                <div>
+                    <p class="eyebrow">Administration</p>
+                    <h1>Settings</h1>
+                </div>
+            </div>
+            <section class="split-grid">
+                <article class="panel">
+                    <div class="panel-head"><h2>Access</h2></div>
+                    <p class="muted">Settings is limited to Admin and Super Admin. A user can hold more than one role.</p>
+                    <ul class="role-list">
+                        <li><strong>User</strong> — daily operations across the pipeline</li>
+                        <li><strong>Admin</strong> — finance, reports, and workspace settings</li>
+                        <li><strong>Super Admin</strong> — full control, including H2 console</li>
+                    </ul>
+                </article>
+                <article class="panel">
+                    <div class="panel-head"><h2>Your roles</h2></div>
+                    <div class="role-badges">
+                        <span class="pill rust" th:each="role : ${#authentication.principal.user.roles}"
+                              th:text="${role.name.displayName}">Admin</span>
+                    </div>
+                </article>
+            </section>
+        </main>
+    </div>
+</div>
+<script th:src="@{/js/app.js(v=20260818g)}"></script>
+</body>
+</html>

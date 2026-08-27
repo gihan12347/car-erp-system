@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="fragments/head :: head(${pageTitle})"></head>
+<body>
+<div class="app-shell">
+    <aside th:replace="fragments/sidebar :: sidebar(${activeMenu})"></aside>
+    <div class="app-main">
+        <header th:replace="fragments/topbar :: topbar"></header>
+        <main class="page-content">
+            <div class="dash-head">
+                <div>
+                    <h1>Pre-shipment</h1>
+                    <p class="form-lead">Step 2 of the import pipeline — Bureau Veritas export certificates. Open any lot when ready; order does not matter. When import is complete, continue to customs clearance.</p>
+                </div>
+                <a th:href="@{/auction}" class="panel-btn ghost">Auction lots</a>
+            </div>
+
+            <form method="get" th:action="@{/shipping}" class="auction-search">
+                <div class="auction-search-field">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="search"
+                           name="q"
+                           th:value="${searchQuery}"
+                           placeholder="Search chassis, model, lot, stock, model code...">
+                </div>
+                <button type="submit" class="panel-btn auction-search-btn">Search</button>
+                <a th:if="${searchQuery != null and !#strings.isEmpty(searchQuery)}"
+                   th:href="@{/shipping}"
+                   class="panel-btn ghost auction-search-btn">Clear</a>
+            </form>
+
+            <article class="panel">
+                <div class="table-wrap" th:if="${!rows.isEmpty()}">
+                    <table>
+                        <thead>
+                        <tr>
+                            <th>Chassis</th>
+                            <th>Stock</th>
+                            <th>Vehicle</th>
+                            <th>Auction lot</th>
+                            <th>Stage</th>
+                            <th>Pre-shipment</th>
+                            <th>Actions</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="row : ${rows}">
+                            <td><strong th:text="${row.vehicle.chassisNo}">TRJ250-0025161</strong></td>
+                            <td th:text="${row.vehicle.stockNo}">V001</td>
+                            <td>
+                                <strong th:text="${row.vehicle.model != null and row.vehicle.make != null and row.vehicle.model.startsWith(row.vehicle.make)} ? ${row.vehicle.model} : |${row.vehicle.make} ${row.vehicle.model}|">Toyota Land Cruiser</strong>
+                                <div class="muted" th:text="${row.vehicle.grade}">-</div>
+                            </td>
+                            <td th:text="${row.vehicle.lotNo}">-</td>
+                            <td><em class="pill leaf" th:text="${row.vehicle.stage.displayName}">Purchased</em></td>
+                            <td>
+                                <em th:if="${row.preShipmentReady}" class="pill sea">Ready</em>
+                                <em th:unless="${row.preShipmentReady}" class="pill muted-pill">Pending</em>
+                            </td>
+                            <td>
+                                <div class="table-row-actions">
+                                    <a th:href="@{/shipping/{chassisNo}(chassisNo=${row.vehicle.chassisNo})}"
+                                       class="table-btn edit" th:title="${row.preShipmentReady} ? 'View certificate' : 'Prepare certificate'">
+                                        <i class="fa-solid" th:classappend="${row.preShipmentReady} ? ' fa-eye' : ' fa-file-circle-plus'"></i>
+                                        <span th:text="${row.preShipmentReady} ? 'View' : 'Prepare'">Prepare</span>
+                                    </a>
+                                    <a th:href="@{/auction/{chassisNo}(chassisNo=${row.vehicle.chassisNo})}" class="table-btn view" title="Auction lot">
+                                        <i class="fa-solid fa-gavel"></i>
+                                        <span>Lot</span>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p class="muted" th:if="${rows.isEmpty()}">
+                    <span th:if="${searchQuery != null and !#strings.isEmpty(searchQuery)}">No vehicles matched your search.</span>
+                    <span th:if="${searchQuery == null or #strings.isEmpty(searchQuery)}">No auction lots yet. Add a lot first, then prepare its pre-shipment certificate here.</span>
+                </p>
+            </article>
+        </main>
+    </div>
+</div>
+<script th:src="@{/js/app.js(v=20260821d)}"></script>
+</body>
+</html>

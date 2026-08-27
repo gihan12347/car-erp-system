@@ -1,0 +1,65 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: car-sale-erp-system
+  datasource:
+    url: jdbc:mysql://localhost:3306/car-sale-erp?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: root
+    password: ${MYSQL_PASSWORD:}
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.MySQL8Dialect
+  thymeleaf:
+    cache: false
+  servlet:
+    multipart:
+      max-file-size: 15MB
+      max-request-size: 15MB
+
+app:
+  ocr:
+    ocrspace:
+      # Free key: register at https://ocr.space/ocrapi/freekey (25k requests/month).
+      apiKey: ${OCR_SPACE_API_KEY:K81607309088957}
+      apiUrl: https://api.ocr.space/parse/image
+      language: jpn
+      engine: 2
+      maxImageSide: 2200
+      pdfRenderDpi: 220
+      maxUploadBytes: 1440000
+    preship:
+      language: eng
+    clearance:
+      language: eng
+    equipment:
+      language: eng
+
+  documents:
+    uploadDir: ${APP_DOCUMENTS_DIR:uploads/auction-sheets}
+    preshipUploadDir: ${APP_PRESHIP_DOCUMENTS_DIR:uploads/pre-shipment-docs}
+    clearanceUploadDir: ${APP_CLEARANCE_DOCUMENTS_DIR:uploads/clearance-docs}
+    equipmentUploadDir: ${APP_EQUIPMENT_DOCUMENTS_DIR:uploads/equipment-docs}
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      ocrSpace:
+        slidingWindowType: COUNT_BASED
+        slidingWindowSize: 3
+        minimumNumberOfCalls: 3
+        failureRateThreshold: 100
+        waitDurationInOpenState: 60s
+        permittedNumberOfCallsInHalfOpenState: 1
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+        recordExceptions:
+          - org.springframework.web.client.RestClientException
+        ignoreExceptions:
+          - java.io.IOException

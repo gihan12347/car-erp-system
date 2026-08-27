@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="fragments/head :: head(${pageTitle})"></head>
+<body>
+<div class="app-shell">
+    <aside th:replace="fragments/sidebar :: sidebar(${activeMenu})"></aside>
+    <div class="app-main">
+        <header th:replace="fragments/topbar :: topbar"></header>
+        <main class="page-content">
+            <article class="empty-module">
+                <div class="empty-icon"><i class="fa-solid" th:classappend="${pageIcon}"></i></div>
+                <h1 th:text="${pageTitle}">Module</h1>
+                <p th:text="${pageDescription}">Module description</p>
+                <span class="hint">This workspace is ready. Records and workflows can be added next.</span>
+            </article>
+        </main>
+    </div>
+</div>
+<script th:src="@{/js/app.js(v=20260818g)}"></script>
+</body>
+</html>

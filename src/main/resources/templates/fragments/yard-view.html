@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<section th:fragment="yardView(vehicle, yard, yardReady)" class="prep-view-stage">
+    <div class="panel import-view-empty" th:if="${yard == null}">
+        <i class="fa-solid fa-warehouse"></i>
+        <strong>No yard record yet</strong>
+        <p>Assign a bay, record keys, and complete the yard inspection.</p>
+        <div class="import-view-actions">
+            <a th:if="${stageNav != null and stageNav.prevUrl != null}"
+               th:href="${stageNav.prevUrl}"
+               class="panel-btn ghost import-form-submit">
+                <i class="fa-solid fa-chevron-left"></i>
+                Previous · Workshop
+            </a>
+            <a th:href="@{/yard/{c}(c=${vehicle.chassisNo})}" class="panel-btn import-form-submit">Start yard record</a>
+            <a th:if="${stageNav != null and stageNav.nextUrl != null}"
+               th:href="${stageNav.nextUrl}"
+               class="panel-btn ghost import-form-submit">
+                <span th:text="${stageNav.nextLabel}">Next · Ready for sale pipeline</span>
+                <i class="fa-solid fa-chevron-right"></i>
+            </a>
+        </div>
+    </div>
+
+    <div th:unless="${yard == null}">
+        <article class="panel">
+            <div class="panel-head"><h2>Location</h2></div>
+            <div class="field-grid">
+                <label>Bay no. <input type="text" th:value="${yard.bayNo}" readonly class="readonly-field"></label>
+                <label>Yard section <input type="text" th:value="${yard.yardSection}" readonly class="readonly-field"></label>
+                <label>Arrival date <input type="text" th:value="${yard.arrivalDate}" readonly class="readonly-field"></label>
+                <label>Keys location <input type="text" th:value="${yard.keysLocation}" readonly class="readonly-field"></label>
+            </div>
+        </article>
+        <article class="panel">
+            <div class="panel-head"><h2>Inspection</h2></div>
+            <div class="field-grid">
+                <label>Status <input type="text" th:value="${yard.inspectionStatus}" readonly class="readonly-field"></label>
+                <label>Inspector <input type="text" th:value="${yard.inspector}" readonly class="readonly-field"></label>
+                <label>Inspection date <input type="text" th:value="${yard.inspectionDate}" readonly class="readonly-field"></label>
+                <label class="span-2">Condition notes
+                    <textarea th:text="${yard.conditionNotes}" readonly class="readonly-field" rows="3"></textarea>
+                </label>
+                <label class="span-2">Notes
+                    <textarea th:text="${yard.notes}" readonly class="readonly-field" rows="3"></textarea>
+                </label>
+            </div>
+        </article>
+        <div class="import-view-actions">
+            <a th:if="${stageNav != null and stageNav.prevUrl != null}"
+               th:href="${stageNav.prevUrl}"
+               class="panel-btn ghost import-form-submit">
+                <i class="fa-solid fa-chevron-left"></i>
+                Previous · Workshop
+            </a>
+            <a th:href="@{/yard/{c}(c=${vehicle.chassisNo})}" class="panel-btn ghost import-form-submit">Edit yard</a>
+            <a th:if="${stageNav != null and stageNav.nextUrl != null}"
+               th:href="${stageNav.nextUrl}"
+               class="panel-btn import-form-submit">
+                <span th:text="${stageNav.nextLabel}">Next · Ready for sale pipeline</span>
+                <i class="fa-solid fa-chevron-right"></i>
+            </a>
+        </div>
+    </div>
+</section>
+
+</body>
+</html>

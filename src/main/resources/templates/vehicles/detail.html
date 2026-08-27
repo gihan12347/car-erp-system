@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en"
+      th:with="pipelineStep=${stageKey == 'preshipment' ? 'preshipment' : (stageKey == 'equipment' ? 'equipment' : 'auction')}">
+<head th:replace="fragments/head :: head(${pageTitle})"></head>
+<body class="sheet-page import-form-page import-view-page">
+<div class="app-shell">
+    <aside th:replace="fragments/sidebar :: sidebar(${activeMenu})"></aside>
+    <div class="app-main">
+        <header th:replace="fragments/topbar :: topbar"></header>
+        <main class="page-content">
+            <p th:if="${notice}" class="alert alert-warn" th:text="${notice}"></p>
+
+            <div class="dash-head">
+                <div>
+                    <h1 th:if="${stageKey == 'auction'}">Auction lot</h1>
+                    <h1 th:if="${stageKey == 'preshipment'}">Pre-shipment certificate</h1>
+                    <h1 th:if="${stageKey == 'equipment'}">Equipment condition</h1>
+                    <p class="form-lead" th:if="${stageKey == 'auction'}">Review saved auction sheet data and vehicle specifications.</p>
+                    <p class="form-lead" th:if="${stageKey == 'preshipment'}">Review the Bureau Veritas pre-shipment certificate and inspection details.</p>
+                    <p class="form-lead" th:if="${stageKey == 'equipment'}">Review interior, exterior, and safety equipment captured from the inspection sheet.</p>
+                </div>
+                <div th:replace="fragments/pipeline-delete :: pipelineDeleteBtn(
+                        @{/import/{c}/delete(c=${vehicle.chassisNo})},
+                        'Delete this vehicle and all later pipeline data? This cannot be undone.')"></div>
+            </div>
+
+            <div th:replace="fragments/import-pipeline :: importPipelineSteps(
+                    ${pipelineStep},
+                    ${vehicle.chassisNo},
+                    ${auctionDocReady},
+                    ${preShipmentReady},
+                    ${equipmentReady},
+                    ${vehicle.model},
+                    false,
+                    true)"></div>
+
+            <div class="vehicle-form" th:if="${stageKey == 'auction'}">
+                <div th:replace="fragments/import-view-stage-auction :: importViewStageAuction(${vehicle}, ${auctionDocReady})"></div>
+            </div>
+            <div class="vehicle-form" th:if="${stageKey == 'preshipment'}">
+                <div th:replace="fragments/import-view-stage-preship :: importViewStagePreship(${vehicle}, ${preShipment}, ${preShipmentReady})"></div>
+            </div>
+            <div class="vehicle-form" th:if="${stageKey == 'equipment'}">
+                <div th:replace="fragments/import-view-stage-equipment :: importViewStageEquipment(${vehicle}, ${equipmentInspection}, ${equipmentReady})"></div>
+            </div>
+
+            <article class="panel import-next-pipeline" th:if="${importComplete}">
+                <div class="panel-head">
+                    <h2>Next pipeline</h2>
+                    <em class="pill muted-pill" th:text="${vehicle.stage.displayName}">Customs</em>
+                </div>
+                <p class="form-lead">Import is complete. Continue with the customs clearance pipeline, then the preparation pipeline.</p>
+                <div class="import-view-actions">
+                    <a th:href="@{/customs/{c}(c=${vehicle.chassisNo})}" class="panel-btn import-form-submit">
+                        Open customs clearance pipeline
+                    </a>
+                    <a th:href="@{/workshop-yard}" class="panel-btn ghost import-form-submit">Preparation pipeline</a>
+                </div>
+            </article>
+        </main>
+    </div>
+</div>
+<div th:replace="fragments/document-viewer :: documentViewer"></div>
+<script th:src="@{/js/app.js(v=20260821e)}"></script>
+<script th:src="@{/js/document-viewer.js(v=20260826d)}"></script>
+</body>
+</html>

@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!-- Reusable document upload toolbar: Choose file · Auto fill · Preview -->
+<div th:fragment="documentUploadToolbar(title, idSuffix, initialFileName, statusText)"
+     class="doc-upload-toolbar panel">
+    <div class="doc-upload-toolbar-copy">
+        <strong th:text="${title}">Document file</strong>
+        <p th:id="|sheetFileName${idSuffix}|"
+           th:text="${initialFileName != null and !#strings.isEmpty(initialFileName) ? initialFileName : 'No file chosen yet'}">No file chosen yet</p>
+    </div>
+    <div class="doc-upload-toolbar-actions">
+        <label th:for="|sheetFile${idSuffix}|"
+               class="panel-btn upload-file-btn"
+               th:id="|uploadLabel${idSuffix}|">
+            <i class="fa-solid fa-cloud-arrow-up"></i>
+            Choose file
+        </label>
+        <input type="file"
+               th:id="|sheetFile${idSuffix}|"
+               accept="image/*,.pdf"
+               class="visually-hidden-file">
+        <button type="button" class="panel-btn auto-fill-btn"
+                th:id="|autoFillBtn${idSuffix}|"
+                disabled>
+            <i class="fa-solid fa-wand-magic-sparkles"></i>
+            Auto fill
+        </button>
+        <button type="button" class="panel-btn ghost"
+                th:id="|previewSheetBtn${idSuffix}|"
+                disabled>
+            <i class="fa-solid fa-expand"></i>
+            Preview
+        </button>
+    </div>
+    <p class="upload-status"
+       th:id="|uploadStatus${idSuffix}|"
+       th:text="${statusText}">Choose a JPG, PNG, or PDF to upload and preview.</p>
+</div>
+
+</body>
+</html>

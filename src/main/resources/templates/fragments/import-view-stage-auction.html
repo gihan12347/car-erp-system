@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<section th:fragment="importViewStageAuction(vehicle, auctionDocReady)"
+         class="import-view-stage"
+         th:with="previewUrl=${auctionDocReady ? '/auction/documents/' + vehicle.sheetStoredName : null}">
+    <div class="sheet-layout" th:if="${auctionDocReady}">
+        <div class="sheet-document-col">
+        <aside class="panel sheet-document has-file">
+            <div class="panel-head"><h2>Document preview</h2></div>
+            <div class="sheet-preview-frame">
+                <img th:if="${!(vehicle.sheetContentType != null and #strings.contains(vehicle.sheetContentType, 'pdf')) and !(vehicle.sheetStoredName != null and #strings.endsWith(vehicle.sheetStoredName, '.pdf'))}"
+                     th:src="@{/auction/documents/{name}(name=${vehicle.sheetStoredName})}"
+                     alt="Auction sheet preview">
+                <iframe th:if="${(vehicle.sheetContentType != null and #strings.contains(vehicle.sheetContentType, 'pdf')) or (vehicle.sheetStoredName != null and #strings.endsWith(vehicle.sheetStoredName, '.pdf'))}"
+                        th:src="@{/auction/documents/{name}(name=${vehicle.sheetStoredName})}"
+                        title="Auction sheet PDF"></iframe>
+            </div>
+        </aside>
+
+        <div th:replace="fragments/document-view-toolbar :: documentViewToolbar(
+                'Auction sheet',
+                ${vehicle.sheetOriginalName},
+                ${previewUrl},
+                ${stageNav != null ? stageNav.editUrl : null})"></div>
+        </div>
+
+        <div class="sheet-fields">
+            <article class="panel">
+                <div class="panel-head"><h2>Vehicle basic information</h2></div>
+                <div class="field-grid">
+                    <label>Chassis number <input type="text" th:value="${vehicle.chassisNo}" readonly class="readonly-field"></label>
+                    <label>Auction lot no. <input type="text" th:value="${vehicle.lotNo}" readonly class="readonly-field"></label>
+                    <label>First registration <input type="text" th:value="${vehicle.year}" readonly class="readonly-field"></label>
+                    <label>Vehicle name <input type="text" th:value="${vehicle.model}" readonly class="readonly-field"></label>
+                    <label>Body type <input type="text" th:value="${vehicle.bodyStyle}" readonly class="readonly-field"></label>
+                    <label>Grade <input type="text" th:value="${vehicle.grade}" readonly class="readonly-field"></label>
+                    <label>Overall auction grade <input type="text" th:value="${vehicle.auctionGrade}" readonly class="readonly-field"></label>
+                    <label>Exterior grade <input type="text" th:value="${vehicle.exteriorGrade}" readonly class="readonly-field"></label>
+                    <label>Interior grade <input type="text" th:value="${vehicle.interiorGrade}" readonly class="readonly-field"></label>
+                </div>
+            </article>
+            <article class="panel">
+                <div class="panel-head"><h2>Vehicle specifications</h2></div>
+                <div class="field-grid">
+                    <label>Mileage <input type="text" th:value="${vehicle.mileage}" readonly class="readonly-field"></label>
+                    <label>Vehicle history <input type="text" th:value="${vehicle.history}" readonly class="readonly-field"></label>
+                    <label>Engine capacity <input type="text" th:value="${vehicle.engineSize}" readonly class="readonly-field"></label>
+                    <label>Fuel type <input type="text" th:value="${vehicle.fuel}" readonly class="readonly-field"></label>
+                    <label>Model / type <input type="text" th:value="${vehicle.modelCode}" readonly class="readonly-field"></label>
+                    <label>Seating capacity <input type="text" th:value="${vehicle.seats}" readonly class="readonly-field"></label>
+                    <label>Exterior color <input type="text" th:value="${vehicle.color}" readonly class="readonly-field"></label>
+                    <label>Color code <input type="text" th:value="${vehicle.colorCode}" readonly class="readonly-field"></label>
+                    <label>Length <input type="text" th:value="${vehicle.lengthCm}" readonly class="readonly-field"></label>
+                    <label>Width <input type="text" th:value="${vehicle.widthCm}" readonly class="readonly-field"></label>
+                    <label>Height <input type="text" th:value="${vehicle.heightCm}" readonly class="readonly-field"></label>
+                </div>
+            </article>
+            <article class="panel">
+                <div class="panel-head"><h2>Transmission / air conditioning</h2></div>
+                <div class="field-grid">
+                    <label>Transmission <input type="text" th:value="${vehicle.transmission}" readonly class="readonly-field"></label>
+                    <label>Air conditioning <input type="text" th:value="${vehicle.acType}" readonly class="readonly-field"></label>
+                </div>
+            </article>
+        </div>
+    </div>
+
+    <div class="import-view-actions" th:if="${auctionDocReady}">
+        <a th:if="${stageNav != null and stageNav.editUrl != null}"
+           th:href="${stageNav.editUrl}"
+           class="panel-btn import-form-submit">Edit auction lot</a>
+        <a th:if="${stageNav != null and stageNav.nextUrl != null}"
+           th:href="${stageNav.nextUrl}"
+           class="panel-btn ghost import-form-submit"
+           th:text="${stageNav.nextLabel}">Continue</a>
+    </div>
+
+    <div class="panel import-view-empty" th:unless="${auctionDocReady}">
+        <i class="fa-solid fa-file-circle-plus"></i>
+        <strong>No auction sheet linked yet</strong>
+        <p>Upload the Japanese auction sheet to view and edit vehicle details.</p>
+        <a th:if="${stageNav != null and stageNav.editUrl != null}"
+           th:href="${stageNav.editUrl}"
+           class="panel-btn">Upload &amp; complete</a>
+    </div>
+</section>
+
+</body>
+</html>
