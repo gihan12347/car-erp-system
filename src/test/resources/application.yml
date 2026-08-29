@@ -11,4 +11,5 @@ spring:
 
 app:
   ocr:
+    provider: ocrspace
     language: jpn+eng

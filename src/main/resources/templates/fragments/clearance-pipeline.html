@@ -31,7 +31,9 @@
         th:style="'grid-template-columns: repeat(' + (${orderedKeys.size()} + (${showPrep} ? 1 : 0)) + ', minmax(0, 1fr))'">
         <th:block th:each="key, iter : ${orderedKeys}">
             <li th:if="${key == 'jevic'}"
-                th:classappend="${((currentStep == 'jevic' or currentStep == 'clearance') ? ' is-current' : '') + (jevicReady ? ' is-done' : ' is-pending')}">
+                data-clearance-step="jevic"
+                th:attr="data-step-count=${iter.count}"
+                th:classappend="${(currentStep == 'jevic' ? ' is-current' : '') + (jevicReady ? ' is-done' : ' is-pending')}">
                 <a th:if="${isView}"
                    th:href="@{/customs/{chassisNo}(chassisNo=${chassisNo}, stage=${iter.index})}"
                    class="import-pipeline-step">
@@ -47,7 +49,8 @@
                     </span>
                 </a>
                 <a th:unless="${isView}"
-                   th:href="@{/customs/{chassisNo}/edit(chassisNo=${chassisNo})}"
+                   th:href="@{/customs/{chassisNo}/edit(chassisNo=${chassisNo}, tab=1)}"
+                   data-tab-goto="1"
                    class="import-pipeline-step">
                     <span class="import-pipeline-step-icon">
                         <i th:if="${jevicReady}" class="fa-solid fa-check"></i>
@@ -62,7 +65,9 @@
                 </a>
             </li>
             <li th:if="${key == 'declaration'}"
-                th:classappend="${((currentStep == 'declaration' or currentStep == 'clearance') ? ' is-current' : '') + (declarationReady ? ' is-done' : ' is-pending')}">
+                data-clearance-step="declaration"
+                th:attr="data-step-count=${iter.count}"
+                th:classappend="${(currentStep == 'declaration' ? ' is-current' : '') + (declarationReady ? ' is-done' : ' is-pending')}">
                 <a th:if="${isView}"
                    th:href="@{/customs/{chassisNo}(chassisNo=${chassisNo}, stage=${iter.index})}"
                    class="import-pipeline-step">
@@ -79,6 +84,7 @@
                 </a>
                 <a th:unless="${isView}"
                    th:href="@{/customs/{chassisNo}/edit(chassisNo=${chassisNo}, tab=2)}"
+                   data-tab-goto="2"
                    class="import-pipeline-step">
                     <span class="import-pipeline-step-icon">
                         <i th:if="${declarationReady}" class="fa-solid fa-check"></i>
@@ -93,7 +99,9 @@
                 </a>
             </li>
             <li th:if="${key == 'assessment'}"
-                th:classappend="${((currentStep == 'assessment' or currentStep == 'clearance') ? ' is-current' : '') + (assessmentReady ? ' is-done' : ' is-pending')}">
+                data-clearance-step="assessment"
+                th:attr="data-step-count=${iter.count}"
+                th:classappend="${(currentStep == 'assessment' ? ' is-current' : '') + (assessmentReady ? ' is-done' : ' is-pending')}">
                 <a th:if="${isView}"
                    th:href="@{/customs/{chassisNo}(chassisNo=${chassisNo}, stage=${iter.index})}"
                    class="import-pipeline-step">
@@ -110,6 +118,7 @@
                 </a>
                 <a th:unless="${isView}"
                    th:href="@{/customs/{chassisNo}/edit(chassisNo=${chassisNo}, tab=3)}"
+                   data-tab-goto="3"
                    class="import-pipeline-step">
                     <span class="import-pipeline-step-icon">
                         <i th:if="${assessmentReady}" class="fa-solid fa-check"></i>
@@ -143,7 +152,7 @@
 
     <p class="import-pipeline-note" th:if="${!clearanceComplete}">
         <i class="fa-solid fa-circle-info"></i>
-        Upload JEVIC, the customs declaration, and the assessment notice in either order. This pipeline is complete when all three documents are saved.
+        Work through steps in any order. Each document saves independently.
     </p>
 </nav>
 

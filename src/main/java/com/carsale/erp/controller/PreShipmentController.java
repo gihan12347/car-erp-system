@@ -180,8 +180,11 @@ public class PreShipmentController {
 
     @PostMapping("/parse-document")
     @ResponseBody
-    public AuctionParseResult parseDocument(@RequestParam("file") MultipartFile file) {
-        return ocrService.parseDocument(file);
+    public AuctionParseResult parseDocument(
+            @RequestParam("file") MultipartFile file,
+            @RequestParam(value = "provider", required = false) String provider
+    ) {
+        return ocrService.parseDocument(file, provider);
     }
 
     @PostMapping("/{chassisNo}")

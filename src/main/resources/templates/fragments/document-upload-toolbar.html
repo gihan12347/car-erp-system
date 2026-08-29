@@ -3,8 +3,9 @@
 <body>
 
 <!-- Reusable document upload toolbar: Choose file · Auto fill · Preview -->
-<div th:fragment="documentUploadToolbar(title, idSuffix, initialFileName, statusText)"
-     class="doc-upload-toolbar panel">
+<div th:fragment="documentUploadToolbar(title, idSuffix, initialFileName, statusText, defaultProvider)"
+     class="doc-upload-toolbar panel"
+     th:with="ocrDefault=${defaultProvider != null and defaultProvider == 'google' ? 'google' : 'ocrspace'}">
     <div class="doc-upload-toolbar-copy">
         <strong th:text="${title}">Document file</strong>
         <p th:id="|sheetFileName${idSuffix}|"
@@ -33,6 +34,40 @@
             <i class="fa-solid fa-expand"></i>
             Preview
         </button>
+    </div>
+    <div class="ocr-lang-banner" role="note">
+        <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+        <p>
+            <strong>Google Cloud Vision</strong> is suitable for Japanese language.
+            <strong>OCR.space</strong> is suitable for English language.
+        </p>
+    </div>
+    <div class="ocr-autofill-tools">
+        <div class="ocr-model-picker"
+             th:id="|ocrModelPicker${idSuffix}|"
+             th:attr="data-ocr-provider=${ocrDefault}"
+             role="group"
+             aria-label="OCR model for auto fill">
+            <span class="ocr-model-label">OCR model</span>
+            <div class="ocr-model-btns">
+                <button type="button"
+                        class="ocr-model-btn"
+                        data-provider="google"
+                        th:classappend="${ocrDefault == 'google'} ? ' is-selected'"
+                        th:attr="aria-pressed=${ocrDefault == 'google'}">
+                    <i class="fa-solid fa-cloud"></i>
+                    Google Cloud Vision
+                </button>
+                <button type="button"
+                        class="ocr-model-btn"
+                        data-provider="ocrspace"
+                        th:classappend="${ocrDefault == 'ocrspace'} ? ' is-selected'"
+                        th:attr="aria-pressed=${ocrDefault == 'ocrspace'}">
+                    <i class="fa-solid fa-language"></i>
+                    OCR.space
+                </button>
+            </div>
+        </div>
     </div>
     <p class="upload-status"
        th:id="|uploadStatus${idSuffix}|"

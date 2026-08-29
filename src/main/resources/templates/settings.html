@@ -13,6 +13,9 @@
                     <h1>Settings</h1>
                 </div>
             </div>
+            <p th:if="${successMessage}" class="alert alert-ok" th:text="${successMessage}"></p>
+            <p th:if="${notice}" class="alert alert-warn" th:text="${notice}"></p>
+            <p th:if="${errorMessage}" class="alert alert-error" th:text="${errorMessage}"></p>
             <section class="split-grid">
                 <article class="panel">
                     <div class="panel-head"><h2>Access</h2></div>
@@ -25,15 +28,18 @@
                 </article>
                 <article class="panel">
                     <div class="panel-head"><h2>Your roles</h2></div>
+                    <p class="muted">Roles attached to the signed-in account.</p>
                     <div class="role-badges">
                         <span class="pill rust" th:each="role : ${#authentication.principal.user.roles}"
                               th:text="${role.name.displayName}">Admin</span>
                     </div>
+                    <div class="panel-head ocr-roles-head"><h2>Document OCR</h2></div>
+                    <p class="muted">Choose Google Cloud Vision or OCR.space next to Auto fill when you upload a document. Japanese sheets usually read better with Google Cloud Vision; English documents usually read better with OCR.space.</p>
                 </article>
             </section>
         </main>
     </div>
 </div>
-<script th:src="@{/js/app.js(v=20260818g)}"></script>
+<script th:src="@{/js/app.js(v=20260829a)}"></script>
 </body>
 </html>

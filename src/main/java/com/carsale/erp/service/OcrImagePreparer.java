@@ -28,32 +28,36 @@ public class OcrImagePreparer {
 
     private final int maxImageSide;
     private final int pdfRenderDpi;
-    private final long maxUploadBytes;
+    private final OcrClientRouter ocrClients;
 
     public OcrImagePreparer(
+            OcrClientRouter ocrClients,
             @Value("${app.ocr.ocrspace.maxImageSide:2200}") int maxImageSide,
-            @Value("${app.ocr.ocrspace.pdfRenderDpi:220}") int pdfRenderDpi,
-            @Value("${app.ocr.ocrspace.maxUploadBytes:1440000}") long maxUploadBytes
+            @Value("${app.ocr.ocrspace.pdfRenderDpi:220}") int pdfRenderDpi
     ) {
+        this.ocrClients = ocrClients;
         this.maxImageSide = maxImageSide > 0 ? maxImageSide : 2200;
         this.pdfRenderDpi = pdfRenderDpi > 0 ? pdfRenderDpi : 220;
-        this.maxUploadBytes = maxUploadBytes > 0 ? maxUploadBytes : 1440000L;
     }
 
-    public String readDocumentText(File file, String originalName, OcrSpaceClient ocrSpaceClient, String language)
-            throws Exception {
+    public String readDocumentText(File file, String originalName, String language) throws Exception {
+        return readDocumentText(file, originalName, language, null);
+    }
+
+    public String readDocumentText(File file, String originalName, String language, String provider) throws Exception {
+        OcrClient client = ocrClients.clientFor(provider);
         String name = originalName == null ? "" : originalName.toLowerCase();
         if (name.endsWith(".pdf")) {
-            log.info("Cloud OCR for PDF document: {}", originalName);
+            log.info("Cloud OCR ({}) for PDF document: {}", client.displayName(), originalName);
             StringBuilder text = new StringBuilder();
             try (PDDocument document = PDDocument.load(file)) {
                 PDFRenderer renderer = new PDFRenderer(document);
                 int pages = Math.min(document.getNumberOfPages(), 3);
                 for (int i = 0; i < pages; i++) {
                     BufferedImage image = prepare(renderer.renderImageWithDPI(i, pdfRenderDpi));
-                    File imageTemp = writeUploadImage(image, "doc-page-");
+                    File imageTemp = writeUploadImage(image, "doc-page-", client);
                     try {
-                        text.append(ocrSpaceClient.recognize(imageTemp, language)).append('\n');
+                        text.append(client.recognize(imageTemp, language)).append('\n');
                     } finally {
                         tryDelete(imageTemp);
                     }
@@ -66,9 +70,9 @@ public class OcrImagePreparer {
         if (image == null) {
             throw new IOException("Unsupported image format.");
         }
-        File imageTemp = writeUploadImage(prepare(image), "doc-");
+        File imageTemp = writeUploadImage(prepare(image), "doc-", client);
         try {
-            return ocrSpaceClient.recognize(imageTemp, language);
+            return client.recognize(imageTemp, language);
         } finally {
             tryDelete(imageTemp);
         }
@@ -120,7 +124,7 @@ public class OcrImagePreparer {
         return enhanced;
     }
 
-    private File writeUploadImage(BufferedImage source, String prefix) throws IOException {
+    private File writeUploadImage(BufferedImage source, String prefix, OcrClient client) throws IOException {
         BufferedImage image = toRgb(source);
         File temp = File.createTempFile(prefix, ".jpg");
         float quality = 0.88f;
@@ -129,7 +133,7 @@ public class OcrImagePreparer {
         for (int attempt = 0; attempt < 14; attempt++) {
             BufferedImage scaled = scaleImage(image, scale);
             writeJpeg(scaled, temp, quality);
-            if (temp.length() <= maxUploadBytes) {
+            if (temp.length() <= client.maxUploadBytes()) {
                 return temp;
             }
             if (quality > 0.45f) {
@@ -140,7 +144,10 @@ public class OcrImagePreparer {
             }
         }
 
-        throw new IOException("Could not compress the document below the OCR.space free plan limit (1.5 MB).");
+        throw new IOException(
+                "Could not compress the document below the " + client.displayName()
+                        + " size limit (" + formatMb(client.maxUploadBytes()) + ")."
+        );
     }
 
     private BufferedImage scaleImage(BufferedImage source, double scale) {
@@ -199,5 +206,13 @@ public class OcrImagePreparer {
             java.nio.file.Files.deleteIfExists(file.toPath());
         } catch (IOException ignored) {
         }
+    }
+
+    private static String formatMb(long bytes) {
+        double mb = bytes / 1000000.0d;
+        if (mb == Math.rint(mb)) {
+            return String.valueOf((long) mb) + " MB";
+        }
+        return String.format("%.1f MB", Double.valueOf(mb));
     }
 }

@@ -26,6 +26,9 @@ spring:
 
 app:
   ocr:
+    # ocrspace | google  — used when Auto fill does not send a provider.
+    provider: ${OCR_PROVIDER:ocrspace}
+    settingsFile: uploads/ocr-provider.txt
     ocrspace:
       # Free key: register at https://ocr.space/ocrapi/freekey (25k requests/month).
       apiKey: ${OCR_SPACE_API_KEY:K81607309088957}
@@ -35,6 +38,10 @@ app:
       maxImageSide: 2200
       pdfRenderDpi: 220
       maxUploadBytes: 1440000
+    google:
+      credentialsFile: ${GOOGLE_VISION_CREDENTIALS:config/google-vision-credentials.json}
+      apiUrl: https://vision.googleapis.com/v1/images:annotate
+      maxUploadBytes: 10000000
     preship:
       language: eng
     clearance:
@@ -52,6 +59,18 @@ resilience4j:
   circuitbreaker:
     instances:
       ocrSpace:
+        slidingWindowType: COUNT_BASED
+        slidingWindowSize: 3
+        minimumNumberOfCalls: 3
+        failureRateThreshold: 100
+        waitDurationInOpenState: 60s
+        permittedNumberOfCallsInHalfOpenState: 1
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+        recordExceptions:
+          - org.springframework.web.client.RestClientException
+        ignoreExceptions:
+          - java.io.IOException
+      googleVision:
         slidingWindowType: COUNT_BASED
         slidingWindowSize: 3
         minimumNumberOfCalls: 3

@@ -10,11 +10,11 @@
             <div class="dash-head">
                 <div>
                     <h1>Customs clearance</h1>
-                    <p class="form-lead">Upload page 1 (JEVIC), page 2 (customs declaration), and page 3 (assessment notice). Edit the fields, then click Save on that page.</p>
+                    <p class="form-lead">Upload JEVIC, the customs declaration, and the assessment notice. Edit the fields, then click Save on that page.</p>
                 </div>
             </div>
 
-            <div th:replace="fragments/clearance-pipeline :: clearancePipelineSteps('clearance', ${vehicle.chassisNo}, ${jevicReady}, ${declarationReady}, ${assessmentReady}, ${vehicle.model}, false)"></div>
+            <div th:replace="fragments/clearance-pipeline :: clearancePipelineSteps('jevic', ${vehicle.chassisNo}, ${jevicReady}, ${declarationReady}, ${assessmentReady}, ${vehicle.model}, false)"></div>
 
             <p th:if="${notice}" class="alert alert-warn" th:text="${notice}"></p>
             <p th:if="${successMessage}" class="alert alert-ok" th:text="${successMessage}"></p>
@@ -44,7 +44,7 @@
                 <input type="hidden" th:field="*{assessmentDeclarantReference}" id="assessmentDeclarantReference">
                 <input type="hidden" th:field="*{assessmentReference}" id="assessmentReference">
 
-                <nav class="clearance-tabs panel" aria-label="Clearance pages">
+                <nav class="clearance-tabs panel" hidden aria-hidden="true">
                     <button type="button" class="clearance-tab is-active" data-tab="1" id="clearanceTab1">
                         <span class="clearance-tab-num">1</span>
                         <span class="clearance-tab-label">JEVIC certificate</span>
@@ -87,7 +87,8 @@
                                 'JEVIC certificate',
                                 '1',
                                 ${record.page1OriginalName},
-                                'Choose a JPG, PNG, or PDF JEVIC certificate to upload and preview.')"></div>
+                                'Choose a JPG, PNG, or PDF JEVIC certificate to upload and preview.',
+                                'ocrspace')"></div>
                         </div>
 
                         <div class="sheet-fields">
@@ -142,7 +143,8 @@
                                 'Customs declaration',
                                 '2',
                                 ${record.page2OriginalName},
-                                'Choose a JPG, PNG, or PDF customs declaration to upload and preview.')"></div>
+                                'Choose a JPG, PNG, or PDF customs declaration to upload and preview.',
+                                'ocrspace')"></div>
                         </div>
 
                         <div class="sheet-fields">
@@ -259,7 +261,8 @@
                                 'Assessment notice',
                                 '3',
                                 ${record.page3OriginalName},
-                                'Choose a JPG, PNG, or PDF assessment notice to upload and preview.')"></div>
+                                'Choose a JPG, PNG, or PDF assessment notice to upload and preview.',
+                                'ocrspace')"></div>
                         </div>
 
                         <div class="sheet-fields">
@@ -319,8 +322,8 @@
         <strong>Reading document…</strong>
     </div>
 </div>
-<script th:src="@{/js/app.js(v=20260821g)}"></script>
+<script th:src="@{/js/app.js(v=20260829a)}"></script>
 <script th:src="@{/js/document-viewer.js(v=20260826d)}"></script>
-<script th:src="@{/js/clearance.js(v=20260826d)}"></script>
+<script th:src="@{/js/clearance.js(v=20260829b)}"></script>
 </body>
 </html>

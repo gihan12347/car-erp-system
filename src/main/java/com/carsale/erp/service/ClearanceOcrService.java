@@ -20,23 +20,24 @@ public class ClearanceOcrService {
     private static final Logger log = LoggerFactory.getLogger(ClearanceOcrService.class);
 
     private final ClearanceParser parser;
-    private final OcrSpaceClient ocrSpaceClient;
     private final OcrImagePreparer imagePreparer;
     private final String language;
 
     public ClearanceOcrService(
             ClearanceParser parser,
-            OcrSpaceClient ocrSpaceClient,
             OcrImagePreparer imagePreparer,
             @Value("${app.ocr.clearance.language:eng}") String language
     ) {
         this.parser = parser;
-        this.ocrSpaceClient = ocrSpaceClient;
         this.imagePreparer = imagePreparer;
         this.language = language == null || language.trim().isEmpty() ? "eng" : language.trim();
     }
 
     public AuctionParseResult parsePage(MultipartFile file, int page) {
+        return parsePage(file, page, null);
+    }
+
+    public AuctionParseResult parsePage(MultipartFile file, int page, String provider) {
         AuctionParseResult failed = new AuctionParseResult();
         if (file == null || file.isEmpty()) {
             failed.setSuccess(false);
@@ -56,7 +57,7 @@ public class ClearanceOcrService {
                 Files.copy(input, temp.toPath(), StandardCopyOption.REPLACE_EXISTING);
             }
 
-            String raw = imagePreparer.readDocumentText(temp, file.getOriginalFilename(), ocrSpaceClient, language);
+            String raw = imagePreparer.readDocumentText(temp, file.getOriginalFilename(), language, provider);
             log.info("Clearance page {} OCR text:\n{}", page, raw);
             AuctionParseResult parsed;
             if (page == 1) {
@@ -72,7 +73,7 @@ public class ClearanceOcrService {
             log.error("Clearance OCR failed for page {}", page, ex);
             failed.setSuccess(false);
             String detail = ex.getMessage();
-            if (detail != null && (detail.contains("OCR.space") || detail.contains("1.5 MB"))) {
+            if (OcrClient.isUserFacingError(detail)) {
                 failed.setMessage(detail + " You can fill the form manually.");
             } else {
                 failed.setMessage("Could not read page " + page + ". You can fill the form manually.");

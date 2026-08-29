@@ -20,23 +20,24 @@ public class AuctionSheetOcrService {
     private static final Logger log = LoggerFactory.getLogger(AuctionSheetOcrService.class);
 
     private final AuctionSheetParser parser;
-    private final OcrSpaceClient ocrSpaceClient;
     private final OcrImagePreparer imagePreparer;
     private final String language;
 
     public AuctionSheetOcrService(
             AuctionSheetParser parser,
-            OcrSpaceClient ocrSpaceClient,
             OcrImagePreparer imagePreparer,
             @Value("${app.ocr.ocrspace.language:jpn}") String language
     ) {
         this.parser = parser;
-        this.ocrSpaceClient = ocrSpaceClient;
         this.imagePreparer = imagePreparer;
         this.language = language == null || language.trim().isEmpty() ? "jpn" : language.trim();
     }
 
     public AuctionParseResult parseSheet(MultipartFile file) {
+        return parseSheet(file, null);
+    }
+
+    public AuctionParseResult parseSheet(MultipartFile file, String provider) {
         AuctionParseResult failed = new AuctionParseResult();
         if (file == null || file.isEmpty()) {
             failed.setSuccess(false);
@@ -50,7 +51,7 @@ public class AuctionSheetOcrService {
             try (InputStream input = file.getInputStream()) {
                 Files.copy(input, temp.toPath(), StandardCopyOption.REPLACE_EXISTING);
             }
-            String raw = imagePreparer.readDocumentText(temp, file.getOriginalFilename(), ocrSpaceClient, language);
+            String raw = imagePreparer.readDocumentText(temp, file.getOriginalFilename(), language, provider);
             log.info("Auction sheet OCR text:\n{}", raw);
             AuctionParseResult parsed = parser.parse(raw);
             parsed.setRawText(raw);
@@ -60,7 +61,7 @@ public class AuctionSheetOcrService {
             log.error("Auction sheet OCR failed", ex);
             failed.setSuccess(false);
             String detail = ex.getMessage();
-            if (detail != null && (detail.contains("OCR.space") || detail.contains("1.5 MB"))) {
+            if (OcrClient.isUserFacingError(detail)) {
                 failed.setMessage(detail + " You can fill the form manually.");
             } else {
                 failed.setMessage("Could not read the auction sheet. You can fill the form manually.");

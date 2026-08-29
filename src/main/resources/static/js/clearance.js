@@ -86,10 +86,43 @@
         return match ? decodeURIComponent(match[1]) : "";
     }
 
+    var STEP_BY_TAB = {
+        1: "jevic",
+        2: "declaration",
+        3: "assessment"
+    };
+
     function updateTabBadge(page, uploaded) {
         var badge = document.getElementById("tabBadge" + page);
         if (badge) {
             badge.hidden = !uploaded;
+        }
+        updatePipelineStep(page, uploaded);
+    }
+
+    function updatePipelineStep(page, uploaded) {
+        var key = STEP_BY_TAB[page];
+        if (!key) {
+            return;
+        }
+        var li = document.querySelector('[data-clearance-step="' + key + '"]');
+        if (!li) {
+            return;
+        }
+        li.classList.toggle("is-done", uploaded);
+        li.classList.toggle("is-pending", !uploaded);
+        var icon = li.querySelector(".import-pipeline-step-icon");
+        var status = li.querySelector(".pipeline-step-status");
+        var count = li.getAttribute("data-step-count") || String(page);
+        if (icon) {
+            icon.innerHTML = uploaded
+                ? '<i class="fa-solid fa-check"></i>'
+                : "<span>" + count + "</span>";
+        }
+        if (status) {
+            status.textContent = uploaded ? "Complete" : "Pending";
+            status.classList.toggle("done", uploaded);
+            status.classList.toggle("pending", !uploaded);
         }
     }
 
@@ -106,6 +139,11 @@
             panel.classList.toggle("is-active", isActive);
             panel.hidden = !isActive;
         });
+        var currentKey = STEP_BY_TAB[tab];
+        var steps = document.querySelectorAll("[data-clearance-step]");
+        Array.prototype.forEach.call(steps, function (li) {
+            li.classList.toggle("is-current", li.getAttribute("data-clearance-step") === currentKey);
+        });
         window.scrollTo({ top: 0, behavior: "smooth" });
     }
 
@@ -114,9 +152,10 @@
         var tabButtons = document.querySelectorAll(".clearance-tab");
 
         Array.prototype.forEach.call(gotoButtons, function (btn) {
-            btn.addEventListener("click", function () {
+            btn.addEventListener("click", function (event) {
                 var tab = parseInt(btn.getAttribute("data-tab-goto"), 10);
                 if (tab >= 1 && tab <= 3) {
+                    event.preventDefault();
                     switchTab(tab);
                 }
             });
@@ -426,6 +465,7 @@
                 var data = new FormData();
                 data.append("file", file);
                 data.append("page", String(page));
+                data.append("provider", window.selectedOcrProvider ? window.selectedOcrProvider(String(page)) : "ocrspace");
                 var token = document.querySelector('meta[name="_csrf"]');
                 var header = document.querySelector('meta[name="_csrf_header"]');
                 var xhr = new XMLHttpRequest();

@@ -31,7 +31,7 @@ import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
  * Register for a free API key (25k requests/month) and set OCR_SPACE_API_KEY.
  */
 @Component
-public class OcrSpaceClient {
+public class OcrSpaceClient implements OcrClient {
 
     private static final Logger log = LoggerFactory.getLogger(OcrSpaceClient.class);
 
@@ -42,6 +42,7 @@ public class OcrSpaceClient {
     private final String apiKey;
     private final String language;
     private final int engine;
+    private final long maxUploadBytes;
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
 
@@ -49,12 +50,14 @@ public class OcrSpaceClient {
             @Value("${app.ocr.ocrspace.apiUrl:https://api.ocr.space/parse/image}") String apiUrl,
             @Value("${app.ocr.ocrspace.apiKey:helloworld}") String apiKey,
             @Value("${app.ocr.ocrspace.language:jpn}") String language,
-            @Value("${app.ocr.ocrspace.engine:2}") int engine
+            @Value("${app.ocr.ocrspace.engine:2}") int engine,
+            @Value("${app.ocr.ocrspace.maxUploadBytes:1440000}") long maxUploadBytes
     ) {
         this.apiUrl = apiUrl == null ? "https://api.ocr.space/parse/image" : apiUrl.trim();
         this.apiKey = apiKey == null ? "hello world" : apiKey.trim();
         this.language = language == null ? "jpn" : language.trim();
         this.engine = engine;
+        this.maxUploadBytes = maxUploadBytes > 0 ? maxUploadBytes : 1440000L;
         this.objectMapper = new ObjectMapper();
 
         SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
@@ -63,7 +66,23 @@ public class OcrSpaceClient {
         this.restTemplate = new RestTemplate(factory);
     }
 
+    @Override
+    public String id() {
+        return OCRSPACE;
+    }
+
+    @Override
+    public String displayName() {
+        return "OCR.space";
+    }
+
+    @Override
+    public long maxUploadBytes() {
+        return maxUploadBytes;
+    }
+
     @CircuitBreaker(name = "ocrSpace", fallbackMethod = "recognizeFallback")
+    @Override
     public String recognize(File imageFile, String languageOverride) throws IOException {
         String lang = languageOverride == null || languageOverride.trim().isEmpty()
                 ? language
@@ -156,7 +175,6 @@ public class OcrSpaceClient {
             Map<?, ?> parsed = (Map<?, ?>) item;
             String text = stringValue(parsed.get("ParsedText"));
             if (text != null && !text.trim().isEmpty()) {
-                System.out.println("text ::::::: "+text);
                 lines.add(text.trim());
             }
         }

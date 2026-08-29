@@ -20,23 +20,24 @@ public class PreShipmentOcrService {
     private static final Logger log = LoggerFactory.getLogger(PreShipmentOcrService.class);
 
     private final PreShipmentParser parser;
-    private final OcrSpaceClient ocrSpaceClient;
     private final OcrImagePreparer imagePreparer;
     private final String language;
 
     public PreShipmentOcrService(
             PreShipmentParser parser,
-            OcrSpaceClient ocrSpaceClient,
             OcrImagePreparer imagePreparer,
             @Value("${app.ocr.preship.language:eng}") String language
     ) {
         this.parser = parser;
-        this.ocrSpaceClient = ocrSpaceClient;
         this.imagePreparer = imagePreparer;
         this.language = language == null || language.trim().isEmpty() ? "eng" : language.trim();
     }
 
     public AuctionParseResult parseDocument(MultipartFile file) {
+        return parseDocument(file, null);
+    }
+
+    public AuctionParseResult parseDocument(MultipartFile file, String provider) {
         AuctionParseResult failed = new AuctionParseResult();
         if (file == null || file.isEmpty()) {
             failed.setSuccess(false);
@@ -54,7 +55,7 @@ public class PreShipmentOcrService {
                 input.close();
             }
 
-            String raw = imagePreparer.readDocumentText(temp, file.getOriginalFilename(), ocrSpaceClient, language);
+            String raw = imagePreparer.readDocumentText(temp, file.getOriginalFilename(), language, provider);
             log.info("Pre-shipment OCR text:\n{}", raw);
             AuctionParseResult parsed = parser.parse(raw);
             parsed.setRawText(raw);
@@ -64,7 +65,7 @@ public class PreShipmentOcrService {
             log.error("Pre-shipment OCR failed", ex);
             failed.setSuccess(false);
             String detail = ex.getMessage();
-            if (detail != null && (detail.contains("OCR.space") || detail.contains("1.5 MB"))) {
+            if (OcrClient.isUserFacingError(detail)) {
                 failed.setMessage(detail + " You can fill the form manually.");
             } else {
                 failed.setMessage("Could not read the pre-shipment certificate. You can fill the form manually.");

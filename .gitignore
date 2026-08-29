@@ -42,4 +42,5 @@ Thumbs.db
 
 /tessdata/
 uploads/
+config/google-vision-credentials.json
 

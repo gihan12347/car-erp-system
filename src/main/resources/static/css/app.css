@@ -1352,10 +1352,7 @@ body.is-filling {
 }
 
 .clearance-tabs {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    gap: 8px;
-    padding: 8px;
+    display: none;
 }
 
 .clearance-tab {
@@ -1827,6 +1824,99 @@ body.preship-page .sheet-fields {
 .preship-toolbar .upload-status {
     margin: 0;
     font-size: 13px;
+}
+
+.ocr-lang-banner {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin: 0;
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: #fff7ed;
+    border: 1px solid #fed7aa;
+    color: #9a3412;
+    font-size: 12px;
+    line-height: 1.45;
+}
+
+.ocr-lang-banner i {
+    margin-top: 2px;
+    color: #c2410c;
+    flex: 0 0 auto;
+}
+
+.ocr-lang-banner p {
+    margin: 0;
+}
+
+.ocr-autofill-tools {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.ocr-model-picker {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.ocr-model-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--muted);
+}
+
+.ocr-model-btns {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+}
+
+.ocr-model-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-height: 36px;
+    padding: 6px 8px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: #fff;
+    color: #44403c;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.2;
+    text-align: center;
+    white-space: normal;
+    cursor: pointer;
+}
+
+.ocr-model-btn i {
+    color: var(--muted);
+}
+
+.ocr-model-btn:hover {
+    background: #faf8f4;
+}
+
+.ocr-model-btn.is-selected {
+    border-color: #c2410c;
+    background: #fff7ed;
+    color: #9a3412;
+}
+
+.ocr-model-btn.is-selected i {
+    color: #c2410c;
+}
+
+@media (max-width: 640px) {
+    .ocr-model-btns {
+        grid-template-columns: 1fr;
+    }
 }
 
 .import-form-submit {
@@ -3943,6 +4033,10 @@ body.sheet-page .import-pipeline {
     .stage-order-grid {
         grid-template-columns: 1fr;
     }
+}
+
+.ocr-roles-head {
+    margin-top: 18px;
 }
 
 

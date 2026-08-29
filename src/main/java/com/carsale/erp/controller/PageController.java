@@ -70,13 +70,6 @@ public class PageController {
                 "Operational and financial reports across the pipeline.");
     }
 
-    @GetMapping("/settings")
-    public String settings(Model model) {
-        model.addAttribute("pageTitle", "Settings");
-        model.addAttribute("activeMenu", "settings");
-        return "settings";
-    }
-
     @GetMapping("/profile")
     public String profile(Model model) {
         model.addAttribute("pageTitle", "Profile");

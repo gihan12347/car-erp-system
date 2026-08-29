@@ -137,7 +137,8 @@ public class ClearanceController {
     @ResponseBody
     public AuctionParseResult parseDocument(
             @RequestParam("file") MultipartFile file,
-            @RequestParam("page") int page
+            @RequestParam("page") int page,
+            @RequestParam(value = "provider", required = false) String provider
     ) {
         if (page < 1 || page > 3) {
             AuctionParseResult failed = new AuctionParseResult();
@@ -145,7 +146,7 @@ public class ClearanceController {
             failed.setMessage("Invalid page number. Use page 1, 2, or 3.");
             return failed;
         }
-        return ocrService.parsePage(file, page);
+        return ocrService.parsePage(file, page, provider);
     }
 
     @PostMapping("/{chassisNo}")

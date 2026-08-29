@@ -242,8 +242,11 @@ public class VehicleController {
 
     @PostMapping("/parse-sheet")
     @ResponseBody
-    public AuctionParseResult parseSheet(@RequestParam("file") MultipartFile file) {
-        return ocrService.parseSheet(file);
+    public AuctionParseResult parseSheet(
+            @RequestParam("file") MultipartFile file,
+            @RequestParam(value = "provider", required = false) String provider
+    ) {
+        return ocrService.parseSheet(file, provider);
     }
 
     @PostMapping
