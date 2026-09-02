@@ -1,10 +1,6 @@
 package com.carsale.erp.service;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -15,52 +11,17 @@ import com.carsale.erp.dto.AuctionParseResult;
 @Component
 public class AuctionSheetParser {
 
-    private static final Map<String, String> MODEL_MAKES = new LinkedHashMap<String, String>();
-    private static final Map<String, String> JP_MODELS = new LinkedHashMap<String, String>();
-    private static final Map<String, String[]> CODE_MODELS = new LinkedHashMap<String, String[]>();
-    private static final Map<String, String[]> MODEL_SPECS = new LinkedHashMap<String, String[]>();
-    private static final Map<String, String> JP_COLORS = new LinkedHashMap<String, String>();
+    private static final Map<String, String> MODEL_MAKES = new LinkedHashMap<>();
+    private static final Map<String, String[]> CODE_MODELS = new LinkedHashMap<>();
+    private static final Map<String, String[]> MODEL_SPECS = new LinkedHashMap<>();
+
+    private final JapaneseTextTranslator translator;
+
+    public AuctionSheetParser(JapaneseTextTranslator translator) {
+        this.translator = translator;
+    }
 
     static {
-        putModel("ランドクルーザー", "Land Cruiser", "Toyota");
-        putModel("アルファード", "Alphard", "Toyota");
-        putModel("ヴォクシー", "Voxy", "Toyota");
-        putModel("エスティマ", "Estima", "Toyota");
-        putModel("ハリアー", "Harrier", "Toyota");
-        putModel("カローラアクシオ", "Corolla Axio", "Toyota");
-        putModel("アクシオ", "Corolla Axio", "Toyota");
-        putModel("カローラ", "Corolla", "Toyota");
-        putModel("クラウン", "Crown", "Toyota");
-        putModel("プリウス", "Prius", "Toyota");
-        putModel("ルーミー", "Roomy", "Toyota");
-        putModel("ルミー", "Roomy", "Toyota");
-        putModel("ルーミ", "Roomy", "Toyota");
-        putModel("ルームー", "Roomy", "Toyota");
-        putModel("タンク", "Tank", "Toyota");
-        putModel("シエンタ", "Sienta", "Toyota");
-        putModel("ノア", "Noah", "Toyota");
-        putModel("アクア", "Aqua", "Toyota");
-        putModel("ヤリス", "Yaris", "Toyota");
-        putModel("ライズ", "Raize", "Toyota");
-        putModel("ライス", "Raize", "Toyota");
-        putModel("ヴィッツ", "Vitz", "Toyota");
-        putModel("ワゴンＲ", "Wagon R", "Suzuki");
-        putModel("ワゴンR", "Wagon R", "Suzuki");
-        putModel("スペーシア", "Spacia", "Suzuki");
-        putModel("ハスラー", "Hustler", "Suzuki");
-        putModel("ジムニー", "Jimny", "Suzuki");
-        putModel("アルト", "Alto", "Suzuki");
-        putModel("ヴェゼル", "Vezel", "Honda");
-        putModel("ベゼル", "Vezel", "Honda");
-        putModel("フィット", "Fit", "Honda");
-        putModel("セレナ", "Serena", "Nissan");
-        putModel("ノート", "Note", "Nissan");
-        putModel("デイズ", "Days", "Nissan");
-        putModel("デミオ", "Demio", "Mazda");
-        putModel("タント", "Tanto", "Daihatsu");
-        putModel("ムーヴ", "Move", "Daihatsu");
-        putModel("ロッキー", "Rocky", "Daihatsu");
-
         putCode("NHP10", "Aqua", "Toyota");
         putCode("NHP11", "Aqua", "Toyota");
         putCode("NKE165", "Corolla Axio", "Toyota");
@@ -88,38 +49,11 @@ public class AuctionSheetParser {
         putSpec("A201A", "5BA-A201A", "Raize", "Toyota", null, "Gasoline", "1000", "5-door", "5", "CVT");
         putSpec("A202S", "5AA-A202S", "Rocky", "Daihatsu", "Hybrid Z", "Hybrid", "1200", "5-door", "5", "CVT");
         putSpec("A200S", "5BA-A200S", "Rocky", "Daihatsu", null, "Gasoline", "1000", "5-door", "5", "CVT");
-
-        JP_COLORS.put("パールホワイト", "Pearl White");
-        JP_COLORS.put("パール", "Pearl");
-        JP_COLORS.put("ホワイト", "White");
-        JP_COLORS.put("ブラック", "Black");
-        JP_COLORS.put("シルバー", "Silver");
-        JP_COLORS.put("グレー", "Gray");
-        JP_COLORS.put("レッド", "Red");
-        JP_COLORS.put("ブルー", "Blue");
-        JP_COLORS.put("ワイン", "Wine");
-        JP_COLORS.put("ベージュ", "Beige");
-        JP_COLORS.put("ブラウン", "Brown");
-        JP_COLORS.put("グリーン", "Green");
-        JP_COLORS.put("ホワイトパール", "Pearl White");
-        JP_COLORS.put("白", "White");
-        JP_COLORS.put("黒", "Black");
-        JP_COLORS.put("銀", "Silver");
-        JP_COLORS.put("灰", "Gray");
-        JP_COLORS.put("赤", "Red");
-        JP_COLORS.put("青", "Blue");
-        JP_COLORS.put("茶", "Brown");
-        JP_COLORS.put("緑", "Green");
-    }
-
-    private static void putModel(String japanese, String english, String make) {
-        JP_MODELS.put(japanese, english);
-        MODEL_MAKES.put(english, make);
-        MODEL_MAKES.put(japanese, make);
     }
 
     private static void putCode(String code, String model, String make) {
         CODE_MODELS.put(code, new String[] {model, make});
+        MODEL_MAKES.put(model, make);
     }
 
     private static void putSpec(String chassisPrefix, String modelCode, String model, String make,
@@ -136,35 +70,53 @@ public class AuctionSheetParser {
             result.setMessage("No text was read from the auction sheet.");
             return result;
         }
-
-        String text = rawText.replace('\r', '\n');
-        text = repairOcrNoise(normalizeLabels(text));
-        result.setRawText(text);
+        String original = repairOcrNoise(normalizeLabels(rawText.replace('\r', '\n')));
+        String english = translator == null ? original : translator.translateDocument(original);
+        if (english == null || english.trim().isEmpty()) {
+            english = original;
+        }
+        String text = english;
+        result.setRawText(english);
         fillIdentity(result, text);
         result.put("grade", extractGrade(text));
-        result.put("modelCode", extractModelCode(text));
-        result.put("chassisNo", extractChassis(text, result.getFields().get("modelCode")));
-        fillFromModelCode(result, text);
+        result.put("modelCode", firstNonNull(extractModelCode(text), extractModelCode(original)));
+        result.put("chassisNo", firstNonNull(
+                extractChassis(text, result.getFields().get("modelCode")),
+                extractChassis(original, result.getFields().get("modelCode"))));
+        fillFromModelCode(result, text + "\n" + original);
         fillVehicleName(result);
-        result.put("year", extractFirstRegistration(text));
-        result.put("mileage", formatKm(extractMileage(text)));
-        result.put("colorCode", extractColorCode(text));
-        result.put("color", firstNonNull(extractColor(text), colorFromCode(result.getFields().get("colorCode"))));
-        result.put("engineSize", formatCc(extractEngine(text)));
-        result.put("transmission", extractTransmission(text));
-        result.put("fuel", extractFuel(text));
-        result.put("acType", extractAc(text));
-        result.put("bodyStyle", extractBodyStyle(text));
-        result.put("seats", formatSeats(extractSeats(text)));
-        result.put("lotNo", extractLot(text, result.getFields().get("mileage")));
-        result.put("auctionGrade", extractAuctionGrade(text));
-        result.put("exteriorGrade", extractPanelGrade(text, "外装", "外装評"));
-        result.put("interiorGrade", extractPanelGrade(text, "内装", "内"));
+        result.put("year", firstNonNull(extractFirstRegistration(text), extractFirstRegistration(original)));
+        result.put("mileage", formatKm(firstNonNull(extractMileage(text), extractMileage(original))));
+        result.put("colorCode", firstNonNull(extractColorCode(text), extractColorCode(original)));
+        result.put("color", firstNonNull(
+                extractColor(text),
+                firstNonNull(colorFromCode(result.getFields().get("colorCode")), extractColor(original))));
+        result.put("engineSize", formatCc(firstNonNull(extractEngine(text), extractEngine(original))));
+        result.put("transmission", firstNonNull(extractTransmission(text), extractTransmission(original)));
+        result.put("fuel", firstNonNull(extractFuel(text), extractFuel(original)));
+        result.put("acType", firstNonNull(extractAc(text), extractAc(original)));
+        result.put("bodyStyle", firstNonNull(extractBodyStyle(text), extractBodyStyle(original)));
+        result.put("seats", formatSeats(firstNonNull(extractSeats(text), extractSeats(original))));
+        result.put("lotNo", firstNonNull(
+                extractLot(text, result.getFields().get("mileage")),
+                extractLot(original, result.getFields().get("mileage"))));
+        result.put("auctionGrade", firstNonNull(extractAuctionGrade(text), extractAuctionGrade(original)));
+        result.put("exteriorGrade", firstNonNull(
+                extractPanelGrade(text, "Exterior", "外装", "外装評"),
+                extractPanelGrade(original, "Exterior", "外装", "外装評")));
+        result.put("interiorGrade", firstNonNull(
+                extractPanelGrade(text, "Interior", "内装", "内"),
+                extractPanelGrade(original, "Interior", "内装", "内")));
         fillPanelGradesFromNoise(result, text);
+        fillPanelGradesFromNoise(result, original);
         fillAuctionSheetGrades(result, text);
-        result.put("history", extractHistory(text));
+        fillAuctionSheetGrades(result, original);
+        result.put("history", firstNonNull(extractHistory(text), extractHistory(original)));
         extractDimensions(result, text);
-        fillKnownSpecs(result, text);
+        if (isBlank(result.getFields().get("lengthCm"))) {
+            extractDimensions(result, original);
+        }
+        fillKnownSpecs(result, text + "\n" + original);
         englishize(result);
         fillVehicleName(result);
         keepFormFields(result);
@@ -237,9 +189,9 @@ public class AuctionSheetParser {
 
     private void englishize(AuctionParseResult result) {
         Map<String, String> fields = result.getFields();
-        Map<String, String> updated = new LinkedHashMap<String, String>();
+        Map<String, String> updated = new LinkedHashMap<>();
         for (Map.Entry<String, String> entry : fields.entrySet()) {
-            String english = AuctionSheetEnglish.convert(entry.getValue());
+            String english = AuctionSheetEnglish.convert(entry.getValue(), null);
             if (english != null && !english.isEmpty()) {
                 updated.put(entry.getKey(), english);
             } else if (entry.getValue() != null && !entry.getValue().trim().isEmpty()) {
@@ -251,10 +203,10 @@ public class AuctionSheetParser {
     }
 
     private void fillIdentity(AuctionParseResult result, String text) {
-        String nameLine = extract(text, new String[] {"車名"});
+        String nameLine = extract(text, new String[] {"車名", "Vehicle name", "Car name", "Model name"});
         applyIdentity(result, nameLine);
         if (result.getFields().get("model") == null) {
-            applyIdentity(result, extract(text, new String[] {"メーカー"}));
+            applyIdentity(result, extract(text, new String[] {"メーカー", "Maker", "Manufacturer"}));
         }
         if (result.getFields().get("model") == null) {
             applyIdentity(result, text);
@@ -288,21 +240,10 @@ public class AuctionSheetParser {
     }
 
     private String matchKnownModel(String haystack) {
-        String packed = haystack.replaceAll("\\s+", "");
-        Iterator<Map.Entry<String, String>> models = JP_MODELS.entrySet().iterator();
-        while (models.hasNext()) {
-            Map.Entry<String, String> entry = models.next();
-            String key = entry.getKey();
-            if (haystack.contains(key) || packed.contains(key)) {
-                return entry.getValue();
-            }
-        }
         String upper = haystack.toUpperCase();
-        models = JP_MODELS.entrySet().iterator();
-        while (models.hasNext()) {
-            Map.Entry<String, String> entry = models.next();
-            if (upper.contains(entry.getValue().toUpperCase())) {
-                return entry.getValue();
+        for (String english : MODEL_MAKES.keySet()) {
+            if (english != null && upper.contains(english.toUpperCase())) {
+                return english;
             }
         }
         return null;
@@ -374,7 +315,10 @@ public class AuctionSheetParser {
             result.put("model", spec[1]);
         }
         putIfBlank(result, "make", spec[2]);
-        putIfBlank(result, "grade", spec[3]);
+        String grade = result.getFields().get("grade");
+        if (spec[3] != null && (isBlank(grade) || AuctionSheetEnglish.containsJapanese(grade))) {
+            result.put("grade", spec[3]);
+        }
         String fuel = result.getFields().get("fuel");
         if (isBlank(fuel) || ("Hybrid".equals(spec[4]) && "Gasoline".equals(fuel))) {
             result.put("fuel", spec[4]);
@@ -454,7 +398,8 @@ public class AuctionSheetParser {
         if (line.find()) {
             return line.group(1);
         }
-        Matcher labeled = Pattern.compile("(?:評価|評点|点数|総合)[^A-Za-z0-9]{0,40}([S6*]|[1-6](?:\\.5)?)")
+        Matcher labeled = Pattern.compile(
+                "(?i)(?:評価|評点|点数|総合|evaluation|rating|score|auction\\s+grade|overall)[^A-Za-z0-9]{0,40}([S6*]|[1-6](?:\\.5)?)")
                 .matcher(text);
         if (labeled.find()) {
             return labeled.group(1);
@@ -467,7 +412,7 @@ public class AuctionSheetParser {
     }
 
     private List<String> findStandalonePanelGrades(String text, String auctionGrade) {
-        List<String> grades = new ArrayList<String>();
+        List<String> grades = new ArrayList<>();
         Matcher line = Pattern.compile("(?m)^\\s*[\\[\\(（]*\\s*([A-Ea-e])\\s*[\\]\\)）]*\\s*$").matcher(text);
         while (line.find()) {
             String grade = line.group(1).toUpperCase();
@@ -489,8 +434,7 @@ public class AuctionSheetParser {
     }
 
     private void putFirstUnusedGrade(AuctionParseResult result, String key, List<String> panelLetters) {
-        for (int i = 0; i < panelLetters.size(); i++) {
-            String grade = panelLetters.get(i);
+        for (String grade : panelLetters) {
             if (!grade.equals(result.getFields().get("auctionGrade"))
                     && !grade.equals(result.getFields().get("exteriorGrade"))
                     && !grade.equals(result.getFields().get("interiorGrade"))) {
@@ -504,7 +448,8 @@ public class AuctionSheetParser {
         int from = Math.max(0, start - 8);
         int to = Math.min(text.length(), start + 8);
         String window = text.substring(from, to).toUpperCase();
-        if (window.contains("車歴") || window.contains("履歴") || window.contains("B )") || window.contains("B)")) {
+        if (window.contains("車歴") || window.contains("履歴") || window.contains("HISTORY")
+                || window.contains("B )") || window.contains("B)")) {
             return false;
         }
         if (window.contains("AAC") || window.contains("IAT") || window.contains("ABS")
@@ -514,10 +459,7 @@ public class AuctionSheetParser {
         if (start > 0 && isCodeChar(text.charAt(start - 1))) {
             return false;
         }
-        if (start + 1 < text.length() && isCodeChar(text.charAt(start + 1))) {
-            return false;
-        }
-        return true;
+        return start + 1 >= text.length() || !isCodeChar(text.charAt(start + 1));
     }
 
     private boolean isCodeChar(char ch) {
@@ -543,7 +485,7 @@ public class AuctionSheetParser {
                 "seats", "color", "colorCode", "lengthCm", "widthCm", "heightCm",
                 "transmission", "acType"
         };
-        Map<String, String> kept = new LinkedHashMap<String, String>();
+        Map<String, String> kept = new LinkedHashMap<>();
         for (String key : keys) {
             String value = result.getFields().get(key);
             if (value != null && !value.trim().isEmpty()) {
@@ -608,6 +550,10 @@ public class AuctionSheetParser {
         if (labeled != null) {
             return formatFirstRegistration(labeled[0], labeled[1]);
         }
+        String english = extractEnglishRegistrationDate(text);
+        if (english != null) {
+            return english;
+        }
         int[] besideLot = extractEraDateBesideLot(text);
         if (besideLot != null) {
             return formatFirstRegistration(besideLot[0], besideLot[1]);
@@ -617,7 +563,45 @@ public class AuctionSheetParser {
         if (headerDate != null) {
             return formatFirstRegistration(headerDate[0], headerDate[1]);
         }
+        return extractEnglishRegistrationDate(header);
+    }
+
+    private String extractEnglishRegistrationDate(String text) {
+        String months = "January|February|March|April|May|June|July|August|September|October|November|December"
+                + "|Jan|Feb|Mar|Apr|Jun|Jul|Aug|Sep|Sept|Oct|Nov|Dec";
+        Matcher labeled = Pattern.compile(
+                "(?i)(?:first\\s+registration|registration(?:\\s+date)?|year(?:\\s+of)?\\s+registration)[^\\n]{0,48}"
+                        + "(" + months + ")[.]?\\s+((?:19|20)\\d{2})")
+                .matcher(text);
+        if (labeled.find()) {
+            return formatEnglishMonthYear(labeled.group(1), labeled.group(2));
+        }
+        Matcher monthYear = Pattern.compile("(?i)(" + months + ")[.]?\\s+((?:19|20)\\d{2})").matcher(text);
+        if (monthYear.find()) {
+            return formatEnglishMonthYear(monthYear.group(1), monthYear.group(2));
+        }
+        Matcher yearMonth = Pattern.compile("((?:19|20)\\d{2})\\s*[/.\\-]\\s*([1-9]|1[0-2])").matcher(text);
+        if (yearMonth.find()) {
+            return formatFirstRegistration(Integer.parseInt(yearMonth.group(1)), Integer.parseInt(yearMonth.group(2)));
+        }
         return null;
+    }
+
+    private String formatEnglishMonthYear(String monthToken, String year) {
+        String[] names = new String[] {
+                "jan", "feb", "mar", "apr", "may", "jun",
+                "jul", "aug", "sep", "oct", "nov", "dec"
+        };
+        String key = monthToken.toLowerCase().replace(".", "");
+        if (key.startsWith("sept")) {
+            key = "sep";
+        }
+        for (int i = 0; i < names.length; i++) {
+            if (key.startsWith(names[i])) {
+                return formatFirstRegistration(Integer.parseInt(year), i + 1);
+            }
+        }
+        return monthToken + " " + year;
     }
 
     private String formatFirstRegistration(int year, int month) {
@@ -628,7 +612,7 @@ public class AuctionSheetParser {
     }
 
     private int[] extractEraDateNearLabel(String text) {
-        Matcher label = Pattern.compile("初度登録(?:年月)?").matcher(text);
+        Matcher label = Pattern.compile("(?i)初度登録(?:年月)?|first\\s+registration|registration\\s+date").matcher(text);
         while (label.find()) {
             int from = label.start();
             int to = Math.min(text.length(), label.end() + 80);
@@ -637,7 +621,7 @@ public class AuctionSheetParser {
                 return parsed;
             }
         }
-        Matcher yearMonth = Pattern.compile("年式").matcher(text);
+        Matcher yearMonth = Pattern.compile("(?i)年式|model\\s+year").matcher(text);
         if (yearMonth.find()) {
             int to = Math.min(text.length(), yearMonth.end() + 40);
             return extractEraDate(text.substring(yearMonth.start(), to), false);
@@ -646,7 +630,8 @@ public class AuctionSheetParser {
     }
 
     private int[] extractEraDateBesideLot(String text) {
-        Matcher lot = Pattern.compile("(?:出品番号[^\\d]{0,16})?(\\d{3,6})[^\\n]{0,40}?((?:R|Ｒ|H|Ｈ|G)\\s*\\d{1,2}\\s+\\d{1,2})")
+        Matcher lot = Pattern.compile(
+                "(?i)(?:(?:出品番号|(?<![A-Za-z])lot(?:\\s*(?:no\\.?|number))?)[^\\d]{0,16})?(\\d{3,6})[^\\n]{0,40}?((?:R|Ｒ|H|Ｈ|G)\\s*\\d{1,2}\\s+\\d{1,2})")
                 .matcher(text);
         if (lot.find()) {
             return extractEraDate(lot.group(2).replaceFirst("^[Gg]", "R"), false);
@@ -719,7 +704,11 @@ public class AuctionSheetParser {
 
     private String extract(String text, String[] keys) {
         for (String key : keys) {
-            Pattern pattern = Pattern.compile(Pattern.quote(key) + "[^\\nA-Za-z0-9ァ-ヶ一-龥]{0,16}([^\\n]{0,60})");
+            String quoted = Pattern.quote(key);
+            if (key.matches("[A-Za-z].*")) {
+                quoted = "(?<![A-Za-z])" + quoted + "(?![A-Za-z])";
+            }
+            Pattern pattern = Pattern.compile("(?i)" + quoted + "[^\\nA-Za-z0-9ァ-ヶ一-龥]{0,16}([^\\n]{0,60})");
             Matcher matcher = pattern.matcher(text);
             while (matcher.find()) {
                 String sameLine = cleanValue(matcher.group(1));
@@ -748,7 +737,7 @@ public class AuctionSheetParser {
     }
 
     private String extractChassis(String text, String modelCode) {
-        String labeled = extract(text, new String[] {"車台番号"});
+        String labeled = extract(text, new String[] {"車台番号", "Chassis number", "Chassis no", "Frame number", "VIN"});
         String digits = null;
         if (labeled != null) {
             String cleaned = codeHaystack(labeled).replaceAll("[^A-Z0-9-]", "");
@@ -765,7 +754,9 @@ public class AuctionSheetParser {
             }
         }
         if (digits == null) {
-            Matcher suffix = Pattern.compile("車台番号[^\\d]{0,24}(\\d{6,8})").matcher(text);
+            Matcher suffix = Pattern.compile(
+                    "(?i)(?:車台番号|chassis(?:\\s+(?:no\\.?|number))?|frame(?:\\s+number)?|vin)[^\\d]{0,24}(\\d{6,8})")
+                    .matcher(text);
             if (suffix.find()) {
                 digits = suffix.group(1);
             }
@@ -794,7 +785,7 @@ public class AuctionSheetParser {
 
     private String extractModelCode(String text) {
         String haystack = codeHaystack(text);
-        String labeled = extract(text, new String[] {"型式"});
+        String labeled = extract(text, new String[] {"型式", "Model code", "Model type"});
         if (labeled != null) {
             Matcher labeledCode = Pattern.compile("((?:[0-9][A-Z]{2}|[A-Z]{3})[-\\s]?[A-Z0-9]{3,10})")
                     .matcher(codeHaystack(labeled));
@@ -835,12 +826,15 @@ public class AuctionSheetParser {
     }
 
     private String extractMileage(String text) {
-        Matcher withUnit = Pattern.compile("走行[^\\d]{0,20}(\\d{1,3}(?:,\\d{3}|\\.\\d{3})+|\\d{1,6})\\s*(km|kn|㎞|KM|キロ)")
+        Matcher withUnit = Pattern.compile(
+                "(?i)(?:走行|mileage|odometer|travel(?:led|ed)?(?:\\s+distance)?)[^\\d]{0,20}(\\d{1,3}(?:,\\d{3}|\\.\\d{3})+|\\d{1,6})\\s*(km|kn|㎞|KM|キロ|kilometers?|kilometres?)")
                 .matcher(text);
         if (withUnit.find()) {
             return withUnit.group(1).replace(",", "").replace(".", "") + " km";
         }
-        Matcher labeled = Pattern.compile("走行[^\\d]{0,20}(\\d{1,3}(?:,\\d{3}|\\.\\d{3})+|\\d{1,6})").matcher(text);
+        Matcher labeled = Pattern.compile(
+                "(?i)(?:走行|mileage|odometer|travel(?:led|ed)?(?:\\s+distance)?)[^\\d]{0,20}(\\d{1,3}(?:,\\d{3}|\\.\\d{3})+|\\d{1,6})")
+                .matcher(text);
         if (labeled.find()) {
             String digits = labeled.group(1).replace(",", "").replace(".", "");
             if (!digits.isEmpty()) {
@@ -868,11 +862,15 @@ public class AuctionSheetParser {
     }
 
     private String extractEngine(String text) {
-        Matcher labeledComma = Pattern.compile("排気量[^\\d]{0,16}(\\d{1,3})[,.](\\d{3})").matcher(text);
+        Matcher labeledComma = Pattern.compile(
+                "(?i)(?:排気量|displacement|engine\\s+(?:size|capacity|displacement))[^\\d]{0,16}(\\d{1,3})[,.](\\d{3})")
+                .matcher(text);
         if (labeledComma.find()) {
             return labeledComma.group(1) + labeledComma.group(2) + " cc";
         }
-        Matcher labeled = Pattern.compile("排気量[^\\d]{0,16}(\\d{3,4})").matcher(text);
+        Matcher labeled = Pattern.compile(
+                "(?i)(?:排気量|displacement|engine\\s+(?:size|capacity|displacement))[^\\d]{0,16}(\\d{3,4})")
+                .matcher(text);
         if (labeled.find()) {
             return labeled.group(1) + " cc";
         }
@@ -883,64 +881,6 @@ public class AuctionSheetParser {
         Matcher cc = Pattern.compile("(\\d{3,4})\\s*(cc|CC|ｃｃ)").matcher(text);
         if (cc.find()) {
             return cc.group(1) + " cc";
-        }
-        return null;
-    }
-
-    private String extractYear(String text) {
-        Matcher era = Pattern.compile("(令和|平成|昭和)\\s*(\\d{1,2}|元)").matcher(text);
-        if (era.find()) {
-            return String.valueOf(toWesternYear(era.group(1), era.group(2)));
-        }
-        Matcher reiwa = Pattern.compile("初度登録[^\\n]{0,40}(?:R|Ｒ)\\s*(\\d{1,2})").matcher(text);
-        if (reiwa.find()) {
-            return String.valueOf(2018 + Integer.parseInt(reiwa.group(1)));
-        }
-        Matcher heisei = Pattern.compile("初度登録[^\\n]{0,40}(?:H|Ｈ)\\s*(\\d{1,2})").matcher(text);
-        if (heisei.find()) {
-            return String.valueOf(1988 + Integer.parseInt(heisei.group(1)));
-        }
-        Matcher firstReg = Pattern.compile("初度登録[^\\d]{0,24}(\\d{1,2})").matcher(text);
-        if (firstReg.find()) {
-            int n = Integer.parseInt(firstReg.group(1));
-            if (n >= 9 && n <= 31) {
-                return String.valueOf(1988 + n);
-            }
-            if (n >= 1 && n <= 8) {
-                return String.valueOf(2018 + n);
-            }
-        }
-        Matcher reiwaBare = Pattern.compile("(?:^|[^A-Z])R\\s*([1-8])(?:\\D|$)").matcher(text.toUpperCase());
-        if (reiwaBare.find()) {
-            return String.valueOf(2018 + Integer.parseInt(reiwaBare.group(1)));
-        }
-        Matcher heiseiBare = Pattern.compile("(?:^|[^A-Z])H\\s*([1-9]|1[0-9]|2[0-9]|3[01])(?:\\D|$)").matcher(text.toUpperCase());
-        if (heiseiBare.find()) {
-            return String.valueOf(1988 + Integer.parseInt(heiseiBare.group(1)));
-        }
-        Matcher western = Pattern.compile("(20(?:0\\d|1\\d|2\\d))").matcher(text);
-        if (western.find()) {
-            return western.group(1);
-        }
-        return null;
-    }
-
-    private String extractMonth(String text) {
-        Matcher glued = Pattern.compile("初度登録[^\\n]{0,24}(?:R|Ｒ|H|Ｈ)\\s*(\\d{1,2})[^\\dハコHB]{1,8}(\\d{1,2})(?!\\s*(?:ハコ|HB))")
-                .matcher(text);
-        if (glued.find()) {
-            int month = Integer.parseInt(glued.group(2));
-            if (month >= 1 && month <= 12) {
-                return String.valueOf(month);
-            }
-        }
-        Matcher ym = Pattern.compile("初度登録[^\\n]{0,40}?(?:令和|平成|R|Ｒ|H|Ｈ)?\\s*(\\d{1,2}|元)[^\\dハコ]{1,8}(\\d{1,2})(?!\\s*(?:ハコ|HB|ドア))")
-                .matcher(text);
-        if (ym.find()) {
-            int month = Integer.parseInt(ym.group(2));
-            if (month >= 1 && month <= 12) {
-                return String.valueOf(month);
-            }
         }
         return null;
     }
@@ -958,18 +898,22 @@ public class AuctionSheetParser {
 
     private String extractLot(String text, String mileage) {
         String mileageDigits = mileage == null ? "" : mileage.replaceAll("[^0-9]", "");
-        Matcher labeled = Pattern.compile("出品番号[^\\d]{0,20}(\\d{3,6})").matcher(text);
+        Matcher labeled = Pattern.compile(
+                "(?i)(?:出品番号|(?<![A-Za-z])lot(?:\\s*(?:no\\.?|number|#))?|exhibition\\s+number|listing\\s+number)[^\\d]{0,20}(\\d{3,6})")
+                .matcher(text);
         if (labeled.find()) {
-            String lot = normalizeLot(labeled.group(1), text, mileageDigits);
+            String lot = normalizeLot(labeled.group(1), mileageDigits);
             if (lot != null && !isUnlikelyLot(lot, mileageDigits, text)) {
                 return lot;
             }
         }
-        String extracted = extract(text, new String[] {"出品番号", "出品No", "出品NO", "ロット"});
+        String extracted = extract(text, new String[] {
+                "出品番号", "出品No", "出品NO", "ロット", "Lot number", "Lot no", "Exhibition number", "Listing number"
+        });
         if (extracted != null) {
             Matcher digits = Pattern.compile("(\\d{3,6})").matcher(extracted);
             if (digits.find()) {
-                String lot = normalizeLot(digits.group(1), text, mileageDigits);
+                String lot = normalizeLot(digits.group(1), mileageDigits);
                 if (lot != null && !isUnlikelyLot(lot, mileageDigits, text)) {
                     return lot;
                 }
@@ -980,7 +924,7 @@ public class AuctionSheetParser {
         String best = null;
         int bestCount = 0;
         while (rows.find()) {
-            String candidate = normalizeLot(rows.group(1), text, mileageDigits);
+            String candidate = normalizeLot(rows.group(1), mileageDigits);
             if (candidate == null || isUnlikelyLot(candidate, mileageDigits, text)) {
                 continue;
             }
@@ -995,7 +939,7 @@ public class AuctionSheetParser {
         }
         Matcher any = Pattern.compile("(?<!\\d)(\\d{4,6})(?!\\d)(?!\\s*(km|kn|㎞|KM|cc))").matcher(head);
         while (any.find()) {
-            String candidate = normalizeLot(any.group(1), text, mileageDigits);
+            String candidate = normalizeLot(any.group(1), mileageDigits);
             if (candidate != null && !isUnlikelyLot(candidate, mileageDigits, text)) {
                 return candidate;
             }
@@ -1003,7 +947,7 @@ public class AuctionSheetParser {
         return null;
     }
 
-    private String normalizeLot(String digits, String text, String mileageDigits) {
+    private String normalizeLot(String digits, String mileageDigits) {
         if (digits == null || digits.length() < 3) {
             return null;
         }
@@ -1023,10 +967,7 @@ public class AuctionSheetParser {
         if (text.contains(digits + " km") || text.contains(digits + "km")) {
             return true;
         }
-        if (Pattern.compile("[A-Z0-9]-" + Pattern.quote(digits)).matcher(text.toUpperCase()).find()) {
-            return true;
-        }
-        return false;
+        return Pattern.compile("[A-Z0-9]-" + Pattern.quote(digits)).matcher(text.toUpperCase()).find();
     }
 
     private int countToken(String text, String token) {
@@ -1039,12 +980,15 @@ public class AuctionSheetParser {
     }
 
     private String extractAuctionGrade(String text) {
-        Matcher matcher = Pattern.compile("(?:評価点|評点|総合評価|評価)[^A-Za-z0-9]{0,40}([SRA-E6]|[1-6](?:\\.\\d)?)")
+        Matcher matcher = Pattern.compile(
+                "(?i)(?:評価点|評点|総合評価|評価|evaluation|rating|score|auction\\s+grade|overall(?:\\s+grade)?)[^A-Za-z0-9]{0,40}([SRA-E6]|[1-6](?:\\.\\d)?)")
                 .matcher(text);
         if (matcher.find()) {
             return matcher.group(1);
         }
-        String labeled = extract(text, new String[] {"評価点", "評点", "点数", "総合評価", "評価"});
+        String labeled = extract(text, new String[] {
+                "評価点", "評点", "点数", "総合評価", "評価", "Evaluation", "Rating", "Auction grade", "Overall grade"
+        });
         if (labeled != null) {
             Matcher value = Pattern.compile("^([SRA-E]|[0-6](?:\\.\\d)?)").matcher(labeled.trim());
             if (value.find()) {
@@ -1058,14 +1002,21 @@ public class AuctionSheetParser {
         return null;
     }
 
-    private String extractPanelGrade(String text, String fullLabel, String shortLabel) {
-        String label = "(?:" + Pattern.quote(fullLabel) + "|" + Pattern.quote(shortLabel) + "(?:装)?)(?!色)";
-        Matcher matcher = Pattern.compile(label + "[^A-Ea-e]{0,40}(?<![A-Z0-9])([A-Ea-e])(?![A-Za-z0-9])")
+    private String extractPanelGrade(String text, String... labels) {
+        StringBuilder alt = new StringBuilder();
+        for (String item : labels) {
+            if (alt.length() > 0) {
+                alt.append('|');
+            }
+            alt.append(Pattern.quote(item));
+        }
+        String label = "(?:" + alt + ")(?!色)(?!(?:erior)?\\s*colou?r)";
+        Matcher matcher = Pattern.compile("(?i)" + label + "[^A-Ea-e]{0,40}(?<![A-Z0-9])([A-Ea-e])(?![A-Za-z0-9])")
                 .matcher(text);
         if (matcher.find() && isGradeLetterContext(text, matcher.start(1))) {
             return matcher.group(1).toUpperCase();
         }
-        Matcher nextLine = Pattern.compile(label + "[^\\n]{0,12}\\n\\s*([A-Ea-e])(?![A-Za-z0-9])").matcher(text);
+        Matcher nextLine = Pattern.compile("(?i)" + label + "[^\\n]{0,12}\\n\\s*([A-Ea-e])(?![A-Za-z0-9])").matcher(text);
         if (nextLine.find() && isGradeLetterContext(text, nextLine.start(1))) {
             return nextLine.group(1).toUpperCase();
         }
@@ -1073,50 +1024,31 @@ public class AuctionSheetParser {
     }
 
     private String extractGrade(String text) {
-        String raw = extract(text, new String[] {"グレード"});
-        if (raw != null) {
-            return raw.replaceAll("\\s+", " ").trim();
+        String raw = extract(text, new String[] {"グレード", "Vehicle grade", "Trim"});
+        if (isVehicleGrade(raw)) {
+            return Objects.requireNonNull(raw).replaceAll("\\s+", " ").trim();
         }
-        Matcher labeled = Pattern.compile("グレード[^A-Za-zァ-ヶ一-龥]{0,12}([^\\n]{1,40})").matcher(text);
+        Matcher labeled = Pattern.compile(
+                "(?i)(?:グレード|(?<!auction\\s)(?<!overall\\s)(?<!evaluation\\s)(?<!interior\\s)(?<!exterior\\s)grade)[^A-Za-z0-9ァ-ヶ一-龥]{0,12}([^\\n]{1,40})")
+                .matcher(text);
         if (labeled.find()) {
             String grade = cleanValue(labeled.group(1));
-            if (hasContent(grade) && !isFieldLabel(grade)) {
+            if (isVehicleGrade(grade) && !isFieldLabel(grade)) {
                 return grade.replaceAll("\\s+", " ").trim();
             }
         }
         return null;
     }
 
-    private String extractDoors(String text) {
-        Matcher hb = Pattern.compile("(\\d)\\s*HB").matcher(text.toUpperCase());
-        if (hb.find() && !"0".equals(hb.group(1))) {
-            return hb.group(1);
+    private boolean isVehicleGrade(String value) {
+        if (!hasContent(value)) {
+            return false;
         }
-        Matcher box = Pattern.compile("(\\d)\\s*ハコ").matcher(text);
-        if (box.find() && !"0".equals(box.group(1))) {
-            return box.group(1);
-        }
-        Matcher sedan = Pattern.compile("([1-9])\\s*SD").matcher(text.toUpperCase());
-        if (sedan.find()) {
-            return sedan.group(1);
-        }
-        Matcher wagon = Pattern.compile("([1-9])\\s*W(?!D)").matcher(text.toUpperCase());
-        if (wagon.find()) {
-            return wagon.group(1);
-        }
-        Matcher door = Pattern.compile("(\\d)\\s*ドア").matcher(text);
-        if (door.find() && !"0".equals(door.group(1))) {
-            return door.group(1);
-        }
-        String digits = digitsOnly(extract(text, new String[] {"ドア形状", "ドア"}));
-        if (digits != null && !"0".equals(digits)) {
-            return digits;
-        }
-        return null;
+        return !value.trim().matches("(?i)[SRA-E]|[0-6](?:\\.\\d)?");
     }
 
     private String extractBodyStyle(String text) {
-        String labeled = extract(text, new String[] {"ドア形状", "ドア・形状"});
+        String labeled = extract(text, new String[] {"ドア形状", "ドア・形状", "Door shape", "Doors"});
         if (labeled != null && labeled.toUpperCase().contains("WD") && !labeled.contains("ドア")
                 && !labeled.toUpperCase().contains("SD") && !labeled.toUpperCase().contains("HB")) {
             labeled = null;
@@ -1137,12 +1069,15 @@ public class AuctionSheetParser {
                 && !upper.contains("SD") && !upper.contains("HB") && !text.contains("ハコ")) {
             return null;
         }
-        Matcher any = Pattern.compile("([2-5])\\s*(?:SD|HB|ドア|ハコ)|(?<![A-Z0-9])([2-5])\\s*W(?![A-Z0-9])|([2-5])\\s*ハコ").matcher(text);
+        Matcher any = Pattern.compile(
+                "(?i)([2-5])\\s*(?:SD|HB|ドア|ハコ|doors?)|(?<![A-Z0-9])([2-5])\\s*W(?![A-Z0-9])|([2-5])\\s*ハコ")
+                .matcher(text);
         if (any.find()) {
             String n = any.group(1) != null ? any.group(1) : (any.group(2) != null ? any.group(2) : any.group(3));
             return n + "-door";
         }
-        Matcher doorsAfterLabel = Pattern.compile("ドア(?:形状|・形状)?[^\\d]{0,8}([2-5])").matcher(text);
+        Matcher doorsAfterLabel = Pattern.compile("(?i)(?:ドア(?:形状|・形状)?|doors?|door\\s+shape)[^\\d]{0,8}([2-5])")
+                .matcher(text);
         if (doorsAfterLabel.find()) {
             return doorsAfterLabel.group(1) + "-door";
         }
@@ -1153,36 +1088,16 @@ public class AuctionSheetParser {
         return null;
     }
 
-    private String extractDrive(String text) {
-        String upper = text.toUpperCase();
-        boolean two = upper.contains("2WD");
-        boolean four = upper.contains("4WD");
-        if (two && !four) {
-            return "2WD";
-        }
-        if (four && !two) {
-            return "4WD";
-        }
-        if (two) {
-            return "2WD";
-        }
-        return null;
-    }
-
     private String extractSeats(String text) {
-        Matcher matcher = Pattern.compile("乗車定員[^\\d]{0,12}(\\d)").matcher(text);
+        Matcher matcher = Pattern.compile("(?i)(?:乗車定員|seating\\s+capacity|passengers?)[^\\d]{0,12}(\\d)").matcher(text);
         if (matcher.find()) {
             return matcher.group(1);
         }
-        Matcher people = Pattern.compile("(\\d)\\s*(人|名|people|People)").matcher(text);
+        Matcher people = Pattern.compile("(?i)(\\d)\\s*(人|名|people|persons?|seats?)").matcher(text);
         if (people.find()) {
             return people.group(1);
         }
-        String labeled = digitsOnly(extract(text, new String[] {"乗車定員", "定員"}));
-        if (labeled != null) {
-            return labeled;
-        }
-        return null;
+        return digitsOnly(extract(text, new String[] {"乗車定員", "定員", "Seating capacity", "Passengers"}));
     }
 
     private String extractFuel(String text) {
@@ -1190,7 +1105,7 @@ public class AuctionSheetParser {
                 || text.toUpperCase().contains("HYBRID")) {
             return "Hybrid";
         }
-        String labeled = translateFuel(extract(text, new String[] {"燃料"}));
+        String labeled = translateFuel(extract(text, new String[] {"燃料", "Fuel"}));
         if (labeled != null && (labeled.contains("Gasoline") || labeled.contains("Petrol") || labeled.contains("Diesel")
                 || labeled.contains("Hybrid") || labeled.contains("Electric"))) {
             if (labeled.contains("Gasoline") || labeled.contains("Petrol")) {
@@ -1219,7 +1134,9 @@ public class AuctionSheetParser {
     }
 
     private String extractTransmission(String text) {
-        String fromLabel = translateTransmission(extract(text, new String[] {"シフト", "ミッション"}));
+        String fromLabel = translateTransmission(extract(text, new String[] {
+                "シフト", "ミッション", "Shift", "Transmission", "Gear"
+        }));
         if (fromLabel != null && fromLabel.matches("(?i)CVT|IAT|F\\.AT|FAT|AT|MT")) {
             return fromLabel;
         }
@@ -1243,7 +1160,8 @@ public class AuctionSheetParser {
     }
 
     private String extractAc(String text) {
-        Matcher labeled = Pattern.compile("(?:エアコン|冷房)[^A-Za-z]{0,12}(AAC|AC)").matcher(text.toUpperCase());
+        Matcher labeled = Pattern.compile("(?:エアコン|冷房|AIR\\s*CON(?:DITIONER)?)[^A-Za-z]{0,12}(AAC|AC)")
+                .matcher(text.toUpperCase());
         if (labeled.find()) {
             return labeled.group(1);
         }
@@ -1259,69 +1177,19 @@ public class AuctionSheetParser {
     }
 
     private String extractHistory(String text) {
-        String labeled = extract(text, new String[] {"車歴"});
+        String labeled = extract(text, new String[] {"車歴", "History", "Vehicle history"});
         String source = labeled != null ? labeled : text;
-        if (source.contains("レンタ")) {
+        if (source.contains("レンタ") || (labeled != null && labeled.matches("(?i).*rental.*"))) {
             return "Rental";
         }
-        if (source.contains("自家用") || (labeled != null && labeled.contains("自家"))) {
+        if (source.contains("自家用") || (labeled != null && (labeled.contains("自家") || labeled.matches("(?i).*private.*")))) {
             return "Private";
         }
-        if (source.contains("事業")) {
+        if (source.contains("事業") || (labeled != null && labeled.matches("(?i).*commercial.*"))) {
             return "Commercial";
         }
         if (labeled != null && labeled.matches("(?i)rental|private|commercial")) {
             return labeled;
-        }
-        return null;
-    }
-
-    private String extractInspection(String text) {
-        String value = extract(text, new String[] {"車検"});
-        if (value == null || isSpecToken(value) || isFieldLabel(value)) {
-            return null;
-        }
-        if (value.contains("なし") || value.contains("無")) {
-            return null;
-        }
-        if (value.matches("(?i)[A-Z.]{1,6}") || value.matches("\\d{1,3}")) {
-            return null;
-        }
-        return value;
-    }
-
-    private String extractInteriorColor(String text) {
-        String value = translateColor(extract(text, new String[] {"内装色"}));
-        if (value == null || isSpecToken(value) || isFieldLabel(value)) {
-            return null;
-        }
-        if (value.replaceAll("[\\s,]", "").matches("\\d+")) {
-            return null;
-        }
-        return value;
-    }
-
-    private String extractListingStatus(String text) {
-        if (text.contains("初出品")) {
-            return "First listing";
-        }
-        if (text.contains("再出品")) {
-            return "Relist";
-        }
-        return null;
-    }
-
-    private String extractWarranty(String text) {
-        if (text.contains("保証書") && !text.contains("保証書無") && !text.contains("保証無")) {
-            return "Warranty book";
-        }
-        return null;
-    }
-
-    private String extractRecycleFee(String text) {
-        Matcher matcher = Pattern.compile("リサイクル[^\\d]{0,24}(\\d{1,3}(?:,\\d{3})+|\\d{4,5})").matcher(text);
-        if (matcher.find()) {
-            return matcher.group(1).replace(",", "") + " yen";
         }
         return null;
     }
@@ -1332,14 +1200,15 @@ public class AuctionSheetParser {
             putDimension(result, times.group(1), times.group(2), times.group(3));
             return;
         }
-        Matcher labeled = Pattern.compile("諸元[^\\d]{0,24}(\\d{3})[^\\d]{1,12}(\\d{3})[^\\d]{1,12}(\\d{3})").matcher(text);
+        Matcher labeled = Pattern.compile("(?i)(?:諸元|spec(?:ification)?s?)[^\\d]{0,24}(\\d{3})[^\\d]{1,12}(\\d{3})[^\\d]{1,12}(\\d{3})")
+                .matcher(text);
         if (labeled.find()) {
             putDimension(result, labeled.group(1), labeled.group(2), labeled.group(3));
             return;
         }
-        Matcher length = Pattern.compile("長さ[^\\d]{0,8}(\\d{3})").matcher(text);
-        Matcher width = Pattern.compile("幅[^\\d]{0,8}(\\d{3})").matcher(text);
-        Matcher height = Pattern.compile("高さ[^\\d]{0,8}(\\d{3})").matcher(text);
+        Matcher length = Pattern.compile("(?i)(?:長さ|length)[^\\d]{0,8}(\\d{3})").matcher(text);
+        Matcher width = Pattern.compile("(?i)(?:幅|width)[^\\d]{0,8}(\\d{3})").matcher(text);
+        Matcher height = Pattern.compile("(?i)(?:高さ|height)[^\\d]{0,8}(\\d{3})").matcher(text);
         if (length.find() && width.find() && height.find()) {
             putDimension(result, length.group(1), width.group(1), height.group(1));
             return;
@@ -1366,47 +1235,126 @@ public class AuctionSheetParser {
     }
 
     private String extractColor(String text) {
-        String labeled = extract(text, new String[] {"外装色"});
-        if (labeled != null) {
-            String translated = translateColor(labeled);
-            Iterator<Map.Entry<String, String>> colors = JP_COLORS.entrySet().iterator();
-            while (colors.hasNext()) {
-                Map.Entry<String, String> entry = colors.next();
-                if (translated != null && translated.contains(entry.getValue())) {
-                    return entry.getValue();
+        Matcher labeled = Pattern.compile(
+                "(?i)(?:外装色|(?<!interior\\s)(?<!inner\\s)(?:exterior\\s+|outer\\s+|body\\s+)?(?<![A-Za-z])colou?r(?![A-Za-z])(?:\\s*(?:name|code|no\\.?)?)?|カラー)")
+                .matcher(text);
+        while (labeled.find()) {
+            String candidate = usableColorName(sameLineAfter(text, labeled.end()));
+            if (candidate == null) {
+                String next = nextLine(text, labeled.end());
+                if (!looksLikeChassis(next) && !looksLikeModelCode(next)) {
+                    candidate = usableColorName(next);
                 }
             }
-            if (translated != null && translated.trim().length() > 0
-                    && !translated.matches("(?i)[A-Z]\\d{2}|\\d{3}")) {
-                return translated;
+            if (candidate != null) {
+                return candidate;
             }
         }
         return null;
     }
 
+    private String usableColorName(String value) {
+        if (!hasContent(value) || isFieldLabel(value) || isSpecToken(value) || isPanelGradeToken(value)) {
+            return null;
+        }
+        if (isPaintColorCode(value)) {
+            return null;
+        }
+        String translated = translateColor(value);
+        if (!hasContent(translated) || isPaintColorCode(translated) || isPanelGradeToken(translated)) {
+            return null;
+        }
+        String cleaned = getString(translated);
+        if (!hasContent(cleaned) || isPaintColorCode(cleaned) || isPanelGradeToken(cleaned)
+                || looksLikeChassis(cleaned) || looksLikeModelCode(cleaned)) {
+            return null;
+        }
+        return cleaned;
+    }
+
+    private static String getString(String translated) {
+        String cleaned = translated.replaceAll("\\s+", " ").trim();
+        cleaned = cleaned.replaceAll("(?i)\\b(?:exterior|outer|body|interior)\\s+(?:colou?r\\s+)?", "");
+        cleaned = cleaned.replaceAll("(?i)\\b(?:colou?r(?:\\s*(?:code|no\\.?))?|code)\\b", "").trim();
+        cleaned = cleaned.replaceAll("(?i)(?<![A-Z0-9])(?:[A-Z]\\d{2}|\\d{3}|\\d[A-Z]\\d)(?![A-Z0-9])", "").trim();
+        cleaned = cleaned.replaceAll("[A-Za-z]{1,5}\\d{2,3}[A-Za-z0-9]{0,2}-\\d{5,8}", "").trim();
+        cleaned = cleaned.replaceAll("(?i)\\b(?:[0-9][A-Z]{2}|[A-Z]{3})-[A-Z0-9]{3,10}\\b", "").trim();
+        cleaned = cleaned.replaceAll("\\s+", " ").trim();
+        return cleaned;
+    }
+
     private String extractColorCode(String text) {
-        String upper = text.toUpperCase();
-        Matcher matcher = Pattern.compile("(?:カラー\\s*(?:NO\\.?|番号)?|外装色|色コード)[^A-Z0-9]{0,16}([A-Z]\\d{2}|\\d{3}|[A-Z][A-Z0-9]{2})")
-                .matcher(upper);
+        Matcher labeled = Pattern.compile(
+                "(?i)(?:外装色|色コード|カラー\\s*(?:NO\\.?|番号)?|(?<!interior\\s)(?<!inner\\s)(?:exterior\\s+|outer\\s+|body\\s+)?(?<![A-Za-z])colou?r(?![A-Za-z])(?:\\s*(?:code|no\\.?))?)")
+                .matcher(text);
+        while (labeled.find()) {
+            String code = firstPaintColorCode(sameLineAfter(text, labeled.end()), text);
+            if (code != null) {
+                return code;
+            }
+            String next = nextLine(text, labeled.end());
+            if (looksLikeChassis(next) || looksLikeModelCode(next)) {
+                continue;
+            }
+            code = firstPaintColorCode(next, text);
+            if (code != null) {
+                return code;
+            }
+        }
+        return firstPaintColorCode(looseWhiteColorWindow(text), text);
+    }
+
+    private String sameLineAfter(String text, int from) {
+        if (from >= text.length()) {
+            return "";
+        }
+        int end = text.indexOf('\n', from);
+        if (end < 0) {
+            end = text.length();
+        }
+        return cleanValue(text.substring(from, end));
+    }
+
+    private String looseWhiteColorWindow(String text) {
+        Matcher loose = Pattern.compile("(?<!\\d)(W\\d{2})(?!\\d)").matcher(text.toUpperCase());
+        if (loose.find() && !text.toUpperCase().contains(loose.group(1) + "-")) {
+            return loose.group(1);
+        }
+        return null;
+    }
+
+    private String firstPaintColorCode(String value, String wholeText) {
+        if (value == null) {
+            return null;
+        }
+        Matcher matcher = Pattern.compile("(?<![A-Z0-9])([A-Z]\\d{2}|\\d{3}|\\d[A-Z]\\d)(?![A-Z0-9])")
+                .matcher(value.toUpperCase());
+        String upper = wholeText == null ? value.toUpperCase() : wholeText.toUpperCase();
         while (matcher.find()) {
             String code = matcher.group(1);
-            if (isIgnoredColorCode(code) || upper.contains(code + "-")) {
+            if (isIgnoredColorCode(code) || upper.contains(code + "-") || isPanelGradeToken(code)) {
                 continue;
             }
             return code;
         }
-        String colorLine = extract(text, new String[] {"外装色", "カラー"});
-        if (colorLine != null) {
-            Matcher beside = Pattern.compile("\\b([A-Z]\\d{2}|[A-Z][A-Z0-9]{2}|\\d{3})\\b").matcher(colorLine.toUpperCase());
-            if (beside.find() && !isIgnoredColorCode(beside.group(1))) {
-                return beside.group(1);
-            }
-        }
-        Matcher loose = Pattern.compile("(?<!\\d)(W\\d{2})(?!\\d)").matcher(upper);
-        if (loose.find() && !upper.contains(loose.group(1) + "-")) {
-            return loose.group(1);
-        }
         return null;
+    }
+
+    private boolean isPaintColorCode(String value) {
+        return value != null && value.trim().toUpperCase().matches("[A-Z]\\d{2}|\\d{3}|\\d[A-Z]\\d");
+    }
+
+    private boolean isPanelGradeToken(String value) {
+        return value != null && value.trim().matches("(?i)[A-ES*]|[1-6](?:\\.5)?");
+    }
+
+    private boolean looksLikeChassis(String value) {
+        return value != null && Pattern.compile("[A-Z]{1,5}\\d{2,3}[A-Z0-9]{0,2}-\\d{5,8}", Pattern.CASE_INSENSITIVE)
+                .matcher(value).find();
+    }
+
+    private boolean looksLikeModelCode(String value) {
+        return value != null && Pattern.compile("(?i)\\b(?:[0-9][A-Z]{2}|[A-Z]{3})-[A-Z0-9]{3,10}\\b").matcher(value).find();
     }
 
     private String colorFromCode(String code) {
@@ -1445,97 +1393,6 @@ public class AuctionSheetParser {
         }
     }
 
-    private String extractEquipment(String text) {
-        String upper = text.toUpperCase();
-        List<String> items = new ArrayList<String>();
-        addIf(items, Pattern.compile("\\bPS\\b").matcher(upper).find() || text.contains("パワステ"), "PS");
-        addIf(items, Pattern.compile("\\bPW\\b").matcher(upper).find()
-                || text.contains("パワーウインドウ") || text.contains("パワーウィンドウ"), "PW");
-        addIf(items, Pattern.compile("\\bABS\\b").matcher(upper).find(), "ABS");
-        addIf(items, text.contains("エアバック") || text.contains("エアバッグ") || text.contains("エアB")
-                || text.contains("ＩアB") || text.contains("IアB"), "Airbag");
-        addIf(items, Pattern.compile("\\bETC\\b").matcher(upper).find(), "ETC");
-        addIf(items, text.contains("ナビ"), "Navigation");
-        addIf(items, text.contains("アルミ"), "Alloy wheels");
-        addIf(items, text.contains("スマートキー"), "Smart key");
-        addIf(items, text.contains("プッシュスタート"), "Push start");
-        addIf(items, text.contains("両側パワースライド") || text.contains("パワースライドドア"), "Power sliding doors");
-        addIf(items, text.contains("バックモニター"), "Backup monitor");
-        return items.isEmpty() ? null : join(items);
-    }
-
-    private String extractSalesPoints(String text) {
-        List<String> points = new ArrayList<String>();
-        Matcher star = Pattern.compile("[★☆*]\\s*([^★☆*\\n]+)").matcher(text);
-        while (star.find()) {
-            String point = cleanValue(star.group(1));
-            if (hasContent(point) && !isFieldLabel(point) && !points.contains(point)) {
-                points.add(point.replaceAll("\\s+", " ").trim());
-            }
-        }
-        if (!points.isEmpty()) {
-            return join(points);
-        }
-        return extractBlock(text, "セールスポイント",
-                new String[] {"純正装備", "検査員記入", "注意事項"});
-    }
-
-    private String extractInspectorNotes(String text) {
-        List<String> notes = new ArrayList<String>();
-        String[] phrases = new String[] {
-                "室内薄汚れ", "外装小傷有り", "外装小傷", "ハンドルハゲ", "ヘッドライトアセ", "Hライトアセ",
-                "ステレオレス", "ホイールカバー"
-        };
-        for (int i = 0; i < phrases.length; i++) {
-            int idx = text.indexOf(phrases[i]);
-            if (idx >= 0) {
-                String snippet = text.substring(idx, Math.min(text.length(), idx + phrases[i].length() + 4));
-                notes.add(snippet.replaceAll("\\s+", " ").trim());
-            }
-        }
-        String block = extractBlock(text, "検査員記入",
-                new String[] {"車両図", "凡例", "注意事項", "出品票", "セールスポイント"});
-        if (block != null && notes.isEmpty()) {
-            return block;
-        }
-        if (notes.isEmpty()) {
-            return block;
-        }
-        return join(notes);
-    }
-
-    private String extractBlock(String text, String start, String[] ends) {
-        int idx = text.indexOf(start);
-        if (idx < 0) {
-            return null;
-        }
-        String rest = text.substring(idx + start.length());
-        int cut = Math.min(rest.length(), 360);
-        for (int i = 0; i < ends.length; i++) {
-            int end = rest.indexOf(ends[i]);
-            if (end > 8 && end < cut) {
-                cut = end;
-            }
-        }
-        String block = cleanValue(rest.substring(0, cut));
-        if (block == null || block.length() < 2) {
-            return null;
-        }
-        return block.replaceAll("\\s+", " ").trim();
-    }
-
-    private String extractAuctionHouse(String text) {
-        String[] houses = new String[] {"KCAA", "USS", "TAA", "JU", "HAA", "NAA", "SAA", "ARAI", "IAA"};
-        String upper = text.toUpperCase();
-        for (int i = 0; i < houses.length; i++) {
-            Pattern token = Pattern.compile("(?:^|[^A-Z])" + Pattern.quote(houses[i]) + "(?:[^A-Z]|$)");
-            if (token.matcher(upper).find() || (houses[i].equals("KCAA") && text.contains("京都"))) {
-                return houses[i];
-            }
-        }
-        return null;
-    }
-
     private String cleanValue(String value) {
         if (value == null) {
             return null;
@@ -1543,11 +1400,17 @@ public class AuctionSheetParser {
         String cleaned = value.replaceAll("[|｜]+", " ").trim();
         String[] stop = new String[] {"車台番号", "車名", "型式", "年式", "走行", "カラー", "外装色", "内装色",
                 "排気量", "シフト", "燃料", "評価点", "出品番号", "ドア形状", "乗車定員", "グレード", "車検",
-                "車歴", "エアコン", "諸元", "セールスポイント", "純正装備", "リサイクル"};
-        for (int i = 0; i < stop.length; i++) {
-            int idx = cleaned.indexOf(stop[i]);
+                "車歴", "エアコン", "諸元", "セールスポイント", "純正装備", "リサイクル",
+                "Chassis number", "Vehicle name", "Car name", "Model code", "First registration",
+                "Mileage", "Exterior color", "Interior color", "Displacement", "Engine size",
+                "Transmission", "Fuel", "Evaluation", "Lot number", "Door shape",
+                "Seating capacity", "Grade", "History", "Air conditioner", "Specifications"};
+        String lower = cleaned.toLowerCase();
+        for (String s : stop) {
+            int idx = lower.indexOf(s.toLowerCase());
             if (idx > 0) {
                 cleaned = cleaned.substring(0, idx);
+                lower = cleaned.toLowerCase();
             }
         }
         return cleaned.trim();
@@ -1561,9 +1424,16 @@ public class AuctionSheetParser {
         String[] labels = new String[] {"車台番号", "車名", "型式", "年式", "走行", "カラー", "外装色", "内装色",
                 "排気量", "シフト", "燃料", "評価点", "出品番号", "ドア形状", "乗車定員", "グレード", "車検",
                 "車歴", "エアコン", "諸元", "セールスポイント", "純正装備", "リサイクル", "登録番号",
-                "最大積載", "輸入車", "保証書", "検査員", "注意事項"};
-        for (int i = 0; i < labels.length; i++) {
-            if (trimmed.equals(labels[i]) || trimmed.startsWith(labels[i])) {
+                "最大積載", "輸入車", "保証書", "検査員", "注意事項",
+                "Chassis number", "Vehicle name", "Car name", "Model name", "Model code",
+                "First registration", "Mileage", "Exterior color", "Interior color",
+                "Displacement", "Engine size", "Transmission", "Fuel", "Evaluation",
+                "Lot number", "Door shape", "Seating capacity", "Grade", "History",
+                "Air conditioner", "Specifications"};
+        String lower = trimmed.toLowerCase();
+        for (String label : labels) {
+            String key = label.toLowerCase();
+            if (lower.equals(key) || lower.startsWith(key)) {
                 return true;
             }
         }
@@ -1582,13 +1452,6 @@ public class AuctionSheetParser {
         return value != null && !value.replaceAll("[\\s:：・\\-_/]", "").isEmpty();
     }
 
-    private String firstToken(String value) {
-        if (value == null || value.trim().isEmpty()) {
-            return null;
-        }
-        return value.trim().split("\\s+")[0];
-    }
-
     private String digitsOnly(String value) {
         if (value == null) {
             return null;
@@ -1598,22 +1461,11 @@ public class AuctionSheetParser {
     }
 
     private String translateMaker(String value) {
-        Map<String, String> map = new LinkedHashMap<String, String>();
-        map.put("トヨタ", "Toyota");
-        map.put("ホンダ", "Honda");
-        map.put("日産", "Nissan");
-        map.put("ニッサン", "Nissan");
-        map.put("マツダ", "Mazda");
-        map.put("スバル", "Subaru");
-        map.put("スズキ", "Suzuki");
-        map.put("ダイハツ", "Daihatsu");
-        map.put("三菱", "Mitsubishi");
-        map.put("レクサス", "Lexus");
-        return replaceAll(value, map);
+        return translator.translateJaToEn(value);
     }
 
     private String translateColor(String value) {
-        return replaceAll(value, JP_COLORS);
+        return translator.translateJaToEn(value);
     }
 
     private String translateTransmission(String value) {
@@ -1637,43 +1489,7 @@ public class AuctionSheetParser {
     }
 
     private String translateFuel(String value) {
-        Map<String, String> map = new LinkedHashMap<String, String>();
-        map.put("ハイブリッド", "Hybrid");
-        map.put("ガソリン", "Gasoline");
-        map.put("軽油", "Diesel");
-        map.put("ディーゼル", "Diesel");
-        map.put("電気", "Electric");
-        return replaceAll(value, map);
-    }
-
-    private String replaceAll(String value, Map<String, String> map) {
-        if (value == null) {
-            return null;
-        }
-        String result = value;
-        Iterator<Map.Entry<String, String>> entries = map.entrySet().iterator();
-        while (entries.hasNext()) {
-            Map.Entry<String, String> entry = entries.next();
-            result = result.replace(entry.getKey(), entry.getValue());
-        }
-        return result.trim();
-    }
-
-    private void addIf(List<String> items, boolean condition, String label) {
-        if (condition) {
-            items.add(label);
-        }
-    }
-
-    private String join(List<String> items) {
-        StringBuilder builder = new StringBuilder();
-        for (int i = 0; i < items.size(); i++) {
-            if (i > 0) {
-                builder.append(", ");
-            }
-            builder.append(items.get(i));
-        }
-        return builder.toString();
+        return translator.translateJaToEn(value);
     }
 
     private String nullToEmpty(String value) {
@@ -1681,7 +1497,7 @@ public class AuctionSheetParser {
     }
 
     private String firstNonNull(String first, String second) {
-        if (first != null && first.trim().length() > 0) {
+        if (first != null && !first.trim().isEmpty()) {
             return first;
         }
         return second;

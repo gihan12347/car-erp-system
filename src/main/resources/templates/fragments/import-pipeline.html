@@ -31,7 +31,7 @@
     </div>
 
     <ol class="import-pipeline-steps"
-        th:style="'grid-template-columns: repeat(' + (${orderedKeys.size()} + (${importComplete} ? 1 : 0)) + ', minmax(0, 1fr))'">
+        th:style="'--pipeline-cols: ' + (${orderedKeys.size()} + (${importComplete} ? 1 : 0))">
         <th:block th:each="key, iter : ${orderedKeys}">
             <li th:if="${key == 'auction'}"
                 th:classappend="${(currentStep == 'auction' ? ' is-current' : '') + (auctionReady ? ' is-done' : ' is-pending')}">

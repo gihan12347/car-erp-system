@@ -28,7 +28,7 @@
     </div>
 
     <ol class="import-pipeline-steps"
-        th:style="'grid-template-columns: repeat(' + (${orderedKeys.size()} + (${showPrep} ? 1 : 0)) + ', minmax(0, 1fr))'">
+        th:style="'--pipeline-cols: ' + (${orderedKeys.size()} + (${showPrep} ? 1 : 0))">
         <th:block th:each="key, iter : ${orderedKeys}">
             <li th:if="${key == 'jevic'}"
                 data-clearance-step="jevic"

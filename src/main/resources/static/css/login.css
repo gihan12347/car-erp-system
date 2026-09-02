@@ -328,8 +328,27 @@ html, body {
 
 @media (max-width: 900px) {
     html, body { height: auto; overflow: auto; }
-    .login-shell { grid-template-columns: 1fr; min-height: 100vh; }
-    .brand-panel { display: none; }
+    .login-shell { grid-template-columns: 1fr; min-height: 100vh; min-height: 100dvh; }
+    .brand-panel {
+        display: block;
+        padding: 20px 20px 16px;
+        padding-top: max(20px, env(safe-area-inset-top));
+    }
+    .brand-panel h1,
+    .brand-panel ul,
+    .brand-glow {
+        display: none;
+    }
+    .brand-head {
+        margin-bottom: 0;
+    }
+    .form-panel {
+        padding: 16px 16px 28px;
+        padding-bottom: max(28px, env(safe-area-inset-bottom));
+        align-items: start;
+    }
     .form-card { padding: 22px 18px; }
+    .form-card h2 { font-size: 24px; }
+    .field input { font-size: 16px; }
     .demo-grid { grid-template-columns: 1fr; }
 }

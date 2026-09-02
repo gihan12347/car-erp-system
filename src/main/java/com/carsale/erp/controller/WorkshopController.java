@@ -77,6 +77,8 @@ public class WorkshopController {
         model.addAttribute("record", record);
         model.addAttribute("workshopReady", status.isWorkshopReady());
         model.addAttribute("yardReady", status.isYardReady());
+        model.addAttribute("inspectionReady", status.isInspectionReady());
+        model.addAttribute("canEnterYard", status.isCanEnterYard());
         model.addAttribute("prepComplete", status.isPrepComplete());
         model.addAttribute("stageNav", ReadyStageNavigation.viewLinks(
                 chassisNo,

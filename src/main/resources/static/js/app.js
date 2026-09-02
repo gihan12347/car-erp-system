@@ -1,11 +1,51 @@
 (function () {
     var sidebar = document.getElementById("sidebar");
     var toggle = document.getElementById("sidebarToggle");
+    var closeBtn = document.getElementById("sidebarClose");
+    var backdrop = document.getElementById("sidebarBackdrop");
+
+    function setNavOpen(open) {
+        if (!sidebar) {
+            return;
+        }
+        sidebar.classList.toggle("is-open", open);
+        document.body.classList.toggle("nav-open", open);
+        if (backdrop) {
+            backdrop.hidden = !open;
+        }
+        if (toggle) {
+            toggle.setAttribute("aria-expanded", open ? "true" : "false");
+        }
+    }
+
     if (toggle && sidebar) {
         toggle.addEventListener("click", function () {
-            sidebar.classList.toggle("is-open");
+            setNavOpen(!sidebar.classList.contains("is-open"));
         });
     }
+    if (closeBtn) {
+        closeBtn.addEventListener("click", function () {
+            setNavOpen(false);
+        });
+    }
+    if (backdrop) {
+        backdrop.addEventListener("click", function () {
+            setNavOpen(false);
+        });
+    }
+    if (sidebar) {
+        sidebar.addEventListener("click", function (event) {
+            var link = event.target.closest ? event.target.closest("a") : null;
+            if (link && sidebar.contains(link) && window.matchMedia("(max-width: 1100px)").matches) {
+                setNavOpen(false);
+            }
+        });
+    }
+    document.addEventListener("keydown", function (event) {
+        if (event.key === "Escape") {
+            setNavOpen(false);
+        }
+    });
 
     var navGroups = document.querySelectorAll("[data-nav-group]");
     Array.prototype.forEach.call(navGroups, function (toggle) {

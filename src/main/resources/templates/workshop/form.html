@@ -19,6 +19,8 @@
                     ${vehicle.chassisNo},
                     ${workshopReady},
                     ${yardReady},
+                    ${inspectionReady},
+                    ${canEnterYard},
                     ${vehicle.model},
                     false)"></div>
 
@@ -34,17 +36,22 @@
                     <input type="checkbox" th:field="*{completed}">
                     <span>
                         <strong>Mark workshop complete</strong>
-                        <small>This step is done. The vehicle can move to the ready for sale pipeline when yard is also complete.</small>
+                        <small>This step is done. Yard stays locked until every job status is Complete.</small>
                     </span>
                 </label>
 
                 <div id="workshopJobList">
                     <article class="panel workshop-job-card" th:each="line, stat : *{lines}" th:data-index="${stat.index}">
                         <div class="panel-head workshop-job-head">
-                            <h2>Job <span class="workshop-job-num" th:text="${stat.count}">1</span></h2>
+                            <h2>
+                                Job <span class="workshop-job-num" th:text="${stat.count}">1</span>
+                                <em class="pill rust inspection-job-pill"
+                                    th:if="${line.inspectionItemKey != null and !#strings.isEmpty(line.inspectionItemKey)}">From inspection</em>
+                            </h2>
                             <button type="button" class="panel-btn ghost workshop-job-remove">Remove</button>
                         </div>
                         <input type="hidden" th:if="${line.id != null}" th:field="*{lines[__${stat.index}__].id}">
+                        <input type="hidden" th:field="*{lines[__${stat.index}__].inspectionItemKey}">
                         <div class="field-grid">
                             <label>Status
                                 <select th:field="*{lines[__${stat.index}__].jobStatus}">
@@ -92,13 +99,25 @@
                 </button>
 
                 <div class="import-view-actions">
+                    <a th:if="${stageNav != null and stageNav.prevUrl != null}"
+                       th:href="${stageNav.prevUrl}"
+                       class="panel-btn ghost import-form-submit">
+                        <i class="fa-solid fa-chevron-left"></i>
+                        Previous · Inspection
+                    </a>
                     <button type="submit" class="panel-btn import-form-submit">Save workshop jobs</button>
-                    <a th:if="${stageNav != null and stageNav.nextUrl != null}"
+                    <a th:if="${canEnterYard and stageNav != null and stageNav.nextUrl != null}"
                        th:href="${stageNav.nextUrl}"
                        class="panel-btn ghost import-form-submit">
                         <span th:text="${stageNav.nextLabel}">Next · Yard</span>
                         <i class="fa-solid fa-chevron-right"></i>
                     </a>
+                    <span th:unless="${canEnterYard}"
+                          class="panel-btn ghost import-form-submit is-disabled"
+                          aria-disabled="true"
+                          title="Finish every workshop job first">
+                        Complete all jobs to open Yard
+                    </span>
                 </div>
             </form>
         </main>
@@ -150,7 +169,7 @@
     </article>
 </template>
 
-<script th:src="@{/js/app.js(v=20260822n)}"></script>
+<script th:src="@{/js/app.js(v=20260829c)}"></script>
 <script th:src="@{/js/workshop.js(v=20260823a)}"></script>
 </body>
 </html>

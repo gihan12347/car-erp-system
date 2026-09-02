@@ -83,6 +83,12 @@ class PipelineStageServiceTest {
     }
 
     @Test
+    void prepPipelineStartsWithInspectionThenWorkshopAndYard() {
+        assertThat(pipelineStageService.keys("PREP"))
+                .containsExactly("inspection", "workshop", "yard");
+    }
+
+    @Test
     @Transactional
     void ensureDefaultsAddsMissingEquipmentStage() {
         PipelineFlow importFlow = pipelineFlowRepository.findByFlowKey("IMPORT")

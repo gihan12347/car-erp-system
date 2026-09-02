@@ -13,4 +13,9 @@ public class SettingsController {
         model.addAttribute("activeMenu", "settings");
         return "settings";
     }
+
+    @GetMapping("/settings/inspection-items")
+    public String movedInspectionItems() {
+        return "redirect:/inspection-items";
+    }
 }

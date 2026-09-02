@@ -2,9 +2,9 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <body>
 
-<nav th:fragment="prepPipelineSteps(currentStep, chassisNo, workshopReady, yardReady, vehicleLabel, viewMode)"
+<nav th:fragment="prepPipelineSteps(currentStep, chassisNo, workshopReady, yardReady, inspectionReady, canEnterYard, vehicleLabel, viewMode)"
      class="import-pipeline panel"
-     th:with="isView=${viewMode != null and viewMode}, prepComplete=${workshopReady and yardReady}, showSale=${currentStep == 'ready' or (workshopReady and yardReady)}, orderedKeys=${@pipelineStageService.keys('PREP')}"
+     th:with="isView=${viewMode != null and viewMode}, yardOpen=${canEnterYard != null and canEnterYard}, prepComplete=${workshopReady and yardReady and inspectionReady}, showSale=${currentStep == 'ready' or (workshopReady and yardReady and inspectionReady)}, orderedKeys=${@pipelineStageService.keys('PREP')}"
      th:classappend="${prepComplete} ? ' is-import-complete' : ''"
      aria-label="Preparation pipeline">
     <div class="import-pipeline-head">
@@ -28,8 +28,39 @@
     </div>
 
     <ol class="import-pipeline-steps"
-        th:style="'grid-template-columns: repeat(' + (${orderedKeys.size()} + (${showSale} ? 1 : 0)) + ', minmax(0, 1fr))'">
+        th:style="'--pipeline-cols: ' + (${orderedKeys.size()} + (${showSale} ? 1 : 0))">
         <th:block th:each="key, iter : ${orderedKeys}">
+            <li th:if="${key == 'inspection'}"
+                th:classappend="${(currentStep == 'inspection' ? ' is-current' : '') + (inspectionReady ? ' is-done' : ' is-pending')}">
+                <a th:if="${isView}"
+                   th:href="@{/workshop-yard/{chassisNo}(chassisNo=${chassisNo}, stage=${iter.index})}"
+                   class="import-pipeline-step">
+                    <span class="import-pipeline-step-icon">
+                        <i th:if="${inspectionReady}" class="fa-solid fa-check"></i>
+                        <span th:unless="${inspectionReady}" th:text="${iter.count}">1</span>
+                    </span>
+                    <span class="import-pipeline-step-copy">
+                        <strong>Inspection</strong>
+                        <small>Checklist items and results</small>
+                        <em class="pipeline-step-status" th:classappend="${inspectionReady} ? ' done' : ' pending'"
+                            th:text="${inspectionReady} ? 'Complete' : 'Pending'">Pending</em>
+                    </span>
+                </a>
+                <a th:unless="${isView}"
+                   th:href="@{/inspection/{chassisNo}(chassisNo=${chassisNo})}"
+                   class="import-pipeline-step">
+                    <span class="import-pipeline-step-icon">
+                        <i th:if="${inspectionReady}" class="fa-solid fa-check"></i>
+                        <span th:unless="${inspectionReady}" th:text="${iter.count}">1</span>
+                    </span>
+                    <span class="import-pipeline-step-copy">
+                        <strong>Inspection</strong>
+                        <small>Checklist items and results</small>
+                        <em class="pipeline-step-status" th:classappend="${inspectionReady} ? ' done' : ' pending'"
+                            th:text="${inspectionReady} ? 'Complete' : 'Pending'">Pending</em>
+                    </span>
+                </a>
+            </li>
             <li th:if="${key == 'workshop'}"
                 th:classappend="${(currentStep == 'workshop' ? ' is-current' : '') + (workshopReady ? ' is-done' : ' is-pending')}">
                 <a th:if="${isView}"
@@ -37,7 +68,7 @@
                    class="import-pipeline-step">
                     <span class="import-pipeline-step-icon">
                         <i th:if="${workshopReady}" class="fa-solid fa-check"></i>
-                        <span th:unless="${workshopReady}" th:text="${iter.count}">1</span>
+                        <span th:unless="${workshopReady}" th:text="${iter.count}">2</span>
                     </span>
                     <span class="import-pipeline-step-copy">
                         <strong>Workshop</strong>
@@ -51,7 +82,7 @@
                    class="import-pipeline-step">
                     <span class="import-pipeline-step-icon">
                         <i th:if="${workshopReady}" class="fa-solid fa-check"></i>
-                        <span th:unless="${workshopReady}" th:text="${iter.count}">1</span>
+                        <span th:unless="${workshopReady}" th:text="${iter.count}">2</span>
                     </span>
                     <span class="import-pipeline-step-copy">
                         <strong>Workshop</strong>
@@ -62,13 +93,13 @@
                 </a>
             </li>
             <li th:if="${key == 'yard'}"
-                th:classappend="${(currentStep == 'yard' ? ' is-current' : '') + (yardReady ? ' is-done' : ' is-pending')}">
-                <a th:if="${isView}"
+                th:classappend="${(currentStep == 'yard' ? ' is-current' : '') + (yardReady ? ' is-done' : ' is-pending') + (!yardOpen and !yardReady ? ' is-locked' : '')}">
+                <a th:if="${isView and (yardOpen or yardReady)}"
                    th:href="@{/workshop-yard/{chassisNo}(chassisNo=${chassisNo}, stage=${iter.index})}"
                    class="import-pipeline-step">
                     <span class="import-pipeline-step-icon">
                         <i th:if="${yardReady}" class="fa-solid fa-check"></i>
-                        <span th:unless="${yardReady}" th:text="${iter.count}">2</span>
+                        <span th:unless="${yardReady}" th:text="${iter.count}">3</span>
                     </span>
                     <span class="import-pipeline-step-copy">
                         <strong>Yard</strong>
@@ -77,12 +108,12 @@
                             th:text="${yardReady} ? 'Complete' : 'Pending'">Pending</em>
                     </span>
                 </a>
-                <a th:unless="${isView}"
+                <a th:if="${!isView and (yardOpen or yardReady)}"
                    th:href="@{/yard/{chassisNo}(chassisNo=${chassisNo})}"
                    class="import-pipeline-step">
                     <span class="import-pipeline-step-icon">
                         <i th:if="${yardReady}" class="fa-solid fa-check"></i>
-                        <span th:unless="${yardReady}" th:text="${iter.count}">2</span>
+                        <span th:unless="${yardReady}" th:text="${iter.count}">3</span>
                     </span>
                     <span class="import-pipeline-step-copy">
                         <strong>Yard</strong>
@@ -91,6 +122,18 @@
                             th:text="${yardReady} ? 'Complete' : 'Pending'">Pending</em>
                     </span>
                 </a>
+                <div th:if="${!yardOpen and !yardReady}"
+                     class="import-pipeline-step is-locked"
+                     title="Finish every workshop job first">
+                    <span class="import-pipeline-step-icon">
+                        <i class="fa-solid fa-lock"></i>
+                    </span>
+                    <span class="import-pipeline-step-copy">
+                        <strong>Yard</strong>
+                        <small>Bay, keys, inspection</small>
+                        <em class="pipeline-step-status pending">Locked until jobs complete</em>
+                    </span>
+                </div>
             </li>
         </th:block>
         <li th:if="${showSale}" class="is-workshop-next" th:classappend="${currentStep == 'ready'} ? ' is-current' : ''">
@@ -112,7 +155,7 @@
 
     <p class="import-pipeline-note" th:if="${!prepComplete}">
         <i class="fa-solid fa-circle-info"></i>
-        Workshop and yard steps can be completed in either order. Mark each step complete when the work is done.
+        Start with inspection, then finish every workshop job before opening Yard.
     </p>
 </nav>
 

@@ -30,6 +30,7 @@ public class PipelineStageService implements CommandLineRunner {
     public static final String STAGE_DECLARATION = "declaration";
     public static final String STAGE_ASSESSMENT = "assessment";
     public static final String STAGE_WORKSHOP = "workshop";
+    public static final String STAGE_INSPECTION = "inspection";
     public static final String STAGE_YARD = "yard";
     public static final String STAGE_LISTING = "listing";
 
@@ -53,6 +54,46 @@ public class PipelineStageService implements CommandLineRunner {
         seedIfMissing(FLOW_CUSTOMS, defaultCustoms());
         seedIfMissing(FLOW_PREP, defaultPrep());
         seedIfMissing(FLOW_READY, defaultReady());
+        placePrepInspectionFirst();
+    }
+
+    @Transactional
+    public void placePrepInspectionFirst() {
+        PipelineFlow flow = pipelineFlowRepository.findByFlowKey(FLOW_PREP).orElse(null);
+        if (flow == null) {
+            return;
+        }
+        PipelineFlow joined = pipelineFlowRepository.findByIdWithStages(flow.getId()).orElse(null);
+        if (joined == null || joined.getStages().isEmpty()) {
+            return;
+        }
+        List<PipelineStage> stages = new ArrayList<PipelineStage>(joined.getStages());
+        stages.sort(new Comparator<PipelineStage>() {
+            @Override
+            public int compare(PipelineStage left, PipelineStage right) {
+                return Integer.compare(left.getSortOrder(), right.getSortOrder());
+            }
+        });
+        PipelineStage inspection = null;
+        for (PipelineStage stage : stages) {
+            if (STAGE_INSPECTION.equals(stage.getStageKey())) {
+                inspection = stage;
+                break;
+            }
+        }
+        if (inspection == null) {
+            return;
+        }
+        if (STAGE_INSPECTION.equals(stages.get(0).getStageKey())) {
+            return;
+        }
+        stages.remove(inspection);
+        inspection.setSortOrder(0);
+        pipelineStageRepository.save(inspection);
+        for (int i = 0; i < stages.size(); i++) {
+            stages.get(i).setSortOrder(i + 1);
+            pipelineStageRepository.save(stages.get(i));
+        }
     }
 
     public List<PipelineStage> list(String flowKey) {
@@ -60,7 +101,7 @@ public class PipelineStageService implements CommandLineRunner {
         if (flow.isPresent()) {
             return pipelineStageRepository.findByFlowIdOrdered(flow.get().getId());
         }
-        return new ArrayList<>();
+        return new ArrayList<PipelineStage>();
     }
 
     public List<String> keys(String flowKey) {
@@ -256,6 +297,7 @@ public class PipelineStageService implements CommandLineRunner {
 
     private static List<DefaultStage> defaultPrep() {
         return Arrays.asList(
+                new DefaultStage(STAGE_INSPECTION, "Inspection", "Checklist items and results"),
                 new DefaultStage(STAGE_WORKSHOP, "Workshop", "Repairs, parts, completion"),
                 new DefaultStage(STAGE_YARD, "Yard", "Bay, keys, inspection")
         );

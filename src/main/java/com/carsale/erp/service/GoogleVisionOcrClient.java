@@ -2,14 +2,7 @@ package com.carsale.erp.service;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.security.KeyFactory;
-import java.security.PrivateKey;
-import java.security.Signature;
-import java.security.spec.PKCS8EncodedKeySpec;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Collections;
@@ -26,8 +19,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
@@ -42,23 +33,18 @@ public class GoogleVisionOcrClient implements OcrClient {
     private static final Logger log = LoggerFactory.getLogger(GoogleVisionOcrClient.class);
     private static final int CONNECT_TIMEOUT_MS = 30_000;
     private static final int READ_TIMEOUT_MS = 120_000;
-    private static final long TOKEN_REFRESH_SKEW_MS = 60_000L;
-    private final Path credentialsFile;
+    private final GoogleServiceAccountAuth googleAuth;
     private final String apiUrl;
     private final long maxUploadBytes;
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
 
-    private final Object tokenLock = new Object();
-    private String accessToken;
-    private long tokenExpiresAtMs;
-
     public GoogleVisionOcrClient(
-            @Value("${app.ocr.google.credentialsFile:config/google-vision-credentials.json}") String credentialsFile,
+            GoogleServiceAccountAuth googleAuth,
             @Value("${app.ocr.google.apiUrl:https://vision.googleapis.com/v1/images:annotate}") String apiUrl,
             @Value("${app.ocr.google.maxUploadBytes:10000000}") long maxUploadBytes
     ) {
-        this.credentialsFile = Paths.get(credentialsFile);
+        this.googleAuth = googleAuth;
         this.apiUrl = apiUrl == null || apiUrl.trim().isEmpty()
                 ? "https://vision.googleapis.com/v1/images:annotate"
                 : apiUrl.trim();
@@ -86,7 +72,7 @@ public class GoogleVisionOcrClient implements OcrClient {
     }
 
     public boolean isConfigured() {
-        return Files.isRegularFile(credentialsFile);
+        return googleAuth.isConfigured();
     }
 
     @CircuitBreaker(name = "googleVision", fallbackMethod = "recognizeFallback")
@@ -94,11 +80,11 @@ public class GoogleVisionOcrClient implements OcrClient {
     public String recognize(File imageFile, String languageOverride) throws IOException {
         if (!isConfigured()) {
             throw new IOException(
-                    "Google Cloud Vision credentials were not found at " + credentialsFile.toAbsolutePath()
+                    "Google Cloud Vision credentials were not found at " + googleAuth.credentialsFile().toAbsolutePath()
                             + ". Add the service account JSON file, then try again.");
         }
         byte[] imageBytes = Files.readAllBytes(imageFile.toPath());
-        String token = accessToken();
+            String token = googleAuth.accessToken(GoogleServiceAccountAuth.VISION_SCOPE);
         Map<String, Object> request = buildRequest(imageBytes, languageOverride);
 
         HttpHeaders headers = new HttpHeaders();
@@ -110,7 +96,7 @@ public class GoogleVisionOcrClient implements OcrClient {
 
         try {
             String json = objectMapper.writeValueAsString(request);
-            HttpEntity<String> entity = new HttpEntity<String>(json, headers);
+            HttpEntity<String> entity = new HttpEntity<>(json, headers);
             ResponseEntity<String> response = restTemplate.postForEntity(apiUrl, entity, String.class);
             return parseResponse(response.getBody());
         } catch (HttpClientErrorException ex) {
@@ -132,21 +118,21 @@ public class GoogleVisionOcrClient implements OcrClient {
     }
 
     private Map<String, Object> buildRequest(byte[] imageBytes, String languageOverride) {
-        Map<String, Object> image = new LinkedHashMap<String, Object>();
+        Map<String, Object> image = new LinkedHashMap<>();
         image.put("content", Base64.getEncoder().encodeToString(imageBytes));
 
-        Map<String, Object> feature = new LinkedHashMap<String, Object>();
+        Map<String, Object> feature = new LinkedHashMap<>();
         feature.put("type", "DOCUMENT_TEXT_DETECTION");
 
-        Map<String, Object> context = new LinkedHashMap<String, Object>();
+        Map<String, Object> context = new LinkedHashMap<>();
         context.put("languageHints", visionLanguageHints(languageOverride));
 
-        Map<String, Object> annotate = new LinkedHashMap<String, Object>();
+        Map<String, Object> annotate = new LinkedHashMap<>();
         annotate.put("image", image);
         annotate.put("features", Collections.singletonList(feature));
         annotate.put("imageContext", context);
 
-        Map<String, Object> body = new LinkedHashMap<String, Object>();
+        Map<String, Object> body = new LinkedHashMap<>();
         body.put("requests", Collections.singletonList(annotate));
         return body;
     }
@@ -195,114 +181,8 @@ public class GoogleVisionOcrClient implements OcrClient {
         return "";
     }
 
-    private String accessToken() throws IOException {
-        synchronized (tokenLock) {
-            long now = System.currentTimeMillis();
-            if (accessToken != null && now + TOKEN_REFRESH_SKEW_MS < tokenExpiresAtMs) {
-                return accessToken;
-            }
-            Map<String, Object> credentials = readCredentials();
-            String jwt = signedJwt(credentials);
-            String tokenUrl = stringValue(credentials.get("token_uri"));
-            if (tokenUrl == null || tokenUrl.trim().isEmpty()) {
-                tokenUrl = "https://oauth2.googleapis.com/token";
-            }
-
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-            MultiValueMap<String, String> body = new LinkedMultiValueMap<String, String>();
-            body.add("grant_type", "urn:ietf:params:oauth:grant-type:jwt-bearer");
-            body.add("assertion", jwt);
-
-            try {
-                ResponseEntity<String> response = restTemplate.postForEntity(
-                        tokenUrl, new HttpEntity<MultiValueMap<String, String>>(body, headers), String.class);
-                Map<?, ?> token = objectMapper.readValue(response.getBody(), Map.class);
-                String access = stringValue(token.get("access_token"));
-                if (access == null || access.trim().isEmpty()) {
-                    throw new IOException("Google OAuth did not return an access token.");
-                }
-                int expiresIn = 3600;
-                Object expires = token.get("expires_in");
-                if (expires instanceof Number) {
-                    expiresIn = ((Number) expires).intValue();
-                }
-                this.accessToken = access;
-                this.tokenExpiresAtMs = now + (expiresIn * 1000L);
-                return this.accessToken;
-            } catch (HttpClientErrorException ex) {
-                throw new IOException("Google OAuth token error: " + ex.getResponseBodyAsString(), ex);
-            }
-        }
-    }
-
-    @SuppressWarnings("unchecked")
-    private Map<String, Object> readCredentials() throws IOException {
-        if (!isConfigured()) {
-            throw new IOException("Google Cloud Vision credentials file is missing.");
-        }
-        return objectMapper.readValue(credentialsFile.toFile(), Map.class);
-    }
-
-    private String signedJwt(Map<String, Object> credentials) throws IOException {
-        String email = stringValue(credentials.get("client_email"));
-        String privateKeyPem = stringValue(credentials.get("private_key"));
-        String audience = stringValue(credentials.get("token_uri"));
-        if (email == null || privateKeyPem == null) {
-            throw new IOException("Google Cloud Vision credentials JSON is missing client_email or private_key.");
-        }
-        if (audience == null || audience.trim().isEmpty()) {
-            audience = "https://oauth2.googleapis.com/token";
-        }
-        long now = System.currentTimeMillis() / 1000L;
-        Map<String, Object> header = new LinkedHashMap<String, Object>();
-        header.put("alg", "RS256");
-        header.put("typ", "JWT");
-        Map<String, Object> payload = new LinkedHashMap<String, Object>();
-        payload.put("iss", email);
-        payload.put("scope", "https://www.googleapis.com/auth/cloud-vision");
-        payload.put("aud", audience);
-        payload.put("iat", Long.valueOf(now));
-        payload.put("exp", Long.valueOf(now + 3600L));
-
-        String headerPart = base64Url(toJson(header));
-        String payloadPart = base64Url(toJson(payload));
-        String signingInput = headerPart + "." + payloadPart;
-        String signature = base64Url(signRs256(signingInput.getBytes(StandardCharsets.UTF_8), privateKeyPem));
-        return signingInput + "." + signature;
-    }
-
-    private byte[] signRs256(byte[] data, String pem) throws IOException {
-        try {
-            String encoded = pem
-                    .replace("-----BEGIN PRIVATE KEY-----", "")
-                    .replace("-----END PRIVATE KEY-----", "")
-                    .replaceAll("\\s", "");
-            byte[] der = Base64.getDecoder().decode(encoded);
-            PrivateKey key = KeyFactory.getInstance("RSA").generatePrivate(new PKCS8EncodedKeySpec(der));
-            Signature signature = Signature.getInstance("SHA256withRSA");
-            signature.initSign(key);
-            signature.update(data);
-            return signature.sign();
-        } catch (Exception ex) {
-            throw new IOException("Could not sign Google Cloud Vision JWT: " + ex.getMessage(), ex);
-        }
-    }
-
-    private String toJson(Map<String, Object> map) throws IOException {
-        return objectMapper.writeValueAsString(map);
-    }
-
-    private static String base64Url(byte[] data) {
-        return Base64.getUrlEncoder().withoutPadding().encodeToString(data);
-    }
-
-    private static String base64Url(String json) {
-        return base64Url(json.getBytes(StandardCharsets.UTF_8));
-    }
-
     static List<String> visionLanguageHints(String language) {
-        List<String> hints = new ArrayList<String>();
+        List<String> hints = new ArrayList<>();
         String value = language == null ? "" : language.toLowerCase();
         if (value.contains("jpn") || value.contains("ja")) {
             hints.add("ja");

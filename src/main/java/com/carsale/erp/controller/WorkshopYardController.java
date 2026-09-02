@@ -16,6 +16,7 @@ import com.carsale.erp.entity.Vehicle;
 import com.carsale.erp.service.PipelineStageService;
 import com.carsale.erp.service.PreparationPipelineService;
 import com.carsale.erp.service.PreparationPipelineService.PrepStatus;
+import com.carsale.erp.service.VehicleInspectionService;
 import com.carsale.erp.service.VehicleService;
 import com.carsale.erp.service.WorkshopService;
 import com.carsale.erp.service.YardService;
@@ -27,6 +28,7 @@ public class WorkshopYardController {
     private final PreparationPipelineService preparationPipelineService;
     private final WorkshopService workshopService;
     private final YardService yardService;
+    private final VehicleInspectionService vehicleInspectionService;
     private final PipelineStageService pipelineStageService;
 
     public WorkshopYardController(
@@ -34,12 +36,14 @@ public class WorkshopYardController {
             PreparationPipelineService preparationPipelineService,
             WorkshopService workshopService,
             YardService yardService,
+            VehicleInspectionService vehicleInspectionService,
             PipelineStageService pipelineStageService
     ) {
         this.vehicleService = vehicleService;
         this.preparationPipelineService = preparationPipelineService;
         this.workshopService = workshopService;
         this.yardService = yardService;
+        this.vehicleInspectionService = vehicleInspectionService;
         this.pipelineStageService = pipelineStageService;
     }
 
@@ -90,7 +94,16 @@ public class WorkshopYardController {
         int stageIndex = ReadyStageNavigation.clampStageIndex(requestedStage, status, prepKeys);
         String stageKey = ReadyStageNavigation.keyAt(prepKeys, stageIndex);
 
+        if (PipelineStageService.STAGE_INSPECTION.equals(stageKey)
+                && vehicleInspectionService.findByChassisNo(chassisNo) == null) {
+            return "redirect:/inspection/" + ReadyStageNavigation.encode(chassisNo);
+        }
         if (PipelineStageService.STAGE_WORKSHOP.equals(stageKey) && workshopService.findByChassisNo(chassisNo) == null) {
+            return "redirect:/workshop/" + ReadyStageNavigation.encode(chassisNo);
+        }
+        if (PipelineStageService.STAGE_YARD.equals(stageKey) && !status.isCanEnterYard()) {
+            redirectAttributes.addFlashAttribute("errorMessage",
+                    "Finish every workshop job before opening the yard section.");
             return "redirect:/workshop/" + ReadyStageNavigation.encode(chassisNo);
         }
         if (PipelineStageService.STAGE_YARD.equals(stageKey) && yardService.findByChassisNo(chassisNo) == null) {
@@ -103,8 +116,11 @@ public class WorkshopYardController {
         model.addAttribute("vehicle", vehicle);
         model.addAttribute("workshop", workshopService.findByChassisNo(chassisNo));
         model.addAttribute("yard", yardService.findByChassisNo(chassisNo));
+        model.addAttribute("inspection", vehicleInspectionService.findByChassisNo(chassisNo));
         model.addAttribute("workshopReady", status.isWorkshopReady());
         model.addAttribute("yardReady", status.isYardReady());
+        model.addAttribute("inspectionReady", status.isInspectionReady());
+        model.addAttribute("canEnterYard", status.isCanEnterYard());
         model.addAttribute("prepComplete", status.isPrepComplete());
         model.addAttribute("stageIndex", stageIndex);
         model.addAttribute("stageKey", stageKey);

@@ -52,6 +52,10 @@ a { color: inherit; text-decoration: none; }
     border-bottom: 1px solid rgba(255,255,255,0.06);
 }
 
+.brand-copy {
+    min-width: 0;
+}
+
 .brand-mark {
     width: 32px;
     height: 32px;
@@ -995,6 +999,14 @@ tr { border-bottom: 1px solid var(--line); }
 .profile-meta dt { color: var(--muted); font-size: 12px; }
 .profile-meta dd { margin: 4px 0 0; font-weight: 700; }
 
+.sidebar-close {
+    display: none;
+}
+
+.sidebar-backdrop {
+    display: none;
+}
+
 .sidebar-toggle { display: none; }
 
 @media (max-width: 1100px) {
@@ -1007,18 +1019,39 @@ tr { border-bottom: 1px solid var(--line); }
         height: auto;
         overflow: visible;
     }
-}
-
-@media (max-width: 800px) {
     .sidebar {
         position: fixed;
         inset: 0 auto 0 0;
-        z-index: 30;
-        transform: translateX(-100%);
+        z-index: 40;
+        width: min(280px, 86vw);
+        transform: translateX(-105%);
         transition: transform 0.2s ease;
+        box-shadow: 12px 0 32px rgba(28, 25, 23, 0.18);
     }
     .sidebar.is-open { transform: translateX(0); }
     .sidebar-toggle { display: inline-grid; place-items: center; }
+    .sidebar-close {
+        display: inline-grid;
+        place-items: center;
+        margin-left: auto;
+        color: #e7e5e4;
+    }
+    .sidebar-close:hover { background: rgba(255, 255, 255, 0.08); }
+    .sidebar-backdrop {
+        display: block;
+        position: fixed;
+        inset: 0;
+        z-index: 35;
+        border: 0;
+        background: rgba(28, 25, 23, 0.45);
+    }
+    .sidebar-backdrop[hidden] { display: none; }
+    body.nav-open {
+        overflow: hidden;
+    }
+}
+
+@media (max-width: 800px) {
     .user-meta { display: none; }
     .stat-grid, .split-grid, .equal-grid, .profile-meta, .pipeline { grid-template-columns: 1fr; }
     .page-content { padding: 18px; }
@@ -2336,6 +2369,11 @@ body.sheet-page .clearance-form .sheet-document.has-file .sheet-preview-frame {
 }
 
 @media (max-width: 1100px) {
+    body.sheet-page .sheet-layout,
+    body.import-form-page .sheet-layout,
+    body.import-form-page .clearance-tab-panel.is-active .sheet-layout,
+    body.import-view-page .vehicle-form .sheet-layout,
+    body.import-view-page .import-view-stage .sheet-layout,
     body:not(.import-form-page):not(.import-view-page) .sheet-layout {
         grid-template-columns: 1fr;
     }
@@ -3216,8 +3254,12 @@ body.sheet-page .clearance-form .sheet-document.has-file .sheet-preview-frame {
     margin: 0;
     padding: 0;
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(var(--pipeline-cols, 2), minmax(0, 1fr));
     gap: 10px;
+}
+
+.import-pipeline-steps > li {
+    min-width: 0;
 }
 
 .import-pipeline-steps.has-workshop-step {
@@ -3285,6 +3327,7 @@ a.import-pipeline-step:hover {
 .import-pipeline-step-copy strong {
     font-size: 13px;
     line-height: 1.2;
+    overflow-wrap: break-word;
 }
 
 .import-pipeline-step-copy small {
@@ -3840,7 +3883,7 @@ body.sheet-page .import-pipeline {
     .import-pipeline-steps.has-workshop-step,
     .import-pipeline-steps.has-two-steps.has-sale-step,
     .import-pipeline-steps.has-three-steps.has-sale-step {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
     }
 }
 
@@ -3854,7 +3897,7 @@ body.sheet-page .import-pipeline {
     .import-tabs,
     .import-later-grid,
     .clearance-tabs {
-        grid-template-columns: 1fr;
+        grid-template-columns: 1fr !important;
     }
 
     .import-pipeline-head,
@@ -4037,6 +4080,431 @@ body.sheet-page .import-pipeline {
 
 .ocr-roles-head {
     margin-top: 18px;
+}
+
+/* —— Tablet (≤1100px) and phone (≤700px). Desktop above 1100px is unchanged. —— */
+
+@media (max-width: 1100px) {
+    .app-shell,
+    .app-main,
+    .sidebar {
+        height: 100dvh;
+        max-height: 100dvh;
+    }
+
+    .page-content {
+        padding: 18px 16px 24px;
+        padding-left: max(16px, env(safe-area-inset-left));
+        padding-right: max(16px, env(safe-area-inset-right));
+        padding-bottom: max(24px, env(safe-area-inset-bottom));
+        -webkit-overflow-scrolling: touch;
+    }
+
+    body.sheet-page .page-content {
+        padding: 14px 16px 20px;
+        padding-left: max(16px, env(safe-area-inset-left));
+        padding-right: max(16px, env(safe-area-inset-right));
+    }
+
+    .topbar {
+        padding-left: max(12px, env(safe-area-inset-left));
+        padding-right: max(12px, env(safe-area-inset-right));
+    }
+
+    .dash-head {
+        flex-wrap: wrap;
+        align-items: flex-start;
+    }
+
+    .dash-head .panel-btn,
+    .dash-head .period-select {
+        width: auto;
+    }
+
+    .welcome-block {
+        width: 100%;
+    }
+
+    .auction-search {
+        align-items: stretch;
+    }
+
+    .auction-search-field {
+        flex: 1 1 100%;
+    }
+
+    .import-pipeline-head,
+    .import-hub-summary {
+        flex-wrap: wrap;
+    }
+
+    .import-pipeline-hub-link {
+        align-self: flex-start;
+    }
+
+    .import-pipeline-steps,
+    .import-pipeline-steps.has-workshop-step,
+    .import-pipeline-steps.has-two-steps,
+    .import-pipeline-steps.has-two-steps.has-sale-step,
+    .import-pipeline-steps.has-three-steps,
+    .import-pipeline-steps.has-three-steps.has-sale-step {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    }
+
+    .doc-upload-toolbar-actions,
+    .preship-toolbar-actions,
+    .sheet-document-col .doc-upload-toolbar-actions,
+    .sheet-document-col .preship-toolbar-actions {
+        flex-wrap: wrap;
+    }
+
+    .doc-upload-toolbar-actions .panel-btn,
+    .doc-upload-toolbar-actions .upload-file-btn,
+    .preship-toolbar-actions .panel-btn,
+    .preship-toolbar-actions .upload-file-btn {
+        flex: 1 1 calc(50% - 6px);
+        min-width: 120px;
+    }
+
+    .ocr-model-btns {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .table-wrap {
+        margin: 0 -4px;
+        padding-bottom: 6px;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .pipeline-table {
+        min-width: 720px;
+    }
+
+    .sheet-viewer {
+        left: 8px;
+        right: 8px;
+        top: 56px;
+        width: auto;
+        height: calc(100dvh - 72px);
+        border-radius: 12px;
+    }
+
+    .notify-panel {
+        width: min(320px, calc(100vw - 24px));
+    }
+
+    .clearance-tab-footer {
+        flex-wrap: wrap;
+        position: static;
+    }
+
+    .clearance-tab-footer .panel-btn {
+        flex: 1 1 auto;
+        justify-content: center;
+    }
+
+    .sheet-document-col .doc-upload-toolbar-copy {
+        flex-wrap: wrap;
+    }
+
+    .sheet-document-col .doc-upload-toolbar-copy p {
+        text-align: left;
+    }
+}
+
+@media (max-width: 700px) {
+    .page-content {
+        padding: 14px 12px 20px;
+        padding-left: max(12px, env(safe-area-inset-left));
+        padding-right: max(12px, env(safe-area-inset-right));
+        padding-bottom: max(20px, env(safe-area-inset-bottom));
+    }
+
+    .panel {
+        padding: 14px;
+    }
+
+    .dash-head h1,
+    body.sheet-page .dash-head h1 {
+        font-size: 20px;
+    }
+
+    .welcome-block h2 {
+        font-size: 16px;
+    }
+
+    .import-pipeline-steps,
+    .import-pipeline-steps.has-workshop-step,
+    .import-pipeline-steps.has-two-steps,
+    .import-pipeline-steps.has-two-steps.has-sale-step,
+    .import-pipeline-steps.has-three-steps,
+    .import-pipeline-steps.has-three-steps.has-sale-step {
+        grid-template-columns: 1fr !important;
+    }
+
+    .import-pipeline-head,
+    .import-hub-summary {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .import-pipeline-hub-link {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .doc-upload-toolbar-actions .panel-btn,
+    .doc-upload-toolbar-actions .upload-file-btn,
+    .preship-toolbar-actions .panel-btn,
+    .preship-toolbar-actions .upload-file-btn,
+    .sheet-document-col .doc-upload-toolbar-actions .panel-btn,
+    .sheet-document-col .doc-upload-toolbar-actions .upload-file-btn {
+        flex: 1 1 100%;
+        height: 42px;
+        min-height: 42px;
+        font-size: 13px;
+    }
+
+    .ocr-model-btns {
+        grid-template-columns: 1fr;
+    }
+
+    .ocr-lang-banner {
+        font-size: 12px;
+    }
+
+    .field-grid,
+    .sheet-fields .equal-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .field-grid .span-2,
+    .field-grid .field-span-2 {
+        grid-column: auto;
+    }
+
+    .vehicle-form input,
+    .vehicle-form select,
+    .vehicle-form textarea,
+    .auction-search-field input {
+        font-size: 16px;
+    }
+
+    .import-form-submit,
+    .dash-head .panel-btn,
+    .auction-add-btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .table-row-actions {
+        flex-wrap: wrap;
+    }
+
+    .user-chip .fa-chevron-down {
+        display: none;
+    }
+
+    .dropdown-panel {
+        right: 0;
+        min-width: min(240px, calc(100vw - 24px));
+    }
+
+    .sheet-viewer {
+        left: 0;
+        right: 0;
+        top: 0;
+        height: 100dvh;
+        border-radius: 0;
+        z-index: 90;
+    }
+
+    .sheet-viewer-toolbar {
+        padding-top: max(10px, env(safe-area-inset-top));
+    }
+
+    .fill-loader-card {
+        min-width: 0;
+        width: min(320px, calc(100vw - 32px));
+        padding: 22px 18px;
+    }
+
+    .clearance-tab-footer .panel-btn.ghost {
+        margin-right: 0;
+        flex: 1 1 100%;
+    }
+
+    .page-intro {
+        flex-direction: column;
+        align-items: stretch;
+    }
+}
+
+.settings-tabs {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    margin-bottom: 16px;
+    padding: 10px;
+}
+
+.settings-tab {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 14px;
+    border: 1px solid transparent;
+    border-radius: 10px;
+    background: transparent;
+    color: var(--muted);
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.settings-tab:hover {
+    background: #f4f8f7;
+    color: var(--ink);
+}
+
+.settings-tab.is-active {
+    background: #fff;
+    border-color: var(--line);
+    color: var(--ink);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
+}
+
+.settings-tab-num {
+    display: grid;
+    place-items: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--line);
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.settings-tab.is-active .settings-tab-num {
+    background: var(--sea);
+    color: #fff;
+}
+
+.settings-tab-label {
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.inspection-settings {
+    display: grid;
+    gap: 16px;
+}
+
+.inspection-add-form,
+.inspection-edit-form {
+    display: flex;
+    align-items: flex-end;
+    gap: 10px;
+}
+
+.inspection-add-form label,
+.inspection-edit-form input[type="text"] {
+    flex: 1 1 auto;
+}
+
+.inspection-add-form .panel-btn,
+.inspection-edit-form .table-btn {
+    flex: 0 0 auto;
+    width: auto;
+    min-width: 88px;
+}
+
+.inspection-edit-form {
+    align-items: center;
+}
+
+.inspection-edit-form input[type="text"] {
+    min-width: 0;
+}
+
+.inspection-item-card {
+    margin-bottom: 12px;
+}
+
+.inspection-result-label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink);
+    margin-bottom: 8px;
+}
+
+.vehicle-form .inspection-radio-group {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+    margin-top: 0;
+}
+
+.vehicle-form .equipment-radio.result-OK:has(input:checked) {
+    border-color: var(--leaf);
+    background: #ecfdf5;
+    color: var(--leaf);
+}
+
+.vehicle-form .equipment-radio.result-NO:has(input:checked) {
+    border-color: var(--brand);
+    background: #fff7ed;
+    color: var(--brand);
+}
+
+.vehicle-form .equipment-radio.result-NA:has(input:checked) {
+    border-color: var(--muted);
+    background: #f5f5f4;
+    color: var(--muted);
+}
+
+.inspection-job-pill {
+    margin-left: 8px;
+    font-style: normal;
+    vertical-align: middle;
+}
+
+.inspection-job-note {
+    margin: 8px 0 0;
+    font-size: 12px;
+}
+
+.panel-btn.is-disabled,
+.pipeline-cell-status.is-locked,
+.import-pipeline-step.is-locked {
+    opacity: 0.55;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+.import-pipeline-steps li.is-locked {
+    opacity: 1;
+}
+
+#saveInspectionBtn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+@media (max-width: 720px) {
+    .settings-tabs {
+        grid-template-columns: 1fr;
+    }
+
+    .inspection-add-form,
+    .inspection-edit-form {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .vehicle-form .inspection-radio-group {
+        grid-template-columns: 1fr;
+    }
 }
 
 

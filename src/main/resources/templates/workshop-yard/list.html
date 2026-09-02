@@ -10,7 +10,7 @@
             <div class="dash-head">
                 <div>
                     <h1>Preparation pipeline</h1>
-                    <p class="form-lead">Complete workshop repairs and yard allocation in either order. When both are done, the vehicle moves to the ready for sale pipeline.</p>
+                    <p class="form-lead">Start with inspection, finish every workshop job, then open Yard. When all three steps are done, the vehicle moves to the ready for sale pipeline.</p>
                 </div>
             </div>
 
@@ -52,12 +52,22 @@
                             <td>
                                 <div class="pipeline-progress">
                                     <div class="pipeline-progress-bar"
-                                         th:style="'width:' + ${row.status.completedCount * 100 / 2} + '%'"></div>
+                                         th:style="'width:' + ${row.status.completedCount * 100 / @pipelineStageService.size('PREP')} + '%'"></div>
                                 </div>
                                 <small class="pipeline-progress-label"
-                                       th:text="${row.status.completedCount} + ' / 2'">1 / 2</small>
+                                       th:text="${row.status.completedCount} + ' / ' + ${@pipelineStageService.size('PREP')}">1 / 3</small>
                             </td>
                             <td th:each="stage : ${@pipelineStageService.list('PREP')}">
+                                <th:block th:if="${stage.stageKey == 'inspection'}">
+                                <span th:if="${row.status.inspectionReady}" class="pipeline-cell-status done">
+                                    <i class="fa-solid fa-circle-check"></i> Done
+                                </span>
+                                <a th:unless="${row.status.inspectionReady}"
+                                   th:href="@{/inspection/{c}(c=${row.vehicle.chassisNo})}"
+                                   class="pipeline-cell-status pending">
+                                    <i class="fa-regular fa-circle"></i> Pending
+                                </a>
+                                </th:block>
                                 <th:block th:if="${stage.stageKey == 'workshop'}">
                                 <span th:if="${row.status.workshopReady}" class="pipeline-cell-status done">
                                     <i class="fa-solid fa-circle-check"></i> Done
@@ -72,11 +82,16 @@
                                 <span th:if="${row.status.yardReady}" class="pipeline-cell-status done">
                                     <i class="fa-solid fa-circle-check"></i> Done
                                 </span>
-                                <a th:unless="${row.status.yardReady}"
+                                <a th:if="${!row.status.yardReady and row.status.canEnterYard}"
                                    th:href="@{/yard/{c}(c=${row.vehicle.chassisNo})}"
                                    class="pipeline-cell-status pending">
                                     <i class="fa-regular fa-circle"></i> Pending
                                 </a>
+                                <span th:if="${!row.status.yardReady and !row.status.canEnterYard}"
+                                      class="pipeline-cell-status pending is-locked"
+                                      title="Finish every workshop job first">
+                                    <i class="fa-solid fa-lock"></i> Locked
+                                </span>
                                 </th:block>
                             </td>
                             <td>
@@ -105,6 +120,6 @@
         </main>
     </div>
 </div>
-<script th:src="@{/js/app.js(v=20260822n)}"></script>
+<script th:src="@{/js/app.js(v=20260829c)}"></script>
 </body>
 </html>

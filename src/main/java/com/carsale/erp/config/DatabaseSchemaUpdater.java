@@ -34,6 +34,93 @@ public class DatabaseSchemaUpdater implements CommandLineRunner {
         migratePipelineStagesToFlowId();
         ensurePipelineStagesFlowForeignKey();
         createEquipmentInspectionsTable();
+        createInspectionItemsTable();
+        createVehicleInspectionsTable();
+        createVehicleInspectionLinesTable();
+        addWorkshopJobInspectionItemKey();
+    }
+
+    private void createInspectionItemsTable() {
+        try {
+            jdbcTemplate.execute(
+                    "CREATE TABLE IF NOT EXISTS inspection_items ("
+                            + "id BIGINT NOT NULL AUTO_INCREMENT, "
+                            + "item_key VARCHAR(80) NOT NULL, "
+                            + "title VARCHAR(160) NOT NULL, "
+                            + "sort_order INT NOT NULL, "
+                            + "active TINYINT(1) NOT NULL DEFAULT 1, "
+                            + "PRIMARY KEY (id), "
+                            + "UNIQUE KEY uk_inspection_items_key (item_key)"
+                            + ")"
+            );
+            log.info("Verified table inspection_items");
+        } catch (Exception ex) {
+            log.warn("Could not create inspection_items: {}", ex.getMessage());
+        }
+    }
+
+    private void createVehicleInspectionsTable() {
+        try {
+            jdbcTemplate.execute(
+                    "CREATE TABLE IF NOT EXISTS vehicle_inspections ("
+                            + "chassis_no VARCHAR(40) NOT NULL, "
+                            + "inspector VARCHAR(80), "
+                            + "inspection_date VARCHAR(40), "
+                            + "notes TEXT, "
+                            + "completed TINYINT(1) NOT NULL DEFAULT 0, "
+                            + "PRIMARY KEY (chassis_no)"
+                            + ")"
+            );
+            log.info("Verified table vehicle_inspections");
+        } catch (Exception ex) {
+            log.warn("Could not create vehicle_inspections: {}", ex.getMessage());
+        }
+    }
+
+    private void createVehicleInspectionLinesTable() {
+        try {
+            jdbcTemplate.execute(
+                    "CREATE TABLE IF NOT EXISTS vehicle_inspection_lines ("
+                            + "id BIGINT NOT NULL AUTO_INCREMENT, "
+                            + "chassis_no VARCHAR(40) NOT NULL, "
+                            + "item_key VARCHAR(80), "
+                            + "item_title VARCHAR(160) NOT NULL, "
+                            + "result VARCHAR(12), "
+                            + "notes TEXT, "
+                            + "sort_order INT NOT NULL, "
+                            + "catalog_item TINYINT(1) NOT NULL DEFAULT 0, "
+                            + "PRIMARY KEY (id), "
+                            + "KEY idx_vehicle_inspection_lines_chassis (chassis_no), "
+                            + "CONSTRAINT fk_vehicle_inspection_lines_record "
+                            + "FOREIGN KEY (chassis_no) REFERENCES vehicle_inspections (chassis_no) "
+                            + "ON DELETE CASCADE"
+                            + ")"
+            );
+            log.info("Verified table vehicle_inspection_lines");
+        } catch (Exception ex) {
+            log.warn("Could not create vehicle_inspection_lines: {}", ex.getMessage());
+        }
+    }
+
+    private void addWorkshopJobInspectionItemKey() {
+        try {
+            Integer count = jdbcTemplate.queryForObject(
+                    "SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS "
+                            + "WHERE TABLE_SCHEMA = DATABASE() "
+                            + "AND UPPER(TABLE_NAME) = UPPER('workshop_job_lines') "
+                            + "AND UPPER(COLUMN_NAME) = UPPER('inspection_item_key')",
+                    Integer.class
+            );
+            if (count != null && count > 0) {
+                return;
+            }
+            jdbcTemplate.execute(
+                    "ALTER TABLE workshop_job_lines ADD COLUMN inspection_item_key VARCHAR(80) NULL"
+            );
+            log.info("Added workshop_job_lines.inspection_item_key");
+        } catch (Exception ex) {
+            log.warn("Could not add workshop_job_lines.inspection_item_key: {}", ex.getMessage());
+        }
     }
 
     private void createEquipmentInspectionsTable() {

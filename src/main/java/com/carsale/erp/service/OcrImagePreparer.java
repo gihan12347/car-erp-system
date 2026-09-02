@@ -40,10 +40,6 @@ public class OcrImagePreparer {
         this.pdfRenderDpi = pdfRenderDpi > 0 ? pdfRenderDpi : 220;
     }
 
-    public String readDocumentText(File file, String originalName, String language) throws Exception {
-        return readDocumentText(file, originalName, language, null);
-    }
-
     public String readDocumentText(File file, String originalName, String language, String provider) throws Exception {
         OcrClient client = ocrClients.clientFor(provider);
         String name = originalName == null ? "" : originalName.toLowerCase();
@@ -52,7 +48,7 @@ public class OcrImagePreparer {
             StringBuilder text = new StringBuilder();
             try (PDDocument document = PDDocument.load(file)) {
                 PDFRenderer renderer = new PDFRenderer(document);
-                int pages = Math.min(document.getNumberOfPages(), 3);
+                int pages = document.getNumberOfPages();
                 for (int i = 0; i < pages; i++) {
                     BufferedImage image = prepare(renderer.renderImageWithDPI(i, pdfRenderDpi));
                     File imageTemp = writeUploadImage(image, "doc-page-", client);
@@ -211,8 +207,8 @@ public class OcrImagePreparer {
     private static String formatMb(long bytes) {
         double mb = bytes / 1000000.0d;
         if (mb == Math.rint(mb)) {
-            return String.valueOf((long) mb) + " MB";
+            return (long) mb + " MB";
         }
-        return String.format("%.1f MB", Double.valueOf(mb));
+        return String.format("%.1f MB", mb);
     }
 }

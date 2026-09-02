@@ -11,7 +11,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class AuctionSheetParserTest {
 
-    private final AuctionSheetParser parser = new AuctionSheetParser();
+    private final AuctionSheetParser parser = new AuctionSheetParser(text -> text);
 
     @Test
     void parsesHandwrittenRaizeHybridSheet() {
@@ -152,5 +152,181 @@ class AuctionSheetParserTest {
         assertEquals("S", fields.get("auctionGrade"));
         assertEquals("B", fields.get("exteriorGrade"));
         assertEquals("A", fields.get("interiorGrade"));
+    }
+
+    @Test
+    void translatesSheetToEnglishBeforeExtracting() {
+        AuctionSheetParser englishFirst = new AuctionSheetParser(text -> {
+            if (text == null) {
+                return null;
+            }
+            return text
+                    .replace("車名", "Vehicle name")
+                    .replace("ライズ", "Raize")
+                    .replace("グレード", "Grade")
+                    .replace("ハイブリッドZ", "Hybrid Z")
+                    .replace("排気量", "Displacement")
+                    .replace("型式", "Model code")
+                    .replace("初度登録", "First registration")
+                    .replace("走行", "Mileage")
+                    .replace("外装色", "Exterior color")
+                    .replace("車台番号", "Chassis number")
+                    .replace("シフト", "Shift")
+                    .replace("燃料", "Fuel")
+                    .replace("ガソリン", "Gasoline")
+                    .replace("乗車定員", "Seating capacity")
+                    .replace("ドア形状", "Doors")
+                    .replace("評価点", "Evaluation")
+                    .replace("内装", "Interior")
+                    .replace("出品番号", "Lot number");
+        });
+        String ocr = ""
+                + "出品番号 8313\n"
+                + "排気量 1,200cc\n"
+                + "型式 5AA-A202A\n"
+                + "初度登録 R7/4月\n"
+                + "車名 ライズ\n"
+                + "グレード ハイブリッドZ\n"
+                + "評価点 S\n"
+                + "内装 A\n"
+                + "走行 10 km\n"
+                + "外装色 W25\n"
+                + "車台番号 A202A-0082833\n"
+                + "シフト CVT\n"
+                + "燃料 ガソリン\n"
+                + "乗車定員 5\n"
+                + "ドア形状 5\n";
+
+        Map<String, String> fields = englishFirst.parse(ocr).getFields();
+
+        assertEquals("A202A-0082833", fields.get("chassisNo"));
+        assertEquals("8313", fields.get("lotNo"));
+        assertEquals("April 2025", fields.get("year"));
+        assertEquals("Toyota Raize", fields.get("model"));
+        assertEquals("Hybrid Z", fields.get("grade"));
+        assertEquals("S", fields.get("auctionGrade"));
+        assertEquals("A", fields.get("interiorGrade"));
+        assertEquals("10 km", fields.get("mileage"));
+        assertEquals("1,200 cc", fields.get("engineSize"));
+        assertEquals("Hybrid", fields.get("fuel"));
+        assertEquals("5AA-A202A", fields.get("modelCode"));
+        assertEquals("W25", fields.get("colorCode"));
+        assertEquals("White", fields.get("color"));
+        assertEquals("CVT", fields.get("transmission"));
+        assertEquals("5 people", fields.get("seats"));
+        assertEquals("5-door", fields.get("bodyStyle"));
+    }
+
+    @Test
+    void parsesEnglishAuctionSheet() {
+        String ocr = ""
+                + "Lot number 8313\n"
+                + "Displacement 1,200cc\n"
+                + "Model code 5AA-A202A\n"
+                + "First registration April 2025\n"
+                + "Vehicle name Raize\n"
+                + "Grade Hybrid Z\n"
+                + "Evaluation S\n"
+                + "Interior A\n"
+                + "Mileage 10 km\n"
+                + "Exterior color W25\n"
+                + "Chassis number A202A-0082833\n"
+                + "Shift CVT\n"
+                + "Fuel Gasoline\n"
+                + "Seating capacity 5\n"
+                + "Doors 5\n";
+
+        Map<String, String> fields = parser.parse(ocr).getFields();
+
+        assertEquals("A202A-0082833", fields.get("chassisNo"));
+        assertEquals("8313", fields.get("lotNo"));
+        assertEquals("April 2025", fields.get("year"));
+        assertEquals("Toyota Raize", fields.get("model"));
+        assertEquals("Hybrid Z", fields.get("grade"));
+        assertEquals("S", fields.get("auctionGrade"));
+        assertEquals("A", fields.get("interiorGrade"));
+        assertEquals("10 km", fields.get("mileage"));
+        assertEquals("1,200 cc", fields.get("engineSize"));
+        assertEquals("Hybrid", fields.get("fuel"));
+        assertEquals("5AA-A202A", fields.get("modelCode"));
+        assertEquals("W25", fields.get("colorCode"));
+        assertEquals("White", fields.get("color"));
+        assertEquals("CVT", fields.get("transmission"));
+        assertEquals("5 people", fields.get("seats"));
+        assertEquals("5-door", fields.get("bodyStyle"));
+    }
+
+    @Test
+    void readsColorAndCodeFromTranslatedEnglish() {
+        AuctionSheetParser colorParser = new AuctionSheetParser(text -> {
+            if (text == null) {
+                return null;
+            }
+            return text.replace("外装色", "Exterior color").replace("車名", "Vehicle name");
+        });
+        String ocr = ""
+                + "車名 ライズ\n"
+                + "Exterior color W25\n"
+                + "車台番号 A202A-0082833\n";
+
+        Map<String, String> fields = colorParser.parse(ocr).getFields();
+        assertEquals("W25", fields.get("colorCode"));
+        assertEquals("White", fields.get("color"));
+    }
+
+    @Test
+    void keepsColorCodeWhenTranslationTurnsCodeIntoColorName() {
+        AuctionSheetParser colorParser = new AuctionSheetParser(text -> {
+            if (text != null && text.contains("外装色")) {
+                return "Exterior color White";
+            }
+            if (text != null && text.contains("外装") && !text.contains("外装色")) {
+                return "Exterior color B";
+            }
+            return text;
+        });
+        String ocr = ""
+                + "車名 ライズ\n"
+                + "外装 B\n"
+                + "外装色 W25\n"
+                + "車台番号 A202A-0082833\n";
+
+        Map<String, String> fields = colorParser.parse(ocr).getFields();
+        assertEquals("W25", fields.get("colorCode"));
+        assertEquals("White", fields.get("color"));
+    }
+
+    @Test
+    void doesNotUseColorNameLettersAsColorCode() {
+        AuctionSheetParser colorParser = new AuctionSheetParser(text -> {
+            if (text != null && text.contains("パールホワイト")) {
+                return "Exterior color Pearl White";
+            }
+            return text;
+        });
+        String ocr = ""
+                + "車名 Aqua\n"
+                + "外装色 パールホワイト\n"
+                + "車台番号 NHP10-1234567\n";
+
+        Map<String, String> fields = colorParser.parse(ocr).getFields();
+        assertEquals("Pearl White", fields.get("color"));
+        assertEquals(null, fields.get("colorCode"));
+    }
+
+    @Test
+    void translatesJapaneseColorThroughTranslator() {
+        AuctionSheetParser colorParser = new AuctionSheetParser(text -> {
+            if (text != null && text.contains("パールホワイト")) {
+                return "Pearl White";
+            }
+            return text;
+        });
+        String ocr = ""
+                + "車名 Aqua\n"
+                + "外装色 パールホワイト\n"
+                + "車台番号 NHP10-1234567\n";
+
+        assertEquals("Pearl White", colorParser.parse(ocr).getFields().get("color"));
     }
 }

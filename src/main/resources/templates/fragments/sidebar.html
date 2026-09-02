@@ -1,12 +1,16 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
-<aside th:fragment="sidebar(activeMenu)" class="sidebar" id="sidebar">
+<th:block th:fragment="sidebar(activeMenu)">
+<aside class="sidebar" id="sidebar">
     <div class="sidebar-brand">
         <span class="brand-mark"><i class="fa-solid fa-car"></i></span>
         <span class="brand-copy">
             <strong>CAR ERP</strong>
             <small>Import · Clearance · Prep</small>
         </span>
+        <button type="button" class="icon-btn sidebar-close" id="sidebarClose" aria-label="Close menu">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
     </div>
 
     <nav class="sidebar-nav">
@@ -19,6 +23,9 @@
         </a>
         <a th:href="@{/customs}" th:classappend="${activeMenu == 'customs'} ? 'is-active' : ''">
             <i class="fa-solid fa-passport"></i><span>Custom Clearance</span>
+        </a>
+        <a th:href="@{/inspection-items}" th:classappend="${activeMenu == 'inspection-items'} ? 'is-active' : ''">
+            <i class="fa-solid fa-clipboard-list"></i><span>Inspection items</span>
         </a>
         <a th:href="@{/workshop-yard}" th:classappend="${activeMenu == 'workshop-yard'} ? 'is-active' : ''">
             <i class="fa-solid fa-wrench"></i><span>Preparation</span>
@@ -51,4 +58,6 @@
         </a>
     </nav>
 </aside>
+<div class="sidebar-backdrop" id="sidebarBackdrop" hidden></div>
+</th:block>
 </html>

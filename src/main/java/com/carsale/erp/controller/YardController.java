@@ -61,14 +61,21 @@ public class YardController {
                     preparationPipelineService.ineligibleNotice(vehicle));
             return "redirect:" + preparationPipelineService.ineligibleHubPath(vehicle);
         }
-        YardRecord record = yardService.prepareForm(chassisNo);
         PrepStatus status = preparationPipelineService.statusFor(vehicle);
+        if (!status.isCanEnterYard()) {
+            redirectAttributes.addFlashAttribute("errorMessage",
+                    "Finish every workshop job before opening the yard section.");
+            return "redirect:/workshop/" + encodeChassis(chassisNo);
+        }
+        YardRecord record = yardService.prepareForm(chassisNo);
         model.addAttribute("pageTitle", "Yard");
         model.addAttribute("activeMenu", "workshop-yard");
         model.addAttribute("vehicle", vehicle);
         model.addAttribute("record", record);
         model.addAttribute("workshopReady", status.isWorkshopReady());
         model.addAttribute("yardReady", status.isYardReady());
+        model.addAttribute("inspectionReady", status.isInspectionReady());
+        model.addAttribute("canEnterYard", status.isCanEnterYard());
         model.addAttribute("prepComplete", status.isPrepComplete());
         model.addAttribute("stageNav", ReadyStageNavigation.viewLinks(
                 chassisNo,
@@ -86,6 +93,11 @@ public class YardController {
             RedirectAttributes redirectAttributes
     ) {
         record.setChassisNo(chassisNo);
+        if (!preparationPipelineService.statusFor(chassisNo).isCanEnterYard()) {
+            redirectAttributes.addFlashAttribute("errorMessage",
+                    "Finish every workshop job before opening the yard section.");
+            return "redirect:/workshop/" + encodeChassis(chassisNo);
+        }
         try {
             yardService.save(record);
             preparationPipelineService.syncVehicleStage(chassisNo);

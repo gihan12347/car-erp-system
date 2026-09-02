@@ -33,16 +33,13 @@ public class AuctionSheetOcrService {
         this.language = language == null || language.trim().isEmpty() ? "jpn" : language.trim();
     }
 
-    public AuctionParseResult parseSheet(MultipartFile file) {
-        return parseSheet(file, null);
-    }
-
     public AuctionParseResult parseSheet(MultipartFile file, String provider) {
-        AuctionParseResult failed = new AuctionParseResult();
+        AuctionParseResult result;
         if (file == null || file.isEmpty()) {
-            failed.setSuccess(false);
-            failed.setMessage("Please upload an auction sheet image or PDF.");
-            return failed;
+            result = new AuctionParseResult();
+            result.setSuccess(false);
+            result.setMessage("Please upload an auction sheet image or PDF.");
+            return result;
         }
 
         File temp = null;
@@ -53,20 +50,23 @@ public class AuctionSheetOcrService {
             }
             String raw = imagePreparer.readDocumentText(temp, file.getOriginalFilename(), language, provider);
             log.info("Auction sheet OCR text:\n{}", raw);
-            AuctionParseResult parsed = parser.parse(raw);
-            parsed.setRawText(raw);
-            log.info("Auction sheet mapped fields: {}", parsed.getFields());
-            return parsed;
+            result = parser.parse(raw);
+            if (result.getRawText() == null || result.getRawText().trim().isEmpty()) {
+                result.setRawText(raw);
+            }
+            log.info("Auction sheet mapped fields: {}", result.getFields());
+            return result;
         } catch (Throwable ex) {
             log.error("Auction sheet OCR failed", ex);
-            failed.setSuccess(false);
+            result = new AuctionParseResult();
+            result.setSuccess(false);
             String detail = ex.getMessage();
             if (OcrClient.isUserFacingError(detail)) {
-                failed.setMessage(detail + " You can fill the form manually.");
+                result.setMessage(detail + " You can fill the form manually.");
             } else {
-                failed.setMessage("Could not read the auction sheet. You can fill the form manually.");
+                result.setMessage("Could not read the auction sheet. You can fill the form manually.");
             }
-            return failed;
+            return result;
         } finally {
             if (temp != null) {
                 try {

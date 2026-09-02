@@ -49,6 +49,15 @@ app:
     equipment:
       language: eng
 
+  translate:
+    # auto uses Google Cloud Translation when the Vision credentials file exists, otherwise MyMemory.
+    provider: ${TRANSLATE_PROVIDER:auto}
+    google:
+      apiUrl: https://translation.googleapis.com/language/translate/v2
+    mymemory:
+      apiUrl: https://api.mymemory.translated.net/get
+      email: ${MYMEMORY_EMAIL:}
+
   documents:
     uploadDir: ${APP_DOCUMENTS_DIR:uploads/auction-sheets}
     preshipUploadDir: ${APP_PRESHIP_DOCUMENTS_DIR:uploads/pre-shipment-docs}
@@ -71,6 +80,30 @@ resilience4j:
         ignoreExceptions:
           - java.io.IOException
       googleVision:
+        slidingWindowType: COUNT_BASED
+        slidingWindowSize: 3
+        minimumNumberOfCalls: 3
+        failureRateThreshold: 100
+        waitDurationInOpenState: 60s
+        permittedNumberOfCallsInHalfOpenState: 1
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+        recordExceptions:
+          - org.springframework.web.client.RestClientException
+        ignoreExceptions:
+          - java.io.IOException
+      googleTranslate:
+        slidingWindowType: COUNT_BASED
+        slidingWindowSize: 3
+        minimumNumberOfCalls: 3
+        failureRateThreshold: 100
+        waitDurationInOpenState: 60s
+        permittedNumberOfCallsInHalfOpenState: 1
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+        recordExceptions:
+          - org.springframework.web.client.RestClientException
+        ignoreExceptions:
+          - java.io.IOException
+      myMemoryTranslate:
         slidingWindowType: COUNT_BASED
         slidingWindowSize: 3
         minimumNumberOfCalls: 3

@@ -9,8 +9,10 @@
         <main class="page-content">
             <div class="dash-head">
                 <div>
+                    <h1 th:if="${stageKey == 'inspection'}">Inspection</h1>
                     <h1 th:if="${stageKey == 'workshop'}">Workshop</h1>
                     <h1 th:if="${stageKey == 'yard'}">Yard</h1>
+                    <p class="form-lead" th:if="${stageKey == 'inspection'}">Review checklist results. Marking No creates a workshop job.</p>
                     <p class="form-lead" th:if="${stageKey == 'workshop'}">Review repair work, parts, and workshop completion.</p>
                     <p class="form-lead" th:if="${stageKey == 'yard'}">Review bay allocation, keys, and yard inspection.</p>
                 </div>
@@ -20,13 +22,18 @@
             </div>
 
             <div th:replace="fragments/prep-pipeline :: prepPipelineSteps(
-                    ${stageKey == 'yard' ? 'yard' : 'workshop'},
+                    ${stageKey},
                     ${vehicle.chassisNo},
                     ${workshopReady},
                     ${yardReady},
+                    ${inspectionReady},
+                    ${canEnterYard},
                     ${vehicle.model},
                     true)"></div>
 
+            <div class="vehicle-form" th:if="${stageKey == 'inspection'}">
+                <div th:replace="fragments/inspection-view :: inspectionView(${vehicle}, ${inspection}, ${inspectionReady})"></div>
+            </div>
             <div class="vehicle-form" th:if="${stageKey == 'workshop'}">
                 <div th:replace="fragments/workshop-view :: workshopView(${vehicle}, ${workshop}, ${workshopReady})"></div>
             </div>
@@ -36,6 +43,6 @@
         </main>
     </div>
 </div>
-<script th:src="@{/js/app.js(v=20260822n)}"></script>
+<script th:src="@{/js/app.js(v=20260829c)}"></script>
 </body>
 </html>

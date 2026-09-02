@@ -55,6 +55,9 @@ public class WorkshopJobLine {
     @Column(columnDefinition = "TEXT")
     private String notes;
 
+    @Column(name = "inspection_item_key", length = 80)
+    private String inspectionItemKey;
+
     public Long getId() {
         return id;
     }
@@ -151,6 +154,14 @@ public class WorkshopJobLine {
         this.notes = notes;
     }
 
+    public String getInspectionItemKey() {
+        return inspectionItemKey;
+    }
+
+    public void setInspectionItemKey(String inspectionItemKey) {
+        this.inspectionItemKey = inspectionItemKey;
+    }
+
     public boolean isEmpty() {
         return isBlank(jobSummary)
                 && isBlank(technician)
@@ -161,6 +172,7 @@ public class WorkshopJobLine {
                 && isBlank(startedOn)
                 && isBlank(completedOn)
                 && isBlank(notes)
+                && isBlank(inspectionItemKey)
                 && (isBlank(jobStatus) || "PENDING".equals(jobStatus));
     }
 

@@ -63,6 +63,72 @@ public class WorkshopService {
         return record != null && record.isCompleted();
     }
 
+    public boolean canEnterYard(String chassisNo) {
+        WorkshopJob record = findByChassisNo(chassisNo);
+        if (record == null) {
+            return false;
+        }
+        List<WorkshopJobLine> lines = record.getLines();
+        if (lines == null || lines.isEmpty()) {
+            return record.isCompleted();
+        }
+        for (WorkshopJobLine line : lines) {
+            if (line == null || line.isEmpty()) {
+                continue;
+            }
+            if (!"COMPLETE".equals(line.getJobStatus())) {
+                return false;
+            }
+        }
+        return hasRealJobLine(lines) || record.isCompleted();
+    }
+
+    private static boolean hasRealJobLine(List<WorkshopJobLine> lines) {
+        for (WorkshopJobLine line : lines) {
+            if (line != null && !line.isEmpty()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Transactional
+    public WorkshopJob addInspectionFailJob(String chassisNo, String inspectionItemKey, String itemTitle, String notes) {
+        if (chassisNo == null || chassisNo.trim().isEmpty()) {
+            throw new IllegalArgumentException("Chassis number is required.");
+        }
+        String id = chassisNo.trim();
+        vehicleRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Vehicle not found for chassis " + id));
+
+        WorkshopJob job = workshopJobRepository.findById(id).orElse(null);
+        if (job == null) {
+            job = new WorkshopJob();
+            job.setChassisNo(id);
+            job.setJobStatus("PENDING");
+        } else {
+            migrateLegacyLine(job);
+        }
+
+        String key = inspectionItemKey == null ? "" : inspectionItemKey.trim();
+        if (!isBlank(key)) {
+            for (WorkshopJobLine line : job.getLines()) {
+                if (key.equals(line.getInspectionItemKey())) {
+                    return job;
+                }
+            }
+        }
+
+        WorkshopJobLine line = newLine(job);
+        line.setInspectionItemKey(isBlank(key) ? null : key);
+        line.setJobSummary(InspectionResults.jobSummary(itemTitle));
+        if (!isBlank(notes)) {
+            line.setNotes(notes.trim());
+        }
+        job.getLines().add(line);
+        return workshopJobRepository.save(job);
+    }
+
     @Transactional
     public WorkshopJob save(WorkshopJob incoming) {
         if (incoming == null || incoming.getChassisNo() == null || incoming.getChassisNo().trim().isEmpty()) {

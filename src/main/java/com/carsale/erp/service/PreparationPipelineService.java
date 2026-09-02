@@ -20,35 +20,40 @@ public class PreparationPipelineService {
     private final ClearancePipelineService clearancePipelineService;
     private final WorkshopService workshopService;
     private final YardService yardService;
+    private final VehicleInspectionService vehicleInspectionService;
 
     public PreparationPipelineService(
             VehicleRepository vehicleRepository,
             VehicleService vehicleService,
             ClearancePipelineService clearancePipelineService,
             WorkshopService workshopService,
-            YardService yardService
+            YardService yardService,
+            VehicleInspectionService vehicleInspectionService
     ) {
         this.vehicleRepository = vehicleRepository;
         this.vehicleService = vehicleService;
         this.clearancePipelineService = clearancePipelineService;
         this.workshopService = workshopService;
         this.yardService = yardService;
+        this.vehicleInspectionService = vehicleInspectionService;
     }
 
     public PrepStatus statusFor(Vehicle vehicle) {
         if (vehicle == null) {
-            return new PrepStatus(false, false);
+            return new PrepStatus(false, false, false, false);
         }
         return statusFor(vehicle.getChassisNo());
     }
 
     public PrepStatus statusFor(String chassisNo) {
         if (chassisNo == null || chassisNo.trim().isEmpty()) {
-            return new PrepStatus(false, false);
+            return new PrepStatus(false, false, false, false);
         }
         return new PrepStatus(
                 workshopService.isComplete(chassisNo),
-                yardService.isComplete(chassisNo)
+                yardService.isComplete(chassisNo),
+                vehicleInspectionService.isComplete(chassisNo),
+                workshopService.canEnterYard(chassisNo)
         );
     }
 
@@ -153,10 +158,14 @@ public class PreparationPipelineService {
     public static final class PrepStatus {
         private final boolean workshopReady;
         private final boolean yardReady;
+        private final boolean inspectionReady;
+        private final boolean canEnterYard;
 
-        public PrepStatus(boolean workshopReady, boolean yardReady) {
+        public PrepStatus(boolean workshopReady, boolean yardReady, boolean inspectionReady, boolean canEnterYard) {
             this.workshopReady = workshopReady;
             this.yardReady = yardReady;
+            this.inspectionReady = inspectionReady;
+            this.canEnterYard = canEnterYard;
         }
 
         public boolean isWorkshopReady() {
@@ -167,12 +176,20 @@ public class PreparationPipelineService {
             return yardReady;
         }
 
+        public boolean isInspectionReady() {
+            return inspectionReady;
+        }
+
+        public boolean isCanEnterYard() {
+            return canEnterYard;
+        }
+
         public int completedCount() {
-            return (workshopReady ? 1 : 0) + (yardReady ? 1 : 0);
+            return (workshopReady ? 1 : 0) + (yardReady ? 1 : 0) + (inspectionReady ? 1 : 0);
         }
 
         public boolean isPrepComplete() {
-            return workshopReady && yardReady;
+            return workshopReady && yardReady && inspectionReady;
         }
     }
 }

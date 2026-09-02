@@ -48,8 +48,13 @@ final class ReadyStageNavigation {
         String nextLabel = "Next";
         if (stageIndex < keys.size() - 1) {
             String nextKey = keys.get(stageIndex + 1);
-            nextUrl = viewBase + "?stage=" + (stageIndex + 1);
-            nextLabel = "Next · " + titleFor(nextKey);
+            if (PipelineStageService.STAGE_YARD.equals(nextKey) && !status.isCanEnterYard()) {
+                nextUrl = null;
+                nextLabel = "Complete all workshop jobs to open Yard";
+            } else {
+                nextUrl = viewBase + "?stage=" + (stageIndex + 1);
+                nextLabel = "Next · " + titleFor(nextKey);
+            }
         } else {
             nextUrl = "/ready-for-sale/" + encoded;
             nextLabel = "Next · Ready for sale pipeline";
@@ -72,6 +77,10 @@ final class ReadyStageNavigation {
         return redirectAfterStage(chassisNo, status, keys, PipelineStageService.STAGE_YARD);
     }
 
+    static String redirectAfterInspectionSave(String chassisNo, PrepStatus status, List<String> keys) {
+        return redirectAfterStage(chassisNo, status, keys, PipelineStageService.STAGE_INSPECTION);
+    }
+
     private static String redirectAfterStage(String chassisNo, PrepStatus status, List<String> keys, String currentKey) {
         String encoded = encode(chassisNo);
         String viewBase = "/workshop-yard/" + encoded;
@@ -84,6 +93,9 @@ final class ReadyStageNavigation {
         }
         int index = keys.indexOf(currentKey);
         for (int i = index + 1; i < keys.size(); i++) {
+            if (PipelineStageService.STAGE_YARD.equals(keys.get(i)) && !status.isCanEnterYard()) {
+                return "/workshop/" + encoded;
+            }
             if (isReady(keys.get(i), status)) {
                 return viewBase + "?stage=" + i;
             }
@@ -101,6 +113,9 @@ final class ReadyStageNavigation {
         if (PipelineStageService.STAGE_YARD.equals(stageKey)) {
             return status.isYardReady();
         }
+        if (PipelineStageService.STAGE_INSPECTION.equals(stageKey)) {
+            return status.isInspectionReady();
+        }
         return status.isWorkshopReady();
     }
 
@@ -108,12 +123,18 @@ final class ReadyStageNavigation {
         if (PipelineStageService.STAGE_YARD.equals(stageKey)) {
             return "/yard/" + encodedChassis;
         }
+        if (PipelineStageService.STAGE_INSPECTION.equals(stageKey)) {
+            return "/inspection/" + encodedChassis;
+        }
         return "/workshop/" + encodedChassis;
     }
 
     static String titleFor(String stageKey) {
         if (PipelineStageService.STAGE_YARD.equals(stageKey)) {
             return "Yard";
+        }
+        if (PipelineStageService.STAGE_INSPECTION.equals(stageKey)) {
+            return "Inspection";
         }
         return "Workshop";
     }

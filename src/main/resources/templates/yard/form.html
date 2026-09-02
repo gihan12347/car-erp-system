@@ -19,6 +19,8 @@
                     ${vehicle.chassisNo},
                     ${workshopReady},
                     ${yardReady},
+                    ${inspectionReady},
+                    ${canEnterYard},
                     ${vehicle.model},
                     false)"></div>
 
@@ -34,7 +36,7 @@
                     <input type="checkbox" th:field="*{completed}">
                     <span>
                         <strong>Mark yard complete</strong>
-                        <small>Bay allocated and inspection done. The vehicle can move to the ready for sale pipeline when workshop is also complete.</small>
+                        <small>Bay allocated. The vehicle can move to the ready for sale pipeline when workshop is also complete.</small>
                     </span>
                 </label>
 
@@ -88,6 +90,6 @@
         </main>
     </div>
 </div>
-<script th:src="@{/js/app.js(v=20260822n)}"></script>
+<script th:src="@{/js/app.js(v=20260829c)}"></script>
 </body>
 </html>

@@ -11,6 +11,7 @@ import com.carsale.erp.repository.ClearanceDocumentRepository;
 import com.carsale.erp.repository.EquipmentInspectionRepository;
 import com.carsale.erp.repository.PreShipmentInspectionRepository;
 import com.carsale.erp.repository.SaleListingRepository;
+import com.carsale.erp.repository.VehicleInspectionRepository;
 import com.carsale.erp.repository.VehicleRepository;
 import com.carsale.erp.repository.WorkshopJobRepository;
 import com.carsale.erp.repository.YardRecordRepository;
@@ -24,6 +25,7 @@ public class VehicleService {
     private final EquipmentInspectionRepository equipmentInspectionRepository;
     private final WorkshopJobRepository workshopJobRepository;
     private final YardRecordRepository yardRecordRepository;
+    private final VehicleInspectionRepository vehicleInspectionRepository;
     private final SaleListingRepository saleListingRepository;
 
     public VehicleService(
@@ -34,6 +36,7 @@ public class VehicleService {
             EquipmentInspectionRepository equipmentInspectionRepository,
             WorkshopJobRepository workshopJobRepository,
             YardRecordRepository yardRecordRepository,
+            VehicleInspectionRepository vehicleInspectionRepository,
             SaleListingRepository saleListingRepository
     ) {
         this.vehicleRepository = vehicleRepository;
@@ -43,6 +46,7 @@ public class VehicleService {
         this.equipmentInspectionRepository = equipmentInspectionRepository;
         this.workshopJobRepository = workshopJobRepository;
         this.yardRecordRepository = yardRecordRepository;
+        this.vehicleInspectionRepository = vehicleInspectionRepository;
         this.saleListingRepository = saleListingRepository;
     }
 
@@ -187,6 +191,7 @@ public class VehicleService {
     private void deletePrepData(String chassisNo) {
         workshopJobRepository.findById(chassisNo).ifPresent(workshopJobRepository::delete);
         yardRecordRepository.findById(chassisNo).ifPresent(yardRecordRepository::delete);
+        vehicleInspectionRepository.findById(chassisNo).ifPresent(vehicleInspectionRepository::delete);
     }
 
     private void deleteCustomsData(String chassisNo) {
