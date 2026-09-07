@@ -1,5 +1,7 @@
 package com.carsale.erp.config;
 
+import java.util.List;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
@@ -7,7 +9,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
-import com.carsale.erp.enums.FlowPipeline;
+import com.carsale.erp.shared.pipeline.FlowPipeline;
 
 /**
  * Hibernate ddl-auto does not always add or widen columns on existing tables.
@@ -28,12 +30,18 @@ public class DatabaseSchemaUpdater implements CommandLineRunner {
     public void run(String... args) {
         widenColumn();
         createClearanceAssessmentTable();
+        createClearanceJevicInspectionsTable();
+        createClearanceWorkingSheetsTable();
         createPipelineFlowsTable();
         seedPipelineFlows();
         createPipelineStagesTable();
         migratePipelineStagesToFlowId();
         ensurePipelineStagesFlowForeignKey();
         createEquipmentInspectionsTable();
+        createInspectionCertificatesTable();
+        createStandardsCertificatesTable();
+        createExportCertificatesTable();
+        createVehiclePhotosTable();
         createInspectionItemsTable();
         createVehicleInspectionsTable();
         createVehicleInspectionLinesTable();
@@ -123,6 +131,150 @@ public class DatabaseSchemaUpdater implements CommandLineRunner {
         }
     }
 
+    private void createInspectionCertificatesTable() {
+        try {
+            jdbcTemplate.execute(
+                    "CREATE TABLE IF NOT EXISTS inspection_certificates ("
+                            + "chassis_no VARCHAR(40) NOT NULL, "
+                            + "certificate_no TEXT, "
+                            + "issue_date TEXT, "
+                            + "inspection_branch TEXT, "
+                            + "make TEXT, "
+                            + "model TEXT, "
+                            + "engine_capacity TEXT, "
+                            + "first_registration TEXT, "
+                            + "chassis_vin TEXT, "
+                            + "engine_no TEXT, "
+                            + "inspected_mileage TEXT, "
+                            + "inspection_date TEXT, "
+                            + "remarks TEXT, "
+                            + "document_original_name VARCHAR(255), "
+                            + "document_stored_name VARCHAR(120), "
+                            + "document_content_type VARCHAR(80), "
+                            + "ocr_text TEXT, "
+                            + "PRIMARY KEY (chassis_no)"
+                            + ") ENGINE=InnoDB ROW_FORMAT=DYNAMIC"
+            );
+            log.info("Verified table inspection_certificates");
+        } catch (Exception ex) {
+            log.warn("Could not create inspection_certificates: {}", ex.getMessage());
+        }
+    }
+
+    private void createStandardsCertificatesTable() {
+        try {
+            jdbcTemplate.execute(
+                    "CREATE TABLE IF NOT EXISTS standards_certificates ("
+                            + "chassis_no VARCHAR(40) NOT NULL, "
+                            + "schedule_type VARCHAR(8), "
+                            + "emission_co TEXT, "
+                            + "emission_nmhc TEXT, "
+                            + "emission_nox TEXT, "
+                            + "emission_pm TEXT, "
+                            + "emission_hc TEXT, "
+                            + "emission_hc_nox TEXT, "
+                            + "emission_thc TEXT, "
+                            + "emission_ch4 TEXT, "
+                            + "emission_smoke TEXT, "
+                            + "three_point_seat_belts TINYINT(1) NOT NULL DEFAULT 0, "
+                            + "two_point_seat_belts TINYINT(1) NOT NULL DEFAULT 0, "
+                            + "driver_airbag TINYINT(1) NOT NULL DEFAULT 0, "
+                            + "passenger_airbag TINYINT(1) NOT NULL DEFAULT 0, "
+                            + "abs_fitted TINYINT(1) NOT NULL DEFAULT 0, "
+                            + "make TEXT, "
+                            + "model TEXT, "
+                            + "chassis_vin TEXT, "
+                            + "place_of_inspection TEXT, "
+                            + "inspection_date TEXT, "
+                            + "remarks TEXT, "
+                            + "document_original_name VARCHAR(255), "
+                            + "document_stored_name VARCHAR(120), "
+                            + "document_content_type VARCHAR(80), "
+                            + "ocr_text TEXT, "
+                            + "PRIMARY KEY (chassis_no)"
+                            + ") ENGINE=InnoDB ROW_FORMAT=DYNAMIC"
+            );
+            log.info("Verified table standards_certificates");
+        } catch (Exception ex) {
+            log.warn("Could not create standards_certificates: {}", ex.getMessage());
+        }
+    }
+
+    private void createExportCertificatesTable() {
+        try {
+            jdbcTemplate.execute(
+                    "CREATE TABLE IF NOT EXISTS export_certificates ("
+                            + "chassis_no VARCHAR(40) NOT NULL, "
+                            + "document_type VARCHAR(16), "
+                            + "certificate_no TEXT, "
+                            + "arrangement_no TEXT, "
+                            + "issue_date TEXT, "
+                            + "registration_no TEXT, "
+                            + "registration_date TEXT, "
+                            + "first_reg_date TEXT, "
+                            + "chassis_vin TEXT, "
+                            + "make TEXT, "
+                            + "model TEXT, "
+                            + "engine_model TEXT, "
+                            + "vehicle_classification TEXT, "
+                            + "use_type TEXT, "
+                            + "purpose TEXT, "
+                            + "body_type TEXT, "
+                            + "seating_capacity TEXT, "
+                            + "max_carry TEXT, "
+                            + "weight_kg TEXT, "
+                            + "gross_weight_kg TEXT, "
+                            + "length_cm TEXT, "
+                            + "width_cm TEXT, "
+                            + "height_cm TEXT, "
+                            + "engine_capacity TEXT, "
+                            + "fuel_type TEXT, "
+                            + "specification_no TEXT, "
+                            + "classification_no TEXT, "
+                            + "front_axle_weight TEXT, "
+                            + "rear_axle_weight TEXT, "
+                            + "fr_weight TEXT, "
+                            + "rf_weight TEXT, "
+                            + "user_name TEXT, "
+                            + "user_address TEXT, "
+                            + "owner_name TEXT, "
+                            + "owner_address TEXT, "
+                            + "locality_of_use TEXT, "
+                            + "export_scheduled_date TEXT, "
+                            + "remarks TEXT, "
+                            + "document_original_name VARCHAR(255), "
+                            + "document_stored_name VARCHAR(120), "
+                            + "document_content_type VARCHAR(80), "
+                            + "ocr_text TEXT, "
+                            + "PRIMARY KEY (chassis_no)"
+                            + ") ENGINE=InnoDB ROW_FORMAT=DYNAMIC"
+            );
+            log.info("Verified table export_certificates");
+        } catch (Exception ex) {
+            log.warn("Could not create export_certificates: {}", ex.getMessage());
+        }
+    }
+
+    private void createVehiclePhotosTable() {
+        try {
+            jdbcTemplate.execute(
+                    "CREATE TABLE IF NOT EXISTS vehicle_photos ("
+                            + "id BIGINT NOT NULL AUTO_INCREMENT, "
+                            + "chassis_no VARCHAR(40) NOT NULL, "
+                            + "sort_order INT NOT NULL, "
+                            + "original_name VARCHAR(255), "
+                            + "stored_name VARCHAR(120), "
+                            + "content_type VARCHAR(80), "
+                            + "PRIMARY KEY (id), "
+                            + "KEY idx_vehicle_photos_chassis (chassis_no)"
+                            + ") ENGINE=InnoDB ROW_FORMAT=DYNAMIC"
+            );
+            log.info("Verified table vehicle_photos");
+        } catch (Exception ex) {
+            log.warn("Could not create vehicle_photos: {}", ex.getMessage());
+        }
+    }
+
     private void createEquipmentInspectionsTable() {
         try {
             jdbcTemplate.execute(
@@ -202,6 +354,117 @@ public class DatabaseSchemaUpdater implements CommandLineRunner {
             log.info("Verified table clearance_assessment_notices");
         } catch (Exception ex) {
             log.warn("Could not create clearance_assessment_notices: {}", ex.getMessage());
+        }
+    }
+
+    private void createClearanceWorkingSheetsTable() {
+        try {
+            jdbcTemplate.execute(
+                    "CREATE TABLE IF NOT EXISTS clearance_working_sheets ("
+                            + "chassis_no VARCHAR(40) NOT NULL, "
+                            + "worksheet_ref TEXT, "
+                            + "worksheet_hs_code TEXT, "
+                            + "worksheet_vehicle_type TEXT, "
+                            + "worksheet_reference_no TEXT, "
+                            + "worksheet_vessel_name TEXT, "
+                            + "worksheet_chassis_no TEXT, "
+                            + "worksheet_agents_fob TEXT, "
+                            + "worksheet_invoiced_fob TEXT, "
+                            + "worksheet_agents_freight TEXT, "
+                            + "worksheet_invoiced_freight TEXT, "
+                            + "worksheet_agents_insurance TEXT, "
+                            + "worksheet_invoiced_insurance TEXT, "
+                            + "worksheet_options_value TEXT, "
+                            + "worksheet_bl_freight_calc TEXT, "
+                            + "worksheet_bl_freight_amount TEXT, "
+                            + "worksheet_bl_date TEXT, "
+                            + "worksheet_manufacture_date TEXT, "
+                            + "worksheet_age_difference TEXT, "
+                            + "worksheet_first_registration_date TEXT, "
+                            + "worksheet_website_value TEXT, "
+                            + "worksheet_local_taxes TEXT, "
+                            + "worksheet_fifteen_percent TEXT, "
+                            + "worksheet_fob_value85 TEXT, "
+                            + "worksheet_lc_no TEXT, "
+                            + "worksheet_lc_amount TEXT, "
+                            + "worksheet_lc_bank TEXT, "
+                            + "worksheet_lc_importer TEXT, "
+                            + "worksheet_lc_issue_date TEXT, "
+                            + "worksheet_lc_expiry_date TEXT, "
+                            + "worksheet_lc_amendment_date TEXT, "
+                            + "worksheet_clearing_agent TEXT, "
+                            + "worksheet_fiscal_fob TEXT, "
+                            + "worksheet_fiscal_freight TEXT, "
+                            + "worksheet_fiscal_insurance TEXT, "
+                            + "worksheet_fiscal_options TEXT, "
+                            + "worksheet_fiscal_total TEXT, "
+                            + "page4_original_name TEXT, "
+                            + "page4_stored_name TEXT, "
+                            + "page4_content_type TEXT, "
+                            + "ocr_text_page4 TEXT, "
+                            + "PRIMARY KEY (chassis_no)"
+                            + ")"
+            );
+            log.info("Verified table clearance_working_sheets");
+        } catch (Exception ex) {
+            log.warn("Could not create clearance_working_sheets: {}", ex.getMessage());
+        }
+    }
+
+    private void createClearanceJevicInspectionsTable() {
+        try {
+            jdbcTemplate.execute(
+                    "CREATE TABLE IF NOT EXISTS clearance_jevic_inspections ("
+                            + "chassis_no VARCHAR(40) NOT NULL, "
+                            + "jevic_engine_capacity TEXT, "
+                            + "jevic_first_registration TEXT, "
+                            + "jevic_engine_no TEXT, "
+                            + "jevic_remarks TEXT, "
+                            + "PRIMARY KEY (chassis_no)"
+                            + ") ENGINE=InnoDB ROW_FORMAT=DYNAMIC"
+            );
+            copyClearanceColumnIfPresent("jevic_engine_capacity");
+            copyClearanceColumnIfPresent("jevic_first_registration");
+            copyClearanceColumnIfPresent("jevic_engine_no");
+            copyClearanceColumnIfPresent("jevic_remarks");
+            log.info("Verified table clearance_jevic_inspections");
+        } catch (Exception ex) {
+            log.warn("Could not create clearance_jevic_inspections: {}", ex.getMessage());
+        }
+    }
+
+    private void copyClearanceColumnIfPresent(String column) {
+        if (!hasTableColumn("clearance_documents", column)
+                || !hasTableColumn("clearance_jevic_inspections", column)) {
+            return;
+        }
+        try {
+            jdbcTemplate.update(
+                    "INSERT INTO clearance_jevic_inspections (chassis_no, " + column + ") "
+                            + "SELECT chassis_no, " + column + " FROM clearance_documents "
+                            + "WHERE " + column + " IS NOT NULL AND TRIM(" + column + ") <> '' "
+                            + "ON DUPLICATE KEY UPDATE " + column + " = COALESCE("
+                            + "NULLIF(TRIM(clearance_jevic_inspections." + column + "), ''), "
+                            + "VALUES(" + column + "))"
+            );
+        } catch (Exception ex) {
+            log.warn("Could not copy clearance_documents.{}: {}", column, ex.getMessage());
+        }
+    }
+
+    private boolean hasTableColumn(String table, String column) {
+        try {
+            Integer count = jdbcTemplate.queryForObject(
+                    "SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS "
+                            + "WHERE TABLE_SCHEMA = DATABASE() "
+                            + "AND UPPER(TABLE_NAME) = UPPER(?) AND UPPER(COLUMN_NAME) = UPPER(?)",
+                    Integer.class,
+                    table,
+                    column
+            );
+            return count != null && count > 0;
+        } catch (Exception ex) {
+            return false;
         }
     }
 
@@ -334,6 +597,35 @@ public class DatabaseSchemaUpdater implements CommandLineRunner {
             log.info("Verified column {}.{} as {}", "vehicles", "model_year", "VARCHAR(40)");
         } catch (Exception ex) {
             log.warn("Could not alter {}.{} to {}: {}", "vehicles", "model_year", "VARCHAR(40)", ex.getMessage());
+        }
+        widenClearanceDocumentVarcharColumns();
+    }
+
+    /**
+     * OCR and form paste can exceed the original VARCHAR(20–80) widths.
+     * TEXT is stored off-page, so this also avoids the InnoDB row-size limit.
+     */
+    private void widenClearanceDocumentVarcharColumns() {
+        try {
+            List<String> columns = jdbcTemplate.queryForList(
+                    "SELECT COLUMN_NAME FROM information_schema.COLUMNS "
+                            + "WHERE TABLE_SCHEMA = DATABASE() "
+                            + "AND TABLE_NAME = 'clearance_documents' "
+                            + "AND DATA_TYPE = 'varchar' "
+                            + "AND COLUMN_NAME <> 'chassis_no'",
+                    String.class
+            );
+            for (String column : columns) {
+                if (column == null || !column.matches("[A-Za-z0-9_]+")) {
+                    continue;
+                }
+                jdbcTemplate.execute(
+                        "ALTER TABLE clearance_documents MODIFY COLUMN `" + column + "` TEXT"
+                );
+                log.info("Verified column clearance_documents.{} as TEXT", column);
+            }
+        } catch (Exception ex) {
+            log.warn("Could not widen clearance_documents varchar columns: {}", ex.getMessage());
         }
     }
 }

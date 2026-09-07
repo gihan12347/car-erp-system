@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<th:block th:fragment="importFormJevic(record, continueTarget, hubMode)">
+    <form th:action="@{/jevic/new}"
+          th:object="${record}" method="post" class="vehicle-form clearance-form" id="jevicForm">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+        <input type="hidden" name="hub" th:value="${hubMode}">
+        <input type="hidden" th:field="*{ocrTextPage1}" id="ocrTextPage1">
+        <input type="hidden" th:field="*{page1OriginalName}" id="page1OriginalName">
+        <input type="hidden" th:field="*{page1StoredName}" id="page1StoredName">
+        <input type="hidden" th:field="*{page1ContentType}" id="page1ContentType">
+
+        <div class="sheet-layout preship-layout">
+            <div class="sheet-document-col">
+            <aside class="panel sheet-document" id="sheetPreview"
+                   th:classappend="${record.page1StoredName != null and !#strings.isEmpty(record.page1StoredName)} ? ' has-file' : ''">
+                <div class="panel-head">
+                    <h2>Document preview</h2>
+                </div>
+
+                <div class="sheet-preview-frame" id="sheetPreviewFrame"
+                     th:with="hasDoc=${record.page1StoredName != null and !#strings.isEmpty(record.page1StoredName)},
+                              isPdf=${record.page1StoredName != null and ((record.page1ContentType != null and #strings.contains(record.page1ContentType, 'pdf')) or #strings.endsWith(record.page1StoredName, '.pdf'))}">
+                    <div class="sheet-preview-empty" id="sheetPreviewEmpty"
+                         th:hidden="${hasDoc}">
+                        <i class="fa-solid fa-file-circle-plus"></i>
+                        <strong>No preview yet</strong>
+                        <span>Use <strong>Choose file</strong> below to upload the JEVIC certificate.</span>
+                    </div>
+                    <img id="sheetPreviewImage"
+                         alt="JEVIC certificate preview"
+                         th:hidden="${!hasDoc or isPdf}"
+                         th:src="${hasDoc and !isPdf} ? @{/jevic/documents/{name}(name=${record.page1StoredName})} : null">
+                    <iframe id="sheetPreviewPdf"
+                            title="JEVIC certificate PDF"
+                            th:hidden="${!hasDoc or !isPdf}"
+                            th:src="${hasDoc and isPdf} ? @{/jevic/documents/{name}(name=${record.page1StoredName})} : null"></iframe>
+                </div>
+            </aside>
+
+            <div th:replace="shared/document-upload-toolbar :: documentUploadToolbar(
+                    'JEVIC certificate',
+                    '',
+                    ${record.page1OriginalName},
+                    'Choose a JPG, PNG, or PDF JEVIC certificate to upload and preview.',
+                    'ocrspace')"></div>
+            </div>
+
+            <div class="sheet-fields preship-fields">
+                <article class="panel">
+                    <div class="panel-head"><h2>Vehicle</h2></div>
+                    <div class="field-grid">
+                        <label>Chassis number
+                            <input type="text" th:field="*{chassisNo}" id="chassisNo" maxlength="40" required>
+                        </label>
+                        <div id="chassisDuplicateNotice" class="chassis-duplicate-notice alert-warn" hidden></div>
+                    </div>
+                </article>
+
+                <article class="panel">
+                    <div class="panel-head"><h2>JEVIC odometer certificate</h2></div>
+                    <div class="field-grid">
+                        <label>Chassis / VIN <input type="text" th:field="*{jevicChassisVin}" id="jevicChassisVin"></label>
+                        <label>Make <input type="text" th:field="*{jevicMake}" id="jevicMake"></label>
+                        <label>Model <input type="text" th:field="*{jevicModel}" id="jevicModel"></label>
+                        <label>Date of inspection <input type="text" th:field="*{jevicInspectionDate}" id="jevicInspectionDate"></label>
+                        <label>Location <input type="text" th:field="*{jevicLocation}" id="jevicLocation"></label>
+                        <label>Certificate no. <input type="text" th:field="*{jevicCertificateNo}" id="jevicCertificateNo"></label>
+                        <label>Date of issue <input type="text" th:field="*{jevicIssueDate}" id="jevicIssueDate"></label>
+                        <label>Current odometer reading <input type="text" th:field="*{jevicCurrentOdometer}" id="jevicCurrentOdometer"></label>
+                        <label>Auction reading / date <input type="text" th:field="*{jevicAuctionReadingDate}" id="jevicAuctionReadingDate"></label>
+                        <label>Dealer reading / date <input type="text" th:field="*{jevicDealerReadingDate}" id="jevicDealerReadingDate"></label>
+                        <label>De-registration reading / date <input type="text" th:field="*{jevicDeregistrationReadingDate}" id="jevicDeregistrationReadingDate"></label>
+                    </div>
+                </article>
+
+                <button type="submit" class="panel-btn import-form-submit"
+                        th:text="${continueTarget != null and !#strings.isEmpty(continueTarget)}
+                                ? |Save & continue · ${@pipelineStageService.title('IMPORT', continueTarget)}|
+                                : 'Save & continue'">Save &amp; continue</button>
+            </div>
+        </div>
+    </form>
+
+    <div id="sheetViewer" class="sheet-viewer" hidden>
+        <div class="sheet-viewer-toolbar">
+            <strong id="sheetViewerTitle">JEVIC certificate</strong>
+            <div class="sheet-viewer-tools">
+                <button type="button" class="panel-btn ghost" id="sheetPrevEmptyField" title="Previous empty field">Prev</button>
+                <button type="button" class="panel-btn ghost" id="sheetZoomOut" title="Zoom out">−</button>
+                <button type="button" class="panel-btn ghost" id="sheetZoomIn" title="Zoom in">+</button>
+                <button type="button" class="panel-btn ghost" id="sheetNextEmptyField" title="Next empty field">Next</button>
+                <button type="button" class="panel-btn ghost" id="sheetViewerClose">Close</button>
+            </div>
+        </div>
+        <div class="sheet-viewer-body" id="sheetViewerBody">
+            <img id="sheetViewerImage" alt="JEVIC certificate">
+            <iframe id="sheetViewerPdf" title="JEVIC certificate PDF" hidden></iframe>
+        </div>
+    </div>
+
+    <div th:replace="shared/app-loader :: appLoader('fillLoader', 'Reading the JEVIC certificate and filling fields...')"></div>
+
+    <script th:src="@{/js/shared/app.js(v=20260905k)}"></script>
+    <script th:src="@{/js/shared/document-viewer.js(v=20260826d)}"></script>
+    <script th:src="@{/js/import-pipeline/odometer.js(v=20260904b)}"></script>
+    <script th:src="@{/js/shared/chassis-check.js(v=20260827a)}"></script>
+</th:block>
+
+</body>
+</html>

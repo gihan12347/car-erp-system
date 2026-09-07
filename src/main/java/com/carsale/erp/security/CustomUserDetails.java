@@ -8,8 +8,8 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import com.carsale.erp.entity.Role;
-import com.carsale.erp.entity.User;
+import com.carsale.erp.account.Role;
+import com.carsale.erp.account.User;
 
 public class CustomUserDetails implements UserDetails {
 

@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="en">
-<head th:replace="fragments/head :: head(${pageTitle})"></head>
+<head th:replace="shared/head :: head(${pageTitle})"></head>
 <body>
 <div class="app-shell">
-    <aside th:replace="fragments/sidebar :: sidebar(${activeMenu})"></aside>
+    <aside th:replace="shared/sidebar :: sidebar(${activeMenu})"></aside>
     <div class="app-main">
-        <header th:replace="fragments/topbar :: topbar"></header>
+        <header th:replace="shared/topbar :: topbar"></header>
         <main class="page-content">
             <div class="page-intro">
                 <div>
@@ -43,6 +43,6 @@
         </main>
     </div>
 </div>
-<script th:src="@{/js/app.js(v=20260829c)}"></script>
+<script th:src="@{/js/shared/app.js(v=20260905k)}"></script>
 </body>
 </html>

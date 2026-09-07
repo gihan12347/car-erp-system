@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<div th:fragment="standardsFields" class="standards-fields">
+    <article class="panel">
+        <div class="panel-head"><h2>Emission standards</h2></div>
+        <div class="field-grid">
+            <div class="span-2 standards-choice">
+                <span>Schedule</span>
+                <label>
+                    <input type="radio" th:field="*{scheduleType}" value="III" id="scheduleTypeIII">
+                    Schedule III
+                </label>
+                <label>
+                    <input type="radio" th:field="*{scheduleType}" value="V" id="scheduleTypeV">
+                    Schedule V
+                </label>
+            </div>
+            <label>CO (g/km) <input type="text" th:field="*{emissionCo}" id="emissionCo"></label>
+            <label>NMHC (g/km) <input type="text" th:field="*{emissionNmhc}" id="emissionNmhc"></label>
+            <label>NOx (g/km) <input type="text" th:field="*{emissionNox}" id="emissionNox"></label>
+            <label>PM (g/km) <input type="text" th:field="*{emissionPm}" id="emissionPm"></label>
+            <label>HC <input type="text" th:field="*{emissionHc}" id="emissionHc"></label>
+            <label>HC+NOx <input type="text" th:field="*{emissionHcNox}" id="emissionHcNox"></label>
+            <label>THC <input type="text" th:field="*{emissionThc}" id="emissionThc"></label>
+            <label>CH4 <input type="text" th:field="*{emissionCh4}" id="emissionCh4"></label>
+            <label class="span-2">Smoke <input type="text" th:field="*{emissionSmoke}" id="emissionSmoke"></label>
+        </div>
+    </article>
+
+    <article class="panel">
+        <div class="panel-head"><h2>Safety measures</h2></div>
+        <div class="field-grid">
+            <div class="span-2 standards-check-list">
+                <label>
+                    <input type="checkbox" th:field="*{threePointSeatBelts}" id="threePointSeatBelts">
+                    Three point seat belts for driver and front passengers
+                </label>
+                <label>
+                    <input type="checkbox" th:field="*{twoPointSeatBelts}" id="twoPointSeatBelts">
+                    Minimum two point seat belts for other passengers
+                </label>
+                <label>
+                    <input type="checkbox" th:field="*{driverAirbag}" id="driverAirbag">
+                    Driver air bag
+                </label>
+                <label>
+                    <input type="checkbox" th:field="*{passengerAirbag}" id="passengerAirbag">
+                    Front passenger air bag
+                </label>
+                <label>
+                    <input type="checkbox" th:field="*{absFitted}" id="absFitted">
+                    ABS
+                </label>
+            </div>
+        </div>
+    </article>
+
+    <article class="panel">
+        <div class="panel-head"><h2>Vehicle and inspection</h2></div>
+        <div class="field-grid">
+            <label>Make <input type="text" th:field="*{make}" id="make"></label>
+            <label>Model <input type="text" th:field="*{model}" id="model"></label>
+            <label>Chassis number <input type="text" th:field="*{chassisVin}" id="chassisVin"></label>
+            <label>Place of inspection <input type="text" th:field="*{placeOfInspection}" id="placeOfInspection"></label>
+            <label>Date of inspection <input type="text" th:field="*{inspectionDate}" id="inspectionDate"></label>
+            <label class="span-2">Remarks <input type="text" th:field="*{remarks}" id="remarks"></label>
+        </div>
+    </article>
+</div>
+
+</body>
+</html>

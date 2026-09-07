@@ -352,3 +352,71 @@ html, body {
     .field input { font-size: 16px; }
     .demo-grid { grid-template-columns: 1fr; }
 }
+
+@media (max-width: 700px) {
+    .brand-panel {
+        padding: 16px 16px 8px;
+    }
+
+    .form-panel {
+        padding: 8px 16px 24px;
+    }
+
+    .form-card {
+        padding: 20px 16px;
+        border-radius: 16px;
+    }
+
+    .form-card h2 {
+        font-size: 22px;
+    }
+
+    .submit-btn {
+        min-height: 48px;
+    }
+
+    .app-loader-gif {
+        width: min(200px, 72vw);
+    }
+}
+
+.app-loader {
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+    display: grid;
+    place-items: center;
+    background: transparent;
+}
+
+.app-loader[hidden] {
+    display: none;
+}
+
+.app-loader-curtain {
+    position: absolute;
+    inset: 0;
+    background: rgba(10, 14, 28, 0.64);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+
+.app-loader-panel {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    justify-items: center;
+    padding: 0;
+    background: transparent;
+    box-shadow: none;
+}
+
+.app-loader-gif {
+    display: block;
+    width: min(240px, 64vw);
+    height: auto;
+}
+
+body.is-page-loading {
+    overflow: hidden;
+}

@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<th:block th:fragment="importFormStandards(record, continueTarget, hubMode)">
+    <form th:action="@{/standards/new}"
+          th:object="${record}" method="post" class="vehicle-form clearance-form" id="standardsForm">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+        <input type="hidden" name="hub" th:value="${hubMode}">
+        <input type="hidden" th:field="*{ocrText}" id="ocrText">
+        <input type="hidden" th:field="*{documentOriginalName}" id="documentOriginalName">
+        <input type="hidden" th:field="*{documentStoredName}" id="documentStoredName">
+        <input type="hidden" th:field="*{documentContentType}" id="documentContentType">
+
+        <div class="sheet-layout preship-layout">
+            <div class="sheet-document-col">
+            <aside class="panel sheet-document" id="sheetPreview"
+                   th:classappend="${record.documentStoredName != null and !#strings.isEmpty(record.documentStoredName)} ? ' has-file' : ''">
+                <div class="panel-head">
+                    <h2>Document preview</h2>
+                </div>
+
+                <div class="sheet-preview-frame" id="sheetPreviewFrame"
+                     th:with="hasDoc=${record.documentStoredName != null and !#strings.isEmpty(record.documentStoredName)},
+                              isPdf=${record.documentStoredName != null and ((record.documentContentType != null and #strings.contains(record.documentContentType, 'pdf')) or #strings.endsWith(record.documentStoredName, '.pdf'))}">
+                    <div class="sheet-preview-empty" id="sheetPreviewEmpty"
+                         th:hidden="${hasDoc}">
+                        <i class="fa-solid fa-file-circle-plus"></i>
+                        <strong>No preview yet</strong>
+                        <span>Use <strong>Choose file</strong> below to upload the standards certificate.</span>
+                    </div>
+                    <img id="sheetPreviewImage"
+                         alt="Standards certificate preview"
+                         th:hidden="${!hasDoc or isPdf}"
+                         th:src="${hasDoc and !isPdf} ? @{/standards/documents/{name}(name=${record.documentStoredName})} : null">
+                    <iframe id="sheetPreviewPdf"
+                            title="Standards certificate PDF"
+                            th:hidden="${!hasDoc or !isPdf}"
+                            th:src="${hasDoc and isPdf} ? @{/standards/documents/{name}(name=${record.documentStoredName})} : null"></iframe>
+                </div>
+            </aside>
+
+            <div th:replace="shared/document-upload-toolbar :: documentUploadToolbar(
+                    'Standards certificate',
+                    '',
+                    ${record.documentOriginalName},
+                    'Choose a JPG, PNG, or PDF standards certificate to upload and preview.',
+                    'ocrspace')"></div>
+            </div>
+
+            <div class="sheet-fields preship-fields">
+                <article class="panel">
+                    <div class="panel-head"><h2>Vehicle</h2></div>
+                    <div class="field-grid">
+                        <label>Chassis number
+                            <input type="text" th:field="*{chassisNo}" id="chassisNo" maxlength="40" required>
+                        </label>
+                        <div id="chassisDuplicateNotice" class="chassis-duplicate-notice alert-warn" hidden></div>
+                    </div>
+                </article>
+
+                <div th:replace="import-pipeline/fragments/standards-fields :: standardsFields"></div>
+
+                <button type="submit" class="panel-btn import-form-submit"
+                        th:text="${continueTarget != null and !#strings.isEmpty(continueTarget)}
+                                ? |Save & continue · ${@pipelineStageService.title('IMPORT', continueTarget)}|
+                                : 'Save & continue'">Save &amp; continue</button>
+            </div>
+        </div>
+    </form>
+
+    <div id="sheetViewer" class="sheet-viewer" hidden>
+        <div class="sheet-viewer-toolbar">
+            <strong id="sheetViewerTitle">Standards certificate</strong>
+            <div class="sheet-viewer-tools">
+                <button type="button" class="panel-btn ghost" id="sheetPrevEmptyField" title="Previous empty field">Prev</button>
+                <button type="button" class="panel-btn ghost" id="sheetZoomOut" title="Zoom out">−</button>
+                <button type="button" class="panel-btn ghost" id="sheetZoomIn" title="Zoom in">+</button>
+                <button type="button" class="panel-btn ghost" id="sheetNextEmptyField" title="Next empty field">Next</button>
+                <button type="button" class="panel-btn ghost" id="sheetViewerClose">Close</button>
+            </div>
+        </div>
+        <div class="sheet-viewer-body" id="sheetViewerBody">
+            <img id="sheetViewerImage" alt="Standards certificate">
+            <iframe id="sheetViewerPdf" title="Standards certificate PDF" hidden></iframe>
+        </div>
+    </div>
+
+    <div th:replace="shared/app-loader :: appLoader('fillLoader', 'Reading the standards certificate and filling fields...')"></div>
+
+    <script th:src="@{/js/shared/app.js(v=20260905k)}"></script>
+    <script th:src="@{/js/shared/document-viewer.js(v=20260826d)}"></script>
+    <script th:src="@{/js/import-pipeline/standards.js(v=20260905a)}"></script>
+    <script th:src="@{/js/shared/chassis-check.js(v=20260827a)}"></script>
+</th:block>
+
+</body>
+</html>

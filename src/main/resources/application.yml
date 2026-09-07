@@ -48,6 +48,8 @@ app:
       language: eng
     equipment:
       language: eng
+    export:
+      language: jpn
 
   translate:
     # auto uses Google Cloud Translation when the Vision credentials file exists, otherwise MyMemory.
@@ -63,6 +65,10 @@ app:
     preshipUploadDir: ${APP_PRESHIP_DOCUMENTS_DIR:uploads/pre-shipment-docs}
     clearanceUploadDir: ${APP_CLEARANCE_DOCUMENTS_DIR:uploads/clearance-docs}
     equipmentUploadDir: ${APP_EQUIPMENT_DOCUMENTS_DIR:uploads/equipment-docs}
+    coiUploadDir: ${APP_COI_DOCUMENTS_DIR:uploads/coi-docs}
+    standardsUploadDir: ${APP_STANDARDS_DOCUMENTS_DIR:uploads/standards-docs}
+    exportUploadDir: ${APP_EXPORT_DOCUMENTS_DIR:uploads/export-docs}
+    photoUploadDir: ${APP_PHOTO_DOCUMENTS_DIR:uploads/vehicle-photos}
 
 resilience4j:
   circuitbreaker:

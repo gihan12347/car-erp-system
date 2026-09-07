@@ -9,11 +9,11 @@ import org.springframework.core.annotation.Order;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
-import com.carsale.erp.entity.Role;
-import com.carsale.erp.entity.RoleName;
-import com.carsale.erp.entity.User;
-import com.carsale.erp.repository.RoleRepository;
-import com.carsale.erp.repository.UserRepository;
+import com.carsale.erp.account.Role;
+import com.carsale.erp.account.RoleName;
+import com.carsale.erp.account.User;
+import com.carsale.erp.account.RoleRepository;
+import com.carsale.erp.account.UserRepository;
 
 @Component
 @Order(2)

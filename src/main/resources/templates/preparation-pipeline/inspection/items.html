@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="shared/head :: head(${pageTitle})"></head>
+<body>
+<div class="app-shell">
+    <aside th:replace="shared/sidebar :: sidebar(${activeMenu})"></aside>
+    <div class="app-main">
+        <header th:replace="shared/topbar :: topbar"></header>
+        <main class="page-content">
+            <div class="dash-head">
+                <div>
+                    <h1>Inspection items</h1>
+                    <p class="form-lead">These items appear automatically on every vehicle inspection in the preparation pipeline. Marking <strong>No</strong> creates a workshop job.</p>
+                </div>
+            </div>
+
+            <p th:if="${successMessage}" class="alert alert-ok" th:text="${successMessage}"></p>
+            <p th:if="${errorMessage}" class="alert alert-error" th:text="${errorMessage}"></p>
+
+            <section class="inspection-settings">
+                <article class="panel inspection-add-panel">
+                    <div class="panel-head"><h2>Add inspection item</h2></div>
+                    <form method="post" th:action="@{/inspection-items}" class="inspection-add-form">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                        <label class="inspection-field-label">Item name
+                            <span class="inspection-field">
+                                <i class="fa-solid fa-plus" aria-hidden="true"></i>
+                                <input type="text" name="title" required maxlength="160"
+                                       placeholder="e.g. Windscreen" autocomplete="off">
+                            </span>
+                        </label>
+                        <button type="submit" class="panel-btn">Add item</button>
+                    </form>
+                </article>
+
+                <article class="panel">
+                    <div class="panel-head">
+                        <h2>Inspection checklist</h2>
+                        <span class="muted" th:if="${inspectionItems != null and !inspectionItems.isEmpty()}"
+                              th:text="|${#lists.size(inspectionItems)} items|">9 items</span>
+                    </div>
+                    <ul class="inspection-item-list" th:if="${inspectionItems != null and !inspectionItems.isEmpty()}">
+                        <li class="inspection-item-row" th:each="item, stat : ${inspectionItems}">
+                            <span class="inspection-item-index" th:text="${stat.count}">1</span>
+                            <form method="post" th:action="@{/inspection-items/{id}(id=${item.id})}"
+                                  class="inspection-edit-form">
+                                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                                <span class="inspection-field">
+                                    <i class="fa-solid fa-clipboard-check" aria-hidden="true"></i>
+                                    <input type="text" name="title" th:id="${'inspection-item-' + item.id}"
+                                           th:value="${item.title}" th:attr="data-original=${item.title}"
+                                           required maxlength="160" autocomplete="off"
+                                           aria-label="Inspection item name">
+                                    <button type="submit" class="inspection-field-save" title="Save changes"
+                                            aria-label="Save item">
+                                        <i class="fa-solid fa-check" aria-hidden="true"></i>
+                                    </button>
+                                </span>
+                            </form>
+                            <form method="post" th:action="@{/inspection-items/{id}/delete(id=${item.id})}"
+                                  class="inspection-delete-form"
+                                  onsubmit="return confirm('Remove this inspection item? Existing vehicle results are kept.');">
+                                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                                <button type="submit" class="inspection-icon-btn delete" title="Delete item"
+                                        aria-label="Delete item">
+                                    <i class="fa-solid fa-trash-can" aria-hidden="true"></i>
+                                </button>
+                            </form>
+                        </li>
+                    </ul>
+                    <p class="muted inspection-empty" th:if="${inspectionItems == null or inspectionItems.isEmpty()}">
+                        No inspection items yet. Add the checks you want to see on every vehicle.
+                    </p>
+                </article>
+            </section>
+        </main>
+    </div>
+</div>
+<script th:src="@{/js/shared/app.js(v=20260905k)}"></script>
+<script>
+(function () {
+    var rows = document.querySelectorAll(".inspection-item-row");
+    Array.prototype.forEach.call(rows, function (row) {
+        var input = row.querySelector('input[name="title"]');
+        var save = row.querySelector(".inspection-field-save");
+        if (!input) {
+            return;
+        }
+        function sync() {
+            var original = input.getAttribute("data-original") || "";
+            var dirty = input.value.trim() !== original.trim();
+            row.classList.toggle("is-dirty", dirty);
+            row.classList.toggle("is-pristine", !dirty);
+            if (save) {
+                save.disabled = !dirty;
+            }
+        }
+        input.addEventListener("input", sync);
+        input.addEventListener("change", sync);
+        sync();
+    });
+})();
+</script>
+</body>
+</html>

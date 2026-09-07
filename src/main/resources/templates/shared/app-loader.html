@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:fragment="appLoader(loaderId, message)"
+     class="app-loader"
+     th:classappend="${loaderId == 'fillLoader'} ? ' fill-loader' : ''"
+     th:id="${loaderId}"
+     hidden
+     aria-hidden="true">
+    <div class="app-loader-curtain" aria-hidden="true"></div>
+    <div class="app-loader-panel" role="status" aria-live="polite" aria-busy="true">
+        <img class="app-loader-gif" th:src="@{/images/loading-car.gif(v=20260905p)}" width="240" height="76" alt="Loading">
+        <p class="app-loader-msg" th:if="${message != null and !#strings.isEmpty(message)}" th:text="${message}">Loading</p>
+    </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<div th:fragment="equipmentFieldGrid(fields, record, mode)"
+     class="field-grid equipment-grid"
+     th:with="choiceOptions=${T(com.carsale.erp.importpipeline.equipment.EquipmentInspectionFields).choiceOptions()}">
+    <div class="equipment-field"
+         th:each="field : ${fields}"
+         th:id="${field.key}"
+         th:classappend="${mode == 'view'} ? ' is-view' : ''"
+         th:with="current=${@equipmentInspectionService.fieldValue(record, field.key)}">
+        <span class="equipment-field-label" th:text="${field.label}">Sunroof</span>
+        <div class="equipment-radio-group"
+             role="radiogroup"
+             th:attr="aria-label=${field.label}">
+            <label class="equipment-radio"
+                   th:each="opt : ${choiceOptions}"
+                   th:for="${T(com.carsale.erp.importpipeline.equipment.EquipmentInspectionFields).choiceDomId(field.key, opt)}">
+                <input type="radio"
+                       th:id="${T(com.carsale.erp.importpipeline.equipment.EquipmentInspectionFields).choiceDomId(field.key, opt)}"
+                       th:name="${field.key}"
+                       th:value="${opt}"
+                       th:checked="${T(com.carsale.erp.importpipeline.equipment.EquipmentInspectionFields).sameChoice(current, opt)}"
+                       th:disabled="${mode == 'view'}">
+                <span th:text="${opt}">YES</span>
+            </label>
+            <label class="equipment-radio"
+                   th:if="${current != null and !#strings.isEmpty(#strings.trim(current)) and !T(com.carsale.erp.importpipeline.equipment.EquipmentInspectionFields).isChoiceOption(current)}"
+                   th:for="${T(com.carsale.erp.importpipeline.equipment.EquipmentInspectionFields).choiceDomId(field.key, current)}">
+                <input type="radio"
+                       th:id="${T(com.carsale.erp.importpipeline.equipment.EquipmentInspectionFields).choiceDomId(field.key, current)}"
+                       th:name="${field.key}"
+                       th:value="${current}"
+                       checked="checked"
+                       th:disabled="${mode == 'view'}">
+                <span th:text="${current}">OTHER</span>
+            </label>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

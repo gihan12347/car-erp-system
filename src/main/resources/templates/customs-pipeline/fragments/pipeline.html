@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<nav th:fragment="clearancePipelineSteps(currentStep, chassisNo, declarationReady, assessmentReady, worksheetReady, vehicleLabel, viewMode)"
+     class="import-pipeline panel"
+     th:with="isView=${viewMode != null and viewMode}, worksheetDone=${worksheetReady != null and worksheetReady}, clearanceComplete=${declarationReady and assessmentReady and worksheetDone}, showPrep=${currentStep == 'prep' or (declarationReady and assessmentReady and worksheetDone)}, orderedKeys=${@pipelineStageService.keys('CUSTOMS')}"
+     th:classappend="${clearanceComplete} ? ' is-import-complete' : ''"
+     aria-label="Customs clearance pipeline">
+    <div class="import-pipeline-head">
+        <div>
+            <strong class="import-pipeline-kicker">Customs clearance pipeline</strong>
+            <p class="import-pipeline-lead" th:if="${chassisNo != null and !#strings.isEmpty(chassisNo)}">
+                <span th:text="${vehicleLabel != null ? vehicleLabel : chassisNo}">Toyota Aqua</span>
+                · <span class="import-pipeline-chassis" th:text="${chassisNo}">NHP10-884211</span>
+            </p>
+        </div>
+        <a th:if="${chassisNo != null and !#strings.isEmpty(chassisNo) and !isView}"
+           th:href="@{/customs/{chassisNo}(chassisNo=${chassisNo})}"
+           class="import-pipeline-hub-link">
+            <i class="fa-solid fa-gauge-high"></i> Vehicle hub
+        </a>
+        <a th:if="${chassisNo != null and !#strings.isEmpty(chassisNo) and isView}"
+           th:href="@{/customs}"
+           class="import-pipeline-hub-link">
+            <i class="fa-solid fa-list"></i> All vehicles
+        </a>
+    </div>
+
+    <div class="import-pipeline-scroller">
+    <ol class="import-pipeline-steps is-fill"
+        th:style="'--pipeline-cols: ' + (${orderedKeys.size()} + (${showPrep} ? 1 : 0))">
+        <th:block th:each="key, iter : ${orderedKeys}">
+            <li th:if="${key == 'declaration'}"
+                data-clearance-step="declaration"
+                th:attr="data-step-count=${iter.count}"
+                th:classappend="${(currentStep == 'declaration' ? ' is-current' : '') + (declarationReady ? ' is-done' : ' is-pending')}">
+                <a th:if="${isView}"
+                   th:href="@{/customs/{chassisNo}(chassisNo=${chassisNo}, stage=${iter.index})}"
+                   class="import-pipeline-step">
+                    <span class="import-pipeline-step-icon">
+                        <i th:if="${declarationReady}" class="fa-solid fa-check"></i>
+                        <span th:unless="${declarationReady}" th:text="${iter.count}">2</span>
+                    </span>
+                    <span class="import-pipeline-step-copy">
+                        <strong>Customs declaration</strong>
+                        <small>Sri Lanka CUSDEC</small>
+                        <em class="pipeline-step-status" th:classappend="${declarationReady} ? ' done' : ' pending'"
+                            th:text="${declarationReady} ? 'Complete' : 'Pending'">Pending</em>
+                    </span>
+                </a>
+                <a th:unless="${isView}"
+                   th:href="@{/declaration/{chassisNo}(chassisNo=${chassisNo}, hub=1)}"
+                   class="import-pipeline-step">
+                    <span class="import-pipeline-step-icon">
+                        <i th:if="${declarationReady}" class="fa-solid fa-check"></i>
+                        <span th:unless="${declarationReady}" th:text="${iter.count}">2</span>
+                    </span>
+                    <span class="import-pipeline-step-copy">
+                        <strong>Customs declaration</strong>
+                        <small>Sri Lanka CUSDEC</small>
+                        <em class="pipeline-step-status" th:classappend="${declarationReady} ? ' done' : ' pending'"
+                            th:text="${declarationReady} ? 'Complete' : 'Pending'">Pending</em>
+                    </span>
+                </a>
+            </li>
+            <li th:if="${key == 'assessment'}"
+                data-clearance-step="assessment"
+                th:attr="data-step-count=${iter.count}"
+                th:classappend="${(currentStep == 'assessment' ? ' is-current' : '') + (assessmentReady ? ' is-done' : ' is-pending')}">
+                <a th:if="${isView}"
+                   th:href="@{/customs/{chassisNo}(chassisNo=${chassisNo}, stage=${iter.index})}"
+                   class="import-pipeline-step">
+                    <span class="import-pipeline-step-icon">
+                        <i th:if="${assessmentReady}" class="fa-solid fa-check"></i>
+                        <span th:unless="${assessmentReady}" th:text="${iter.count}">3</span>
+                    </span>
+                    <span class="import-pipeline-step-copy">
+                        <strong>Assessment notice</strong>
+                        <small>ASYCUDA assessment</small>
+                        <em class="pipeline-step-status" th:classappend="${assessmentReady} ? ' done' : ' pending'"
+                            th:text="${assessmentReady} ? 'Complete' : 'Pending'">Pending</em>
+                    </span>
+                </a>
+                <a th:unless="${isView}"
+                   th:href="@{/assessment/{chassisNo}(chassisNo=${chassisNo}, hub=1)}"
+                   class="import-pipeline-step">
+                    <span class="import-pipeline-step-icon">
+                        <i th:if="${assessmentReady}" class="fa-solid fa-check"></i>
+                        <span th:unless="${assessmentReady}" th:text="${iter.count}">3</span>
+                    </span>
+                    <span class="import-pipeline-step-copy">
+                        <strong>Assessment notice</strong>
+                        <small>ASYCUDA assessment</small>
+                        <em class="pipeline-step-status" th:classappend="${assessmentReady} ? ' done' : ' pending'"
+                            th:text="${assessmentReady} ? 'Complete' : 'Pending'">Pending</em>
+                    </span>
+                </a>
+            </li>
+            <li th:if="${key == 'worksheet'}"
+                data-clearance-step="worksheet"
+                th:attr="data-step-count=${iter.count}"
+                th:classappend="${(currentStep == 'worksheet' ? ' is-current' : '') + (worksheetDone ? ' is-done' : ' is-pending')}">
+                <a th:if="${isView}"
+                   th:href="@{/customs/{chassisNo}(chassisNo=${chassisNo}, stage=${iter.index})}"
+                   class="import-pipeline-step">
+                    <span class="import-pipeline-step-icon">
+                        <i th:if="${worksheetDone}" class="fa-solid fa-check"></i>
+                        <span th:unless="${worksheetDone}" th:text="${iter.count}">3</span>
+                    </span>
+                    <span class="import-pipeline-step-copy">
+                        <strong>Working sheet</strong>
+                        <small>Motor vehicle valuation</small>
+                        <em class="pipeline-step-status" th:classappend="${worksheetDone} ? ' done' : ' pending'"
+                            th:text="${worksheetDone} ? 'Complete' : 'Pending'">Pending</em>
+                    </span>
+                </a>
+                <a th:unless="${isView}"
+                   th:href="@{/worksheet/{chassisNo}(chassisNo=${chassisNo}, hub=1)}"
+                   class="import-pipeline-step">
+                    <span class="import-pipeline-step-icon">
+                        <i th:if="${worksheetDone}" class="fa-solid fa-check"></i>
+                        <span th:unless="${worksheetDone}" th:text="${iter.count}">3</span>
+                    </span>
+                    <span class="import-pipeline-step-copy">
+                        <strong>Working sheet</strong>
+                        <small>Motor vehicle valuation</small>
+                        <em class="pipeline-step-status" th:classappend="${worksheetDone} ? ' done' : ' pending'"
+                            th:text="${worksheetDone} ? 'Complete' : 'Pending'">Pending</em>
+                    </span>
+                </a>
+            </li>
+        </th:block>
+        <li th:if="${showPrep}" class="is-workshop-next" th:classappend="${currentStep == 'prep'} ? ' is-current' : ''">
+            <a th:href="@{/workshop-yard/{chassisNo}(chassisNo=${chassisNo})}"
+               class="import-pipeline-step import-pipeline-step-workshop">
+                <span class="import-pipeline-step-icon">
+                    <i class="fa-solid fa-wrench"></i>
+                </span>
+                <span class="import-pipeline-step-copy">
+                    <strong>Preparation pipeline</strong>
+                    <small>Workshop jobs and yard allocation</small>
+                    <em class="pipeline-step-status workshop-next">
+                        Continue <i class="fa-solid fa-arrow-right"></i>
+                    </em>
+                </span>
+            </a>
+        </li>
+    </ol>
+    </div>
+
+    <p class="import-pipeline-note" th:if="${!clearanceComplete}">
+        <i class="fa-solid fa-circle-info"></i>
+        Work through steps in any order. Each document saves independently.
+    </p>
+    <script th:src="@{/js/shared/pipeline-scroll.js(v=20260905a)}"></script>
+</nav>
+
+</body>
+</html>

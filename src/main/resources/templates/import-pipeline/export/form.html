@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="shared/head :: head(${pageTitle})"></head>
+<body class="sheet-page import-form-page jevic-page">
+<div class="app-shell">
+    <aside th:replace="shared/sidebar :: sidebar(${activeMenu})"></aside>
+    <div class="app-main">
+        <header th:replace="shared/topbar :: topbar"></header>
+        <main class="page-content">
+            <div class="dash-head">
+                <div>
+                    <h1 th:text="${'Step ' + @pipelineStageService.displayNumber('IMPORT', 'export') + ' · ' + @pipelineStageService.title('IMPORT', 'export')}">Step 7 · Export certificate</h1>
+                    <p class="form-lead">Upload the English or Japanese export certificate. Auto-fill reads either document type; save when you are ready.</p>
+                </div>
+            </div>
+
+            <div th:replace="import-pipeline/fragments/pipeline :: importPipelineSteps('export', ${vehicle.chassisNo}, ${auctionDocReady}, ${preshipReady}, ${equipmentReady}, ${jevicReady}, ${coiReady}, ${standardsReady}, ${exportReady}, ${photosReady}, ${vehicle.model}, false, false)"></div>
+
+            <p th:if="${successMessage}" class="alert alert-ok" th:text="${successMessage}"></p>
+            <p th:if="${errorMessage}" class="alert alert-error" th:text="${errorMessage}"></p>
+
+            <form th:action="@{/export/{chassisNo}(chassisNo=${vehicle.chassisNo})}"
+                  th:object="${record}" method="post" class="vehicle-form clearance-form" id="exportForm">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                <input type="hidden" name="hub" th:value="${hubMode}">
+                <input type="hidden" th:field="*{chassisNo}" id="chassisNo">
+                <input type="hidden" th:field="*{ocrText}" id="ocrText">
+                <input type="hidden" th:field="*{documentOriginalName}" id="documentOriginalName">
+                <input type="hidden" th:field="*{documentStoredName}" id="documentStoredName">
+                <input type="hidden" th:field="*{documentContentType}" id="documentContentType">
+
+                <div class="sheet-layout preship-layout">
+                    <div class="sheet-document-col">
+                    <aside class="panel sheet-document" id="sheetPreview"
+                           th:classappend="${record.documentStoredName != null and !#strings.isEmpty(record.documentStoredName)} ? ' has-file' : ''">
+                        <div class="panel-head">
+                            <h2>Document preview</h2>
+                        </div>
+
+                        <div class="sheet-preview-frame" id="sheetPreviewFrame"
+                             th:with="hasDoc=${record.documentStoredName != null and !#strings.isEmpty(record.documentStoredName)},
+                                      isPdf=${record.documentStoredName != null and ((record.documentContentType != null and #strings.contains(record.documentContentType, 'pdf')) or #strings.endsWith(record.documentStoredName, '.pdf'))}">
+                            <div class="sheet-preview-empty" id="sheetPreviewEmpty"
+                                 th:hidden="${hasDoc}">
+                                <i class="fa-solid fa-file-circle-plus"></i>
+                                <strong>No preview yet</strong>
+                                <span>Use <strong>Choose file</strong> below to upload the English or Japanese export certificate.</span>
+                            </div>
+                            <img id="sheetPreviewImage"
+                                 alt="Export certificate preview"
+                                 th:hidden="${!hasDoc or isPdf}"
+                                 th:src="${hasDoc and !isPdf} ? @{/export/documents/{name}(name=${record.documentStoredName})} : null">
+                            <iframe id="sheetPreviewPdf"
+                                    title="Export certificate PDF"
+                                    th:hidden="${!hasDoc or !isPdf}"
+                                    th:src="${hasDoc and isPdf} ? @{/export/documents/{name}(name=${record.documentStoredName})} : null"></iframe>
+                        </div>
+                    </aside>
+
+                    <div th:replace="shared/document-upload-toolbar :: documentUploadToolbar(
+                            'Export certificate',
+                            '',
+                            ${record.documentOriginalName},
+                            'Choose a JPG, PNG, or PDF English or Japanese export certificate to upload and preview.',
+                            'ocrspace')"></div>
+                    </div>
+
+                    <div class="sheet-fields preship-fields">
+                        <div th:replace="import-pipeline/fragments/export-fields :: exportFields"></div>
+                        <button type="submit" class="panel-btn import-form-submit">Save &amp; continue</button>
+                    </div>
+                </div>
+            </form>
+        </main>
+    </div>
+</div>
+
+<div id="sheetViewer" class="sheet-viewer" hidden>
+    <div class="sheet-viewer-toolbar">
+        <strong id="sheetViewerTitle">Export certificate</strong>
+        <div class="sheet-viewer-tools">
+            <button type="button" class="panel-btn ghost" id="sheetPrevEmptyField" title="Previous empty field">Prev</button>
+            <button type="button" class="panel-btn ghost" id="sheetZoomOut" title="Zoom out">−</button>
+            <button type="button" class="panel-btn ghost" id="sheetZoomIn" title="Zoom in">+</button>
+            <button type="button" class="panel-btn ghost" id="sheetNextEmptyField" title="Next empty field">Next</button>
+            <button type="button" class="panel-btn ghost" id="sheetViewerClose">Close</button>
+        </div>
+    </div>
+    <div class="sheet-viewer-body" id="sheetViewerBody">
+        <img id="sheetViewerImage" alt="Export certificate">
+        <iframe id="sheetViewerPdf" title="Export certificate PDF" hidden></iframe>
+    </div>
+</div>
+
+<div th:replace="shared/app-loader :: appLoader('fillLoader', 'Reading the export certificate and filling fields...')"></div>
+
+<script th:src="@{/js/shared/app.js(v=20260905k)}"></script>
+<script th:src="@{/js/shared/document-viewer.js(v=20260826d)}"></script>
+<script th:src="@{/js/import-pipeline/export.js(v=20260905a)}"></script>
+</body>
+</html>

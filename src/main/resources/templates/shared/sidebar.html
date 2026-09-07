@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<th:block th:fragment="sidebar(activeMenu)">
+<aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+        <span class="brand-mark"><i class="fa-solid fa-car"></i></span>
+        <span class="brand-copy">
+            <strong>CAR ERP</strong>
+            <small>Import · Clearance · Prep</small>
+        </span>
+        <button type="button" class="icon-btn sidebar-close" id="sidebarClose" aria-label="Close menu">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+    </div>
+
+    <nav class="sidebar-nav">
+        <a th:href="@{/dashboard}" th:classappend="${activeMenu == 'dashboard'} ? 'is-active' : ''">
+            <i class="fa-solid fa-house"></i><span>Dashboard</span>
+        </a>
+
+        <a th:href="@{/import}" th:classappend="${activeMenu == 'import'} ? 'is-active' : ''">
+            <i class="fa-solid fa-route"></i><span>Imports</span>
+        </a>
+        <a th:href="@{/customs}" th:classappend="${activeMenu == 'customs'} ? 'is-active' : ''">
+            <i class="fa-solid fa-passport"></i><span>Custom Clearance</span>
+        </a>
+        <a th:href="@{/workshop-yard}" th:classappend="${activeMenu == 'workshop-yard'} ? 'is-active' : ''">
+            <i class="fa-solid fa-wrench"></i><span>Preparation</span>
+        </a>
+        <a th:href="@{/ready-for-sale}" th:classappend="${activeMenu == 'ready-for-sale'} ? 'is-active' : ''">
+            <i class="fa-solid fa-flag-checkered"></i><span>Ready for Sale</span>
+        </a>
+        <a th:href="@{/stages}" th:classappend="${activeMenu == 'stages'} ? 'is-active' : ''">
+            <i class="fa-solid fa-bars-staggered"></i><span>Stage order</span>
+        </a>
+        <a th:href="@{/inspection-items}" th:classappend="${activeMenu == 'inspection-items'} ? 'is-active' : ''">
+            <i class="fa-solid fa-clipboard-list"></i><span>Inspection items</span>
+        </a>
+        <a th:href="@{/sales}" th:classappend="${activeMenu == 'sales'} ? 'is-active' : ''">
+            <i class="fa-solid fa-tags"></i><span>Sales</span>
+        </a>
+        <a th:href="@{/customers}" th:classappend="${activeMenu == 'customers'} ? 'is-active' : ''">
+            <i class="fa-solid fa-users"></i><span>Customers</span>
+        </a>
+        <a th:href="@{/finance}" th:classappend="${activeMenu == 'finance'} ? 'is-active' : ''">
+            <i class="fa-solid fa-coins"></i><span>Finance</span>
+        </a>
+        <a th:href="@{/documents}" th:classappend="${activeMenu == 'documents'} ? 'is-active' : ''">
+            <i class="fa-solid fa-file-lines"></i><span>Documents</span>
+        </a>
+        <a th:href="@{/reports}" th:classappend="${activeMenu == 'reports'} ? 'is-active' : ''">
+            <i class="fa-solid fa-chart-pie"></i><span>Reports</span>
+        </a>
+        <a th:href="@{/settings}"
+           sec:authorize="hasAnyRole('ADMIN','SUPER_ADMIN')"
+           th:classappend="${activeMenu == 'settings'} ? 'is-active' : ''">
+            <i class="fa-solid fa-gear"></i><span>Settings</span>
+        </a>
+    </nav>
+</aside>
+<div class="sidebar-backdrop" id="sidebarBackdrop" hidden></div>
+<div th:replace="shared/app-loader :: appLoader('pageLoader', '')"></div>
+</th:block>
+</html>

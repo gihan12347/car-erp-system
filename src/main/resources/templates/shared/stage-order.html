@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="shared/head :: head(${pageTitle})"></head>
+<body>
+<div class="app-shell">
+    <aside th:replace="shared/sidebar :: sidebar(${activeMenu})"></aside>
+    <div class="app-main">
+        <header th:replace="shared/topbar :: topbar"></header>
+        <main class="page-content">
+            <div class="dash-head">
+                <div>
+                    <h1>Stage order</h1>
+                    <p class="form-lead">Drag stages to change the order of each pipeline. The stepper, vehicle view, and list columns follow this order.</p>
+                </div>
+            </div>
+
+            <p id="stageOrderStatus" class="alert alert-ok" hidden></p>
+            <p id="stageOrderError" class="alert alert-error" hidden></p>
+
+            <section class="stage-order-grid">
+                <article class="panel stage-order-flow" th:each="flow : ${flowGroups}" th:attr="data-flow-id=${flow.id}">
+                    <div class="panel-head">
+                        <h2>
+                            <i class="fa-solid" th:classappend="${flow.icon}"></i>
+                            <span th:text="${flow.title}">Import pipeline</span>
+                        </h2>
+                        <button type="button" class="panel-btn ghost stage-reset-btn" th:attr="data-flow-id=${flow.id}">
+                            Reset default
+                        </button>
+                    </div>
+                    <p class="muted" th:text="${flow.description}">Auction lot and pre-shipment certificate</p>
+                    <ol class="stage-order-list" th:attr="data-flow-id=${flow.id}">
+                        <li class="stage-order-item"
+                            th:each="stage, iter : ${flow.stages}"
+                            draggable="true"
+                            th:attr="data-stage-key=${stage.stageKey}">
+                            <span class="stage-order-handle" title="Drag to reorder" aria-hidden="true">
+                                <i class="fa-solid fa-grip-vertical"></i>
+                            </span>
+                            <span class="stage-order-index" th:text="${iter.count}">1</span>
+                            <span class="stage-order-copy">
+                                <strong th:text="${stage.title}">Auction lot</strong>
+                                <small th:text="${stage.subtitle}">Japanese auction sheet</small>
+                            </span>
+                        </li>
+                    </ol>
+                    <p class="muted stage-order-hint" th:if="${#lists.size(flow.stages) lt 2}">
+                        This pipeline has one stage, so there is nothing to reorder.
+                    </p>
+                    <p class="muted stage-order-hint" th:unless="${#lists.size(flow.stages) lt 2}">
+                        Drag a stage up or down. The new order saves automatically.
+                    </p>
+                </article>
+            </section>
+        </main>
+    </div>
+</div>
+<script th:src="@{/js/shared/app.js(v=20260905k)}"></script>
+<script th:src="@{/js/shared/stages.js(v=20260826f)}"></script>
+</body>
+</html>

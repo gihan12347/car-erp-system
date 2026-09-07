@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<th:block th:fragment="importFormPhotos(continueTarget, hubMode)">
+    <form th:action="@{/photos/new}" method="post" class="vehicle-form" id="photosForm">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+        <input type="hidden" name="hub" th:value="${hubMode}">
+        <div id="pendingPhotoFields"></div>
+
+        <article class="panel">
+            <div class="panel-head"><h2>Vehicle</h2></div>
+            <div class="field-grid">
+                <label>Chassis number
+                    <input type="text" name="chassisNo" id="chassisNo" maxlength="40" required>
+                </label>
+                <div id="chassisDuplicateNotice" class="chassis-duplicate-notice alert-warn" hidden></div>
+            </div>
+        </article>
+
+        <article class="panel">
+            <div class="panel-head">
+                <h2>Vehicle images</h2>
+                <span class="photo-count" id="photoCountLabel">0 / 5</span>
+            </div>
+            <div class="photo-gallery" id="photoGallery" data-max="5" data-chassis="">
+                <label class="photo-add" id="photoAdd">
+                    <input type="file" id="photoFile" accept="image/jpeg,image/png,image/webp" multiple>
+                    <i class="fa-solid fa-plus"></i>
+                    <strong>Add image</strong>
+                    <span>JPG, PNG, or WEBP · up to 5</span>
+                </label>
+            </div>
+            <p class="upload-status" id="uploadStatus"></p>
+        </article>
+
+        <button type="submit" class="panel-btn import-form-submit"
+                th:text="${continueTarget != null and !#strings.isEmpty(continueTarget)}
+                        ? |Save & continue · ${@pipelineStageService.title('IMPORT', continueTarget)}|
+                        : 'Save & continue'">Save &amp; continue</button>
+    </form>
+
+    <script th:src="@{/js/shared/app.js(v=20260905k)}"></script>
+    <script th:src="@{/js/import-pipeline/photos.js(v=20260905b)}"></script>
+    <script th:src="@{/js/shared/chassis-check.js(v=20260827a)}"></script>
+</th:block>
+
+</body>
+</html>

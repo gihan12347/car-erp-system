@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="shared/head :: head(${pageTitle})"></head>
+<body>
+<div class="app-shell">
+    <aside th:replace="shared/sidebar :: sidebar(${activeMenu})"></aside>
+    <div class="app-main">
+        <header th:replace="shared/topbar :: topbar"></header>
+        <main class="page-content">
+            <div class="dash-head">
+                <div>
+                    <h1>Import pipeline</h1>
+                    <p class="form-lead">Complete auction, pre-shipment, equipment, JEVIC, the certificate of inspection, the standards certificate, the export certificate, and vehicle images — in any order. When all eight are done, the vehicle moves to customs clearance.</p>
+                </div>
+            </div>
+
+            <p th:if="${notice}" class="alert alert-ok" th:text="${notice}"></p>
+            <p th:if="${error}" class="alert alert-error" th:text="${error}"></p>
+
+            <form method="get" th:action="@{/import}" class="auction-search">
+                <div class="auction-search-field">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="search" name="q" th:value="${searchQuery}"
+                           placeholder="Search chassis, model, lot, stock...">
+                </div>
+                <button type="submit" class="panel-btn auction-search-btn">Search</button>
+                <a th:if="${searchQuery != null and !#strings.isEmpty(searchQuery)}"
+                   th:href="@{/import}" class="panel-btn ghost auction-search-btn">Clear</a>
+                <a th:href="@{/auction/new}" class="panel-btn auction-search-btn auction-add-btn">
+                    <i class="fa-solid fa-plus"></i>
+                    <span>Add vehicle</span>
+                </a>
+            </form>
+
+            <article class="panel">
+                <div class="table-wrap is-fit" th:if="${!rows.isEmpty()}">
+                    <table class="pipeline-table is-flow">
+                        <thead>
+                        <tr>
+                            <th>Chassis</th>
+                            <th>Vehicle</th>
+                            <th>Pipeline</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="row : ${rows}"
+                            th:with="stages=${importStages != null ? importStages : @pipelineStageService.list('IMPORT')},
+                                     keys=${importKeys != null ? importKeys : @pipelineStageService.keys('IMPORT')},
+                                     pendingKey=${row.status.firstIncompleteStageKey(keys)}"
+                            th:classappend="${row.status.pipelineCompleted} ? ' pipeline-row-complete' : ''">
+                            <td><strong th:text="${row.vehicle.chassisNo}">TRJ250-0025161</strong></td>
+                            <td>
+                                <strong th:text="${row.vehicle.model != null ? row.vehicle.model : '—'}">Toyota Land Cruiser</strong>
+                                <div class="muted" th:text="${row.vehicle.lotNo != null ? 'Lot ' + row.vehicle.lotNo : ''}">Lot 36497</div>
+                            </td>
+                            <td class="list-pipeline-cell">
+                                <div class="list-pipeline"
+                                     data-pipeline-flow
+                                     th:classappend="${row.status.pipelineCompleted} ? ' is-complete' : ''"
+                                     th:attr="data-completed=${row.status.completedCount}">
+                                    <ol class="list-pipeline-flow">
+                                        <li th:each="stage, iter : ${stages}"
+                                            th:with="ready=${row.status.isStageComplete(stage.stageKey)},
+                                                     nextReady=${!iter.last and row.status.isStageComplete(stages[iter.count].stageKey)},
+                                                     current=${!ready and pendingKey == stage.stageKey}"
+                                            th:classappend="${(ready ? ' is-done' : (current ? ' is-current' : ' is-pending')) + (ready and nextReady ? ' is-linked' : '')}"
+                                            th:style="'--step:' + ${iter.index}">
+                                            <a th:href="${row.stageHref(stage.stageKey)}"
+                                               class="list-pipeline-node"
+                                               th:title="${stage.title + (ready ? ' — complete' : (current ? ' — next' : ' — pending'))}">
+                                                <i th:if="${ready}" class="fa-solid fa-check"></i>
+                                                <span th:unless="${ready}" th:text="${iter.count}">1</span>
+                                            </a>
+                                            <small th:text="${row.stageShortTitle(stage.stageKey)}">Auction</small>
+                                        </li>
+                                    </ol>
+                                </div>
+                            </td>
+                            <td>
+                                <em th:if="${row.status.pipelineCompleted}" class="pill sea">Customs clearance</em>
+                                <em th:unless="${row.status.pipelineCompleted}" class="pill muted-pill">In import</em>
+                            </td>
+                            <td>
+                                <div class="table-row-actions">
+                                    <a th:href="@{/auction/{c}(c=${row.vehicle.chassisNo})}" class="table-btn view">
+                                        <i class="fa-solid fa-eye"></i>
+                                        <span>View</span>
+                                    </a>
+                                    <div th:replace="shared/pipeline-delete :: pipelineDeleteBtn(
+                                            @{/import/{c}/delete(c=${row.vehicle.chassisNo})},
+                                            'Delete this vehicle and all later pipeline data? This cannot be undone.')"></div>
+                                </div>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p class="muted" th:if="${rows.isEmpty()}">No vehicles yet. Add one to start the import pipeline.</p>
+            </article>
+        </main>
+    </div>
+</div>
+<script th:src="@{/js/shared/app.js(v=20260905k)}"></script>
+<script th:src="@{/js/shared/pipeline-scroll.js(v=20260905c)}"></script>
+</body>
+</html>

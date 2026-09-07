@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<section th:fragment="inspectionView(vehicle, inspection, inspectionReady)" class="prep-view-stage">
+    <div class="panel import-view-empty" th:if="${inspection == null}">
+        <i class="fa-solid fa-clipboard-check"></i>
+        <strong>No inspection record yet</strong>
+        <p>Checklist items from Inspection items appear automatically. Mark each OK, No, or N/A.</p>
+        <div class="import-view-actions">
+            <a th:if="${stageNav != null and stageNav.prevUrl != null}"
+               th:href="${stageNav.prevUrl}"
+               class="panel-btn ghost import-form-submit">
+                <i class="fa-solid fa-chevron-left"></i>
+                Previous
+            </a>
+            <a th:href="@{/inspection/{c}(c=${vehicle.chassisNo})}" class="panel-btn import-form-submit">Start inspection</a>
+            <a th:if="${stageNav != null and stageNav.nextUrl != null}"
+               th:href="${stageNav.nextUrl}"
+               class="panel-btn ghost import-form-submit">
+                <span th:text="${stageNav.nextLabel}">Next</span>
+                <i class="fa-solid fa-chevron-right"></i>
+            </a>
+        </div>
+    </div>
+
+    <th:block th:unless="${inspection == null}">
+        <p id="inspectionJobStatus" class="alert alert-ok" hidden></p>
+        <p id="inspectionJobError" class="alert alert-error" hidden></p>
+        <p th:if="${successMessage}" class="alert alert-ok" th:text="${successMessage}"></p>
+        <p th:if="${errorMessage}" class="alert alert-error" th:text="${errorMessage}"></p>
+
+        <form th:action="@{/inspection/{chassisNo}(chassisNo=${vehicle.chassisNo})}"
+              th:object="${inspection}" method="post" class="vehicle-form prep-form" id="inspectionForm"
+              th:attr="data-chassis=${vehicle.chassisNo}, data-fail-url=@{/inspection/{c}/fail-item(c=${vehicle.chassisNo})}">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+            <input type="hidden" th:field="*{chassisNo}">
+
+            <label class="complete-check panel">
+                <input type="checkbox" th:field="*{completed}" id="inspectionCompleted">
+                <span>
+                    <strong>Mark inspection complete</strong>
+                    <small>Available after every item has a result.</small>
+                </span>
+            </label>
+
+            <article class="panel">
+                <div class="panel-head"><h2>Inspection details</h2></div>
+                <div class="field-grid">
+                    <label>Inspector
+                        <input type="text" th:field="*{inspector}" id="inspector" placeholder="Name" required>
+                    </label>
+                    <label>Inspection date
+                        <input type="text" th:field="*{inspectionDate}" id="inspectionDate" placeholder="2026-08-30" required>
+                    </label>
+                    <label class="span-2">Notes
+                        <textarea th:field="*{notes}" rows="2" placeholder="Overall condition, follow-up..."></textarea>
+                    </label>
+                </div>
+            </article>
+
+            <div id="inspectionItemList">
+                <article class="panel inspection-item-card" th:each="line, stat : *{lines}"
+                         th:data-index="${stat.index}"
+                         th:classappend="${line.catalogItem} ? ' is-catalog' : ' is-custom'">
+                    <div class="panel-head workshop-job-head">
+                        <h2>
+                            <span class="inspection-item-title" th:if="${line.catalogItem}" th:text="${line.itemTitle}">Engine</span>
+                            <span th:unless="${line.catalogItem}">
+                                Item <span class="inspection-item-num" th:text="${stat.count}">1</span>
+                            </span>
+                        </h2>
+                        <button type="button" class="panel-btn ghost workshop-job-remove inspection-item-remove"
+                                th:unless="${line.catalogItem}">Remove</button>
+                    </div>
+                    <input type="hidden" th:if="${line.id != null}" th:field="*{lines[__${stat.index}__].id}">
+                    <input type="hidden" th:field="*{lines[__${stat.index}__].itemKey}">
+                    <input type="hidden" th:field="*{lines[__${stat.index}__].catalogItem}">
+                    <input type="hidden" th:field="*{lines[__${stat.index}__].sortOrder}">
+                    <input type="hidden" th:if="${line.catalogItem}" th:field="*{lines[__${stat.index}__].itemTitle}">
+                    <div class="field-grid">
+                        <label class="span-2" th:unless="${line.catalogItem}">Item
+                            <input type="text" class="inspection-item-title-input" th:field="*{lines[__${stat.index}__].itemTitle}"
+                                   placeholder="e.g. Windscreen chip">
+                        </label>
+                        <div class="span-2 inspection-result-field">
+                            <span class="inspection-result-label">Result</span>
+                            <div class="equipment-radio-group inspection-radio-group" role="radiogroup"
+                                 th:attr="aria-label=${line.itemTitle}">
+                                <label class="equipment-radio"
+                                       th:each="opt : ${T(com.carsale.erp.preparationpipeline.inspection.InspectionResults).options()}"
+                                       th:classappend="${' result-' + T(com.carsale.erp.preparationpipeline.inspection.InspectionResults).cssClass(opt)}">
+                                    <input type="radio"
+                                           th:field="*{lines[__${stat.index}__].result}"
+                                           th:value="${opt}">
+                                    <span th:text="${T(com.carsale.erp.preparationpipeline.inspection.InspectionResults).display(opt)}">OK</span>
+                                </label>
+                            </div>
+                            <p class="inspection-job-note muted" hidden></p>
+                        </div>
+                        <label class="span-2 inspection-item-notes"
+                               th:hidden="${!T(com.carsale.erp.preparationpipeline.inspection.InspectionResults).isNo(line.result)}">
+                            Notes
+                            <textarea th:field="*{lines[__${stat.index}__].notes}" rows="2"
+                                      placeholder="Required work if No..."></textarea>
+                        </label>
+                    </div>
+                </article>
+            </div>
+
+            <button type="button" class="panel-btn ghost workshop-add-job" id="addInspectionItem">
+                <i class="fa-solid fa-plus"></i>
+                Add inspection item
+            </button>
+
+            <div class="import-view-actions">
+                <button type="submit" class="panel-btn import-form-submit" id="saveInspectionBtn" disabled>
+                    Save inspection
+                </button>
+                <a th:if="${stageNav != null and stageNav.nextUrl != null}"
+                   th:href="${stageNav.nextUrl}"
+                   class="panel-btn ghost import-form-submit">
+                    <span th:text="${stageNav.nextLabel}">Next · Workshop</span>
+                    <i class="fa-solid fa-chevron-right"></i>
+                </a>
+            </div>
+        </form>
+
+        <template id="inspectionItemTemplate">
+            <article class="panel inspection-item-card is-custom" data-index="__idx__">
+                <div class="panel-head workshop-job-head">
+                    <h2>Item <span class="inspection-item-num">__num__</span></h2>
+                    <button type="button" class="panel-btn ghost workshop-job-remove inspection-item-remove">Remove</button>
+                </div>
+                <input type="hidden" name="lines[__idx__].itemKey" value="">
+                <input type="hidden" name="lines[__idx__].catalogItem" value="false">
+                <input type="hidden" name="lines[__idx__].sortOrder" value="__idx__">
+                <div class="field-grid">
+                    <label class="span-2">Item
+                        <input type="text" class="inspection-item-title-input" name="lines[__idx__].itemTitle" placeholder="e.g. Windscreen chip">
+                    </label>
+                    <div class="span-2 inspection-result-field">
+                        <span class="inspection-result-label">Result</span>
+                        <div class="equipment-radio-group inspection-radio-group" role="radiogroup" aria-label="Inspection result">
+                            <label class="equipment-radio result-OK">
+                                <input type="radio" name="lines[__idx__].result" value="OK">
+                                <span>OK</span>
+                            </label>
+                            <label class="equipment-radio result-NO">
+                                <input type="radio" name="lines[__idx__].result" value="NO">
+                                <span>No</span>
+                            </label>
+                            <label class="equipment-radio result-NA">
+                                <input type="radio" name="lines[__idx__].result" value="N/A">
+                                <span>N/A</span>
+                            </label>
+                        </div>
+                        <p class="inspection-job-note muted" hidden></p>
+                    </div>
+                    <label class="span-2 inspection-item-notes" hidden>
+                        Notes
+                        <textarea name="lines[__idx__].notes" rows="2" placeholder="Required work if No..."></textarea>
+                    </label>
+                </div>
+            </article>
+        </template>
+    </th:block>
+</section>
+
+</body>
+</html>

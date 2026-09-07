@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="shared/head :: head(${pageTitle})"></head>
+<body class="sheet-page import-form-page jevic-page">
+<div class="app-shell">
+    <aside th:replace="shared/sidebar :: sidebar(${activeMenu})"></aside>
+    <div class="app-main">
+        <header th:replace="shared/topbar :: topbar"></header>
+        <main class="page-content">
+            <div class="dash-head">
+                <div>
+                    <h1 th:text="${'Step ' + @pipelineStageService.displayNumber('IMPORT', 'coi') + ' · ' + @pipelineStageService.title('IMPORT', 'coi')}">Step 5 · Certificate of inspection</h1>
+                    <p class="form-lead">Upload the JEVIC certificate of inspection. Auto-fill reads the document; save when you are ready.</p>
+                </div>
+            </div>
+
+            <div th:replace="import-pipeline/fragments/pipeline :: importPipelineSteps('coi', ${vehicle.chassisNo}, ${auctionDocReady}, ${preshipReady}, ${equipmentReady}, ${jevicReady}, ${coiReady}, ${standardsReady}, ${exportReady}, ${photosReady}, ${vehicle.model}, false, false)"></div>
+
+            <p th:if="${successMessage}" class="alert alert-ok" th:text="${successMessage}"></p>
+            <p th:if="${errorMessage}" class="alert alert-error" th:text="${errorMessage}"></p>
+
+            <form th:action="@{/coi/{chassisNo}(chassisNo=${vehicle.chassisNo})}"
+                  th:object="${record}" method="post" class="vehicle-form clearance-form" id="coiForm">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                <input type="hidden" name="hub" th:value="${hubMode}">
+                <input type="hidden" th:field="*{chassisNo}" id="chassisNo">
+                <input type="hidden" th:field="*{ocrText}" id="ocrText">
+                <input type="hidden" th:field="*{documentOriginalName}" id="documentOriginalName">
+                <input type="hidden" th:field="*{documentStoredName}" id="documentStoredName">
+                <input type="hidden" th:field="*{documentContentType}" id="documentContentType">
+
+                <div class="sheet-layout preship-layout">
+                    <div class="sheet-document-col">
+                    <aside class="panel sheet-document" id="sheetPreview"
+                           th:classappend="${record.documentStoredName != null and !#strings.isEmpty(record.documentStoredName)} ? ' has-file' : ''">
+                        <div class="panel-head">
+                            <h2>Document preview</h2>
+                        </div>
+
+                        <div class="sheet-preview-frame" id="sheetPreviewFrame"
+                             th:with="hasDoc=${record.documentStoredName != null and !#strings.isEmpty(record.documentStoredName)},
+                                      isPdf=${record.documentStoredName != null and ((record.documentContentType != null and #strings.contains(record.documentContentType, 'pdf')) or #strings.endsWith(record.documentStoredName, '.pdf'))}">
+                            <div class="sheet-preview-empty" id="sheetPreviewEmpty"
+                                 th:hidden="${hasDoc}">
+                                <i class="fa-solid fa-file-circle-plus"></i>
+                                <strong>No preview yet</strong>
+                                <span>Use <strong>Choose file</strong> below to upload the certificate of inspection.</span>
+                            </div>
+                            <img id="sheetPreviewImage"
+                                 alt="Certificate of inspection preview"
+                                 th:hidden="${!hasDoc or isPdf}"
+                                 th:src="${hasDoc and !isPdf} ? @{/coi/documents/{name}(name=${record.documentStoredName})} : null">
+                            <iframe id="sheetPreviewPdf"
+                                    title="Certificate of inspection PDF"
+                                    th:hidden="${!hasDoc or !isPdf}"
+                                    th:src="${hasDoc and isPdf} ? @{/coi/documents/{name}(name=${record.documentStoredName})} : null"></iframe>
+                        </div>
+                    </aside>
+
+                    <div th:replace="shared/document-upload-toolbar :: documentUploadToolbar(
+                            'Certificate of inspection',
+                            '',
+                            ${record.documentOriginalName},
+                            'Choose a JPG, PNG, or PDF certificate of inspection to upload and preview.',
+                            'ocrspace')"></div>
+                    </div>
+
+                    <div class="sheet-fields preship-fields">
+                        <article class="panel">
+                            <div class="panel-head"><h2>Certificate of inspection</h2></div>
+                            <div class="field-grid">
+                                <label>Certificate no. <input type="text" th:field="*{certificateNo}" id="certificateNo"></label>
+                                <label>Date of issue <input type="text" th:field="*{issueDate}" id="issueDate"></label>
+                                <label>Inspection branch <input type="text" th:field="*{inspectionBranch}" id="inspectionBranch"></label>
+                                <label>Make <input type="text" th:field="*{make}" id="make"></label>
+                                <label>Model <input type="text" th:field="*{model}" id="model"></label>
+                                <label>Engine capacity <input type="text" th:field="*{engineCapacity}" id="engineCapacity"></label>
+                                <label>Year of first registration <input type="text" th:field="*{firstRegistration}" id="firstRegistration"></label>
+                                <label>Chassis number <input type="text" th:field="*{chassisVin}" id="chassisVin"></label>
+                                <label>Engine number <input type="text" th:field="*{engineNo}" id="engineNo"></label>
+                                <label>Inspected mileage (odometer reading) <input type="text" th:field="*{inspectedMileage}" id="inspectedMileage"></label>
+                                <label>Inspection date <input type="text" th:field="*{inspectionDate}" id="inspectionDate"></label>
+                                <label class="span-2">Remarks <input type="text" th:field="*{remarks}" id="remarks"></label>
+                            </div>
+                        </article>
+
+                        <button type="submit" class="panel-btn import-form-submit">Save &amp; continue</button>
+                    </div>
+                </div>
+            </form>
+        </main>
+    </div>
+</div>
+
+<div id="sheetViewer" class="sheet-viewer" hidden>
+    <div class="sheet-viewer-toolbar">
+        <strong id="sheetViewerTitle">Certificate of inspection</strong>
+        <div class="sheet-viewer-tools">
+            <button type="button" class="panel-btn ghost" id="sheetPrevEmptyField" title="Previous empty field">Prev</button>
+            <button type="button" class="panel-btn ghost" id="sheetZoomOut" title="Zoom out">−</button>
+            <button type="button" class="panel-btn ghost" id="sheetZoomIn" title="Zoom in">+</button>
+            <button type="button" class="panel-btn ghost" id="sheetNextEmptyField" title="Next empty field">Next</button>
+            <button type="button" class="panel-btn ghost" id="sheetViewerClose">Close</button>
+        </div>
+    </div>
+    <div class="sheet-viewer-body" id="sheetViewerBody">
+        <img id="sheetViewerImage" alt="Certificate of inspection">
+        <iframe id="sheetViewerPdf" title="Certificate of inspection PDF" hidden></iframe>
+    </div>
+</div>
+
+<div th:replace="shared/app-loader :: appLoader('fillLoader', 'Reading the certificate of inspection and filling fields...')"></div>
+
+<script th:src="@{/js/shared/app.js(v=20260905k)}"></script>
+<script th:src="@{/js/shared/document-viewer.js(v=20260826d)}"></script>
+<script th:src="@{/js/import-pipeline/coi.js(v=20260904c)}"></script>
+</body>
+</html>

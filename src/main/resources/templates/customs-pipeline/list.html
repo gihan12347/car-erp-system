@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="shared/head :: head(${pageTitle})"></head>
+<body>
+<div class="app-shell">
+    <aside th:replace="shared/sidebar :: sidebar(${activeMenu})"></aside>
+    <div class="app-main">
+        <header th:replace="shared/topbar :: topbar"></header>
+        <main class="page-content">
+            <div class="dash-head">
+                <div>
+                    <h1>Customs clearance pipeline</h1>
+                    <p class="form-lead">Complete the Sri Lanka customs declaration, ASYCUDA assessment notice, and working sheet. When all three are done, the vehicle moves to the preparation pipeline.</p>
+                </div>
+            </div>
+
+            <p th:if="${notice}" class="alert alert-ok" th:text="${notice}"></p>
+            <p th:if="${error}" class="alert alert-error" th:text="${error}"></p>
+
+            <form method="get" th:action="@{/customs}" class="auction-search">
+                <div class="auction-search-field">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="search" name="q" th:value="${searchQuery}"
+                           placeholder="Search chassis, model, lot, stock...">
+                </div>
+                <button type="submit" class="panel-btn auction-search-btn">Search</button>
+                <a th:if="${searchQuery != null and !#strings.isEmpty(searchQuery)}"
+                   th:href="@{/customs}" class="panel-btn ghost auction-search-btn">Clear</a>
+            </form>
+
+            <article class="panel">
+                <div class="table-wrap is-fit" th:if="${!rows.isEmpty()}">
+                    <table class="pipeline-table is-flow is-short">
+                        <thead>
+                        <tr>
+                            <th>Chassis</th>
+                            <th>Vehicle</th>
+                            <th>Pipeline</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="row : ${rows}"
+                            th:with="stages=${pipelineStages != null ? pipelineStages : @pipelineStageService.list('CUSTOMS')},
+                                     pendingKey=${!row.status.declarationReady ? 'declaration' : (!row.status.assessmentReady ? 'assessment' : (!row.status.worksheetReady ? 'worksheet' : null))}"
+                            th:classappend="${row.status.clearanceComplete} ? ' pipeline-row-complete' : ''">
+                            <td><strong th:text="${row.vehicle.chassisNo}">TRJ250-0025161</strong></td>
+                            <td>
+                                <strong th:text="${row.vehicle.model != null ? row.vehicle.model : '—'}">Toyota Aqua</strong>
+                                <div class="muted" th:text="${row.vehicle.lotNo != null ? 'Lot ' + row.vehicle.lotNo : (row.vehicle.stockNo != null ? row.vehicle.stockNo : '')}">Lot 36497</div>
+                            </td>
+                            <td class="list-pipeline-cell">
+                                <div class="list-pipeline"
+                                     data-pipeline-flow
+                                     th:classappend="${row.status.clearanceComplete} ? ' is-complete' : ''">
+                                    <ol class="list-pipeline-flow">
+                                        <li th:each="stage, iter : ${stages}"
+                                            th:with="ready=${stage.stageKey == 'declaration' ? row.status.declarationReady : (stage.stageKey == 'assessment' ? row.status.assessmentReady : row.status.worksheetReady)},
+                                                     nextKey=${!iter.last ? stages[iter.count].stageKey : null},
+                                                     nextReady=${nextKey != null and (nextKey == 'declaration' ? row.status.declarationReady : (nextKey == 'assessment' ? row.status.assessmentReady : row.status.worksheetReady))},
+                                                     current=${!ready and pendingKey == stage.stageKey}"
+                                            th:classappend="${(ready ? ' is-done' : (current ? ' is-current' : ' is-pending')) + (ready and nextReady ? ' is-linked' : '')}"
+                                            th:style="'--step:' + ${iter.index}">
+                                            <a th:if="${ready}"
+                                               th:href="@{/customs/{c}(c=${row.vehicle.chassisNo}, stage=${iter.index})}"
+                                               class="list-pipeline-node"
+                                               th:title="${stage.title + ' — complete'}">
+                                                <i class="fa-solid fa-check"></i>
+                                            </a>
+                                            <a th:unless="${ready}"
+                                               th:href="${row.editHref(stage.stageKey)}"
+                                               class="list-pipeline-node"
+                                               th:title="${stage.title + (current ? ' — next' : ' — pending')}">
+                                                <span th:text="${iter.count}">1</span>
+                                            </a>
+                                            <small th:text="${stage.stageKey == 'assessment' ? 'Assessment' : (stage.stageKey == 'worksheet' ? 'Worksheet' : 'CUSDEC')}">CUSDEC</small>
+                                        </li>
+                                    </ol>
+                                </div>
+                            </td>
+                            <td>
+                                <em th:if="${row.status.clearanceComplete}" class="pill sea">Preparation</em>
+                                <em th:unless="${row.status.clearanceComplete}" class="pill muted-pill">In clearance</em>
+                            </td>
+                            <td>
+                                <div class="table-row-actions">
+                                    <a th:href="@{/customs/{c}(c=${row.vehicle.chassisNo})}" class="table-btn view">
+                                        <i class="fa-solid fa-eye"></i>
+                                        <span>View</span>
+                                    </a>
+                                    <div th:replace="shared/pipeline-delete :: pipelineDeleteBtn(
+                                            @{/customs/{c}/delete(c=${row.vehicle.chassisNo})},
+                                            'Delete customs clearance data? Preparation and ready-for-sale data will also be deleted.')"></div>
+                                </div>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p class="muted" th:if="${rows.isEmpty()}">
+                    No vehicles in the customs clearance pipeline yet. Finish import for a vehicle to appear here.
+                </p>
+            </article>
+        </main>
+    </div>
+</div>
+<script th:src="@{/js/shared/app.js(v=20260905k)}"></script>
+<script th:src="@{/js/shared/pipeline-scroll.js(v=20260905c)}"></script>
+</body>
+</html>

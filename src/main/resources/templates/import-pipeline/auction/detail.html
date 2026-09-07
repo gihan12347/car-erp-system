@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en"
+      th:with="stageName=${stageKey == 'preshipment' ? 'preshipment'
+    : (stageKey == 'equipment' ? 'equipment'
+    : (stageKey == 'jevic' ? 'jevic'
+    : (stageKey == 'coi' ? 'coi'
+    : (stageKey == 'standards' ? 'standards'
+    : (stageKey == 'export' ? 'export'
+    : (stageKey == 'photos' ? 'photos' : 'auction'))))))}">
+<head th:replace="shared/head :: head(${pageTitle})"></head>
+<body class="sheet-page import-form-page import-view-page">
+<div class="app-shell">
+    <aside th:replace="shared/sidebar :: sidebar(${activeMenu})"></aside>
+
+    <div class="app-main">
+        <header th:replace="shared/topbar :: topbar"></header>
+
+        <main class="page-content">
+
+            <p th:if="${notice}" class="alert alert-warn" th:text="${notice}"></p>
+
+            <div class="dash-head">
+                <div>
+                    <h1 th:if="${stageKey == 'auction'}">Auction lot</h1>
+
+                    <h1 th:if="${stageKey == 'preshipment'}">
+                        Pre-shipment certificate
+                    </h1>
+
+                    <h1 th:if="${stageKey == 'jevic'}"
+                        th:text="${@pipelineStageService.title('IMPORT', 'jevic')}">
+                        Odometer certificate
+                    </h1>
+
+                    <h1 th:if="${stageKey == 'coi'}"
+                        th:text="${@pipelineStageService.title('IMPORT', 'coi')}">
+                        Certificate of inspection
+                    </h1>
+
+                    <h1 th:if="${stageKey == 'standards'}"
+                        th:text="${@pipelineStageService.title('IMPORT', 'standards')}">
+                        Standards certificate
+                    </h1>
+
+                    <h1 th:if="${stageKey == 'equipment'}">
+                        Equipment condition
+                    </h1>
+
+                    <h1 th:if="${stageKey == 'export'}"
+                        th:text="${@pipelineStageService.title('IMPORT', 'export')}">
+                        Export certificate
+                    </h1>
+
+                    <h1 th:if="${stageKey == 'photos'}"
+                        th:text="${@pipelineStageService.title('IMPORT', 'photos')}">
+                        Vehicle images
+                    </h1>
+
+                    <p class="form-lead"
+                       th:if="${stageKey == 'auction'}">
+                        Review saved auction sheet data and vehicle specifications.
+                    </p>
+
+                    <p class="form-lead"
+                       th:if="${stageKey == 'preshipment'}">
+                        Review the Bureau Veritas pre-shipment certificate and inspection details.
+                    </p>
+
+                    <p class="form-lead"
+                       th:if="${stageKey == 'equipment'}">
+                        Review interior, exterior, and safety equipment captured from the inspection sheet.
+                    </p>
+
+                    <p class="form-lead"
+                       th:if="${stageKey == 'jevic'}">
+                        Review the JEVIC odometer certificate for this vehicle.
+                    </p>
+
+                    <p class="form-lead"
+                       th:if="${stageKey == 'coi'}">
+                        Review the JEVIC certificate of inspection for this vehicle.
+                    </p>
+
+                    <p class="form-lead"
+                       th:if="${stageKey == 'standards'}">
+                        Review the emission and safety standards certificate for this vehicle.
+                    </p>
+
+                    <p class="form-lead"
+                       th:if="${stageKey == 'export'}">
+                        Review the English or Japanese export certificate for this vehicle.
+                    </p>
+
+                    <p class="form-lead"
+                       th:if="${stageKey == 'photos'}">
+                        Review the vehicle photos. Up to five images can be stored.
+                    </p>
+                </div>
+
+                <div th:replace="shared/pipeline-delete :: pipelineDeleteBtn(
+                        @{/import/{c}/delete(c=${vehicle.chassisNo})},
+                        'Delete this vehicle and all later pipeline data? This cannot be undone.')">
+                </div>
+            </div>
+
+            <div th:replace="import-pipeline/fragments/pipeline :: importPipelineSteps(
+                    ${stageKey},
+                    ${vehicle.chassisNo},
+                    ${auctionDocReady},
+                    ${preShipmentReady},
+                    ${equipmentReady},
+                    ${jevicReady},
+                    ${coiReady},
+                    ${standardsReady},
+                    ${exportReady},
+                    ${photosReady},
+                    ${vehicle.model},
+                    false,
+                    true)">
+            </div>
+
+            <div class="vehicle-form"
+                 th:if="${stageKey == 'auction'}">
+                <div th:replace="import-pipeline/fragments/view-auction :: importViewStageAuction(
+                        ${vehicle},
+                        ${auctionDocReady})">
+                </div>
+            </div>
+
+            <div class="vehicle-form"
+                 th:if="${stageKey == 'preshipment'}">
+                <div th:replace="import-pipeline/fragments/view-preshipment :: importViewStagePreship(
+                        ${vehicle},
+                        ${preShipment},
+                        ${preShipmentReady})">
+                </div>
+            </div>
+
+            <div class="vehicle-form"
+                 th:if="${stageKey == 'equipment'}">
+                <div th:replace="import-pipeline/fragments/view-equipment :: importViewStageEquipment(
+                        ${vehicle},
+                        ${equipmentInspection},
+                        ${equipmentReady})">
+                </div>
+            </div>
+
+            <div class="vehicle-form clearance-form"
+                 th:if="${stageKey == 'jevic'}">
+                <div th:replace="customs-pipeline/fragments/view :: clearanceViewJevic(
+                        ${vehicle},
+                        ${clearance},
+                        ${jevicReady})">
+                </div>
+            </div>
+
+            <div class="vehicle-form clearance-form"
+                 th:if="${stageKey == 'coi'}">
+                <div th:replace="import-pipeline/fragments/view-coi :: coiView(
+                        ${vehicle},
+                        ${inspectionCertificate},
+                        ${coiReady})">
+                </div>
+            </div>
+
+            <div class="vehicle-form clearance-form"
+                 th:if="${stageKey == 'standards'}">
+                <div th:replace="import-pipeline/fragments/view-standards :: standardsView(
+                        ${vehicle},
+                        ${standardsCertificate},
+                        ${standardsReady})">
+                </div>
+            </div>
+
+            <div class="vehicle-form clearance-form"
+                 th:if="${stageKey == 'export'}">
+                <div th:replace="import-pipeline/fragments/view-export :: exportView(
+                        ${vehicle},
+                        ${exportCertificate},
+                        ${exportReady})">
+                </div>
+            </div>
+
+            <div class="vehicle-form"
+                 th:if="${stageKey == 'photos'}">
+                <div th:replace="import-pipeline/fragments/view-photos :: photosView(
+                        ${vehicle},
+                        ${vehiclePhotos},
+                        ${photosReady})">
+                </div>
+            </div>
+
+            <article class="panel import-next-pipeline"
+                     th:if="${importComplete}">
+
+                <div class="panel-head">
+                    <h2>Next pipeline</h2>
+
+                    <em class="pill muted-pill"
+                        th:text="${vehicle.stage.displayName}">
+                        Customs
+                    </em>
+                </div>
+
+                <p class="form-lead">
+                    Import is complete. Continue with the customs clearance pipeline,
+                    then the preparation pipeline.
+                </p>
+
+                <div class="import-view-actions">
+
+                    <a th:href="@{/customs/{c}(c=${vehicle.chassisNo})}"
+                       class="panel-btn import-form-submit">
+                        Open customs clearance pipeline
+                    </a>
+
+                    <a th:href="@{/workshop-yard}"
+                       class="panel-btn ghost import-form-submit">
+                        Preparation pipeline
+                    </a>
+
+                </div>
+            </article>
+
+        </main>
+    </div>
+</div>
+<div th:replace="shared/document-viewer :: documentViewer"></div>
+<script th:src="@{/js/shared/app.js(v=20260905k)}"></script>
+<script th:src="@{/js/shared/document-viewer.js(v=20260826d)}"></script>
+</body>
+</html>

@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<div th:fragment="exportFields" class="export-fields">
+    <article class="panel">
+        <div class="panel-head"><h2>Certificate</h2></div>
+        <div class="field-grid">
+            <label>Document type <input type="text" th:field="*{documentType}" id="documentType"></label>
+            <label>Certificate no. <input type="text" th:field="*{certificateNo}" id="certificateNo"></label>
+            <label>Arrangement no. <input type="text" th:field="*{arrangementNo}" id="arrangementNo"></label>
+            <label>Issue date <input type="text" th:field="*{issueDate}" id="issueDate"></label>
+            <label>Export scheduled day <input type="text" th:field="*{exportScheduledDate}" id="exportScheduledDate"></label>
+        </div>
+    </article>
+
+    <article class="panel">
+        <div class="panel-head"><h2>Registration</h2></div>
+        <div class="field-grid">
+            <label>Registration no. <input type="text" th:field="*{registrationNo}" id="registrationNo"></label>
+            <label>Date of registration <input type="text" th:field="*{registrationDate}" id="registrationDate"></label>
+            <label>First registration <input type="text" th:field="*{firstRegDate}" id="firstRegDate"></label>
+        </div>
+    </article>
+
+    <article class="panel">
+        <div class="panel-head"><h2>Vehicle</h2></div>
+        <div class="field-grid">
+            <label>Chassis number <input type="text" th:field="*{chassisVin}" id="chassisVin"></label>
+            <label>Make <input type="text" th:field="*{make}" id="make"></label>
+            <label>Model <input type="text" th:field="*{model}" id="model"></label>
+            <label>Engine model <input type="text" th:field="*{engineModel}" id="engineModel"></label>
+            <label>Classification <input type="text" th:field="*{vehicleClassification}" id="vehicleClassification"></label>
+            <label>Use <input type="text" th:field="*{useType}" id="useType"></label>
+            <label>Purpose <input type="text" th:field="*{purpose}" id="purpose"></label>
+            <label>Type of body <input type="text" th:field="*{bodyType}" id="bodyType"></label>
+        </div>
+    </article>
+
+    <article class="panel">
+        <div class="panel-head"><h2>Specifications</h2></div>
+        <div class="field-grid">
+            <label>Seating capacity <input type="text" th:field="*{seatingCapacity}" id="seatingCapacity"></label>
+            <label>Maximum carry <input type="text" th:field="*{maxCarry}" id="maxCarry"></label>
+            <label>Weight (kg) <input type="text" th:field="*{weightKg}" id="weightKg"></label>
+            <label>Gross weight (kg) <input type="text" th:field="*{grossWeightKg}" id="grossWeightKg"></label>
+            <label>Length (cm) <input type="text" th:field="*{lengthCm}" id="lengthCm"></label>
+            <label>Width (cm) <input type="text" th:field="*{widthCm}" id="widthCm"></label>
+            <label>Height (cm) <input type="text" th:field="*{heightCm}" id="heightCm"></label>
+            <label>Engine capacity <input type="text" th:field="*{engineCapacity}" id="engineCapacity"></label>
+            <label>Fuel <input type="text" th:field="*{fuelType}" id="fuelType"></label>
+            <label>Specification no. <input type="text" th:field="*{specificationNo}" id="specificationNo"></label>
+            <label>Classification no. <input type="text" th:field="*{classificationNo}" id="classificationNo"></label>
+            <label>Front axle weight <input type="text" th:field="*{frontAxleWeight}" id="frontAxleWeight"></label>
+            <label>Rear axle weight <input type="text" th:field="*{rearAxleWeight}" id="rearAxleWeight"></label>
+            <label>FR weight <input type="text" th:field="*{frWeight}" id="frWeight"></label>
+            <label>RF weight <input type="text" th:field="*{rfWeight}" id="rfWeight"></label>
+        </div>
+    </article>
+
+    <article class="panel">
+        <div class="panel-head"><h2>User and owner</h2></div>
+        <div class="field-grid">
+            <label class="span-2">Name of user <input type="text" th:field="*{userName}" id="userName"></label>
+            <label class="span-2">Address of user <input type="text" th:field="*{userAddress}" id="userAddress"></label>
+            <label class="span-2">Name of owner <input type="text" th:field="*{ownerName}" id="ownerName"></label>
+            <label class="span-2">Address of owner <input type="text" th:field="*{ownerAddress}" id="ownerAddress"></label>
+            <label class="span-2">Locality of use <input type="text" th:field="*{localityOfUse}" id="localityOfUse"></label>
+            <label class="span-2">Remarks <input type="text" th:field="*{remarks}" id="remarks"></label>
+        </div>
+    </article>
+</div>
+
+</body>
+</html>

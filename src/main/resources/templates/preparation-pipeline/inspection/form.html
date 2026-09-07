@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="shared/head :: head(${pageTitle})"></head>
+<body class="prep-page">
+<div class="app-shell">
+    <aside th:replace="shared/sidebar :: sidebar(${activeMenu})"></aside>
+    <div class="app-main">
+        <header th:replace="shared/topbar :: topbar"></header>
+        <main class="page-content">
+            <div class="dash-head">
+                <div>
+                    <h1 th:text="${'Step ' + @pipelineStageService.displayNumber('PREP', 'inspection') + ' · Inspection'}">Step 1 · Inspection</h1>
+                    <p class="form-lead">Fill every item. Selecting <strong>No</strong> creates a workshop job immediately. Save stays off until all fields are filled.</p>
+                </div>
+            </div>
+
+            <div th:replace="preparation-pipeline/fragments/pipeline :: prepPipelineSteps(
+                    'inspection',
+                    ${vehicle.chassisNo},
+                    ${workshopReady},
+                    ${yardReady},
+                    ${inspectionReady},
+                    ${canEnterYard},
+                    ${vehicle.model},
+                    false)"></div>
+
+            <div th:replace="preparation-pipeline/inspection/form-fields :: inspectionForm"></div>
+        </main>
+    </div>
+</div>
+
+<script th:src="@{/js/shared/app.js(v=20260905k)}"></script>
+<script th:src="@{/js/preparation-pipeline/inspection.js(v=20260906c)}"></script>
+</body>
+</html>

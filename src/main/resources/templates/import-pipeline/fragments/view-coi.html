@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<section th:fragment="coiView(vehicle, certificate, coiReady)"
+         class="import-view-stage clearance-form"
+         th:with="docUrl=${certificate != null and certificate.documentStoredName != null ? '/coi/documents/' + certificate.documentStoredName : null},
+                  hasDoc=${certificate != null and certificate.documentStoredName != null and !#strings.isEmpty(certificate.documentStoredName)}">
+
+    <div class="panel import-view-empty" th:if="${certificate == null or !hasDoc}">
+        <i class="fa-solid fa-file-circle-check"></i>
+        <strong>Certificate of inspection not uploaded yet</strong>
+        <p>Upload the JEVIC certificate of inspection to view the inspection details.</p>
+        <div class="import-view-actions">
+            <a th:href="@{/coi/{c}(c=${vehicle.chassisNo})}" class="panel-btn import-form-submit">Upload certificate of inspection</a>
+            <a th:if="${stageNav != null and stageNav.nextUrl != null}"
+               th:href="${stageNav.nextUrl}"
+               class="panel-btn ghost import-form-submit">
+                <span th:text="${stageNav.nextLabel}">Next · Customs declaration</span>
+                <i class="fa-solid fa-chevron-right"></i>
+            </a>
+        </div>
+    </div>
+
+    <th:block th:if="${certificate != null and hasDoc}">
+        <div class="sheet-layout">
+            <div class="sheet-document-col">
+            <aside class="panel sheet-document has-file">
+                <div class="panel-head"><h2>Document preview</h2></div>
+                <div class="sheet-preview-frame">
+                    <img th:if="${!(certificate.documentContentType != null and #strings.contains(certificate.documentContentType, 'pdf')) and !(certificate.documentStoredName != null and #strings.endsWith(certificate.documentStoredName, '.pdf'))}"
+                         th:src="@{/coi/documents/{name}(name=${certificate.documentStoredName})}"
+                         alt="Certificate of inspection preview">
+                    <iframe th:if="${(certificate.documentContentType != null and #strings.contains(certificate.documentContentType, 'pdf')) or (certificate.documentStoredName != null and #strings.endsWith(certificate.documentStoredName, '.pdf'))}"
+                            th:src="@{/coi/documents/{name}(name=${certificate.documentStoredName})}"
+                            title="Certificate of inspection PDF"></iframe>
+                </div>
+            </aside>
+
+            <div th:replace="shared/document-view-toolbar :: documentViewToolbar(
+                    'Certificate of inspection',
+                    ${certificate.documentOriginalName},
+                    ${docUrl},
+                    ${stageNav != null ? stageNav.editUrl : null})"></div>
+            </div>
+
+            <div class="sheet-fields preship-fields">
+                <article class="panel">
+                    <div class="panel-head"><h2>Certificate of inspection</h2></div>
+                    <div class="field-grid">
+                        <label>Certificate no. <input type="text" th:value="${certificate.certificateNo}" readonly class="readonly-field"></label>
+                        <label>Date of issue <input type="text" th:value="${certificate.issueDate}" readonly class="readonly-field"></label>
+                        <label>Inspection branch <input type="text" th:value="${certificate.inspectionBranch}" readonly class="readonly-field"></label>
+                        <label>Make <input type="text" th:value="${certificate.make}" readonly class="readonly-field"></label>
+                        <label>Model <input type="text" th:value="${certificate.model}" readonly class="readonly-field"></label>
+                        <label>Engine capacity <input type="text" th:value="${certificate.engineCapacity}" readonly class="readonly-field"></label>
+                        <label>Year of first registration <input type="text" th:value="${certificate.firstRegistration}" readonly class="readonly-field"></label>
+                        <label>Chassis number <input type="text" th:value="${certificate.chassisVin}" readonly class="readonly-field"></label>
+                        <label>Engine number <input type="text" th:value="${certificate.engineNo}" readonly class="readonly-field"></label>
+                        <label>Inspected mileage (odometer reading) <input type="text" th:value="${certificate.inspectedMileage}" readonly class="readonly-field"></label>
+                        <label>Inspection date <input type="text" th:value="${certificate.inspectionDate}" readonly class="readonly-field"></label>
+                        <label class="span-2">Remarks <input type="text" th:value="${certificate.remarks}" readonly class="readonly-field"></label>
+                    </div>
+                </article>
+            </div>
+        </div>
+        <div class="import-view-actions">
+            <a th:href="@{/coi/{c}(c=${vehicle.chassisNo})}" class="panel-btn ghost import-form-submit">Edit certificate</a>
+            <a th:if="${stageNav != null and stageNav.nextUrl != null}"
+               th:href="${stageNav.nextUrl}"
+               class="panel-btn import-form-submit">
+                <span th:text="${stageNav.nextLabel}">Next · Customs declaration</span>
+                <i class="fa-solid fa-chevron-right"></i>
+            </a>
+        </div>
+    </th:block>
+</section>
+
+</body>
+</html>

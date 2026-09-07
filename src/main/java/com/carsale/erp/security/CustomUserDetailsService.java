@@ -5,8 +5,8 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
-import com.carsale.erp.entity.User;
-import com.carsale.erp.repository.UserRepository;
+import com.carsale.erp.account.User;
+import com.carsale.erp.account.UserRepository;
 
 @Service
 public class CustomUserDetailsService implements UserDetailsService {

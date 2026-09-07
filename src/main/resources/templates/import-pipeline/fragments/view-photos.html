@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<section th:fragment="photosView(vehicle, photos, photosReady)"
+         class="import-view-stage">
+
+    <div class="panel import-view-empty" th:if="${photos == null or photos.isEmpty()}">
+        <i class="fa-solid fa-images"></i>
+        <strong>No vehicle images yet</strong>
+        <p>Upload up to five photos of this vehicle.</p>
+        <div class="import-view-actions">
+            <a th:href="@{/photos/{c}(c=${vehicle.chassisNo})}" class="panel-btn import-form-submit">Upload images</a>
+            <a th:if="${stageNav != null and stageNav.nextUrl != null}"
+               th:href="${stageNav.nextUrl}"
+               class="panel-btn ghost import-form-submit">
+                <span th:text="${stageNav.nextLabel}">Next · Customs declaration</span>
+                <i class="fa-solid fa-chevron-right"></i>
+            </a>
+        </div>
+    </div>
+
+    <th:block th:if="${photos != null and !photos.isEmpty()}">
+        <article class="panel">
+            <div class="panel-head">
+                <h2>Vehicle images</h2>
+                <span class="photo-count" th:text="${photos.size() + ' / 5'}">1 / 5</span>
+            </div>
+            <div class="photo-gallery is-view">
+                <div class="photo-card" th:each="photo : ${photos}">
+                    <img th:src="@{/photos/documents/{name}(name=${photo.storedName})}"
+                         th:alt="${photo.originalName}">
+                </div>
+            </div>
+        </article>
+        <div class="import-view-actions">
+            <a th:href="@{/photos/{c}(c=${vehicle.chassisNo})}" class="panel-btn ghost import-form-submit">Edit images</a>
+            <a th:if="${stageNav != null and stageNav.nextUrl != null}"
+               th:href="${stageNav.nextUrl}"
+               class="panel-btn import-form-submit">
+                <span th:text="${stageNav.nextLabel}">Next · Customs declaration</span>
+                <i class="fa-solid fa-chevron-right"></i>
+            </a>
+        </div>
+    </th:block>
+</section>
+
+</body>
+</html>
