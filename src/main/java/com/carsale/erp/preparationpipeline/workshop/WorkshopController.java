@@ -3,6 +3,7 @@ package com.carsale.erp.preparationpipeline.workshop;
 import com.carsale.erp.preparationpipeline.PreparationStageUrls;
 import java.nio.charset.StandardCharsets;
 
+import com.carsale.erp.shared.pipeline.FlowPipeline;
 import org.springframework.beans.propertyeditors.CustomNumberEditor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -49,6 +50,11 @@ public class WorkshopController {
         return "redirect:/workshop-yard";
     }
 
+    //convert form number(string) attributes to Long
+//    private Long mechanicId; --> impacted
+//    private String notes; --> no impact
+//    private LocalDate workshopDate;  --> no impact
+//    private Boolean completed;  --> no impact
     @InitBinder
     public void initBinder(WebDataBinder binder) {
         binder.registerCustomEditor(Long.class, new CustomNumberEditor(Long.class, true));
@@ -80,11 +86,12 @@ public class WorkshopController {
         model.addAttribute("inspectionReady", status.isInspectionReady());
         model.addAttribute("canEnterYard", status.isCanEnterYard());
         model.addAttribute("prepComplete", status.isPipelineCompleted());
-        model.addAttribute("stageNav", PreparationStageUrls.viewLinks(
+        model.addAttribute("stageNav", PipelineStageService.viewLinks(
                 chassisNo,
                 pipelineStageService.indexOf(PipelineStageService.FLOW_PREP, FlowStage.WORKSHOP.getStageKey()),
                 status,
-                pipelineStageService.keys(PipelineStageService.FLOW_PREP)
+                pipelineStageService.list(PipelineStageService.FLOW_PREP),
+                FlowPipeline.PREP
         ));
         return "preparation-pipeline/workshop/form";
     }

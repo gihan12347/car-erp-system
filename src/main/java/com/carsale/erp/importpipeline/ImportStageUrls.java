@@ -9,6 +9,7 @@ import org.springframework.web.util.UriUtils;
 
 import com.carsale.erp.importpipeline.ImportProgressService.ImportProgress;
 
+import static com.carsale.erp.shared.pipeline.PipelineStageService.editUrlOrFallback;
 import static com.carsale.erp.shared.pipeline.PipelineStageService.viewLinks;
 
 public final class ImportStageUrls {
@@ -128,12 +129,10 @@ public final class ImportStageUrls {
             String currentKey
     ) {
         String encoded = encode(chassisNo);
-        if (status.isPipelineCompleted()) {
-            return "/customs/" + encoded;
-        }
         return redirectToNext(encoded, status, keys, currentKey, viewBase(encoded));
     }
 
+    //TODO:: need to refactor the code
     private static String redirectToNext(
             String encoded,
             ImportProgress status,
@@ -147,11 +146,14 @@ public final class ImportStageUrls {
             if (isStageComplete(nextKey, status)) {
                 return viewUrl(viewBase, nextKey);
             }
-            return editUrlFor(encoded, nextKey);
+            return editUrlOrFallback(encoded, nextKey, viewBase);
         }
         for (String key : keys) {
             if (!isStageComplete(key, status)) {
-                return editUrlFor(encoded, key);
+                String url = editUrlFor(encoded, key);
+                if (url != null) {
+                    return url;
+                }
             }
         }
         return viewBase;
@@ -182,7 +184,10 @@ public final class ImportStageUrls {
         }
         for (String key : ordered) {
             if (!isStageComplete(key, status)) {
-                return editUrlFor(encoded, key);
+                String url = editUrlFor(encoded, key);
+                if (url != null) {
+                    return url;
+                }
             }
         }
         return viewBase(encoded);

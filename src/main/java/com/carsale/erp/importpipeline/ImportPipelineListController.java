@@ -1,6 +1,5 @@
 package com.carsale.erp.importpipeline;
 
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -12,15 +11,11 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import org.springframework.web.util.UriUtils;
-
 import com.carsale.erp.shared.vehicle.Vehicle;
 import com.carsale.erp.importpipeline.ImportProgressService;
 import com.carsale.erp.importpipeline.ImportProgressService.ImportProgress;
 import com.carsale.erp.shared.pipeline.PipelineStageService;
 import com.carsale.erp.shared.vehicle.VehicleService;
-
-import static com.carsale.erp.shared.pipeline.PipelineStageService.shortTitleFor;
 
 @Controller
 public class ImportPipelineListController {
@@ -82,18 +77,6 @@ public class ImportPipelineListController {
 
         public ImportProgress getStatus() {
             return status;
-        }
-
-        public String stageHref(String stageKey) {
-            String encoded = UriUtils.encodePathSegment(vehicle.getChassisNo(), StandardCharsets.UTF_8);
-            if (status.isStageComplete(stageKey)) {
-                return "/auction/" + encoded + "?stage=" + stageKey;
-            }
-            return ImportStageUrls.editUrlFor(encoded, stageKey);
-        }
-
-        public String stageShortTitle(String stageKey) {
-            return shortTitleFor(stageKey);
         }
     }
 }

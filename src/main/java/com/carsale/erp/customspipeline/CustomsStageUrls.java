@@ -4,9 +4,7 @@ import java.util.List;
 
 import org.springframework.web.util.UriUtils;
 
-import com.carsale.erp.shared.pipeline.NavLinks;
 import com.carsale.erp.customspipeline.CustomsProgressService.CustomsProgress;
-import com.carsale.erp.shared.pipeline.PipelineStageService;
 import com.carsale.erp.shared.pipeline.FlowStage;
 
 public final class CustomsStageUrls {
@@ -15,6 +13,9 @@ public final class CustomsStageUrls {
     }
 
     public static int clampStageIndex(Integer requested, CustomsProgress status, List<String> keys) {
+        if (keys == null || keys.isEmpty()) {
+            return 0;
+        }
         int max = Math.max(0, keys.size() - 1);
         if (requested == null) {
             return resolveStartStageIndex(status, keys);
@@ -29,7 +30,7 @@ public final class CustomsStageUrls {
     }
 
     public static int resolveStartStageIndex(CustomsProgress status, List<String> keys) {
-        if (status.isClearanceComplete() || keys.isEmpty()) {
+        if (status.isClearanceComplete() || keys == null || keys.isEmpty()) {
             return 0;
         }
         for (int i = 0; i < keys.size(); i++) {
@@ -67,29 +68,6 @@ public final class CustomsStageUrls {
 
     public static boolean isIncomplete(String stageKey, CustomsProgress status) {
         return !status.isStageComplete(stageKey);
-    }
-
-    public static String titleFor(String stageKey) {
-        if (FlowStage.DECLARATION.getStageKey().equals(stageKey)) {
-            return "Customs declaration";
-        }
-        if (FlowStage.WORKSHEET.getStageKey().equals(stageKey)) {
-            return "Working sheet";
-        }
-        return "Assessment notice";
-    }
-
-    public static String keyAt(List<String> keys, int index) {
-        if (keys == null || keys.isEmpty()) {
-            return FlowStage.DECLARATION.getStageKey();
-        }
-        if (index < 0) {
-            return keys.get(0);
-        }
-        if (index >= keys.size()) {
-            return keys.get(keys.size() - 1);
-        }
-        return keys.get(index);
     }
 
     public static String encode(String chassisNo) {

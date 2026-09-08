@@ -77,7 +77,7 @@ public class PreparationPipelineListController {
     @GetMapping("/workshop-yard/{chassisNo}")
     public String view(
             @PathVariable String chassisNo,
-            @RequestParam(value = "stage", required = false) Integer requestedStage,
+            @RequestParam(value = "stage", required = false) String requestedStage,
             Model model,
             RedirectAttributes redirectAttributes
     ) {
@@ -93,8 +93,15 @@ public class PreparationPipelineListController {
 
         PreparationProgress status = preparationProgressService.progressFor(vehicle);
         java.util.List<String> prepKeys = pipelineStageService.keys(PipelineStageService.FLOW_PREP);
-        int stageIndex = PreparationStageUrls.clampStageIndex(requestedStage, status, prepKeys);
-        String stageKey = PreparationStageUrls.keyAt(prepKeys, stageIndex);
+        int stageIndex = PreparationStageUrls.clampStageIndex(
+                PipelineStageService.parseStageIndex(prepKeys, requestedStage),
+                status,
+                prepKeys
+        );
+        String stageKey = PipelineStageService.keyAt(prepKeys, stageIndex);
+        if (stageKey == null) {
+            return "redirect:/workshop-yard";
+        }
 
         if (FlowStage.INSPECTION.getStageKey().equals(stageKey)
                 && vehicleInspectionService.findByChassisNo(chassisNo) == null) {
@@ -145,23 +152,6 @@ public class PreparationPipelineListController {
 
         public PreparationProgress getStatus() {
             return status;
-        }
-
-        public String stageHref(String stageKey, int stageIndex) {
-            String encoded = PreparationStageUrls.encode(vehicle.getChassisNo());
-            if (FlowStage.YARD.getStageKey().equals(stageKey)
-                    && !status.isYardReady()
-                    && !status.isCanEnterYard()) {
-                return "/workshop/" + encoded;
-            }
-            if (status.isStageComplete(stageKey)) {
-                return "/workshop-yard/" + encoded + "?stage=" + stageIndex;
-            }
-            return PreparationStageUrls.editUrlFor(encoded, stageKey);
-        }
-
-        public String stageShortTitle(String stageKey) {
-            return PreparationStageUrls.shortTitleFor(stageKey);
         }
     }
 }

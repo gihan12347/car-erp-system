@@ -59,7 +59,8 @@
                                             th:with="ready=${stage.stageKey == 'declaration' ? row.status.declarationReady : (stage.stageKey == 'assessment' ? row.status.assessmentReady : row.status.worksheetReady)},
                                                      nextKey=${!iter.last ? stages[iter.count].stageKey : null},
                                                      nextReady=${nextKey != null and (nextKey == 'declaration' ? row.status.declarationReady : (nextKey == 'assessment' ? row.status.assessmentReady : row.status.worksheetReady))},
-                                                     current=${!ready and pendingKey == stage.stageKey}"
+                                                     current=${!ready and pendingKey == stage.stageKey},
+                                                     editHref=${@pipelineStageService.editUrlFor(#uris.escapePathSegment(row.vehicle.chassisNo), stage.stageKey)}"
                                             th:classappend="${(ready ? ' is-done' : (current ? ' is-current' : ' is-pending')) + (ready and nextReady ? ' is-linked' : '')}"
                                             th:style="'--step:' + ${iter.index}">
                                             <a th:if="${ready}"
@@ -68,12 +69,17 @@
                                                th:title="${stage.title + ' — complete'}">
                                                 <i class="fa-solid fa-check"></i>
                                             </a>
-                                            <a th:unless="${ready}"
-                                               th:href="${row.editHref(stage.stageKey)}"
+                                            <a th:if="${!ready and editHref != null}"
+                                               th:href="${editHref}"
                                                class="list-pipeline-node"
                                                th:title="${stage.title + (current ? ' — next' : ' — pending')}">
                                                 <span th:text="${iter.count}">1</span>
                                             </a>
+                                            <span th:if="${!ready and editHref == null}"
+                                                  class="list-pipeline-node"
+                                                  th:title="${stage.title + (current ? ' — next' : ' — pending')}">
+                                                <span th:text="${iter.count}">1</span>
+                                            </span>
                                             <small th:text="${stage.stageKey == 'assessment' ? 'Assessment' : (stage.stageKey == 'worksheet' ? 'Worksheet' : 'CUSDEC')}">CUSDEC</small>
                                         </li>
                                     </ol>

@@ -131,7 +131,7 @@ public class CustomsDocumentController {
         }
         CustomsDocument record = customsDocumentService.prepareForm(chassisNo);
         CustomsProgress status = customsProgressService.progressFor(chassisNo);
-        model.addAttribute("pageTitle", CustomsStageUrls.titleFor(stage.getStageKey()));
+        model.addAttribute("pageTitle", PipelineStageService.titleFor(stage.getStageKey()));
         model.addAttribute("activeMenu", "customs");
         model.addAttribute("hubMode", hub);
         model.addAttribute("vehicle", vehicle);

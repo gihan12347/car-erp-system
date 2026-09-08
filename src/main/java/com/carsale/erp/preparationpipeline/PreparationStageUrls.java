@@ -4,9 +4,11 @@ import java.util.List;
 
 import org.springframework.web.util.UriUtils;
 
-import com.carsale.erp.shared.pipeline.NavLinks;
+import com.carsale.erp.shared.pipeline.FlowPipeline;
 import com.carsale.erp.shared.pipeline.FlowStage;
 import com.carsale.erp.preparationpipeline.PreparationProgressService.PreparationProgress;
+
+import static com.carsale.erp.shared.pipeline.PipelineStageService.editUrlOrFallback;
 
 public final class PreparationStageUrls {
 
@@ -14,6 +16,9 @@ public final class PreparationStageUrls {
     }
 
     public static int clampStageIndex(Integer requested, PreparationProgress status, List<String> keys) {
+        if (keys == null || keys.isEmpty()) {
+            return 0;
+        }
         int max = Math.max(0, keys.size() - 1);
         if (requested == null) {
             return resolveStartStageIndex(status, keys);
@@ -28,7 +33,7 @@ public final class PreparationStageUrls {
     }
 
     public static int resolveStartStageIndex(PreparationProgress status, List<String> keys) {
-        if (status.isPipelineCompleted() || keys.isEmpty()) {
+        if (status.isPipelineCompleted() || keys == null || keys.isEmpty()) {
             return 0;
         }
         for (int i = 0; i < keys.size(); i++) {
@@ -37,36 +42,6 @@ public final class PreparationStageUrls {
             }
         }
         return 0;
-    }
-
-    public static NavLinks viewLinks(String chassisNo, int stageIndex, PreparationProgress status, List<String> keys) {
-        String encoded = encode(chassisNo);
-        String viewBase = "/workshop-yard/" + encoded;
-        String key = keyAt(keys, stageIndex);
-        String prevUrl = stageIndex > 0 ? viewBase + "?stage=" + (stageIndex - 1) : null;
-        String nextUrl;
-        String nextLabel;
-        if (stageIndex < keys.size() - 1) {
-            String nextKey = keys.get(stageIndex + 1);
-            if (FlowStage.YARD.getStageKey().equals(nextKey) && !status.isCanEnterYard()) {
-                nextUrl = null;
-                nextLabel = "Complete all workshop jobs to open Yard";
-            } else {
-                nextUrl = viewBase + "?stage=" + (stageIndex + 1);
-                nextLabel = "Next · " + titleFor(nextKey);
-            }
-        } else {
-            nextUrl = "/ready-for-sale/" + encoded;
-            nextLabel = "Next · Ready for sale pipeline";
-        }
-        return new NavLinks(
-                stageIndex,
-                (stageIndex + 1) + " · " + titleFor(key),
-                prevUrl,
-                nextUrl,
-                nextLabel,
-                editUrlFor(encoded, key)
-        );
     }
 
     public static String redirectAfterWorkshopSave(String chassisNo, PreparationProgress status, List<String> keys) {
@@ -81,73 +56,64 @@ public final class PreparationStageUrls {
         return redirectAfterStage(chassisNo, status, keys, FlowStage.INSPECTION.getStageKey());
     }
 
-    private static String redirectAfterStage(String chassisNo, PreparationProgress status, List<String> keys, String currentKey) {
+    private static String redirectAfterStage(
+            String chassisNo,
+            PreparationProgress status,
+            List<String> keys,
+            String currentKey
+    ) {
         String encoded = encode(chassisNo);
-        String viewBase = "/workshop-yard/" + encoded;
+        String viewBase = FlowPipeline.PREP.getCurrentBase() + encoded;
+        int currentIndex = keys.indexOf(currentKey);
+
         if (status.isPipelineCompleted()) {
-            int index = keys.indexOf(currentKey);
-            if (index >= 0 && index < keys.size() - 1) {
-                return viewBase + "?stage=" + (index + 1);
-            }
-            return "/ready-for-sale/" + encoded;
+            return completedRedirect(viewBase, encoded, currentIndex, keys.size());
         }
-        int index = keys.indexOf(currentKey);
-        for (int i = index + 1; i < keys.size(); i++) {
-            if (FlowStage.YARD.getStageKey().equals(keys.get(i)) && !status.isCanEnterYard()) {
-                return "/workshop/" + encoded;
-            }
-            if (isStageComplete(keys.get(i), status)) {
-                return viewBase + "?stage=" + i;
-            }
-            return editUrlFor(encoded, keys.get(i));
+        if (currentIndex >= 0 && currentIndex < keys.size() - 1) {
+            return nextStageRedirect(encoded, viewBase, keys.get(currentIndex + 1), currentIndex + 1, status);
         }
-        for (String key : keys) {
-            if (!isStageComplete(key, status)) {
-                return editUrlFor(encoded, key);
-            }
+        return firstIncompleteRedirect(encoded, viewBase, status, keys);
+    }
+
+    private static String completedRedirect(String viewBase, String encoded, int currentIndex, int size) {
+        if (currentIndex >= 0 && currentIndex < size - 1) {
+            return viewUrl(viewBase, currentIndex + 1);
         }
-        return viewBase;
+        return FlowPipeline.READY.getCurrentBase() + encoded;
+    }
+
+    private static String nextStageRedirect(
+            String encoded,
+            String viewBase,
+            String nextKey,
+            int nextIndex,
+            PreparationProgress status
+    ) {
+        if (FlowStage.YARD.getStageKey().equals(nextKey) && !status.isCanEnterYard()) {
+            return editUrlOrFallback(encoded, FlowStage.WORKSHOP.getStageKey(), viewBase);
+        }
+        if (status.isStageComplete(nextKey)) {
+            return viewUrl(viewBase, nextIndex);
+        }
+        return editUrlOrFallback(encoded, nextKey, viewBase);
+    }
+
+    private static String firstIncompleteRedirect(
+            String encoded,
+            String viewBase,
+            PreparationProgress status,
+            List<String> keys
+    ) {
+        String incomplete = status.firstIncompleteStageKey(keys);
+        return incomplete != null ? editUrlOrFallback(encoded, incomplete, viewBase) : viewBase;
+    }
+
+    private static String viewUrl(String viewBase, int stageIndex) {
+        return viewBase + "?stage=" + stageIndex;
     }
 
     public static boolean isStageComplete(String stageKey, PreparationProgress status) {
         return status.isStageComplete(stageKey);
-    }
-
-    public static String editUrlFor(String encodedChassis, String stageKey) {
-        if (FlowStage.YARD.getStageKey().equals(stageKey)) {
-            return "/yard/" + encodedChassis;
-        }
-        if (FlowStage.INSPECTION.getStageKey().equals(stageKey)) {
-            return "/inspection/" + encodedChassis;
-        }
-        return "/workshop/" + encodedChassis;
-    }
-
-    public static String titleFor(String stageKey) {
-        if (FlowStage.YARD.getStageKey().equals(stageKey)) {
-            return "Yard";
-        }
-        if (FlowStage.INSPECTION.getStageKey().equals(stageKey)) {
-            return "Inspection";
-        }
-        return "Workshop";
-    }
-
-    public static String shortTitleFor(String stageKey) {
-        return titleFor(stageKey);
-    }
-
-    public static String keyAt(List<String> keys, int index) {
-        if (keys == null || keys.isEmpty()) {
-            return FlowStage.WORKSHOP.getStageKey();
-        }
-        if (index < 0) {
-            return keys.get(0);
-        }
-        if (index >= keys.size()) {
-            return keys.get(keys.size() - 1);
-        }
-        return keys.get(index);
     }
 
     public static String encode(String chassisNo) {

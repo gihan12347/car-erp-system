@@ -3,7 +3,6 @@ package com.carsale.erp.customspipeline;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.carsale.erp.importpipeline.ImportProgressService;
 import com.carsale.erp.shared.pipeline.*;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -14,9 +13,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.carsale.erp.shared.vehicle.Vehicle;
-import com.carsale.erp.customspipeline.CustomsProgressService;
 import com.carsale.erp.customspipeline.CustomsProgressService.CustomsProgress;
-import com.carsale.erp.customspipeline.CustomsDocumentService;
 import com.carsale.erp.shared.vehicle.VehicleService;
 
 
@@ -27,19 +24,17 @@ public class CustomsPipelineListController {
     private final CustomsProgressService customsProgressService;
     private final CustomsDocumentService customsDocumentService;
     private final PipelineStageService pipelineStageService;
-    private final ImportProgressService importProgressService;
 
     public CustomsPipelineListController(
             VehicleService vehicleService,
             CustomsProgressService customsProgressService,
             CustomsDocumentService customsDocumentService,
-            PipelineStageService pipelineStageService, ImportProgressService importProgressService
+            PipelineStageService pipelineStageService
     ) {
         this.vehicleService = vehicleService;
         this.customsProgressService = customsProgressService;
         this.customsDocumentService = customsDocumentService;
         this.pipelineStageService = pipelineStageService;
-        this.importProgressService = importProgressService;
     }
 
     @GetMapping("/customs")
@@ -72,7 +67,7 @@ public class CustomsPipelineListController {
     @GetMapping("/customs/{chassisNo}")
     public String view(
             @PathVariable String chassisNo,
-            @RequestParam(value = "stage", required = false) Integer requestedStage,
+            @RequestParam(value = "stage", required = false) String requestedStage,
             @RequestParam(value = "hub", defaultValue = "false") boolean hub,
             Model model,
             RedirectAttributes redirectAttributes
@@ -98,8 +93,15 @@ public class CustomsPipelineListController {
 
         CustomsProgress status = customsProgressService.progressFor(vehicle);
         List<String> customsKeys = pipelineStageService.keys(PipelineStageService.FLOW_CUSTOMS);
-        int stageIndex = CustomsStageUrls.clampStageIndex(requestedStage, status, customsKeys);
-        String stageKey = CustomsStageUrls.keyAt(customsKeys, stageIndex);
+        int stageIndex = CustomsStageUrls.clampStageIndex(
+                PipelineStageService.parseStageIndex(customsKeys, requestedStage),
+                status,
+                customsKeys
+        );
+        String stageKey = PipelineStageService.keyAt(customsKeys, stageIndex);
+        if (stageKey == null) {
+            return "redirect:/customs";
+        }
 
         if (customsDocumentService.findByChassisNo(chassisNo) == null) {
             return "redirect:" + CustomsStageUrls.editUrlFor(
@@ -139,24 +141,5 @@ public class CustomsPipelineListController {
         public CustomsProgress getStatus() {
             return status;
         }
-
-        public String editHref(String stageKey) {
-            return CustomsStageUrls.editUrlFor(
-                    CustomsStageUrls.encode(vehicle.getChassisNo()),
-                    stageKey
-            );
-        }
-
-//        public String stageHref(String stageKey, int stageIndex) {
-//            String encoded = CustomsStageUrls.encode(vehicle.getChassisNo());
-//            if (status.isStageComplete(stageKey)) {
-//                return "/customs/" + encoded + "?stage=" + stageIndex;
-//            }
-//            return CustomsStageUrls.editUrlFor(encoded, stageKey);
-//        }
-//
-//        public String stageShortTitle(String stageKey) {
-//            return CustomsStageUrls.shortTitleFor(stageKey);
-//        }
     }
 }

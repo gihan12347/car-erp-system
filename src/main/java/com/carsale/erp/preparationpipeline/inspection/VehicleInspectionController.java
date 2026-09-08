@@ -3,6 +3,7 @@ package com.carsale.erp.preparationpipeline.inspection;
 import com.carsale.erp.preparationpipeline.PreparationStageUrls;
 import java.nio.charset.StandardCharsets;
 
+import com.carsale.erp.shared.pipeline.FlowPipeline;
 import org.springframework.beans.propertyeditors.CustomNumberEditor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -125,11 +126,13 @@ public class VehicleInspectionController {
         model.addAttribute("inspectionReady", status.isInspectionReady());
         model.addAttribute("canEnterYard", status.isCanEnterYard());
         model.addAttribute("prepComplete", status.isPipelineCompleted());
-        model.addAttribute("stageNav", PreparationStageUrls.viewLinks(
+        model.addAttribute("stageNav", PipelineStageService.viewLinks(
                 chassisNo,
                 pipelineStageService.indexOf(PipelineStageService.FLOW_PREP, FlowStage.INSPECTION.getStageKey()),
                 status,
-                pipelineStageService.keys(PipelineStageService.FLOW_PREP)
+                pipelineStageService.list(PipelineStageService.FLOW_PREP),
+                FlowPipeline.PREP
+
         ));
     }
 

@@ -2,7 +2,6 @@ package com.carsale.erp.customspipeline;
 
 import com.carsale.erp.importpipeline.ImportProgressService;
 import com.carsale.erp.shared.pipeline.PipelineProgress;
-import com.carsale.erp.shared.pipeline.PipelineStageService;
 import com.carsale.erp.shared.pipeline.FlowStage;
 import com.carsale.erp.shared.vehicle.VehicleService;
 import java.util.ArrayList;
@@ -71,7 +70,7 @@ public class CustomsProgressService {
     }
 
     public List<Vehicle> listEligible(String query) {
-        List<Vehicle> rows = new ArrayList<Vehicle>();
+        List<Vehicle> rows = new ArrayList<>();
         for (Vehicle vehicle : vehicleService.search(query)) {
             if (isEligible(vehicle)) {
                 rows.add(vehicle);
@@ -165,9 +164,9 @@ public class CustomsProgressService {
             if (keys == null) {
                 return null;
             }
-            for (int i = 0; i < keys.size(); i++) {
-                if (!isStageComplete(keys.get(i))) {
-                    return keys.get(i);
+            for (String key : keys) {
+                if (!isStageComplete(key)) {
+                    return key;
                 }
             }
             return null;

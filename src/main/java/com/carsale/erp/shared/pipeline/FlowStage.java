@@ -41,19 +41,8 @@ public enum FlowStage {
         return shortTitle;
     }
 
-    public String getUrlPath() {
-        return urlPath;
-    }
-
     public String editUrl(String encodedChassis) {
-        if (this == AUCTION || urlPath == null || urlPath.isEmpty()) {
-            return "/auction/" + encodedChassis + "/edit?hub=1";
-        }
-        return urlPath + encodedChassis + "?hub=1";
-    }
-
-    public boolean matches(String value) {
-        return stageKey.equals(value);
+         return urlPath + encodedChassis + "?hub=1";
     }
 
     public static FlowStage fromKey(String value) {

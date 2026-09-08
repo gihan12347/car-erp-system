@@ -150,13 +150,8 @@ public class PipelineStageService implements CommandLineRunner {
         if (joined == null || joined.getStages().isEmpty()) {
             return;
         }
-        List<PipelineStage> stages = new ArrayList<PipelineStage>(joined.getStages());
-        stages.sort(new Comparator<PipelineStage>() {
-            @Override
-            public int compare(PipelineStage left, PipelineStage right) {
-                return Integer.compare(left.getSortOrder(), right.getSortOrder());
-            }
-        });
+        List<PipelineStage> stages = new ArrayList<>(joined.getStages());
+        stages.sort(Comparator.comparingInt(PipelineStage::getSortOrder));
         PipelineStage inspection = null;
         for (PipelineStage stage : stages) {
             if (FlowStage.INSPECTION.getStageKey().equals(stage.getStageKey())) {
@@ -184,7 +179,7 @@ public class PipelineStageService implements CommandLineRunner {
         if (flow.isPresent()) {
             return pipelineStageRepository.findByFlowIdOrdered(flow.get().getId());
         }
-        return new ArrayList<PipelineStage>();
+        return new ArrayList<>();
     }
 
     public List<String> keys(String flowKey) {
@@ -199,20 +194,6 @@ public class PipelineStageService implements CommandLineRunner {
         List<String> ordered = keys(flowKey);
         int index = ordered.indexOf(stageKey);
         return Math.max(index, 0);
-    }
-
-    public String keyAt(String flowKey, int index) {
-        List<String> ordered = keys(flowKey);
-        if (ordered.isEmpty()) {
-            return null;
-        }
-        if (index < 0) {
-            return ordered.get(0);
-        }
-        if (index >= ordered.size()) {
-            return ordered.get(ordered.size() - 1);
-        }
-        return ordered.get(index);
     }
 
     public int size(String flowKey) {
@@ -310,8 +291,7 @@ public class PipelineStageService implements CommandLineRunner {
         for (PipelineStage existing : pipelineStageRepository.findByFlowIdOrdered(flow.getId())) {
             nextOrder = Math.max(nextOrder, existing.getSortOrder() + 1);
         }
-        for (int i = 0; i < defaults.size(); i++) {
-            DefaultStage def = defaults.get(i);
+        for (DefaultStage def : defaults) {
             if (pipelineStageRepository.findByFlowIdAndStageKey(flow.getId(), def.stageKey).isPresent()) {
                 continue;
             }
@@ -423,10 +403,12 @@ public class PipelineStageService implements CommandLineRunner {
             String nextKey = stageKeyAt(stages, stageIndex + 1);
             if (isStageComplete(nextKey, status)) {
                 nextUrl = viewUrl(viewBase, nextKey);
-                nextLabel = "Next · " + titleFor(nextKey);
+                nextLabel = labeled("Next · ", titleFor(nextKey), "Next");
             } else {
                 nextUrl = editUrlFor(encoded, nextKey);
-                nextLabel = "Continue " + titleFor(nextKey).toLowerCase();
+                nextLabel = nextUrl != null
+                        ? labeled("Continue ", lower(titleFor(nextKey)), "Continue")
+                        : "Next";
             }
         } else if (pipeline != null && status.isPipelineCompleted()) {
             nextUrl = pipeline.getCurrentBase() + encoded;
@@ -436,7 +418,7 @@ public class PipelineStageService implements CommandLineRunner {
         }
         return new NavLinks(
                 stageIndex,
-                (stageIndex + 1) + " · " + titleFor(key),
+                labeled((stageIndex + 1) + " · ", titleFor(key), (stageIndex + 1) + " · Stage"),
                 prevUrl,
                 nextUrl,
                 nextLabel,
@@ -477,7 +459,23 @@ public class PipelineStageService implements CommandLineRunner {
         if (stage != null) {
             return stage.editUrl(encodedChassis);
         }
-        return FlowStage.AUCTION.editUrl(encodedChassis);
+        return null;
+    }
+
+    public static String editUrlOrFallback(String encodedChassis, String stageKey, String fallback) {
+        String url = editUrlFor(encodedChassis, stageKey);
+        return url != null ? url : fallback;
+    }
+
+    private static String labeled(String prefix, String title, String fallback) {
+        if (title == null || title.trim().isEmpty()) {
+            return fallback;
+        }
+        return prefix + title;
+    }
+
+    private static String lower(String value) {
+        return value != null ? value.toLowerCase() : null;
     }
 
     public static String titleFor(String stageKey) {
@@ -485,7 +483,7 @@ public class PipelineStageService implements CommandLineRunner {
         if (stage != null) {
             return stage.getTitle();
         }
-        return "Auction lot";
+        return null;
     }
 
     public static String shortTitleFor(String stageKey) {
@@ -493,7 +491,39 @@ public class PipelineStageService implements CommandLineRunner {
         if (stage != null) {
             return stage.getShortTitle();
         }
-        return "Auction";
+        return null;
+    }
+
+    public static String keyAt(List<String> keys, int index) {
+        if (keys == null || keys.isEmpty()) {
+            return null;
+        }
+        if (index < 0) {
+            return keys.get(0);
+        }
+        if (index >= keys.size()) {
+            return keys.get(keys.size() - 1);
+        }
+        return keys.get(index);
+    }
+
+    public static Integer parseStageIndex(List<String> keys, String requested) {
+        if (requested == null || requested.trim().isEmpty()) {
+            return null;
+        }
+        String value = requested.trim();
+        if (keys != null) {
+            for (int i = 0; i < keys.size(); i++) {
+                if (value.equalsIgnoreCase(keys.get(i))) {
+                    return i;
+                }
+            }
+        }
+        try {
+            return Integer.valueOf(value);
+        } catch (NumberFormatException ex) {
+            return null;
+        }
     }
 
 }
