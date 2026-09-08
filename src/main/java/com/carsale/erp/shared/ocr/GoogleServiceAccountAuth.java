@@ -42,7 +42,7 @@ public class GoogleServiceAccountAuth {
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
     private final Object tokenLock = new Object();
-    private final Map<String, CachedToken> tokens = new HashMap<String, CachedToken>();
+    private final Map<String, CachedToken> tokens = new HashMap<>();
 
     public GoogleServiceAccountAuth(
             @Value("${app.ocr.google.credentialsFile:config/google-vision-credentials.json}") String credentialsFile
@@ -80,7 +80,7 @@ public class GoogleServiceAccountAuth {
 
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-            MultiValueMap<String, String> body = new LinkedMultiValueMap<String, String>();
+            MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
             body.add("grant_type", "urn:ietf:params:oauth:grant-type:jwt-bearer");
             body.add("assertion", jwt);
 
@@ -127,15 +127,15 @@ public class GoogleServiceAccountAuth {
             audience = "https://oauth2.googleapis.com/token";
         }
         long now = System.currentTimeMillis() / 1000L;
-        Map<String, Object> header = new LinkedHashMap<String, Object>();
+        Map<String, Object> header = new LinkedHashMap<>();
         header.put("alg", "RS256");
         header.put("typ", "JWT");
-        Map<String, Object> payload = new LinkedHashMap<String, Object>();
+        Map<String, Object> payload = new LinkedHashMap<>();
         payload.put("iss", email);
         payload.put("scope", scope);
         payload.put("aud", audience);
-        payload.put("iat", Long.valueOf(now));
-        payload.put("exp", Long.valueOf(now + 3600L));
+        payload.put("iat", now);
+        payload.put("exp", now + 3600L);
 
         String headerPart = base64Url(toJson(header));
         String payloadPart = base64Url(toJson(payload));

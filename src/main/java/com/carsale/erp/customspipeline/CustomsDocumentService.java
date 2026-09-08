@@ -2,16 +2,53 @@ package com.carsale.erp.customspipeline;
 
 import com.carsale.erp.shared.document.SheetDocumentStorageService;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.BeanWrapper;
+import org.springframework.beans.BeanWrapperImpl;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.carsale.erp.customspipeline.CustomsDocument;
 import com.carsale.erp.shared.vehicle.Vehicle;
-import com.carsale.erp.customspipeline.CustomsDocumentRepository;
 import com.carsale.erp.shared.vehicle.VehicleRepository;
 
 @Service
 public class CustomsDocumentService {
+
+    private static final String[] DECLARATION_FIELDS = {
+            "customsReference", "declarationType", "declarationPages", "declarationLists", "declarationItems",
+            "totalPackages", "exporterName", "exporterAddress", "consigneeName", "consigneeAddress", "consigneeTin",
+            "declarantName", "declarantAddress", "declarantTin", "countryLastConsignment", "tradingCountry",
+            "countryExport", "countryDestination", "countryOrigin", "vesselFlight", "deliveryTerms", "voyageNoDate",
+            "placeLoadingDischarging", "currencyInvoiced", "totalAmountInvoiced", "exchangeRate", "paymentTerms",
+            "bankCode", "bankName", "bankBranch", "bankReference", "locationOfGoods", "hsCode", "grossMassKg",
+            "netMassKg", "blAwbNo", "goodsDescription", "modelSpec", "yearOfManufacture", "dateOfRegistration",
+            "clearanceChassisNo", "clearanceEngineNo", "itemPrice", "valueNcy", "engineCapacityCc",
+            "taxCid", "taxSur", "taxVat", "taxXid", "taxVel", "taxOther", "totalTaxAmount",
+            "invoiceFob", "invoiceFreight", "invoiceInsurance", "invoiceTotal", "declarantDate",
+            "page2OriginalName", "page2StoredName", "page2ContentType", "ocrTextPage2"
+    };
+
+    private static final String[] ASSESSMENT_FIELDS = {
+            "assessmentOffice", "assessmentNoticeRef", "assessmentModel", "assessmentCustomsReference",
+            "assessmentDeclarantReference", "assessmentReference", "assessmentPackages",
+            "assessmentDeclarantId", "assessmentDeclarantName", "assessmentDeclarantAddress", "assessmentDeclarantChaExp",
+            "assessmentConsigneeId", "assessmentConsigneeName", "assessmentConsigneeAddress",
+            "assessmentTaxOtc", "assessmentTaxCom", "assessmentTaxExm", "assessmentTaxCid", "assessmentTaxSur",
+            "assessmentTaxXid", "assessmentTaxVat", "assessmentTaxVel", "assessmentTotalAssessed", "assessmentTotalPaid",
+            "page3OriginalName", "page3StoredName", "page3ContentType", "ocrTextPage3"
+    };
+
+    private static final String[] WORKSHEET_FIELDS = {
+            "worksheetRef", "worksheetHsCode", "worksheetVehicleType", "worksheetReferenceNo", "worksheetVesselName",
+            "worksheetChassisNo", "worksheetAgentsFob", "worksheetInvoicedFob", "worksheetAgentsFreight",
+            "worksheetInvoicedFreight", "worksheetAgentsInsurance", "worksheetInvoicedInsurance", "worksheetOptionsValue",
+            "worksheetBlFreightCalc", "worksheetBlFreightAmount", "worksheetBlDate", "worksheetManufactureDate",
+            "worksheetAgeDifference", "worksheetFirstRegistrationDate", "worksheetWebsiteValue", "worksheetLocalTaxes",
+            "worksheetFifteenPercent", "worksheetFobValue85", "worksheetLcNo", "worksheetLcAmount", "worksheetLcBank",
+            "worksheetLcImporter", "worksheetLcIssueDate", "worksheetLcExpiryDate", "worksheetLcAmendmentDate",
+            "worksheetClearingAgent", "worksheetFiscalFob", "worksheetFiscalFreight", "worksheetFiscalInsurance",
+            "worksheetFiscalOptions", "worksheetFiscalTotal",
+            "page4OriginalName", "page4StoredName", "page4ContentType", "ocrTextPage4"
+    };
 
     private final VehicleRepository vehicleRepository;
     private final CustomsDocumentRepository customsDocumentRepository;
@@ -92,7 +129,7 @@ public class CustomsDocumentService {
     }
 
     @Transactional
-    public CustomsDocument saveOdometerCertificate(CustomsDocument incoming) {
+    public void saveOdometerCertificate(CustomsDocument incoming) {
         if (incoming == null || incoming.getChassisNo() == null || incoming.getChassisNo().trim().isEmpty()) {
             throw new IllegalArgumentException("Chassis number is required.");
         }
@@ -110,54 +147,62 @@ public class CustomsDocumentService {
         }
         copyOdometerFields(incoming, existing);
         existing.setChassisNo(incoming.getChassisNo().trim());
+        customsDocumentRepository.save(existing);
+    }
+
+    @Transactional
+    public CustomsDocument saveDeclaration(CustomsDocument incoming) {
+        CustomsDocument existing = prepareStageSave(incoming);
+        deleteReplacedPage(existing.getPage2StoredName(), incoming.getPage2StoredName());
+        copyFields(incoming, existing, DECLARATION_FIELDS);
+        existing.setChassisNo(incoming.getChassisNo().trim());
         return customsDocumentRepository.save(existing);
     }
 
     @Transactional
-    public void savePageDocument(String chassisNo, int page, String originalName, String storedName, String contentType) {
-        if (chassisNo == null || chassisNo.trim().isEmpty()) {
+    public CustomsDocument saveAssessment(CustomsDocument incoming) {
+        CustomsDocument existing = prepareStageSave(incoming);
+        deleteReplacedPage(existing.getPage3StoredName(), incoming.getPage3StoredName());
+        copyFields(incoming, existing, ASSESSMENT_FIELDS);
+        existing.setChassisNo(incoming.getChassisNo().trim());
+        return customsDocumentRepository.save(existing);
+    }
+
+    @Transactional
+    public CustomsDocument saveWorksheet(CustomsDocument incoming) {
+        CustomsDocument existing = prepareStageSave(incoming);
+        deleteReplacedPage(existing.getPage4StoredName(), incoming.getPage4StoredName());
+        copyFields(incoming, existing, WORKSHEET_FIELDS);
+        existing.setChassisNo(incoming.getChassisNo().trim());
+        return customsDocumentRepository.save(existing);
+    }
+
+    private CustomsDocument prepareStageSave(CustomsDocument incoming) {
+        if (incoming == null || incoming.getChassisNo() == null || incoming.getChassisNo().trim().isEmpty()) {
             throw new IllegalArgumentException("Chassis number is required.");
         }
-        if (page < 1 || page > 4) {
-            throw new IllegalArgumentException("Invalid clearance page number.");
-        }
-        if (storedName == null || storedName.trim().isEmpty()) {
-            throw new IllegalArgumentException("Stored document name is required.");
-        }
-
-        Vehicle vehicle = vehicleRepository.findById(chassisNo.trim())
+        String chassisNo = incoming.getChassisNo().trim();
+        Vehicle vehicle = vehicleRepository.findById(chassisNo)
                 .orElseThrow(() -> new IllegalArgumentException("Vehicle not found for chassis " + chassisNo));
 
-        CustomsDocument record = customsDocumentRepository.findById(chassisNo.trim()).orElse(null);
-        if (record == null) {
-            record = new CustomsDocument();
-            record.setChassisNo(chassisNo.trim());
-            prefillFromVehicle(record, vehicle);
+        CustomsDocument existing = customsDocumentRepository.findById(chassisNo).orElse(null);
+        if (existing == null) {
+            existing = new CustomsDocument();
+            existing.setChassisNo(chassisNo);
+            prefillFromVehicle(existing, vehicle);
         }
+        return existing;
+    }
 
-        if (page == 1) {
-            deleteReplacedPage(record.getPage1StoredName(), storedName);
-            record.setPage1OriginalName(originalName);
-            record.setPage1StoredName(storedName);
-            record.setPage1ContentType(contentType);
-        } else if (page == 2) {
-            deleteReplacedPage(record.getPage2StoredName(), storedName);
-            record.setPage2OriginalName(originalName);
-            record.setPage2StoredName(storedName);
-            record.setPage2ContentType(contentType);
-        } else if (page == 3) {
-            deleteReplacedPage(record.getPage3StoredName(), storedName);
-            record.setPage3OriginalName(originalName);
-            record.setPage3StoredName(storedName);
-            record.setPage3ContentType(contentType);
-        } else {
-            deleteReplacedPage(record.getPage4StoredName(), storedName);
-            record.setPage4OriginalName(originalName);
-            record.setPage4StoredName(storedName);
-            record.setPage4ContentType(contentType);
+    private void copyFields(CustomsDocument source, CustomsDocument target, String[] fields) {
+        if (source == null || target == null || fields == null) {
+            return;
         }
-
-        customsDocumentRepository.save(record);
+        BeanWrapper src = new BeanWrapperImpl(source);
+        BeanWrapper dst = new BeanWrapperImpl(target);
+        for (String field : fields) {
+            dst.setPropertyValue(field, src.getPropertyValue(field));
+        }
     }
 
     private void keepOdometerFields(CustomsDocument incoming, CustomsDocument existing) {

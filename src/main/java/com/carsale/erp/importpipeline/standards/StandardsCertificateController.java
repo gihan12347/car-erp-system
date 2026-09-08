@@ -122,10 +122,8 @@ public class StandardsCertificateController {
             importProgressService.syncVehicleStage(chassisNo);
             customsProgressService.syncVehicleStage(chassisNo);
             redirectAttributes.addFlashAttribute("successMessage", "Standards certificate saved.");
-            ImportProgress status = importProgressService.progressFor(chassisNo);
             return "redirect:" + ImportStageUrls.redirectAfterStandardsSave(
                     chassisNo,
-                    status,
                     pipelineStageService.keys(PipelineStageService.FLOW_IMPORT)
             );
         } catch (IllegalArgumentException ex) {
@@ -200,10 +198,8 @@ public class StandardsCertificateController {
             importProgressService.syncVehicleStage(chassisNo);
             customsProgressService.syncVehicleStage(chassisNo);
             redirectAttributes.addFlashAttribute("successMessage", "Standards certificate saved.");
-            ImportProgress status = importProgressService.progressFor(chassisNo);
             return "redirect:" + ImportStageUrls.redirectAfterStandardsSave(
                     chassisNo,
-                    status,
                     pipelineStageService.keys(PipelineStageService.FLOW_IMPORT)
             );
         } catch (IllegalArgumentException ex) {

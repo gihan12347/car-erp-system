@@ -2,10 +2,15 @@ package com.carsale.erp.customspipeline;
 
 import java.util.List;
 
-import org.springframework.web.util.UriUtils;
-
 import com.carsale.erp.customspipeline.CustomsProgressService.CustomsProgress;
 import com.carsale.erp.shared.pipeline.FlowStage;
+import com.carsale.erp.shared.pipeline.PipelineStage;
+import com.carsale.erp.shared.pipeline.PipelineStageService;
+import com.carsale.erp.shared.pipeline.NavLinks;
+import com.carsale.erp.shared.pipeline.FlowPipeline;
+import com.carsale.erp.shared.utils.PipelineStageUtils;
+
+import static com.carsale.erp.shared.pipeline.PipelineStageService.viewLinks;
 
 public final class CustomsStageUrls {
 
@@ -41,21 +46,29 @@ public final class CustomsStageUrls {
         return 0;
     }
 
-    //chassisNo, "/auction/", keys, FlowStage.AUCTION.getStageKey()
-    //TODO :: need to remove
-    public static String redirectAfterClearanceSave(String chassisNo, CustomsProgress status, List<String> keys) {
-        String encoded = encode(chassisNo);
-        String viewBase = "/customs/" + encoded;
-        if (status.isClearanceComplete()) {
-            int last = Math.max(0, keys.size() - 1);
-            return viewBase + "?stage=" + last;
-        }
-        for (int i = 0; i < keys.size(); i++) {
-            if (isIncomplete(keys.get(i), status)) {
-                return viewBase + "?stage=" + i;
-            }
-        }
-        return viewBase;
+    public static String redirectAfterDeclarationSave(String chassisNo, List<String> keys) {
+        return PipelineStageUtils.redirectAfterStageSave(
+                chassisNo, FlowPipeline.CUSTOMS.getCurrentBase(), keys, FlowStage.DECLARATION.getStageKey());
+    }
+
+    public static String redirectAfterAssessmentSave(String chassisNo, List<String> keys) {
+        return PipelineStageUtils.redirectAfterStageSave(
+                chassisNo, FlowPipeline.CUSTOMS.getCurrentBase(), keys, FlowStage.ASSESSMENT.getStageKey());
+    }
+
+    public static String redirectAfterWorksheetSave(String chassisNo, List<String> keys) {
+        return PipelineStageUtils.redirectAfterStageSave(
+                chassisNo, FlowPipeline.CUSTOMS.getCurrentBase(), keys, FlowStage.WORKSHEET.getStageKey());
+    }
+
+    public static NavLinks editLinks(String chassisNo, int stageIndex, CustomsProgress status, List<PipelineStage> keys) {
+        NavLinks view = viewLinks(chassisNo, stageIndex, status, keys, FlowPipeline.CUSTOMS);
+        return new NavLinks(view.getStageIndex(), view.getStageLabel(), view.getPrevUrl(),
+                view.getNextUrl(), view.getNextLabel(), null);
+    }
+
+    public static String editUrlFor(String encodedChassis, String stageKey) {
+        return PipelineStageService.editUrlFor(encodedChassis, stageKey);
     }
 
     public static boolean isIncomplete(String stageKey, CustomsProgress status) {
@@ -63,6 +76,6 @@ public final class CustomsStageUrls {
     }
 
     public static String encode(String chassisNo) {
-        return UriUtils.encodePathSegment(chassisNo, java.nio.charset.StandardCharsets.UTF_8);
+        return PipelineStageUtils.encode(chassisNo);
     }
 }

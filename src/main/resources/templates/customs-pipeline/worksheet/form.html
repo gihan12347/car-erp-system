@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="shared/head :: head(${pageTitle})"></head>
+<body class="sheet-page import-form-page customs-page">
+<div class="app-shell">
+    <aside th:replace="shared/sidebar :: sidebar(${activeMenu})"></aside>
+    <div class="app-main">
+        <header th:replace="shared/topbar :: topbar"></header>
+        <main class="page-content">
+            <div class="dash-head">
+                <div>
+                    <h1 th:text="${'Step ' + @pipelineStageService.displayNumber('CUSTOMS', 'worksheet') + ' · ' + @pipelineStageService.title('CUSTOMS', 'worksheet')}">Step 3 · Working sheet</h1>
+                    <p class="form-lead">Upload the working sheet. Auto-fill reads the document; save when you are ready.</p>
+                </div>
+            </div>
+
+            <div th:replace="customs-pipeline/fragments/pipeline :: clearancePipelineSteps('worksheet', ${vehicle.chassisNo}, ${declarationReady}, ${assessmentReady}, ${worksheetReady}, ${vehicle.model}, false)"></div>
+
+            <p th:if="${successMessage}" class="alert alert-ok" th:text="${successMessage}"></p>
+            <p th:if="${errorMessage}" class="alert alert-error" th:text="${errorMessage}"></p>
+
+            <form th:action="@{/worksheet/{chassisNo}(chassisNo=${vehicle.chassisNo})}"
+                  th:object="${record}" method="post" class="vehicle-form clearance-form" id="worksheetForm">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                <input type="hidden" name="hub" th:value="${hubMode}">
+                <input type="hidden" th:field="*{chassisNo}" id="chassisNo">
+                <input type="hidden" th:field="*{ocrTextPage4}" id="ocrTextPage4">
+                <input type="hidden" th:field="*{page4OriginalName}" id="page4OriginalName">
+                <input type="hidden" th:field="*{page4StoredName}" id="page4StoredName">
+                <input type="hidden" th:field="*{page4ContentType}" id="page4ContentType">
+
+                <div class="sheet-layout preship-layout">
+                    <div class="sheet-document-col">
+                    <aside class="panel sheet-document" id="sheetPreview"
+                           th:classappend="${record.page4StoredName != null and !#strings.isEmpty(record.page4StoredName)} ? ' has-file' : ''">
+                        <div class="panel-head">
+                            <h2>Document preview</h2>
+                        </div>
+
+                        <div class="sheet-preview-frame" id="sheetPreviewFrame"
+                             th:with="hasDoc=${record.page4StoredName != null and !#strings.isEmpty(record.page4StoredName)},
+                                      isPdf=${record.page4StoredName != null and ((record.page4ContentType != null and #strings.contains(record.page4ContentType, 'pdf')) or #strings.endsWith(record.page4StoredName, '.pdf'))}">
+                            <div class="sheet-preview-empty" id="sheetPreviewEmpty"
+                                 th:hidden="${hasDoc}">
+                                <i class="fa-solid fa-file-circle-plus"></i>
+                                <strong>No preview yet</strong>
+                                <span>Use <strong>Choose file</strong> below to upload the working sheet.</span>
+                            </div>
+                            <img id="sheetPreviewImage"
+                                 alt="Working sheet preview"
+                                 th:hidden="${!hasDoc or isPdf}"
+                                 th:src="${hasDoc and !isPdf} ? @{/worksheet/documents/{name}(name=${record.page4StoredName})} : null">
+                            <iframe id="sheetPreviewPdf"
+                                    title="Working sheet PDF"
+                                    th:hidden="${!hasDoc or !isPdf}"
+                                    th:src="${hasDoc and isPdf} ? @{/worksheet/documents/{name}(name=${record.page4StoredName})} : null"></iframe>
+                        </div>
+                    </aside>
+
+                    <div th:replace="shared/document-upload-toolbar :: documentUploadToolbar(
+                            'Working sheet',
+                            '',
+                            ${record.page4OriginalName},
+                            'Choose a JPG, PNG, or PDF working sheet to upload and preview.',
+                            'ocrspace')"></div>
+                    </div>
+
+                    <div class="sheet-fields preship-fields">
+                        <article class="panel">
+                            <div class="panel-head"><h2>Header</h2></div>
+                            <div class="field-grid">
+                                <label>Reference ID <input type="text" th:field="*{worksheetRef}" id="worksheetRef"></label>
+                                <label>H.S. code <input type="text" th:field="*{worksheetHsCode}" id="worksheetHsCode"></label>
+                                <label class="span-2">Type of vehicle <input type="text" th:field="*{worksheetVehicleType}" id="worksheetVehicleType"></label>
+                                <label>Reference no. <input type="text" th:field="*{worksheetReferenceNo}" id="worksheetReferenceNo"></label>
+                                <label>Name of vessel <input type="text" th:field="*{worksheetVesselName}" id="worksheetVesselName"></label>
+                                <label>Chassis nos <input type="text" th:field="*{worksheetChassisNo}" id="worksheetChassisNo"></label>
+                            </div>
+                        </article>
+
+                        <article class="panel">
+                            <div class="panel-head"><h2>FOB, freight &amp; insurance</h2></div>
+                            <div class="field-grid">
+                                <label>Agents FOB <input type="text" th:field="*{worksheetAgentsFob}" id="worksheetAgentsFob"></label>
+                                <label>Invoiced FOB <input type="text" th:field="*{worksheetInvoicedFob}" id="worksheetInvoicedFob"></label>
+                                <label>Agents freight <input type="text" th:field="*{worksheetAgentsFreight}" id="worksheetAgentsFreight"></label>
+                                <label>Invoiced freight <input type="text" th:field="*{worksheetInvoicedFreight}" id="worksheetInvoicedFreight"></label>
+                                <label>Agents insurance <input type="text" th:field="*{worksheetAgentsInsurance}" id="worksheetAgentsInsurance"></label>
+                                <label>Invoiced insurance <input type="text" th:field="*{worksheetInvoicedInsurance}" id="worksheetInvoicedInsurance"></label>
+                                <label>Total value of options <input type="text" th:field="*{worksheetOptionsValue}" id="worksheetOptionsValue"></label>
+                                <label>B/L freight amount <input type="text" th:field="*{worksheetBlFreightAmount}" id="worksheetBlFreightAmount"></label>
+                                <label class="span-2">B/L freight calculation <input type="text" th:field="*{worksheetBlFreightCalc}" id="worksheetBlFreightCalc"></label>
+                            </div>
+                        </article>
+
+                        <article class="panel">
+                            <div class="panel-head"><h2>Dates</h2></div>
+                            <div class="field-grid">
+                                <label>Date of B/L <input type="text" th:field="*{worksheetBlDate}" id="worksheetBlDate"></label>
+                                <label>Date of manufacture <input type="text" th:field="*{worksheetManufactureDate}" id="worksheetManufactureDate"></label>
+                                <label>Age difference for I.C.L <input type="text" th:field="*{worksheetAgeDifference}" id="worksheetAgeDifference"></label>
+                                <label>Date of 1st registration <input type="text" th:field="*{worksheetFirstRegistrationDate}" id="worksheetFirstRegistrationDate"></label>
+                            </div>
+                        </article>
+
+                        <article class="panel">
+                            <div class="panel-head"><h2>Computation of value</h2></div>
+                            <div class="field-grid">
+                                <label>Website value <input type="text" th:field="*{worksheetWebsiteValue}" id="worksheetWebsiteValue"></label>
+                                <label>Less local taxes <input type="text" th:field="*{worksheetLocalTaxes}" id="worksheetLocalTaxes"></label>
+                                <label>15% of value <input type="text" th:field="*{worksheetFifteenPercent}" id="worksheetFifteenPercent"></label>
+                                <label>FOB value (85%) <input type="text" th:field="*{worksheetFobValue85}" id="worksheetFobValue85"></label>
+                            </div>
+                        </article>
+
+                        <article class="panel">
+                            <div class="panel-head"><h2>Letter of credit</h2></div>
+                            <div class="field-grid">
+                                <label>LC no. <input type="text" th:field="*{worksheetLcNo}" id="worksheetLcNo"></label>
+                                <label>LC amount <input type="text" th:field="*{worksheetLcAmount}" id="worksheetLcAmount"></label>
+                                <label>Bank <input type="text" th:field="*{worksheetLcBank}" id="worksheetLcBank"></label>
+                                <label>Importer / company <input type="text" th:field="*{worksheetLcImporter}" id="worksheetLcImporter"></label>
+                                <label>Date of issue <input type="text" th:field="*{worksheetLcIssueDate}" id="worksheetLcIssueDate"></label>
+                                <label>Date of expiry <input type="text" th:field="*{worksheetLcExpiryDate}" id="worksheetLcExpiryDate"></label>
+                                <label>Date of amendment <input type="text" th:field="*{worksheetLcAmendmentDate}" id="worksheetLcAmendmentDate"></label>
+                                <label class="span-2">Clearing agent <input type="text" th:field="*{worksheetClearingAgent}" id="worksheetClearingAgent"></label>
+                            </div>
+                        </article>
+
+                        <article class="panel">
+                            <div class="panel-head"><h2>Fiscal levies</h2></div>
+                            <div class="field-grid">
+                                <label>FOB for fiscal levies <input type="text" th:field="*{worksheetFiscalFob}" id="worksheetFiscalFob"></label>
+                                <label>Freight charges <input type="text" th:field="*{worksheetFiscalFreight}" id="worksheetFiscalFreight"></label>
+                                <label>Insurance charges <input type="text" th:field="*{worksheetFiscalInsurance}" id="worksheetFiscalInsurance"></label>
+                                <label>Value of options <input type="text" th:field="*{worksheetFiscalOptions}" id="worksheetFiscalOptions"></label>
+                                <label>Total value for fiscal levies <input type="text" th:field="*{worksheetFiscalTotal}" id="worksheetFiscalTotal"></label>
+                            </div>
+                        </article>
+
+                        <button type="submit" class="panel-btn import-form-submit">Save &amp; continue</button>
+                    </div>
+                </div>
+            </form>
+        </main>
+    </div>
+</div>
+
+<div id="sheetViewer" class="sheet-viewer" hidden>
+    <div class="sheet-viewer-toolbar">
+        <strong id="sheetViewerTitle">Working sheet</strong>
+        <div class="sheet-viewer-tools">
+            <button type="button" class="panel-btn ghost" id="sheetPrevEmptyField" title="Previous empty field">Prev</button>
+            <button type="button" class="panel-btn ghost" id="sheetZoomOut" title="Zoom out">−</button>
+            <button type="button" class="panel-btn ghost" id="sheetZoomIn" title="Zoom in">+</button>
+            <button type="button" class="panel-btn ghost" id="sheetNextEmptyField" title="Next empty field">Next</button>
+            <button type="button" class="panel-btn ghost" id="sheetViewerClose">Close</button>
+        </div>
+    </div>
+    <div class="sheet-viewer-body" id="sheetViewerBody">
+        <img id="sheetViewerImage" alt="Working sheet">
+        <iframe id="sheetViewerPdf" title="Working sheet PDF" hidden></iframe>
+    </div>
+</div>
+
+<div th:replace="shared/app-loader :: appLoader('fillLoader', 'Reading the working sheet and filling fields...')"></div>
+
+<script th:src="@{/js/shared/app.js(v=20260905k)}"></script>
+<script th:src="@{/js/shared/document-viewer.js(v=20260826d)}"></script>
+<script th:src="@{/js/customs-pipeline/clearance-stage.js(v=20260908a)}"></script>
+<script th:src="@{/js/customs-pipeline/worksheet.js(v=20260908a)}"></script>
+</body>
+</html>

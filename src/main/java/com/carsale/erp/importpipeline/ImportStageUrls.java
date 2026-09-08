@@ -64,13 +64,6 @@ public final class ImportStageUrls {
         return stageKeyAt(stages, index);
     }
 
-    private static String viewUrl(String viewBase, String stageKey) {
-        if (stageKey == null || stageKey.trim().isEmpty()) {
-            return viewBase;
-        }
-        return viewBase + "?stage=" + stageKey;
-    }
-
     public static Map<Integer, String> getStageKeyBySortOrder(List<PipelineStage> stages) {
         Map<Integer, String> map = new TreeMap<>();
         if (stages == null) {
@@ -89,34 +82,34 @@ public final class ImportStageUrls {
     }
 
     public static String redirectAfterAuctionSave(String chassisNo, List<String> keys) {
-        return PipelineStageUtils.redirectAfterStageSave(chassisNo, "/auction/", keys, FlowStage.AUCTION.getStageKey());
+        return PipelineStageUtils.redirectAfterStageSave(chassisNo, FlowPipeline.IMPORT.getCurrentBase(), keys, FlowStage.AUCTION.getStageKey());
     }
 
     public static String redirectAfterPreshipSave(String chassisNo, List<String> keys) {
-        return PipelineStageUtils.redirectAfterStageSave(chassisNo, "/auction/", keys, FlowStage.PRESHIP.getStageKey());
+        return PipelineStageUtils.redirectAfterStageSave(chassisNo, FlowPipeline.IMPORT.getCurrentBase(), keys, FlowStage.PRESHIP.getStageKey());
     }
 
     public static String redirectAfterEquipmentSave(String chassisNo, List<String> keys) {
-        return PipelineStageUtils.redirectAfterStageSave(chassisNo, "/auction/", keys, FlowStage.EQUIPMENT.getStageKey());
+        return PipelineStageUtils.redirectAfterStageSave(chassisNo, FlowPipeline.IMPORT.getCurrentBase(), keys, FlowStage.EQUIPMENT.getStageKey());
     }
 
     public static String redirectAfterOdometerSave(String chassisNo, List<String> keys) {
-        return PipelineStageUtils.redirectAfterStageSave(chassisNo, "/auction/", keys, FlowStage.JEVIC.getStageKey());
+        return PipelineStageUtils.redirectAfterStageSave(chassisNo, FlowPipeline.IMPORT.getCurrentBase(), keys, FlowStage.JEVIC.getStageKey());
     }
 
     public static String redirectAfterCoiSave(String chassisNo, List<String> keys) {
-        return PipelineStageUtils.redirectAfterStageSave(chassisNo, "/auction/", keys, FlowStage.COI.getStageKey());
+        return PipelineStageUtils.redirectAfterStageSave(chassisNo, FlowPipeline.IMPORT.getCurrentBase(), keys, FlowStage.COI.getStageKey());
     }
 
-    public static String redirectAfterStandardsSave(String chassisNo, ImportProgress status, List<String> keys) {
-        return PipelineStageUtils.redirectAfterStageSave(chassisNo, "/auction/", keys, FlowStage.STANDARDS.getStageKey());
+    public static String redirectAfterStandardsSave(String chassisNo, List<String> keys) {
+        return PipelineStageUtils.redirectAfterStageSave(chassisNo, FlowPipeline.IMPORT.getCurrentBase(), keys, FlowStage.STANDARDS.getStageKey());
     }
 
-    public static String redirectAfterExportSave(String chassisNo, ImportProgress status, List<String> keys) {
-        return PipelineStageUtils.redirectAfterStageSave(chassisNo, "/auction/", keys, FlowStage.EXPORT.getStageKey());
+    public static String redirectAfterExportSave(String chassisNo, List<String> keys) {
+        return PipelineStageUtils.redirectAfterStageSave(chassisNo, FlowPipeline.IMPORT.getCurrentBase(), keys, FlowStage.EXPORT.getStageKey());
     }
 
-    public static String redirectAfterPhotosSave(String chassisNo, ImportProgress status, List<String> keys) {
+    public static String redirectAfterPhotosSave(String chassisNo, List<String> keys) {
         return PipelineStageUtils.redirectAfterStageSave(chassisNo, "/auction/", keys, FlowStage.PHOTOS.getStageKey());
     }
 

@@ -119,10 +119,8 @@ public class VehicleImagesController {
             importProgressService.syncVehicleStage(trimmed);
             customsProgressService.syncVehicleStage(trimmed);
             redirectAttributes.addFlashAttribute("successMessage", "Vehicle images saved.");
-            ImportProgress status = importProgressService.progressFor(trimmed);
             return "redirect:" + ImportStageUrls.redirectAfterPhotosSave(
                     trimmed,
-                    status,
                     pipelineStageService.keys(PipelineStageService.FLOW_IMPORT)
             );
         } catch (IllegalArgumentException ex) {
@@ -248,10 +246,8 @@ public class VehicleImagesController {
             importProgressService.syncVehicleStage(chassisNo);
             customsProgressService.syncVehicleStage(chassisNo);
             redirectAttributes.addFlashAttribute("successMessage", "Vehicle images saved.");
-            ImportProgress status = importProgressService.progressFor(chassisNo);
             return "redirect:" + ImportStageUrls.redirectAfterPhotosSave(
                     chassisNo,
-                    status,
                     pipelineStageService.keys(PipelineStageService.FLOW_IMPORT)
             );
         } catch (IllegalArgumentException ex) {

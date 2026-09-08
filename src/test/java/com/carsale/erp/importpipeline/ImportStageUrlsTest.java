@@ -136,10 +136,9 @@ class ImportStageUrlsTest {
 
     @Test
     void completeImportAfterStandardsGoesToExport() {
-        ImportProgress status = new ImportProgress(true, true, true, true, true, true, false, false);
         List<String> keys = Arrays.asList("auction", "preshipment", "equipment", "jevic", "coi", "standards", "export");
 
-        String url = ImportStageUrls.redirectAfterStandardsSave("ABC123", status, keys);
+        String url = ImportStageUrls.redirectAfterStandardsSave("ABC123", keys);
 
         assertEquals("/export/ABC123?hub=1", url);
     }
@@ -156,10 +155,9 @@ class ImportStageUrlsTest {
 
     @Test
     void completeImportAfterExportGoesToPhotos() {
-        ImportProgress status = new ImportProgress(true, true, true, true, true, true, true, false);
         List<String> keys = Arrays.asList("auction", "preshipment", "equipment", "jevic", "coi", "standards", "export", "photos");
 
-        String url = ImportStageUrls.redirectAfterExportSave("ABC123", status, keys);
+        String url = ImportStageUrls.redirectAfterExportSave("ABC123", keys);
 
         assertEquals("/photos/ABC123?hub=1", url);
     }
@@ -176,10 +174,9 @@ class ImportStageUrlsTest {
 
     @Test
     void completeImportAfterPhotosGoesToCustoms() {
-        ImportProgress status = new ImportProgress(true, true, true, true, true, true, true, true);
-        List<String> keys = Arrays.asList("auction", "preshipment", "equipment", "jevic", "coi", "standards", "export", "photos");
+       List<String> keys = Arrays.asList("auction", "preshipment", "equipment", "jevic", "coi", "standards", "export", "photos");
 
-        String url = ImportStageUrls.redirectAfterPhotosSave("ABC123", status, keys);
+        String url = ImportStageUrls.redirectAfterPhotosSave("ABC123", keys);
 
         assertEquals("/customs/ABC123", url);
     }

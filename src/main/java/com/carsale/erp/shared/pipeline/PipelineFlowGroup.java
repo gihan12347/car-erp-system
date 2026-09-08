@@ -2,8 +2,6 @@ package com.carsale.erp.shared.pipeline;
 
 import java.util.List;
 
-import com.carsale.erp.shared.pipeline.PipelineStage;
-
 public class PipelineFlowGroup {
     private final Long id;
     private final String title;

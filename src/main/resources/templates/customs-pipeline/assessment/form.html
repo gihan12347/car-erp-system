@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="shared/head :: head(${pageTitle})"></head>
+<body class="sheet-page import-form-page customs-page">
+<div class="app-shell">
+    <aside th:replace="shared/sidebar :: sidebar(${activeMenu})"></aside>
+    <div class="app-main">
+        <header th:replace="shared/topbar :: topbar"></header>
+        <main class="page-content">
+            <div class="dash-head">
+                <div>
+                    <h1 th:text="${'Step ' + @pipelineStageService.displayNumber('CUSTOMS', 'assessment') + ' · ' + @pipelineStageService.title('CUSTOMS', 'assessment')}">Step 2 · Assessment notice</h1>
+                    <p class="form-lead">Upload the assessment notice. Auto-fill reads the document; save when you are ready.</p>
+                </div>
+            </div>
+
+            <div th:replace="customs-pipeline/fragments/pipeline :: clearancePipelineSteps('assessment', ${vehicle.chassisNo}, ${declarationReady}, ${assessmentReady}, ${worksheetReady}, ${vehicle.model}, false)"></div>
+
+            <p th:if="${successMessage}" class="alert alert-ok" th:text="${successMessage}"></p>
+            <p th:if="${errorMessage}" class="alert alert-error" th:text="${errorMessage}"></p>
+
+            <form th:action="@{/assessment/{chassisNo}(chassisNo=${vehicle.chassisNo})}"
+                  th:object="${record}" method="post" class="vehicle-form clearance-form" id="assessmentForm">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                <input type="hidden" name="hub" th:value="${hubMode}">
+                <input type="hidden" th:field="*{chassisNo}" id="chassisNo">
+                <input type="hidden" th:field="*{ocrTextPage3}" id="ocrTextPage3">
+                <input type="hidden" th:field="*{page3OriginalName}" id="page3OriginalName">
+                <input type="hidden" th:field="*{page3StoredName}" id="page3StoredName">
+                <input type="hidden" th:field="*{page3ContentType}" id="page3ContentType">
+                <input type="hidden" th:field="*{assessmentOffice}" id="assessmentOffice">
+                <input type="hidden" th:field="*{assessmentNoticeRef}" id="assessmentNoticeRef">
+                <input type="hidden" th:field="*{assessmentModel}" id="assessmentModel">
+                <input type="hidden" th:field="*{assessmentPackages}" id="assessmentPackages">
+                <input type="hidden" th:field="*{assessmentCustomsReference}" id="assessmentCustomsReference">
+                <input type="hidden" th:field="*{assessmentDeclarantReference}" id="assessmentDeclarantReference">
+                <input type="hidden" th:field="*{assessmentReference}" id="assessmentReference">
+
+                <div class="sheet-layout preship-layout">
+                    <div class="sheet-document-col">
+                    <aside class="panel sheet-document" id="sheetPreview"
+                           th:classappend="${record.page3StoredName != null and !#strings.isEmpty(record.page3StoredName)} ? ' has-file' : ''">
+                        <div class="panel-head">
+                            <h2>Document preview</h2>
+                        </div>
+
+                        <div class="sheet-preview-frame" id="sheetPreviewFrame"
+                             th:with="hasDoc=${record.page3StoredName != null and !#strings.isEmpty(record.page3StoredName)},
+                                      isPdf=${record.page3StoredName != null and ((record.page3ContentType != null and #strings.contains(record.page3ContentType, 'pdf')) or #strings.endsWith(record.page3StoredName, '.pdf'))}">
+                            <div class="sheet-preview-empty" id="sheetPreviewEmpty"
+                                 th:hidden="${hasDoc}">
+                                <i class="fa-solid fa-file-circle-plus"></i>
+                                <strong>No preview yet</strong>
+                                <span>Use <strong>Choose file</strong> below to upload the assessment notice.</span>
+                            </div>
+                            <img id="sheetPreviewImage"
+                                 alt="Assessment notice preview"
+                                 th:hidden="${!hasDoc or isPdf}"
+                                 th:src="${hasDoc and !isPdf} ? @{/assessment/documents/{name}(name=${record.page3StoredName})} : null">
+                            <iframe id="sheetPreviewPdf"
+                                    title="Assessment notice PDF"
+                                    th:hidden="${!hasDoc or !isPdf}"
+                                    th:src="${hasDoc and isPdf} ? @{/assessment/documents/{name}(name=${record.page3StoredName})} : null"></iframe>
+                        </div>
+                    </aside>
+
+                    <div th:replace="shared/document-upload-toolbar :: documentUploadToolbar(
+                            'Assessment notice',
+                            '',
+                            ${record.page3OriginalName},
+                            'Choose a JPG, PNG, or PDF assessment notice to upload and preview.',
+                            'ocrspace')"></div>
+                    </div>
+
+                    <div class="sheet-fields preship-fields">
+                        <article class="panel">
+                            <div class="panel-head"><h2>Declarant &amp; consignee</h2></div>
+                            <div class="field-grid">
+                                <label>Declarant ID <input type="text" th:field="*{assessmentDeclarantId}" id="assessmentDeclarantId"></label>
+                                <label>Declarant name <input type="text" th:field="*{assessmentDeclarantName}" id="assessmentDeclarantName"></label>
+                                <label class="span-2">Declarant address <textarea th:field="*{assessmentDeclarantAddress}" id="assessmentDeclarantAddress" rows="2"></textarea></label>
+                                <label>CHA expiry <input type="text" th:field="*{assessmentDeclarantChaExp}" id="assessmentDeclarantChaExp"></label>
+                                <label>Consignee ID <input type="text" th:field="*{assessmentConsigneeId}" id="assessmentConsigneeId"></label>
+                                <label>Consignee name <input type="text" th:field="*{assessmentConsigneeName}" id="assessmentConsigneeName"></label>
+                                <label class="span-2">Consignee address <textarea th:field="*{assessmentConsigneeAddress}" id="assessmentConsigneeAddress" rows="2"></textarea></label>
+                            </div>
+                        </article>
+
+                        <article class="panel">
+                            <div class="panel-head"><h2>Global taxes</h2></div>
+                            <div class="field-grid">
+                                <label>OTC · Over time charges <input type="text" th:field="*{assessmentTaxOtc}" id="assessmentTaxOtc"></label>
+                                <label>COM · Computer fee <input type="text" th:field="*{assessmentTaxCom}" id="assessmentTaxCom"></label>
+                                <label>EXM · Examination fees <input type="text" th:field="*{assessmentTaxExm}" id="assessmentTaxExm"></label>
+                            </div>
+                        </article>
+
+                        <article class="panel">
+                            <div class="panel-head"><h2>Item taxes &amp; totals</h2></div>
+                            <div class="field-grid">
+                                <label>CID · Customs import duty <input type="text" th:field="*{assessmentTaxCid}" id="assessmentTaxCid"></label>
+                                <label>SUR · Surcharge <input type="text" th:field="*{assessmentTaxSur}" id="assessmentTaxSur"></label>
+                                <label>XID · Excise duty <input type="text" th:field="*{assessmentTaxXid}" id="assessmentTaxXid"></label>
+                                <label>VAT · Value added tax <input type="text" th:field="*{assessmentTaxVat}" id="assessmentTaxVat"></label>
+                                <label>VEL · Vehicle entitlement levy <input type="text" th:field="*{assessmentTaxVel}" id="assessmentTaxVel"></label>
+                                <label>Total assessed <input type="text" th:field="*{assessmentTotalAssessed}" id="assessmentTotalAssessed"></label>
+                                <label>Total amount paid <input type="text" th:field="*{assessmentTotalPaid}" id="assessmentTotalPaid"></label>
+                            </div>
+                        </article>
+
+                        <button type="submit" class="panel-btn import-form-submit">Save &amp; continue</button>
+                    </div>
+                </div>
+            </form>
+        </main>
+    </div>
+</div>
+
+<div id="sheetViewer" class="sheet-viewer" hidden>
+    <div class="sheet-viewer-toolbar">
+        <strong id="sheetViewerTitle">Assessment notice</strong>
+        <div class="sheet-viewer-tools">
+            <button type="button" class="panel-btn ghost" id="sheetPrevEmptyField" title="Previous empty field">Prev</button>
+            <button type="button" class="panel-btn ghost" id="sheetZoomOut" title="Zoom out">−</button>
+            <button type="button" class="panel-btn ghost" id="sheetZoomIn" title="Zoom in">+</button>
+            <button type="button" class="panel-btn ghost" id="sheetNextEmptyField" title="Next empty field">Next</button>
+            <button type="button" class="panel-btn ghost" id="sheetViewerClose">Close</button>
+        </div>
+    </div>
+    <div class="sheet-viewer-body" id="sheetViewerBody">
+        <img id="sheetViewerImage" alt="Assessment notice">
+        <iframe id="sheetViewerPdf" title="Assessment notice PDF" hidden></iframe>
+    </div>
+</div>
+
+<div th:replace="shared/app-loader :: appLoader('fillLoader', 'Reading the assessment notice and filling fields...')"></div>
+
+<script th:src="@{/js/shared/app.js(v=20260905k)}"></script>
+<script th:src="@{/js/shared/document-viewer.js(v=20260826d)}"></script>
+<script th:src="@{/js/customs-pipeline/clearance-stage.js(v=20260908a)}"></script>
+<script th:src="@{/js/customs-pipeline/assessment.js(v=20260908a)}"></script>
+</body>
+</html>
