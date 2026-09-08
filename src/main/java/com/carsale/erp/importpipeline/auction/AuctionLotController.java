@@ -329,7 +329,6 @@ public class AuctionLotController {
             }
             return "redirect:" + ImportStageUrls.redirectAfterAuctionSave(
                     saved.getChassisNo(),
-                    status,
                     importKeys
             );
         } catch (DataIntegrityViolationException ex) {

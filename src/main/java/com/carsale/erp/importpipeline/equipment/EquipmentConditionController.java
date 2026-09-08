@@ -123,10 +123,8 @@ public class EquipmentConditionController {
             importProgressService.syncVehicleStage(chassisNo);
             customsProgressService.syncVehicleStage(chassisNo);
             redirectAttributes.addFlashAttribute("successMessage", "Equipment condition saved.");
-            ImportProgress status = importProgressService.progressFor(chassisNo);
             return "redirect:" + ImportStageUrls.redirectAfterEquipmentSave(
                     chassisNo,
-                    status,
                     pipelineStageService.keys(PipelineStageService.FLOW_IMPORT)
             );
         } catch (IllegalArgumentException ex) {
@@ -208,10 +206,8 @@ public class EquipmentConditionController {
             importProgressService.syncVehicleStage(chassisNo);
             customsProgressService.syncVehicleStage(chassisNo);
             redirectAttributes.addFlashAttribute("successMessage", "Equipment condition saved.");
-            ImportProgress status = importProgressService.progressFor(chassisNo);
             return "redirect:" + ImportStageUrls.redirectAfterEquipmentSave(
                     chassisNo,
-                    status,
                     pipelineStageService.keys(PipelineStageService.FLOW_IMPORT)
             );
         } catch (IllegalArgumentException ex) {

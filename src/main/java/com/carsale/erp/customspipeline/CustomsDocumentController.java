@@ -110,7 +110,7 @@ public class CustomsDocumentController {
         } else if (tab != null && tab == 4) {
             stageKey = FlowStage.WORKSHEET.getStageKey();
         }
-        return "redirect:" + CustomsStageUrls.editUrlFor(encodeChassis(chassisNo), stageKey);
+        return "redirect:" + PipelineStageService.editUrlFor(encodeChassis(chassisNo), stageKey);
     }
 
     private String showForm(
@@ -217,7 +217,7 @@ public class CustomsDocumentController {
             );
         } catch (IllegalArgumentException ex) {
             redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
-            return "redirect:" + CustomsStageUrls.editUrlFor(
+            return "redirect:" + PipelineStageService.editUrlFor(
                     encodeChassis(chassisNo),
                     FlowStage.DECLARATION.getStageKey()
             );

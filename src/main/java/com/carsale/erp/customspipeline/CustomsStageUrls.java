@@ -41,6 +41,8 @@ public final class CustomsStageUrls {
         return 0;
     }
 
+    //chassisNo, "/auction/", keys, FlowStage.AUCTION.getStageKey()
+    //TODO :: need to remove
     public static String redirectAfterClearanceSave(String chassisNo, CustomsProgress status, List<String> keys) {
         String encoded = encode(chassisNo);
         String viewBase = "/customs/" + encoded;
@@ -54,16 +56,6 @@ public final class CustomsStageUrls {
             }
         }
         return viewBase;
-    }
-
-    public static String editUrlFor(String encodedChassis, String stageKey) {
-        if (FlowStage.ASSESSMENT.getStageKey().equals(stageKey)) {
-            return "/assessment/" + encodedChassis + "?hub=1";
-        }
-        if (FlowStage.WORKSHEET.getStageKey().equals(stageKey)) {
-            return "/worksheet/" + encodedChassis + "?hub=1";
-        }
-        return "/declaration/" + encodedChassis + "?hub=1";
     }
 
     public static boolean isIncomplete(String stageKey, CustomsProgress status) {

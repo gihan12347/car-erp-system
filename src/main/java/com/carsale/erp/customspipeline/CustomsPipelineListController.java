@@ -77,7 +77,7 @@ public class CustomsPipelineListController {
             return "redirect:/customs";
         }
         if (hub) {
-            return "redirect:" + CustomsStageUrls.editUrlFor(
+            return "redirect:" + PipelineStageService.editUrlFor(
                     CustomsStageUrls.encode(chassisNo),
                     FlowStage.DECLARATION.getStageKey()
             );
@@ -104,7 +104,7 @@ public class CustomsPipelineListController {
         }
 
         if (customsDocumentService.findByChassisNo(chassisNo) == null) {
-            return "redirect:" + CustomsStageUrls.editUrlFor(
+            return "redirect:" + PipelineStageService.editUrlFor(
                     CustomsStageUrls.encode(chassisNo),
                     stageKey
             );

@@ -2,6 +2,7 @@ package com.carsale.erp.shared.pipeline;
 
 import java.util.*;
 
+import com.carsale.erp.shared.utils.PipelineStageUtils;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Service;
@@ -392,17 +393,17 @@ public class PipelineStageService implements CommandLineRunner {
     public static NavLinks viewLinks(String chassisNo, int stageIndex, PipelineProgress status, List<PipelineStage> stages, FlowPipeline flowPipeline) {
         String encoded = encode(chassisNo);
         String viewBase = flowPipeline.getCurrentBase() + encoded;
-        FlowPipeline pipeline = FlowPipeline.findNextPipelineBySortOrder(flowPipeline.getSortOrder() + 1);
+        FlowPipeline pipeline = FlowPipeline.findPipelineBySortOrder(flowPipeline.getSortOrder() + 1);
         String key = stageKeyAt(stages, stageIndex);
         String prevUrl = stageIndex > 0
-                ? viewUrl(viewBase, stageKeyAt(stages, stageIndex - 1))
+                ? PipelineStageUtils.viewUrl(viewBase, stageKeyAt(stages, stageIndex - 1))
                 : null;
         String nextUrl;
         String nextLabel = "Next";
         if (stageIndex < stages.size() - 1) {
             String nextKey = stageKeyAt(stages, stageIndex + 1);
             if (isStageComplete(nextKey, status)) {
-                nextUrl = viewUrl(viewBase, nextKey);
+                nextUrl = PipelineStageUtils.viewUrl(viewBase, nextKey);
                 nextLabel = labeled("Next · ", titleFor(nextKey), "Next");
             } else {
                 nextUrl = editUrlFor(encoded, nextKey);
@@ -441,13 +442,6 @@ public class PipelineStageService implements CommandLineRunner {
             return stages.get(stages.size() - 1).getStageKey();
         }
         return stages.get(index).getStageKey();
-    }
-
-    private static String viewUrl(String viewBase, String stageKey) {
-        if (stageKey == null || stageKey.trim().isEmpty()) {
-            return viewBase;
-        }
-        return viewBase + "?stage=" + stageKey;
     }
 
     public static boolean isStageComplete(String stageKey, PipelineProgress status) {

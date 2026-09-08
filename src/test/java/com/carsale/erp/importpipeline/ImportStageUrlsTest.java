@@ -79,10 +79,9 @@ class ImportStageUrlsTest {
 
     @Test
     void completeImportGoesToCustoms() {
-        ImportProgress status = new ImportProgress(true, true, true, true, true, true, true, true);
         List<String> keys = Arrays.asList("auction", "preshipment", "equipment", "jevic", "coi", "standards");
 
-        String url = ImportStageUrls.redirectAfterOdometerSave("ABC123", status, keys);
+        String url = ImportStageUrls.redirectAfterOdometerSave("ABC123", keys);
 
         assertEquals("/customs/ABC123", url);
     }
@@ -99,10 +98,9 @@ class ImportStageUrlsTest {
 
     @Test
     void completeImportAfterCoiGoesToCustoms() {
-        ImportProgress status = new ImportProgress(true, true, true, true, true, true, true, true);
         List<String> keys = Arrays.asList("auction", "preshipment", "equipment", "jevic", "coi", "standards");
 
-        String url = ImportStageUrls.redirectAfterCoiSave("ABC123", status, keys);
+        String url = ImportStageUrls.redirectAfterCoiSave("ABC123", keys);
 
         assertEquals("/customs/ABC123", url);
     }

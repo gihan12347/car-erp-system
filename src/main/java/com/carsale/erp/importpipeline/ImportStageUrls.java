@@ -5,11 +5,9 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import com.carsale.erp.shared.pipeline.*;
-import org.springframework.web.util.UriUtils;
+import com.carsale.erp.shared.utils.PipelineStageUtils;
 
 import com.carsale.erp.importpipeline.ImportProgressService.ImportProgress;
-
-import static com.carsale.erp.shared.pipeline.PipelineStageService.editUrlOrFallback;
 import static com.carsale.erp.shared.pipeline.PipelineStageService.viewLinks;
 
 public final class ImportStageUrls {
@@ -18,18 +16,18 @@ public final class ImportStageUrls {
     }
 
     public static String pipelineHubUrl(String chassisNo, ImportProgress status, List<String> keys) {
-        String encoded = encode(chassisNo);
+        String encoded = PipelineStageUtils.encode(chassisNo);
         if (status.isPipelineCompleted()) {
-            return viewBase(encoded);
+            return "/auction/" + encoded;
         }
         if (!status.hasAnyCompletedStage()) {
             return firstIncompleteEditUrl(encoded, status, keys);
         }
-        return viewBase(encoded);
+        return "/auction/" + encoded;
     }
 
     public static String redirectAfterNewVehicle(String chassisNo, ImportProgress status, List<String> keys) {
-        String encoded = encode(chassisNo);
+        String encoded = PipelineStageUtils.encode(chassisNo);
         if (status.isPipelineCompleted()) {
             return "/customs/" + encoded;
         }
@@ -90,73 +88,36 @@ public final class ImportStageUrls {
                 view.getNextUrl(), view.getNextLabel(), null);
     }
 
-    public static String redirectAfterAuctionSave(String chassisNo, ImportProgress status, List<String> keys) {
-        return redirectAfterStageSave(chassisNo, status, keys, FlowStage.AUCTION.getStageKey());
+    public static String redirectAfterAuctionSave(String chassisNo, List<String> keys) {
+        return PipelineStageUtils.redirectAfterStageSave(chassisNo, "/auction/", keys, FlowStage.AUCTION.getStageKey());
     }
 
-    public static String redirectAfterPreshipSave(String chassisNo, ImportProgress status, List<String> keys) {
-        return redirectAfterStageSave(chassisNo, status, keys, FlowStage.PRESHIP.getStageKey());
+    public static String redirectAfterPreshipSave(String chassisNo, List<String> keys) {
+        return PipelineStageUtils.redirectAfterStageSave(chassisNo, "/auction/", keys, FlowStage.PRESHIP.getStageKey());
     }
 
-    public static String redirectAfterEquipmentSave(String chassisNo, ImportProgress status, List<String> keys) {
-        return redirectAfterStageSave(chassisNo, status, keys, FlowStage.EQUIPMENT.getStageKey());
+    public static String redirectAfterEquipmentSave(String chassisNo, List<String> keys) {
+        return PipelineStageUtils.redirectAfterStageSave(chassisNo, "/auction/", keys, FlowStage.EQUIPMENT.getStageKey());
     }
 
-    public static String redirectAfterOdometerSave(String chassisNo, ImportProgress status, List<String> keys) {
-        return redirectAfterStageSave(chassisNo, status, keys, FlowStage.JEVIC.getStageKey());
+    public static String redirectAfterOdometerSave(String chassisNo, List<String> keys) {
+        return PipelineStageUtils.redirectAfterStageSave(chassisNo, "/auction/", keys, FlowStage.JEVIC.getStageKey());
     }
 
-    public static String redirectAfterCoiSave(String chassisNo, ImportProgress status, List<String> keys) {
-        return redirectAfterStageSave(chassisNo, status, keys, FlowStage.COI.getStageKey());
+    public static String redirectAfterCoiSave(String chassisNo, List<String> keys) {
+        return PipelineStageUtils.redirectAfterStageSave(chassisNo, "/auction/", keys, FlowStage.COI.getStageKey());
     }
 
     public static String redirectAfterStandardsSave(String chassisNo, ImportProgress status, List<String> keys) {
-        return redirectAfterStageSave(chassisNo, status, keys, FlowStage.STANDARDS.getStageKey());
+        return PipelineStageUtils.redirectAfterStageSave(chassisNo, "/auction/", keys, FlowStage.STANDARDS.getStageKey());
     }
 
     public static String redirectAfterExportSave(String chassisNo, ImportProgress status, List<String> keys) {
-        return redirectAfterStageSave(chassisNo, status, keys, FlowStage.EXPORT.getStageKey());
+        return PipelineStageUtils.redirectAfterStageSave(chassisNo, "/auction/", keys, FlowStage.EXPORT.getStageKey());
     }
 
     public static String redirectAfterPhotosSave(String chassisNo, ImportProgress status, List<String> keys) {
-        return redirectAfterStageSave(chassisNo, status, keys, FlowStage.PHOTOS.getStageKey());
-    }
-
-    private static String redirectAfterStageSave(
-            String chassisNo,
-            ImportProgress status,
-            List<String> keys,
-            String currentKey
-    ) {
-        String encoded = encode(chassisNo);
-        return redirectToNext(encoded, status, keys, currentKey, viewBase(encoded));
-    }
-
-    //TODO:: need to refactor the code
-    private static String redirectToNext(
-            String encoded,
-            ImportProgress status,
-            List<String> keys,
-            String currentKey,
-            String viewBase
-    ) {
-        int index = keys.indexOf(currentKey);
-        for (int i = index + 1; i < keys.size(); i++) {
-            String nextKey = keys.get(i);
-            if (isStageComplete(nextKey, status)) {
-                return viewUrl(viewBase, nextKey);
-            }
-            return editUrlOrFallback(encoded, nextKey, viewBase);
-        }
-        for (String key : keys) {
-            if (!isStageComplete(key, status)) {
-                String url = editUrlFor(encoded, key);
-                if (url != null) {
-                    return url;
-                }
-            }
-        }
-        return viewBase;
+        return PipelineStageUtils.redirectAfterStageSave(chassisNo, "/auction/", keys, FlowStage.PHOTOS.getStageKey());
     }
 
     public static boolean isStageComplete(String stageKey, PipelineProgress status) {
@@ -166,7 +127,6 @@ public final class ImportStageUrls {
     public static String editUrlFor(String encodedChassis, String stageKey) {
         return PipelineStageService.editUrlFor(encodedChassis, stageKey);
     }
-
 
     private static String firstIncompleteEditUrl(String encoded, ImportProgress status, List<String> keys) {
         List<String> ordered = keys;
@@ -190,14 +150,7 @@ public final class ImportStageUrls {
                 }
             }
         }
-        return viewBase(encoded);
-    }
-
-    private static String viewBase(String encoded) {
         return "/auction/" + encoded;
     }
 
-    private static String encode(String chassisNo) {
-        return UriUtils.encodePathSegment(chassisNo, java.nio.charset.StandardCharsets.UTF_8);
-    }
 }

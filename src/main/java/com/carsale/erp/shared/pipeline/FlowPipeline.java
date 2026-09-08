@@ -47,13 +47,21 @@ public enum FlowPipeline {
         return sortOrder;
     }
 
-    public static FlowPipeline findNextPipelineBySortOrder(int order) {
+    public static FlowPipeline findPipelineBySortOrder(int order) {
         for (FlowPipeline pipeline : FlowPipeline.values()) {
             if (pipeline.sortOrder == order) {
                 return pipeline;
             }
         }
+        return null;
+    }
 
+    public static FlowPipeline findPipelineByBasePath(String currentBase) {
+        for (FlowPipeline pipeline : FlowPipeline.values()) {
+            if (currentBase.equalsIgnoreCase(pipeline.getCurrentBase())) {
+                return pipeline;
+            }
+        }
         return null;
     }
 }
