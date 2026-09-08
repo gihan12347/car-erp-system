@@ -152,14 +152,12 @@ public class StandardsCertificateController {
         model.addAttribute("vehicle", vehicle);
         model.addAttribute("record", record);
         addPipelineFlags(model, status);
-        if (hub) {
-            model.addAttribute("stageNav", ImportStageUrls.editLinks(
-                    chassisNo,
-                    pipelineStageService.indexOf(PipelineStageService.FLOW_IMPORT, FlowStage.STANDARDS.getStageKey()),
-                    status,
-                    pipelineStageService.list(PipelineStageService.FLOW_IMPORT)
-            ));
-        }
+        model.addAttribute("stageNav", ImportStageUrls.editLinks(
+                chassisNo,
+                pipelineStageService.indexOf(PipelineStageService.FLOW_IMPORT, FlowStage.STANDARDS.getStageKey()),
+                status,
+                pipelineStageService.list(PipelineStageService.FLOW_IMPORT)
+        ));
         return "import-pipeline/standards/form";
     }
 

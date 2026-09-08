@@ -186,6 +186,49 @@
             });
     }
 
+    function clearWorkshopJob(card, radio) {
+        var title = cardTitle(card);
+        var note = card.querySelector(".inspection-job-note");
+        var lineId = fieldValue(card, "id");
+        var body = {
+            lineId: lineId ? Number(lineId) : null,
+            itemKey: fieldValue(card, "itemKey"),
+            itemTitle: title,
+            notes: fieldValue(card, "notes"),
+            catalogItem: fieldValue(card, "catalogItem") === "true",
+            result: radio.value
+        };
+        var url = form.getAttribute("data-clear-fail-url");
+        if (!url) {
+            return;
+        }
+        fetch(url, {
+            method: "POST",
+            credentials: "same-origin",
+            headers: csrfHeaders(),
+            body: JSON.stringify(body)
+        })
+            .then(function (response) {
+                return response.json().then(function (payload) {
+                    return { ok: response.ok, payload: payload };
+                });
+            })
+            .then(function (result) {
+                var message = (result.payload && result.payload.message)
+                    || (result.ok ? "Workshop job removed." : "Could not update the workshop job.");
+                if (result.ok && result.payload && result.payload.success) {
+                    showBanner(true, message);
+                    if (note) {
+                        note.hidden = true;
+                        note.textContent = "";
+                    }
+                }
+            })
+            .catch(function () {
+                /* Keep the radio selection; workshop sync also runs on Save. */
+            });
+    }
+
     if (addBtn) {
         addBtn.addEventListener("click", function (event) {
             event.preventDefault();
@@ -213,6 +256,8 @@
             syncItemNotes(card);
             if (radio.value === "NO" && radio.checked) {
                 createWorkshopJob(card, radio);
+            } else if (radio.checked && (radio.value === "OK" || radio.value === "N/A")) {
+                clearWorkshopJob(card, radio);
             }
         }
         refreshSave();

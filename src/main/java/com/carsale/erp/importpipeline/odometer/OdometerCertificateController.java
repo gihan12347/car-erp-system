@@ -159,14 +159,12 @@ public class OdometerCertificateController {
         model.addAttribute("standardsReady", status.isStandardsReady());
         model.addAttribute("exportReady", status.isExportReady());
         model.addAttribute("photosReady", status.isPhotosReady());
-        if (hub) {
-            model.addAttribute("stageNav", ImportStageUrls.editLinks(
-                    chassisNo,
-                    pipelineStageService.indexOf(PipelineStageService.FLOW_IMPORT, FlowStage.JEVIC.getStageKey()),
-                    status,
-                    pipelineStageService.list(PipelineStageService.FLOW_IMPORT)
-            ));
-        }
+        model.addAttribute("stageNav", ImportStageUrls.editLinks(
+                chassisNo,
+                pipelineStageService.indexOf(PipelineStageService.FLOW_IMPORT, FlowStage.JEVIC.getStageKey()),
+                status,
+                pipelineStageService.list(PipelineStageService.FLOW_IMPORT)
+        ));
         return "import-pipeline/odometer/form";
     }
 

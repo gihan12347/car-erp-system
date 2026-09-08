@@ -10,6 +10,12 @@
         <strong>No vehicle images yet</strong>
         <p>Upload up to five photos of this vehicle.</p>
         <div class="import-view-actions">
+            <a th:if="${stageNav != null and stageNav.prevUrl != null}"
+               th:href="${stageNav.prevUrl}"
+               class="panel-btn ghost import-form-submit">
+                <i class="fa-solid fa-chevron-left"></i>
+                Previous
+            </a>
             <a th:href="@{/photos/{c}(c=${vehicle.chassisNo})}" class="panel-btn import-form-submit">Upload images</a>
             <a th:if="${stageNav != null and stageNav.nextUrl != null}"
                th:href="${stageNav.nextUrl}"
@@ -34,6 +40,12 @@
             </div>
         </article>
         <div class="import-view-actions">
+            <a th:if="${stageNav != null and stageNav.prevUrl != null}"
+               th:href="${stageNav.prevUrl}"
+               class="panel-btn ghost import-form-submit">
+                <i class="fa-solid fa-chevron-left"></i>
+                Previous
+            </a>
             <a th:href="@{/photos/{c}(c=${vehicle.chassisNo})}" class="panel-btn ghost import-form-submit">Edit images</a>
             <a th:if="${stageNav != null and stageNav.nextUrl != null}"
                th:href="${stageNav.nextUrl}"

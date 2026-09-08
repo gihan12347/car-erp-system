@@ -67,7 +67,7 @@
 
                     <div class="sheet-fields preship-fields">
                         <div th:replace="import-pipeline/fragments/standards-fields :: standardsFields"></div>
-                        <button type="submit" class="panel-btn import-form-submit">Save &amp; continue</button>
+                        <div th:replace="import-pipeline/fragments/form-actions :: importFormActions('Save & continue')"></div>
                     </div>
                 </div>
             </form>

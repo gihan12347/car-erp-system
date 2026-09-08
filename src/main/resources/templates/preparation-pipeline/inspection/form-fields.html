@@ -10,18 +10,9 @@
 
     <form th:action="@{/inspection/{chassisNo}(chassisNo=${vehicle.chassisNo})}"
           th:object="${record}" method="post" class="vehicle-form prep-form" id="inspectionForm"
-          th:attr="data-chassis=${vehicle.chassisNo}, data-fail-url=@{/inspection/{c}/fail-item(c=${vehicle.chassisNo})}">
+          th:attr="data-chassis=${vehicle.chassisNo}, data-fail-url=@{/inspection/{c}/fail-item(c=${vehicle.chassisNo})}, data-clear-fail-url=@{/inspection/{c}/clear-fail-item(c=${vehicle.chassisNo})}">
         <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
         <input type="hidden" th:field="*{chassisNo}">
-
-        <label class="complete-check panel">
-            <input type="checkbox" th:field="*{completed}" id="inspectionCompleted">
-            <span>
-                <strong>Mark inspection complete</strong>
-                <small>Available after every item has a result.</small>
-            </span>
-        </label>
-
         <article class="panel">
             <div class="panel-head"><h2>Inspection details</h2></div>
             <div class="field-grid">
@@ -29,10 +20,7 @@
                     <input type="text" th:field="*{inspector}" id="inspector" placeholder="Name" required>
                 </label>
                 <label>Inspection date
-                    <input type="text" th:field="*{inspectionDate}" id="inspectionDate" placeholder="2026-08-30" required>
-                </label>
-                <label class="span-2">Notes
-                    <textarea th:field="*{notes}" rows="2" placeholder="Overall condition, follow-up..."></textarea>
+                    <input type="date" th:field="*{inspectionDate}" id="inspectionDate" required>
                 </label>
             </div>
         </article>

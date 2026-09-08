@@ -50,12 +50,10 @@ public class WorkshopService {
             record = new WorkshopJob();
             record.setChassisNo(chassisNo);
             record.setJobStatus("PENDING");
-        } else {
-            migrateLegacyLine(record);
+            // No blank job card — jobs come from inspection "No" items (or Add job).
+            return record;
         }
-        if (record.getLines().isEmpty()) {
-            record.getLines().add(newLine(record));
-        }
+        migrateLegacyLine(record);
         return record;
     }
 
@@ -128,6 +126,68 @@ public class WorkshopService {
         }
         job.getLines().add(line);
         return workshopJobRepository.save(job);
+    }
+
+    /**
+     * Keep inspection-linked jobs only for the given item keys (items still marked No).
+     * Manual jobs (no inspectionItemKey) are left unchanged.
+     */
+    @Transactional
+    public WorkshopJob retainInspectionFailJobs(String chassisNo, java.util.Collection<String> keepKeys) {
+        if (chassisNo == null || chassisNo.trim().isEmpty()) {
+            return null;
+        }
+        String id = chassisNo.trim();
+        WorkshopJob job = workshopJobRepository.findById(id).orElse(null);
+        if (job == null) {
+            return null;
+        }
+        migrateLegacyLine(job);
+        java.util.Set<String> keep = new java.util.LinkedHashSet<String>();
+        if (keepKeys != null) {
+            for (String key : keepKeys) {
+                if (!isBlank(key)) {
+                    keep.add(key.trim());
+                }
+            }
+        }
+        List<WorkshopJobLine> next = new ArrayList<WorkshopJobLine>();
+        for (WorkshopJobLine line : job.getLines()) {
+            if (line == null) {
+                continue;
+            }
+            String key = line.getInspectionItemKey();
+            if (isBlank(key) || keep.contains(key.trim())) {
+                next.add(line);
+            }
+        }
+        job.getLines().clear();
+        job.getLines().addAll(next);
+        if (job.getLines().isEmpty() && !job.isCompleted() && !hasLegacyDetails(job)) {
+            workshopJobRepository.delete(job);
+            return null;
+        }
+        return workshopJobRepository.save(job);
+    }
+
+    @Transactional
+    public WorkshopJob removeInspectionFailJob(String chassisNo, String inspectionItemKey) {
+        if (isBlank(chassisNo) || isBlank(inspectionItemKey)) {
+            return findByChassisNo(chassisNo);
+        }
+        java.util.Set<String> keep = new java.util.LinkedHashSet<String>();
+        WorkshopJob job = findByChassisNo(chassisNo);
+        if (job == null) {
+            return null;
+        }
+        String drop = inspectionItemKey.trim();
+        for (WorkshopJobLine line : job.getLines()) {
+            String key = line.getInspectionItemKey();
+            if (!isBlank(key) && !drop.equals(key.trim())) {
+                keep.add(key.trim());
+            }
+        }
+        return retainInspectionFailJobs(chassisNo, keep);
     }
 
     @Transactional

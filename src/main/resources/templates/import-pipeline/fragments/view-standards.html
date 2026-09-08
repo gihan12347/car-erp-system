@@ -12,6 +12,12 @@
         <strong>Standards certificate not uploaded yet</strong>
         <p>Upload the emission and safety standards certificate to view the extracted details.</p>
         <div class="import-view-actions">
+            <a th:if="${stageNav != null and stageNav.prevUrl != null}"
+               th:href="${stageNav.prevUrl}"
+               class="panel-btn ghost import-form-submit">
+                <i class="fa-solid fa-chevron-left"></i>
+                Previous
+            </a>
             <a th:href="@{/standards/{c}(c=${vehicle.chassisNo})}" class="panel-btn import-form-submit">Upload standards certificate</a>
             <a th:if="${stageNav != null and stageNav.nextUrl != null}"
                th:href="${stageNav.nextUrl}"
@@ -85,6 +91,12 @@
             </div>
         </div>
         <div class="import-view-actions">
+            <a th:if="${stageNav != null and stageNav.prevUrl != null}"
+               th:href="${stageNav.prevUrl}"
+               class="panel-btn ghost import-form-submit">
+                <i class="fa-solid fa-chevron-left"></i>
+                Previous
+            </a>
             <a th:href="@{/standards/{c}(c=${vehicle.chassisNo})}" class="panel-btn ghost import-form-submit">Edit certificate</a>
             <a th:if="${stageNav != null and stageNav.nextUrl != null}"
                th:href="${stageNav.nextUrl}"

@@ -60,6 +60,9 @@ public class VehicleInspectionService {
         if (record == null) {
             record = new VehicleInspection();
             record.setChassisNo(chassisNo);
+            record.setInspectionDate(java.time.LocalDate.now().toString());
+        } else if (record.getInspectionDate() == null || record.getInspectionDate().trim().isEmpty()) {
+            record.setInspectionDate(java.time.LocalDate.now().toString());
         }
         mergeCatalogItems(record);
         return record;
@@ -90,7 +93,32 @@ public class VehicleInspectionService {
         existing.setCompleted(incoming.isCompleted());
         syncLines(existing, incoming.getLines());
         validateFilled(existing);
-        return vehicleInspectionRepository.save(existing);
+        VehicleInspection saved = vehicleInspectionRepository.save(existing);
+        syncWorkshopJobsFromNoItems(saved);
+        return saved;
+    }
+
+    /**
+     * Workshop jobs from inspection exist only for items marked No.
+     */
+    private void syncWorkshopJobsFromNoItems(VehicleInspection inspection) {
+        if (inspection == null || isBlank(inspection.getChassisNo())) {
+            return;
+        }
+        java.util.LinkedHashSet<String> noKeys = new java.util.LinkedHashSet<String>();
+        for (VehicleInspectionLine line : inspection.getLines()) {
+            if (line == null || !InspectionResults.isNo(line.getResult()) || isBlank(line.getItemKey())) {
+                continue;
+            }
+            noKeys.add(line.getItemKey().trim());
+            workshopService.addInspectionFailJob(
+                    inspection.getChassisNo(),
+                    line.getItemKey(),
+                    line.getItemTitle(),
+                    line.getNotes()
+            );
+        }
+        workshopService.retainInspectionFailJobs(inspection.getChassisNo(), noKeys);
     }
 
     @Transactional
@@ -142,6 +170,38 @@ public class VehicleInspectionService {
             return InspectionFailResult.ok(true, "Workshop job created for " + line.getItemTitle() + ".");
         }
         return InspectionFailResult.ok(false, "Workshop job already exists for " + line.getItemTitle() + ".");
+    }
+
+    @Transactional
+    public InspectionFailResult clearNoSelection(String chassisNo, InspectionFailRequest request) {
+        if (chassisNo == null || chassisNo.trim().isEmpty()) {
+            throw new IllegalArgumentException("Chassis number is required.");
+        }
+        String id = chassisNo.trim();
+        vehicleRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Vehicle not found for chassis " + id));
+        if (request == null) {
+            throw new IllegalArgumentException("Inspection item is required.");
+        }
+
+        VehicleInspection inspection = vehicleInspectionRepository.findById(id).orElse(null);
+        if (inspection == null) {
+            return InspectionFailResult.ok(false, "No inspection record yet.");
+        }
+        mergeCatalogItems(inspection);
+
+        VehicleInspectionLine line = findLine(inspection, request);
+        if (line == null) {
+            return InspectionFailResult.ok(false, "Inspection item not found.");
+        }
+        String nextResult = InspectionResults.canonical(request.getResult());
+        if (InspectionResults.isNo(nextResult) || isBlank(nextResult)) {
+            nextResult = InspectionResults.OK;
+        }
+        line.setResult(nextResult);
+        vehicleInspectionRepository.save(inspection);
+        workshopService.removeInspectionFailJob(id, line.getItemKey());
+        return InspectionFailResult.ok(true, "Workshop job removed for " + line.getItemTitle() + ".");
     }
 
     public int answeredCount(VehicleInspection record) {

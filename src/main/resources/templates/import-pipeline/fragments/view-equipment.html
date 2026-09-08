@@ -11,9 +11,21 @@
         <i class="fa-solid fa-car-side"></i>
         <strong>Equipment condition not uploaded yet</strong>
         <p>Upload the inspection sheet to capture interior, exterior, and safety equipment.</p>
-        <a th:if="${stageNav != null and stageNav.editUrl != null}"
-           th:href="${stageNav.editUrl}"
-           class="panel-btn">Upload inspection sheet</a>
+        <div class="import-view-actions">
+            <a th:if="${stageNav != null and stageNav.prevUrl != null}"
+               th:href="${stageNav.prevUrl}"
+               class="panel-btn ghost import-form-submit">
+                <i class="fa-solid fa-chevron-left"></i>
+                Previous
+            </a>
+            <a th:if="${stageNav != null and stageNav.editUrl != null}"
+               th:href="${stageNav.editUrl}"
+               class="panel-btn">Upload inspection sheet</a>
+            <a th:if="${stageNav != null and stageNav.nextUrl != null}"
+               th:href="${stageNav.nextUrl}"
+               class="panel-btn ghost import-form-submit"
+               th:text="${stageNav.nextLabel}">Continue</a>
+        </div>
     </div>
 
     <th:block th:if="${equipmentInspection != null}">
@@ -69,6 +81,12 @@
         </div>
 
         <div class="import-view-actions">
+            <a th:if="${stageNav != null and stageNav.prevUrl != null}"
+               th:href="${stageNav.prevUrl}"
+               class="panel-btn ghost import-form-submit">
+                <i class="fa-solid fa-chevron-left"></i>
+                Previous
+            </a>
             <a th:if="${stageNav != null and stageNav.editUrl != null}"
                th:href="${stageNav.editUrl}"
                class="panel-btn import-form-submit">Edit equipment condition</a>

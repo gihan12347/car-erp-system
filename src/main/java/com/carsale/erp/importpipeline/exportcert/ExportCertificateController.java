@@ -152,14 +152,12 @@ public class ExportCertificateController {
         model.addAttribute("vehicle", vehicle);
         model.addAttribute("record", record);
         addPipelineFlags(model, status);
-        if (hub) {
-            model.addAttribute("stageNav", ImportStageUrls.editLinks(
-                    chassisNo,
-                    pipelineStageService.indexOf(PipelineStageService.FLOW_IMPORT, FlowStage.EXPORT.getStageKey()),
-                    status,
-                    pipelineStageService.list(PipelineStageService.FLOW_IMPORT)
-            ));
-        }
+        model.addAttribute("stageNav", ImportStageUrls.editLinks(
+                chassisNo,
+                pipelineStageService.indexOf(PipelineStageService.FLOW_IMPORT, FlowStage.EXPORT.getStageKey()),
+                status,
+                pipelineStageService.list(PipelineStageService.FLOW_IMPORT)
+        ));
         return "import-pipeline/export/form";
     }
 

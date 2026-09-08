@@ -284,6 +284,25 @@
         updateActionButtons();
     }
 
+    function toDateInputValue(value) {
+        if (!value) {
+            return "";
+        }
+        var s = String(value).trim();
+        if (/^\d{4}-\d{2}-\d{2}$/.test(s)) {
+            return s;
+        }
+        var m = s.match(/^(\d{4})[\/.\-](\d{1,2})[\/.\-](\d{1,2})/);
+        if (m) {
+            return m[1] + "-" + ("0" + m[2]).slice(-2) + "-" + ("0" + m[3]).slice(-2);
+        }
+        m = s.match(/^(\d{1,2})[\/.\-](\d{1,2})[\/.\-](\d{4})/);
+        if (m) {
+            return m[3] + "-" + ("0" + m[2]).slice(-2) + "-" + ("0" + m[1]).slice(-2);
+        }
+        return "";
+    }
+
     function fillForm(result) {
         var fields = result.fields || {};
         var filled = 0;
@@ -302,8 +321,10 @@
             }
             var el = document.getElementById(key);
             if (el) {
-                el.value = value;
-                filled++;
+                el.value = el.type === "date" ? toDateInputValue(value) : value;
+                if (el.value) {
+                    filled++;
+                }
             }
         });
 
@@ -317,8 +338,10 @@
             }
             var el = document.getElementById(key);
             if (el) {
-                el.value = value;
-                filled++;
+                el.value = el.type === "date" ? toDateInputValue(value) : value;
+                if (el.value) {
+                    filled++;
+                }
             }
         });
 

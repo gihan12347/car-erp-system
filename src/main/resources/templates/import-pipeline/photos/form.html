@@ -53,7 +53,7 @@
                     <p class="upload-status" id="uploadStatus"></p>
                 </article>
 
-                <button type="submit" class="panel-btn import-form-submit">Save &amp; continue</button>
+                <div th:replace="import-pipeline/fragments/form-actions :: importFormActions('Save & continue')"></div>
             </form>
         </main>
     </div>

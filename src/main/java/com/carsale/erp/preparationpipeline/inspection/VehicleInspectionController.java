@@ -120,6 +120,19 @@ public class VehicleInspectionController {
         }
     }
 
+    @PostMapping("/{chassisNo}/clear-fail-item")
+    @ResponseBody
+    public ResponseEntity<InspectionFailResult> clearFailItem(
+            @PathVariable String chassisNo,
+            @RequestBody InspectionFailRequest request
+    ) {
+        try {
+            return ResponseEntity.ok(vehicleInspectionService.clearNoSelection(chassisNo, request));
+        } catch (IllegalArgumentException ex) {
+            return ResponseEntity.badRequest().body(InspectionFailResult.fail(ex.getMessage()));
+        }
+    }
+
     private void addPrepStatus(Model model, String chassisNo, PreparationProgress status) {
         model.addAttribute("workshopReady", status.isWorkshopReady());
         model.addAttribute("yardReady", status.isYardReady());

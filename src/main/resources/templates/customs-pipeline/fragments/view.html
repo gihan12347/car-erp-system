@@ -12,6 +12,12 @@
         <strong>JEVIC certificate not uploaded yet</strong>
         <p>Upload the JEVIC odometer certificate to view the odometer details.</p>
         <div class="import-view-actions">
+            <a th:if="${stageNav != null and stageNav.prevUrl != null}"
+               th:href="${stageNav.prevUrl}"
+               class="panel-btn ghost import-form-submit">
+                <i class="fa-solid fa-chevron-left"></i>
+                Previous
+            </a>
             <a th:href="@{/jevic/{c}(c=${vehicle.chassisNo})}" class="panel-btn import-form-submit">Upload JEVIC certificate</a>
             <a th:if="${stageNav != null and stageNav.nextUrl != null}"
                th:href="${stageNav.nextUrl}"
@@ -64,6 +70,12 @@
             </div>
         </div>
         <div class="import-view-actions">
+            <a th:if="${stageNav != null and stageNav.prevUrl != null}"
+               th:href="${stageNav.prevUrl}"
+               class="panel-btn ghost import-form-submit">
+                <i class="fa-solid fa-chevron-left"></i>
+                Previous
+            </a>
             <a th:href="@{/jevic/{c}(c=${vehicle.chassisNo})}" class="panel-btn ghost import-form-submit">Edit JEVIC</a>
             <a th:if="${stageNav != null and stageNav.nextUrl != null}"
                th:href="${stageNav.nextUrl}"

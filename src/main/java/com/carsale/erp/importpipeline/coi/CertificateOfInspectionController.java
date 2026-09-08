@@ -151,14 +151,12 @@ public class CertificateOfInspectionController {
         model.addAttribute("vehicle", vehicle);
         model.addAttribute("record", record);
         addPipelineFlags(model, status);
-        if (hub) {
-            model.addAttribute("stageNav", ImportStageUrls.editLinks(
-                    chassisNo,
-                    pipelineStageService.indexOf(PipelineStageService.FLOW_IMPORT, FlowStage.COI.getStageKey()),
-                    status,
-                    pipelineStageService.list(PipelineStageService.FLOW_IMPORT)
-            ));
-        }
+        model.addAttribute("stageNav", ImportStageUrls.editLinks(
+                chassisNo,
+                pipelineStageService.indexOf(PipelineStageService.FLOW_IMPORT, FlowStage.COI.getStageKey()),
+                status,
+                pipelineStageService.list(PipelineStageService.FLOW_IMPORT)
+        ));
         return "import-pipeline/coi/form";
     }
 

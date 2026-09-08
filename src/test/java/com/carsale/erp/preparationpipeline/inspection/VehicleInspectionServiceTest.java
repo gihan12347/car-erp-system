@@ -40,7 +40,7 @@ class VehicleInspectionServiceTest {
     }
 
     @Test
-    void saveDoesNotCreateWorkshopJobForNo() {
+    void saveCreatesWorkshopJobOnlyForNo() {
         saveVehicle("TEST-INS-SAVE");
         VehicleInspection form = vehicleInspectionService.prepareForm("TEST-INS-SAVE");
         form.setInspector("Kasun");
@@ -50,7 +50,31 @@ class VehicleInspectionServiceTest {
         }
         lineNamed(form, "Brakes").setResult("NO");
         vehicleInspectionService.save(form);
-        assertThat(workshopService.findByChassisNo("TEST-INS-SAVE")).isNull();
+        WorkshopJob job = workshopService.findByChassisNo("TEST-INS-SAVE");
+        assertThat(job).isNotNull();
+        assertThat(job.getLines()).hasSize(1);
+        assertThat(job.getLines().get(0).getInspectionItemKey()).isEqualTo(
+                lineNamed(form, "Brakes").getItemKey());
+    }
+
+    @Test
+    void saveRemovesWorkshopJobWhenNoCleared() {
+        saveVehicle("TEST-INS-CLEAR");
+        InspectionFailRequest request = new InspectionFailRequest();
+        request.setItemKey("brakes");
+        request.setItemTitle("Brakes");
+        request.setCatalogItem(true);
+        vehicleInspectionService.recordNoSelection("TEST-INS-CLEAR", request);
+        assertThat(workshopService.findByChassisNo("TEST-INS-CLEAR")).isNotNull();
+
+        VehicleInspection form = vehicleInspectionService.prepareForm("TEST-INS-CLEAR");
+        form.setInspector("Kasun");
+        form.setInspectionDate("2026-08-30");
+        for (VehicleInspectionLine line : form.getLines()) {
+            line.setResult("OK");
+        }
+        vehicleInspectionService.save(form);
+        assertThat(workshopService.findByChassisNo("TEST-INS-CLEAR")).isNull();
     }
 
     @Test

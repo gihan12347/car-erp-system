@@ -77,7 +77,13 @@ public final class ImportStageUrls {
 
     public static NavLinks editLinks(String chassisNo, int stageIndex, ImportProgress status, List<PipelineStage> keys) {
         NavLinks view = viewLinks(chassisNo, stageIndex, status, keys, FlowPipeline.IMPORT);
-        return new NavLinks(view.getStageIndex(), view.getStageLabel(), view.getPrevUrl(),
+        String encoded = PipelineStageUtils.encode(chassisNo);
+        String prevUrl = null;
+        if (stageIndex > 0) {
+            String prevKey = PipelineStageService.stageKeyAt(keys, stageIndex - 1);
+            prevUrl = editUrlFor(encoded, prevKey);
+        }
+        return new NavLinks(view.getStageIndex(), view.getStageLabel(), prevUrl,
                 view.getNextUrl(), view.getNextLabel(), null);
     }
 

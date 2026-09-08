@@ -147,14 +147,12 @@ public class VehicleImagesController {
         model.addAttribute("vehicle", vehicle);
         addPhotoModel(model, chassisNo);
         addPipelineFlags(model, status);
-        if (hub) {
-            model.addAttribute("stageNav", ImportStageUrls.editLinks(
-                    chassisNo,
-                    pipelineStageService.indexOf(PipelineStageService.FLOW_IMPORT, FlowStage.PHOTOS.getStageKey()),
-                    status,
-                    pipelineStageService.list(PipelineStageService.FLOW_IMPORT)
-            ));
-        }
+        model.addAttribute("stageNav", ImportStageUrls.editLinks(
+                chassisNo,
+                pipelineStageService.indexOf(PipelineStageService.FLOW_IMPORT, FlowStage.PHOTOS.getStageKey()),
+                status,
+                pipelineStageService.list(PipelineStageService.FLOW_IMPORT)
+        ));
         return "import-pipeline/photos/form";
     }
 

@@ -10,7 +10,7 @@
             <div class="dash-head">
                 <div>
                     <h1 th:text="${'Step ' + @pipelineStageService.displayNumber('PREP', 'workshop') + ' · Workshop'}">Step 1 · Workshop</h1>
-                    <p class="form-lead">Add every repair job for this vehicle. Mark workshop complete when all work is done.</p>
+                    <p class="form-lead">Workshop jobs come from inspection items marked <strong>No</strong>. Add extra repair jobs here if needed.</p>
                 </div>
             </div>
 
@@ -31,16 +31,12 @@
                   th:object="${record}" method="post" class="vehicle-form prep-form" id="workshopForm">
                 <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
                 <input type="hidden" th:field="*{chassisNo}">
-
-                <label class="complete-check panel">
-                    <input type="checkbox" th:field="*{completed}">
-                    <span>
-                        <strong>Mark workshop complete</strong>
-                        <small>This step is done. Yard stays locked until every job status is Complete.</small>
-                    </span>
-                </label>
-
-                <div id="workshopJobList">
+                   <div id="workshopJobList">
+                    <p class="form-lead" id="workshopEmptyHint"
+                       th:if="${#lists.isEmpty(record.lines)}"
+                       style="margin-bottom: 1rem;">
+                        No workshop jobs yet. Mark items as <strong>No</strong> on the inspection step, or add a job below.
+                    </p>
                     <article class="panel workshop-job-card" th:each="line, stat : *{lines}" th:data-index="${stat.index}">
                         <div class="panel-head workshop-job-head">
                             <h2>
@@ -92,12 +88,6 @@
                         </div>
                     </article>
                 </div>
-
-                <button type="button" class="panel-btn ghost workshop-add-job" id="addWorkshopJob">
-                    <i class="fa-solid fa-plus"></i>
-                    Add job
-                </button>
-
                 <div class="import-view-actions">
                     <a th:if="${stageNav != null and stageNav.prevUrl != null}"
                        th:href="${stageNav.prevUrl}"
@@ -170,6 +160,6 @@
 </template>
 
 <script th:src="@{/js/shared/app.js(v=20260905k)}"></script>
-<script th:src="@{/js/preparation-pipeline/workshop.js(v=20260823a)}"></script>
+<script th:src="@{/js/preparation-pipeline/workshop.js(v=20260908c)}"></script>
 </body>
 </html>

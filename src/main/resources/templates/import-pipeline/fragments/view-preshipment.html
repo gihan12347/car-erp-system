@@ -11,9 +11,21 @@
         <i class="fa-solid fa-ship"></i>
         <strong>Pre-shipment certificate not uploaded yet</strong>
         <p>Upload the Bureau Veritas certificate to view inspection details.</p>
-        <a th:if="${stageNav != null and stageNav.editUrl != null}"
-           th:href="${stageNav.editUrl}"
-           class="panel-btn">Upload certificate</a>
+        <div class="import-view-actions">
+            <a th:if="${stageNav != null and stageNav.prevUrl != null}"
+               th:href="${stageNav.prevUrl}"
+               class="panel-btn ghost import-form-submit">
+                <i class="fa-solid fa-chevron-left"></i>
+                Previous
+            </a>
+            <a th:if="${stageNav != null and stageNav.editUrl != null}"
+               th:href="${stageNav.editUrl}"
+               class="panel-btn">Upload certificate</a>
+            <a th:if="${stageNav != null and stageNav.nextUrl != null}"
+               th:href="${stageNav.nextUrl}"
+               class="panel-btn ghost import-form-submit"
+               th:text="${stageNav.nextLabel}">Continue</a>
+        </div>
     </div>
 
     <th:block th:if="${preShipment != null}">
@@ -94,6 +106,12 @@
         </div>
 
         <div class="import-view-actions">
+            <a th:if="${stageNav != null and stageNav.prevUrl != null}"
+               th:href="${stageNav.prevUrl}"
+               class="panel-btn ghost import-form-submit">
+                <i class="fa-solid fa-chevron-left"></i>
+                Previous
+            </a>
             <a th:if="${stageNav != null and stageNav.editUrl != null}"
                th:href="${stageNav.editUrl}"
                class="panel-btn import-form-submit">Edit pre-shipment certificate</a>

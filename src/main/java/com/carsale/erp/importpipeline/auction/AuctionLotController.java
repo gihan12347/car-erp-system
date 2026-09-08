@@ -263,14 +263,12 @@ public class AuctionLotController {
         model.addAttribute("photosReady", importStatus.isPhotosReady());
         model.addAttribute("StageKeys", ImportStageUrls.getStageKeyBySortOrder(
                 pipelineStageService.list(PipelineStageService.FLOW_IMPORT)));
-        if (hub) {
-            model.addAttribute("stageNav", ImportStageUrls.editLinks(
-                    chassisNo,
-                    pipelineStageService.indexOf(PipelineStageService.FLOW_IMPORT, FlowStage.AUCTION.getStageKey()),
-                    importStatus,
-                    pipelineStageService.list(PipelineStageService.FLOW_IMPORT)
-            ));
-        }
+        model.addAttribute("stageNav", ImportStageUrls.editLinks(
+                chassisNo,
+                pipelineStageService.indexOf(PipelineStageService.FLOW_IMPORT, FlowStage.AUCTION.getStageKey()),
+                importStatus,
+                pipelineStageService.list(PipelineStageService.FLOW_IMPORT)
+        ));
         return "import-pipeline/auction/form";
     }
 
@@ -376,7 +374,7 @@ public class AuctionLotController {
         }
         if (FlowStage.COI.getStageKey().equals(startStage)) {
             if (!model.containsAttribute("record")) {
-                model.addAttribute("record", new InspectionCertificate());
+                model.addAttribute("record", certificateOfInspectionService.newBlank());
             }
             model.addAttribute("pageTitle", pipelineStageService.title(
                     PipelineStageService.FLOW_IMPORT, FlowStage.COI.getStageKey()));

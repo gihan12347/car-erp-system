@@ -68,6 +68,12 @@
     </div>
 
     <div class="import-view-actions" th:if="${auctionDocReady}">
+        <a th:if="${stageNav != null and stageNav.prevUrl != null}"
+           th:href="${stageNav.prevUrl}"
+           class="panel-btn ghost import-form-submit">
+            <i class="fa-solid fa-chevron-left"></i>
+            Previous
+        </a>
         <a th:href="@{/auction/{c}/edit(c=${vehicle.chassisNo}, hub=1)}"
            class="panel-btn import-form-submit">Edit auction lot</a>
         <a th:if="${stageNav != null and stageNav.nextUrl != null}"

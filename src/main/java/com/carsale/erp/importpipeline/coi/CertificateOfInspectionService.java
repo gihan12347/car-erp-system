@@ -43,11 +43,25 @@ public class CertificateOfInspectionService {
         }
         InspectionCertificate record = certificateRepository.findById(chassisNo).orElse(null);
         if (record == null) {
-            record = new InspectionCertificate();
+            record = newBlank();
             record.setChassisNo(chassisNo);
             prefillFromVehicle(record, vehicle);
+        } else {
+            ensureInspectionDate(record);
         }
         return record;
+    }
+
+    public InspectionCertificate newBlank() {
+        InspectionCertificate record = new InspectionCertificate();
+        ensureInspectionDate(record);
+        return record;
+    }
+
+    private void ensureInspectionDate(InspectionCertificate record) {
+        if (record.getInspectionDate() == null || record.getInspectionDate().trim().isEmpty()) {
+            record.setInspectionDate(java.time.LocalDate.now().toString());
+        }
     }
 
     public boolean hasCertificate(String chassisNo) {

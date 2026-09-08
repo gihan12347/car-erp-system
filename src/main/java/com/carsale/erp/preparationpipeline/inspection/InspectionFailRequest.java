@@ -7,6 +7,7 @@ public class InspectionFailRequest {
     private String itemTitle;
     private String notes;
     private boolean catalogItem;
+    private String result;
 
     public Long getLineId() {
         return lineId;
@@ -46,5 +47,13 @@ public class InspectionFailRequest {
 
     public void setCatalogItem(boolean catalogItem) {
         this.catalogItem = catalogItem;
+    }
+
+    public String getResult() {
+        return result;
+    }
+
+    public void setResult(String result) {
+        this.result = result;
     }
 }
