@@ -6,17 +6,6 @@
     <article class="panel">
         <div class="panel-head"><h2>Emission standards</h2></div>
         <div class="field-grid">
-            <div class="span-2 standards-choice">
-                <span>Schedule</span>
-                <label>
-                    <input type="radio" th:field="*{scheduleType}" value="III" id="scheduleTypeIII">
-                    Schedule III
-                </label>
-                <label>
-                    <input type="radio" th:field="*{scheduleType}" value="V" id="scheduleTypeV">
-                    Schedule V
-                </label>
-            </div>
             <label>CO (g/km) <input type="text" th:field="*{emissionCo}" id="emissionCo"></label>
             <label>NMHC (g/km) <input type="text" th:field="*{emissionNmhc}" id="emissionNmhc"></label>
             <label>NOx (g/km) <input type="text" th:field="*{emissionNox}" id="emissionNox"></label>

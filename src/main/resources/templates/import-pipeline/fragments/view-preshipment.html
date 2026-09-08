@@ -44,17 +44,6 @@
 
             <div class="sheet-fields preship-fields">
                 <article class="panel">
-                    <div class="panel-head"><h2>Document header</h2></div>
-                    <div class="field-grid">
-                        <label>Document no. <input type="text" th:value="${preShipment.certificateReference}" readonly class="readonly-field"></label>
-                        <label class="span-2">Document title <input type="text" th:value="${preShipment.documentTitle}" readonly class="readonly-field"></label>
-                        <label>Page <input type="text" th:value="${preShipment.pageInfo}" readonly class="readonly-field"></label>
-                        <label>Date <input type="text" th:value="${preShipment.certificateDate}" readonly class="readonly-field"></label>
-                        <label>BV no. <input type="text" th:value="${preShipment.bvNumber}" readonly class="readonly-field"></label>
-                    </div>
-                </article>
-
-                <article class="panel">
                     <div class="panel-head"><h2>Inspection organisation</h2></div>
                     <div class="field-grid">
                         <label class="span-2">Name <input type="text" th:value="${preShipment.inspectionOrgName}" readonly class="readonly-field"></label>

@@ -50,21 +50,6 @@
 
             <div class="sheet-fields preship-fields">
                 <article class="panel">
-                    <div class="panel-head"><h2>Document header</h2></div>
-                    <div class="field-grid">
-                        <label>Chassis number
-                            <input type="text" th:field="*{chassisNo}" id="chassisNo" maxlength="40" required>
-                        </label>
-                        <div id="chassisDuplicateNotice" class="chassis-duplicate-notice alert-warn" hidden></div>
-                        <label>Document no. <input type="text" th:field="*{certificateReference}" id="certificateReference"></label>
-                        <label class="span-2">Document title <input type="text" th:field="*{documentTitle}" id="documentTitle"></label>
-                        <label>Page <input type="text" th:field="*{pageInfo}" id="pageInfo"></label>
-                        <label>Date <input type="text" th:field="*{certificateDate}" id="certificateDate"></label>
-                        <label>BV no. <input type="text" th:field="*{bvNumber}" id="bvNumber"></label>
-                    </div>
-                </article>
-
-                <article class="panel">
                     <div class="panel-head"><h2>Inspection organisation</h2></div>
                     <div class="field-grid">
                         <label class="span-2">Name <input type="text" th:field="*{inspectionOrgName}" id="inspectionOrgName"></label>
