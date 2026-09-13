@@ -73,7 +73,10 @@ public class DocumentAiClient {
         return enabled && googleAuth.isConfigured() && StringUtils.hasText(processorId);
     }
 
-    public DocumentAiResult process(File file, String originalName) throws IOException {
+    public DocumentAiResult process(
+            File file,
+            String originalName
+    ) throws IOException {
         if (!isEnabled()) {
             throw new IOException("Document AI is not enabled or not configured.");
         }
@@ -101,13 +104,13 @@ public class DocumentAiClient {
         Map<String, Object> body = new LinkedHashMap<>();
         body.put("rawDocument", rawDocument);
 
-        String url = processUrl(projectId);
+        String url = processUrl(projectId, location, processorId, processorVersion);
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.setBearerAuth(token);
 
-        log.info("Sending {} ({} bytes, {}) to Document AI processor {}",
-                originalName != null ? originalName : file.getName(), size, mimeType, processorId);
+        log.info("Sending {} ({} bytes, {}) to Document AI processor {} ({})",
+                originalName != null ? originalName : file.getName(), size, mimeType, processorId, location);
 
         try {
             String json = objectMapper.writeValueAsString(body);
@@ -131,7 +134,7 @@ public class DocumentAiClient {
                 "Document AI projectId is missing. Set app.ocr.documentAi.projectId or use a credentials JSON with project_id.");
     }
 
-    private String processUrl(String projectId) {
+    private String processUrl(String projectId, String location, String processorId, String processorVersion) {
         StringBuilder name = new StringBuilder();
         name.append("https://").append(location).append("-documentai.googleapis.com/v1/");
         name.append("projects/").append(projectId);
@@ -142,6 +145,10 @@ public class DocumentAiClient {
         }
         name.append(":process");
         return name.toString();
+    }
+
+    private static String firstText(String override, String fallback) {
+        return StringUtils.hasText(override) ? override.trim() : fallback;
     }
 
     @SuppressWarnings("unchecked")

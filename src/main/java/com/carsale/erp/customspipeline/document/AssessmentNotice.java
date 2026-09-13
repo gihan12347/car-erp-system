@@ -45,6 +45,50 @@ public class AssessmentNotice implements DocumentParser {
 
     private static final Pattern AMOUNT_ON_LINE = Pattern.compile(AMOUNT);
 
+    private static final Map<String, String> TYPE_TO_FIELD = new LinkedHashMap<>();
+    private static final Map<String, String> TAX_CODE_TO_FIELD = new LinkedHashMap<>();
+
+    static {
+        TYPE_TO_FIELD.put("total_amount_paid", "assessmentTotalPaid");
+        TYPE_TO_FIELD.put("totalamountpaid", "assessmentTotalPaid");
+        TYPE_TO_FIELD.put("assessment_total_paid", "assessmentTotalPaid");
+        TYPE_TO_FIELD.put("total_assessed_amount", "assessmentTotalAssessed");
+        TYPE_TO_FIELD.put("totalassessedamount", "assessmentTotalAssessed");
+        TYPE_TO_FIELD.put("assessment_total_assessed", "assessmentTotalAssessed");
+        TYPE_TO_FIELD.put("total_assessed", "assessmentTotalAssessed");
+        TYPE_TO_FIELD.put("assessment_office", "assessmentOffice");
+        TYPE_TO_FIELD.put("assessment_notice_ref", "assessmentNoticeRef");
+        TYPE_TO_FIELD.put("assessment_model", "assessmentModel");
+        TYPE_TO_FIELD.put("assessment_packages", "assessmentPackages");
+        TYPE_TO_FIELD.put("assessment_customs_reference", "assessmentCustomsReference");
+        TYPE_TO_FIELD.put("assessment_declarant_reference", "assessmentDeclarantReference");
+        TYPE_TO_FIELD.put("assessment_reference", "assessmentReference");
+        TYPE_TO_FIELD.put("assessment_declarant_id", "assessmentDeclarantId");
+        TYPE_TO_FIELD.put("assessment_declarant_name", "assessmentDeclarantName");
+        TYPE_TO_FIELD.put("assessment_declarant_address", "assessmentDeclarantAddress");
+        TYPE_TO_FIELD.put("assessment_declarant_cha_exp", "assessmentDeclarantChaExp");
+        TYPE_TO_FIELD.put("assessment_consignee_id", "assessmentConsigneeId");
+        TYPE_TO_FIELD.put("assessment_consignee_name", "assessmentConsigneeName");
+        TYPE_TO_FIELD.put("assessment_consignee_address", "assessmentConsigneeAddress");
+        TYPE_TO_FIELD.put("assessment_tax_otc", "assessmentTaxOtc");
+        TYPE_TO_FIELD.put("assessment_tax_com", "assessmentTaxCom");
+        TYPE_TO_FIELD.put("assessment_tax_exm", "assessmentTaxExm");
+        TYPE_TO_FIELD.put("assessment_tax_cid", "assessmentTaxCid");
+        TYPE_TO_FIELD.put("assessment_tax_sur", "assessmentTaxSur");
+        TYPE_TO_FIELD.put("assessment_tax_xid", "assessmentTaxXid");
+        TYPE_TO_FIELD.put("assessment_tax_vat", "assessmentTaxVat");
+        TYPE_TO_FIELD.put("assessment_tax_vel", "assessmentTaxVel");
+
+        TAX_CODE_TO_FIELD.put("CID", "assessmentTaxCid");
+        TAX_CODE_TO_FIELD.put("SUR", "assessmentTaxSur");
+        TAX_CODE_TO_FIELD.put("XID", "assessmentTaxXid");
+        TAX_CODE_TO_FIELD.put("VAT", "assessmentTaxVat");
+        TAX_CODE_TO_FIELD.put("VEL", "assessmentTaxVel");
+        TAX_CODE_TO_FIELD.put("OTC", "assessmentTaxOtc");
+        TAX_CODE_TO_FIELD.put("COM", "assessmentTaxCom");
+        TAX_CODE_TO_FIELD.put("EXM", "assessmentTaxExm");
+    }
+
     @Override
     public AuctionParseResult parsePage(String text) {
         AuctionParseResult result = new AuctionParseResult();
@@ -98,7 +142,58 @@ public class AssessmentNotice implements DocumentParser {
 
     @Override
     public AuctionParseResult parsePage(DocumentAiClient.DocumentAiResult documentAi) {
-        return null;
+        AuctionParseResult result = new AuctionParseResult();
+        if (documentAi == null) {
+            result.setSuccess(false);
+            result.setMessage("Document AI returned no result.");
+            return result;
+        }
+        result.setRawText(documentAi.getText());
+        List<DocumentAiClient.DocumentAiEntity> entities = documentAi.getEntities();
+        String pendingCode = null;
+        String pendingValue = null;
+        if (entities != null) {
+            for (DocumentAiClient.DocumentAiEntity entity : entities) {
+                if (entity == null) {
+                    continue;
+                }
+                String type = leafType(entity.getType());
+                if (isTaxGroupStart(type)) {
+                    flushTax(result, pendingCode, pendingValue);
+                    pendingCode = null;
+                    pendingValue = null;
+                    continue;
+                }
+                if ("tax_code".equals(type) || "taxcode".equals(type)) {
+                    if (pendingCode != null && pendingValue != null) {
+                        flushTax(result, pendingCode, pendingValue);
+                        pendingValue = null;
+                    }
+                    pendingCode = extractTaxCode(entity.getValue());
+                    continue;
+                }
+                if ("tax_value".equals(type) || "taxvalue".equals(type)) {
+                    pendingValue = cleanMoney(entity.getValue());
+                    if (pendingCode != null && pendingValue != null) {
+                        flushTax(result, pendingCode, pendingValue);
+                        pendingCode = null;
+                        pendingValue = null;
+                    }
+                    continue;
+                }
+                if ("tax_description".equals(type) || "taxdescription".equals(type) || "totals".equals(type)) {
+                    continue;
+                }
+                String field = mapType(entity.getType());
+                if (field != null) {
+                    result.put(field, moneyField(field) ? cleanMoney(entity.getValue()) : cleanText(entity.getValue()));
+                }
+            }
+            flushTax(result, pendingCode, pendingValue);
+        }
+        fillMissingFromText(result, documentAi.getText());
+        CustomsDocumentParserUtils.finish(result, "Document AI (assessment notice)");
+        return result;
     }
 
     private static String fixBrokenCommas(String text) {
@@ -152,6 +247,7 @@ public class AssessmentNotice implements DocumentParser {
         }
 
         String pendingAmount = null;
+        String pendingCode = null;
         String[] lines = section.split("\\n");
         for (String s : lines) {
             String line = s.trim();
@@ -166,7 +262,13 @@ public class AssessmentNotice implements DocumentParser {
 
             if (codesOnLine.isEmpty()) {
                 if (!amountsOnLine.isEmpty()) {
-                    pendingAmount = amountsOnLine.get(amountsOnLine.size() - 1);
+                    String amount = amountsOnLine.get(amountsOnLine.size() - 1);
+                    if (pendingCode != null && values.get(pendingCode) == null) {
+                        values.put(pendingCode, amount);
+                        pendingCode = null;
+                    } else {
+                        pendingAmount = amount;
+                    }
                 }
                 continue;
             }
@@ -183,12 +285,16 @@ public class AssessmentNotice implements DocumentParser {
             if (pendingAmount != null) {
                 values.put(code, pendingAmount);
                 pendingAmount = null;
+                pendingCode = null;
                 // Trailing amount on this line belongs to the next tax code
                 if (!amountsOnLine.isEmpty()) {
                     pendingAmount = amountsOnLine.get(amountsOnLine.size() - 1);
                 }
             } else if (!amountsOnLine.isEmpty()) {
                 values.put(code, amountsOnLine.get(amountsOnLine.size() - 1));
+                pendingCode = null;
+            } else {
+                pendingCode = code;
             }
         }
 
@@ -455,5 +561,121 @@ public class AssessmentNotice implements DocumentParser {
             }
         }
         return new String[] { id, name, address };
+    }
+
+    static String mapType(String type) {
+        if (type == null || type.trim().isEmpty()) {
+            return null;
+        }
+        String key = typeKey(type);
+        String mapped = TYPE_TO_FIELD.get(key);
+        if (mapped != null) {
+            return mapped;
+        }
+        int slash = key.lastIndexOf('/');
+        if (slash >= 0 && slash + 1 < key.length()) {
+            return TYPE_TO_FIELD.get(key.substring(slash + 1));
+        }
+        return null;
+    }
+
+    static String cleanMoney(String raw) {
+        if (raw == null) {
+            return null;
+        }
+        String value = raw.trim().replaceAll("\\s+", " ");
+        value = value.replaceAll("(?i)\\b(LKR|SLR|USD|RS\\.?)\\b", "").trim();
+        value = value.replaceAll("[^0-9.,]", "");
+        if (value.isEmpty()) {
+            return null;
+        }
+        if (value.indexOf(',') >= 0) {
+            if (value.matches(".*\\.0+$")) {
+                value = value.substring(0, value.lastIndexOf('.'));
+            }
+            return value;
+        }
+        int dot = value.lastIndexOf('.');
+        String intPart = (dot >= 0 ? value.substring(0, dot) : value).replaceAll("\\D", "");
+        String decPart = dot >= 0 ? value.substring(dot + 1).replaceAll("\\D", "") : "";
+        if (intPart.isEmpty()) {
+            return null;
+        }
+        String formatted = formatThousands(intPart);
+        if (decPart.isEmpty() || decPart.matches("0+")) {
+            return formatted;
+        }
+        return formatted + "." + decPart;
+    }
+
+    static String extractTaxCode(String raw) {
+        if (raw == null || raw.trim().isEmpty()) {
+            return null;
+        }
+        Matcher matcher = CODE_ON_LINE.matcher(raw);
+        if (matcher.find()) {
+            return matcher.group(1).toUpperCase(Locale.ROOT);
+        }
+        return raw.trim().toUpperCase(Locale.ROOT);
+    }
+
+    private static void flushTax(AuctionParseResult result, String code, String value) {
+        if (code == null || value == null) {
+            return;
+        }
+        String field = TAX_CODE_TO_FIELD.get(code.toUpperCase(Locale.ROOT));
+        if (field != null) {
+            result.put(field, value);
+        }
+    }
+
+    private static boolean isTaxGroupStart(String type) {
+        return "item_tax".equals(type) || "itemtax".equals(type)
+                || "global_tax".equals(type) || "globaltax".equals(type);
+    }
+
+    private static boolean moneyField(String field) {
+        return field != null && (field.startsWith("assessmentTax")
+                || "assessmentTotalAssessed".equals(field)
+                || "assessmentTotalPaid".equals(field));
+    }
+
+    private static String cleanText(String raw) {
+        if (raw == null) {
+            return null;
+        }
+        String value = raw.trim().replaceAll("\\s+", " ");
+        return value.isEmpty() ? null : value;
+    }
+
+    private void fillMissingFromText(AuctionParseResult result, String text) {
+        if (text == null || text.trim().isEmpty()) {
+            return;
+        }
+        AuctionParseResult fromText = parsePage(text);
+        if (fromText.getFields() == null || fromText.getFields().isEmpty()) {
+            return;
+        }
+        for (Map.Entry<String, String> entry : fromText.getFields().entrySet()) {
+            if (!result.getFields().containsKey(entry.getKey())) {
+                result.put(entry.getKey(), entry.getValue());
+            }
+        }
+    }
+
+    private static String leafType(String type) {
+        String key = typeKey(type);
+        int slash = key.lastIndexOf('/');
+        if (slash >= 0 && slash + 1 < key.length()) {
+            return key.substring(slash + 1);
+        }
+        return key;
+    }
+
+    private static String typeKey(String type) {
+        if (type == null || type.trim().isEmpty()) {
+            return "";
+        }
+        return type.trim().toLowerCase(Locale.ROOT).replace(' ', '_');
     }
 }

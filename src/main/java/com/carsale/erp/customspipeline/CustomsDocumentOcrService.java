@@ -46,7 +46,8 @@ public class CustomsDocumentOcrService {
             try (InputStream input = file.getInputStream()) {
                 Files.copy(input, temp.toPath(), StandardCopyOption.REPLACE_EXISTING);
             }
-            AuctionParseResult parsed = imagePreparer.readDocumentText(temp, file.getOriginalFilename(), language, provider, documentParser);
+            AuctionParseResult parsed = imagePreparer.readDocumentText(
+                        temp, file.getOriginalFilename(), language, provider, documentParser);
             log.info("OCR text:\n{}", parsed.getRawText());
             return parsed;
         } catch (Throwable ex) {

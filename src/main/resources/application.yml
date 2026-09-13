@@ -49,6 +49,9 @@ app:
       location: ${DOCUMENT_AI_LOCATION:us}
       processorId: ${DOCUMENT_AI_PROCESSOR_ID:cd742e4a10abd3c9}
       processorVersion: ${DOCUMENT_AI_PROCESSOR_VERSION:}
+      assessmentProcessorId: ${DOCUMENT_AI_ASSESSMENT_PROCESSOR_ID:}
+      assessmentProcessorVersion: ${DOCUMENT_AI_ASSESSMENT_PROCESSOR_VERSION:}
+      assessmentLocation: ${DOCUMENT_AI_ASSESSMENT_LOCATION:}
       maxUploadBytes: 20000000
     preship:
       language: eng
