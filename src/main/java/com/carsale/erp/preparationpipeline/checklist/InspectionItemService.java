@@ -9,9 +9,6 @@ import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.carsale.erp.preparationpipeline.checklist.InspectionItem;
-import com.carsale.erp.preparationpipeline.checklist.InspectionItemRepository;
-
 @Service
 @Order(4)
 public class InspectionItemService implements CommandLineRunner {
@@ -72,11 +69,11 @@ public class InspectionItemService implements CommandLineRunner {
     }
 
     @Transactional
-    public InspectionItem updateTitle(Long id, String title) {
+    public void updateTitle(Long id, String title) {
         InspectionItem item = inspectionItemRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Inspection item not found."));
         item.setTitle(requireTitle(title));
-        return inspectionItemRepository.save(item);
+        inspectionItemRepository.save(item);
     }
 
     @Transactional

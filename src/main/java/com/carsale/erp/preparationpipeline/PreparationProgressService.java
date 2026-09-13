@@ -149,7 +149,7 @@ public class PreparationProgressService {
     }
 
     private List<Vehicle> filter(List<Vehicle> vehicles, boolean preparationList) {
-        List<Vehicle> rows = new ArrayList<Vehicle>();
+        List<Vehicle> rows = new ArrayList<>();
         for (Vehicle vehicle : vehicles) {
             if (preparationList) {
                 if (isEligible(vehicle)) {

@@ -10,16 +10,10 @@ import java.util.Map;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import com.carsale.erp.preparationpipeline.inspection.InspectionFailRequest;
-import com.carsale.erp.preparationpipeline.inspection.InspectionFailResult;
 import com.carsale.erp.preparationpipeline.checklist.InspectionItem;
 import com.carsale.erp.shared.vehicle.Vehicle;
-import com.carsale.erp.preparationpipeline.inspection.VehicleInspection;
-import com.carsale.erp.preparationpipeline.inspection.VehicleInspectionLine;
 import com.carsale.erp.preparationpipeline.workshop.WorkshopJob;
 import com.carsale.erp.preparationpipeline.workshop.WorkshopJobLine;
-import com.carsale.erp.preparationpipeline.inspection.VehicleInspectionRepository;
 import com.carsale.erp.shared.vehicle.VehicleRepository;
 
 @Service
@@ -105,7 +99,7 @@ public class VehicleInspectionService {
         if (inspection == null || isBlank(inspection.getChassisNo())) {
             return;
         }
-        java.util.LinkedHashSet<String> noKeys = new java.util.LinkedHashSet<String>();
+        java.util.LinkedHashSet<String> noKeys = new java.util.LinkedHashSet<>();
         for (VehicleInspectionLine line : inspection.getLines()) {
             if (line == null || !InspectionResults.isNo(line.getResult()) || isBlank(line.getItemKey())) {
                 continue;
@@ -204,22 +198,9 @@ public class VehicleInspectionService {
         return InspectionFailResult.ok(true, "Workshop job removed for " + line.getItemTitle() + ".");
     }
 
-    public int answeredCount(VehicleInspection record) {
-        if (record == null) {
-            return 0;
-        }
-        int count = 0;
-        for (VehicleInspectionLine line : record.getLines()) {
-            if (line != null && !isBlank(line.getResult())) {
-                count++;
-            }
-        }
-        return count;
-    }
-
     private void mergeCatalogItems(VehicleInspection record) {
-        Map<String, VehicleInspectionLine> byKey = new LinkedHashMap<String, VehicleInspectionLine>();
-        List<VehicleInspectionLine> leftovers = new ArrayList<VehicleInspectionLine>();
+        Map<String, VehicleInspectionLine> byKey = new LinkedHashMap<>();
+        List<VehicleInspectionLine> leftovers = new ArrayList<>();
         for (VehicleInspectionLine line : record.getLines()) {
             if (!isBlank(line.getItemKey()) && !byKey.containsKey(line.getItemKey())) {
                 byKey.put(line.getItemKey(), line);
@@ -228,7 +209,7 @@ public class VehicleInspectionService {
             }
         }
 
-        List<VehicleInspectionLine> merged = new ArrayList<VehicleInspectionLine>();
+        List<VehicleInspectionLine> merged = new ArrayList<>();
         int order = 0;
         for (InspectionItem item : inspectionItemService.listActive()) {
             VehicleInspectionLine line = byKey.remove(item.getItemKey());
@@ -256,16 +237,16 @@ public class VehicleInspectionService {
 
     private void syncLines(VehicleInspection existing, List<VehicleInspectionLine> incoming) {
         List<VehicleInspectionLine> source = incoming == null
-                ? new ArrayList<VehicleInspectionLine>()
+                ? new ArrayList<>()
                 : incoming;
-        Map<Long, VehicleInspectionLine> currentById = new LinkedHashMap<Long, VehicleInspectionLine>();
+        Map<Long, VehicleInspectionLine> currentById = new LinkedHashMap<>();
         for (VehicleInspectionLine line : existing.getLines()) {
             if (line.getId() != null) {
                 currentById.put(line.getId(), line);
             }
         }
 
-        List<VehicleInspectionLine> next = new ArrayList<VehicleInspectionLine>();
+        List<VehicleInspectionLine> next = new ArrayList<>();
         int order = 0;
         for (VehicleInspectionLine incomingLine : source) {
             if (incomingLine == null || incomingLine.isBlankCustom()) {

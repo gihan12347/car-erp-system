@@ -28,12 +28,6 @@ public final class InspectionResults {
         return NO.equals(canonical(value));
     }
 
-    public static boolean same(String left, String right) {
-        String leftValue = canonical(left);
-        String rightValue = canonical(right);
-        return !leftValue.isEmpty() && leftValue.equals(rightValue);
-    }
-
     public static String display(String value) {
         String canonical = canonical(value);
         if (NO.equals(canonical)) {

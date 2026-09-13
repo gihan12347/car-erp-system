@@ -1,20 +1,14 @@
 package com.carsale.erp.preparationpipeline.workshop;
 
 import com.carsale.erp.preparationpipeline.inspection.InspectionResults;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+
+import java.util.*;
 
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import com.carsale.erp.shared.vehicle.Vehicle;
-import com.carsale.erp.preparationpipeline.workshop.WorkshopJob;
-import com.carsale.erp.preparationpipeline.workshop.WorkshopJobLine;
 import com.carsale.erp.shared.vehicle.VehicleRepository;
-import com.carsale.erp.preparationpipeline.workshop.WorkshopJobRepository;
 
 @Service
 public class WorkshopService {
@@ -92,7 +86,7 @@ public class WorkshopService {
     }
 
     @Transactional
-    public WorkshopJob addInspectionFailJob(String chassisNo, String inspectionItemKey, String itemTitle, String notes) {
+    public void addInspectionFailJob(String chassisNo, String inspectionItemKey, String itemTitle, String notes) {
         if (chassisNo == null || chassisNo.trim().isEmpty()) {
             throw new IllegalArgumentException("Chassis number is required.");
         }
@@ -113,7 +107,7 @@ public class WorkshopService {
         if (!isBlank(key)) {
             for (WorkshopJobLine line : job.getLines()) {
                 if (key.equals(line.getInspectionItemKey())) {
-                    return job;
+                    return;
                 }
             }
         }
@@ -125,7 +119,7 @@ public class WorkshopService {
             line.setNotes(notes.trim());
         }
         job.getLines().add(line);
-        return workshopJobRepository.save(job);
+        workshopJobRepository.save(job);
     }
 
     /**
@@ -133,17 +127,17 @@ public class WorkshopService {
      * Manual jobs (no inspectionItemKey) are left unchanged.
      */
     @Transactional
-    public WorkshopJob retainInspectionFailJobs(String chassisNo, java.util.Collection<String> keepKeys) {
+    public void retainInspectionFailJobs(String chassisNo, Collection<String> keepKeys) {
         if (chassisNo == null || chassisNo.trim().isEmpty()) {
-            return null;
+            return;
         }
         String id = chassisNo.trim();
         WorkshopJob job = workshopJobRepository.findById(id).orElse(null);
         if (job == null) {
-            return null;
+            return;
         }
         migrateLegacyLine(job);
-        java.util.Set<String> keep = new java.util.LinkedHashSet<String>();
+        java.util.Set<String> keep = new java.util.LinkedHashSet<>();
         if (keepKeys != null) {
             for (String key : keepKeys) {
                 if (!isBlank(key)) {
@@ -151,7 +145,7 @@ public class WorkshopService {
                 }
             }
         }
-        List<WorkshopJobLine> next = new ArrayList<WorkshopJobLine>();
+        List<WorkshopJobLine> next = new ArrayList<>();
         for (WorkshopJobLine line : job.getLines()) {
             if (line == null) {
                 continue;
@@ -163,22 +157,23 @@ public class WorkshopService {
         }
         job.getLines().clear();
         job.getLines().addAll(next);
-        if (job.getLines().isEmpty() && !job.isCompleted() && !hasLegacyDetails(job)) {
+        if (job.getLines().isEmpty() && !job.isCompleted() && hasLegacyDetails(job)) {
             workshopJobRepository.delete(job);
-            return null;
+            return;
         }
-        return workshopJobRepository.save(job);
+        workshopJobRepository.save(job);
     }
 
     @Transactional
-    public WorkshopJob removeInspectionFailJob(String chassisNo, String inspectionItemKey) {
+    public void removeInspectionFailJob(String chassisNo, String inspectionItemKey) {
         if (isBlank(chassisNo) || isBlank(inspectionItemKey)) {
-            return findByChassisNo(chassisNo);
+            findByChassisNo(chassisNo);
+            return;
         }
-        java.util.Set<String> keep = new java.util.LinkedHashSet<String>();
+        java.util.Set<String> keep = new java.util.LinkedHashSet<>();
         WorkshopJob job = findByChassisNo(chassisNo);
         if (job == null) {
-            return null;
+            return;
         }
         String drop = inspectionItemKey.trim();
         for (WorkshopJobLine line : job.getLines()) {
@@ -187,7 +182,7 @@ public class WorkshopService {
                 keep.add(key.trim());
             }
         }
-        return retainInspectionFailJobs(chassisNo, keep);
+        retainInspectionFailJobs(chassisNo, keep);
     }
 
     @Transactional
@@ -215,15 +210,15 @@ public class WorkshopService {
     }
 
     private void syncLines(WorkshopJob existing, List<WorkshopJobLine> incoming) {
-        List<WorkshopJobLine> source = incoming == null ? new ArrayList<WorkshopJobLine>() : incoming;
-        Map<Long, WorkshopJobLine> currentById = new LinkedHashMap<Long, WorkshopJobLine>();
+        List<WorkshopJobLine> source = incoming == null ? new ArrayList<>() : incoming;
+        Map<Long, WorkshopJobLine> currentById = new LinkedHashMap<>();
         for (WorkshopJobLine line : existing.getLines()) {
             if (line.getId() != null) {
                 currentById.put(line.getId(), line);
             }
         }
 
-        List<WorkshopJobLine> next = new ArrayList<WorkshopJobLine>();
+        List<WorkshopJobLine> next = new ArrayList<>();
         for (WorkshopJobLine incomingLine : source) {
             if (incomingLine == null || incomingLine.isEmpty()) {
                 continue;
@@ -250,7 +245,7 @@ public class WorkshopService {
         if (!record.getLines().isEmpty()) {
             return;
         }
-        if (!hasLegacyDetails(record)) {
+        if (hasLegacyDetails(record)) {
             return;
         }
         WorkshopJobLine line = newLine(record);
@@ -275,16 +270,16 @@ public class WorkshopService {
     }
 
     private static boolean hasLegacyDetails(WorkshopJob record) {
-        return !isBlank(record.getJobSummary())
-                || !isBlank(record.getTechnician())
-                || !isBlank(record.getPartsUsed())
-                || !isBlank(record.getLaborHours())
-                || !isBlank(record.getEstimatedCost())
-                || !isBlank(record.getActualCost())
-                || !isBlank(record.getStartedOn())
-                || !isBlank(record.getCompletedOn())
-                || !isBlank(record.getNotes())
-                || (record.getJobStatus() != null && !"PENDING".equals(record.getJobStatus()));
+        return isBlank(record.getJobSummary())
+                && isBlank(record.getTechnician())
+                && isBlank(record.getPartsUsed())
+                && isBlank(record.getLaborHours())
+                && isBlank(record.getEstimatedCost())
+                && isBlank(record.getActualCost())
+                && isBlank(record.getStartedOn())
+                && isBlank(record.getCompletedOn())
+                && isBlank(record.getNotes())
+                && (record.getJobStatus() == null || "PENDING".equals(record.getJobStatus()));
     }
 
     private static String defaultStatus(String status) {

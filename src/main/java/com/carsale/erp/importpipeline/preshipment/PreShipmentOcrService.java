@@ -51,11 +51,8 @@ public class PreShipmentOcrService {
         File temp = null;
         try {
             temp = File.createTempFile("preship-", suffix(file.getOriginalFilename()));
-            InputStream input = file.getInputStream();
-            try {
+            try (InputStream input = file.getInputStream()) {
                 Files.copy(input, temp.toPath(), StandardCopyOption.REPLACE_EXISTING);
-            } finally {
-                input.close();
             }
             AuctionParseResult parsed = imagePreparer.readDocumentText(temp, file.getOriginalFilename(), language, provider, parser);
             log.info("Pre-shipment OCR text:\n{}", parsed.getRawText());

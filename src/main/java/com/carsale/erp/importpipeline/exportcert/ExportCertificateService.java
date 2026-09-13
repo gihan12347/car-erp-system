@@ -3,10 +3,7 @@ package com.carsale.erp.importpipeline.exportcert;
 import com.carsale.erp.shared.document.SheetDocumentStorageService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import com.carsale.erp.importpipeline.exportcert.ExportCertificate;
 import com.carsale.erp.shared.vehicle.Vehicle;
-import com.carsale.erp.importpipeline.exportcert.ExportCertificateRepository;
 import com.carsale.erp.shared.vehicle.VehicleRepository;
 
 @Service

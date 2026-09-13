@@ -3,10 +3,7 @@ package com.carsale.erp.readypipeline;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import com.carsale.erp.readypipeline.SaleListing;
 import com.carsale.erp.shared.vehicle.Vehicle;
-import com.carsale.erp.readypipeline.SaleListingRepository;
 import com.carsale.erp.shared.vehicle.VehicleRepository;
 
 @Service

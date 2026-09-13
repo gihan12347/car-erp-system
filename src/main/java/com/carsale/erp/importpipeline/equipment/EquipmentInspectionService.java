@@ -1,15 +1,11 @@
 package com.carsale.erp.importpipeline.equipment;
 
 import com.carsale.erp.shared.document.SheetDocumentStorageService;
-import com.carsale.erp.customspipeline.CustomsDocument;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.BeanWrapperImpl;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import com.carsale.erp.importpipeline.equipment.EquipmentInspection;
 import com.carsale.erp.shared.vehicle.Vehicle;
-import com.carsale.erp.importpipeline.equipment.EquipmentInspectionRepository;
 import com.carsale.erp.shared.vehicle.VehicleRepository;
 
 @Service
