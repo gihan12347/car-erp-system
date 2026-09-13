@@ -2,13 +2,15 @@ package com.carsale.erp.preparationpipeline;
 
 import java.util.List;
 
-import org.springframework.web.util.UriUtils;
-
+import com.carsale.erp.preparationpipeline.PreparationProgressService.PreparationProgress;
 import com.carsale.erp.shared.pipeline.FlowPipeline;
 import com.carsale.erp.shared.pipeline.FlowStage;
-import com.carsale.erp.preparationpipeline.PreparationProgressService.PreparationProgress;
+import com.carsale.erp.shared.pipeline.NavLinks;
+import com.carsale.erp.shared.pipeline.PipelineStage;
+import com.carsale.erp.shared.pipeline.PipelineStageService;
+import com.carsale.erp.shared.utils.PipelineStageUtils;
 
-import static com.carsale.erp.shared.pipeline.PipelineStageService.editUrlOrFallback;
+import static com.carsale.erp.shared.pipeline.PipelineStageService.viewLinks;
 
 public final class PreparationStageUrls {
 
@@ -44,72 +46,43 @@ public final class PreparationStageUrls {
         return 0;
     }
 
+    public static String redirectAfterInspectionSave(String chassisNo, List<String> keys) {
+        return PipelineStageUtils.redirectAfterStageSave(
+                chassisNo, FlowPipeline.PREP.getCurrentBase(), keys, FlowStage.INSPECTION.getStageKey());
+    }
+
     public static String redirectAfterWorkshopSave(String chassisNo, PreparationProgress status, List<String> keys) {
-        return redirectAfterStage(chassisNo, status, keys, FlowStage.WORKSHOP.getStageKey());
-    }
-
-    public static String redirectAfterYardSave(String chassisNo, PreparationProgress status, List<String> keys) {
-        return redirectAfterStage(chassisNo, status, keys, FlowStage.YARD.getStageKey());
-    }
-
-    public static String redirectAfterInspectionSave(String chassisNo, PreparationProgress status, List<String> keys) {
-        return redirectAfterStage(chassisNo, status, keys, FlowStage.INSPECTION.getStageKey());
-    }
-
-    private static String redirectAfterStage(
-            String chassisNo,
-            PreparationProgress status,
-            List<String> keys,
-            String currentKey
-    ) {
         String encoded = encode(chassisNo);
-        String viewBase = FlowPipeline.PREP.getCurrentBase() + encoded;
-        int currentIndex = keys.indexOf(currentKey);
-
-        if (status.isPipelineCompleted()) {
-            return completedRedirect(viewBase, encoded, currentIndex, keys.size());
+        int index = keys == null ? -1 : keys.indexOf(FlowStage.WORKSHOP.getStageKey());
+        if (index >= 0 && index < keys.size() - 1) {
+            String nextKey = keys.get(index + 1);
+            if (FlowStage.YARD.getStageKey().equals(nextKey) && !status.isCanEnterYard()) {
+                return editUrlFor(encoded, FlowStage.WORKSHOP.getStageKey());
+            }
         }
-        if (currentIndex >= 0 && currentIndex < keys.size() - 1) {
-            return nextStageRedirect(encoded, viewBase, keys.get(currentIndex + 1), currentIndex + 1, status);
-        }
-        return firstIncompleteRedirect(encoded, viewBase, status, keys);
+        return PipelineStageUtils.redirectAfterStageSave(
+                chassisNo, FlowPipeline.PREP.getCurrentBase(), keys, FlowStage.WORKSHOP.getStageKey());
     }
 
-    private static String completedRedirect(String viewBase, String encoded, int currentIndex, int size) {
-        if (currentIndex >= 0 && currentIndex < size - 1) {
-            return viewUrl(viewBase, currentIndex + 1);
-        }
-        return FlowPipeline.READY.getCurrentBase() + encoded;
+    public static String redirectAfterYardSave(String chassisNo, List<String> keys) {
+        return PipelineStageUtils.redirectAfterStageSave(
+                chassisNo, FlowPipeline.PREP.getCurrentBase(), keys, FlowStage.YARD.getStageKey());
     }
 
-    private static String nextStageRedirect(
-            String encoded,
-            String viewBase,
-            String nextKey,
-            int nextIndex,
-            PreparationProgress status
-    ) {
-        if (FlowStage.YARD.getStageKey().equals(nextKey) && !status.isCanEnterYard()) {
-            return editUrlOrFallback(encoded, FlowStage.WORKSHOP.getStageKey(), viewBase);
+    public static NavLinks editLinks(String chassisNo, int stageIndex, PreparationProgress status, List<PipelineStage> keys) {
+        NavLinks view = viewLinks(chassisNo, stageIndex, status, keys, FlowPipeline.PREP);
+        String encoded = PipelineStageUtils.encode(chassisNo);
+        String prevUrl = null;
+        if (stageIndex > 0) {
+            String prevKey = PipelineStageService.stageKeyAt(keys, stageIndex - 1);
+            prevUrl = editUrlFor(encoded, prevKey);
         }
-        if (status.isStageComplete(nextKey)) {
-            return viewUrl(viewBase, nextIndex);
-        }
-        return editUrlOrFallback(encoded, nextKey, viewBase);
+        return new NavLinks(view.getStageIndex(), view.getStageLabel(), prevUrl,
+                view.getNextUrl(), view.getNextLabel(), null);
     }
 
-    private static String firstIncompleteRedirect(
-            String encoded,
-            String viewBase,
-            PreparationProgress status,
-            List<String> keys
-    ) {
-        String incomplete = status.firstIncompleteStageKey(keys);
-        return incomplete != null ? editUrlOrFallback(encoded, incomplete, viewBase) : viewBase;
-    }
-
-    private static String viewUrl(String viewBase, int stageIndex) {
-        return viewBase + "?stage=" + stageIndex;
+    public static String editUrlFor(String encodedChassis, String stageKey) {
+        return PipelineStageService.editUrlFor(encodedChassis, stageKey);
     }
 
     public static boolean isStageComplete(String stageKey, PreparationProgress status) {
@@ -117,6 +90,6 @@ public final class PreparationStageUrls {
     }
 
     public static String encode(String chassisNo) {
-        return UriUtils.encodePathSegment(chassisNo, java.nio.charset.StandardCharsets.UTF_8);
+        return PipelineStageUtils.encode(chassisNo);
     }
 }

@@ -3,6 +3,7 @@ package com.carsale.erp.importpipeline.equipment;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.carsale.erp.customspipeline.document.EquipmentInspectionParser;
 import org.junit.jupiter.api.Test;
 
 import com.carsale.erp.importpipeline.auction.AuctionParseResult;
@@ -13,7 +14,7 @@ class EquipmentInspectionParserTest {
 
     @Test
     void parsesInteriorExteriorAndSafetyFromSampleSheet() {
-        AuctionParseResult result = parser.parse(SAMPLE_TEXT);
+        AuctionParseResult result = parser.parsePage(SAMPLE_TEXT);
 
         assertTrue(result.isSuccess());
         assertEquals("NO", result.getFields().get("sunroof"));
@@ -89,7 +90,7 @@ class EquipmentInspectionParserTest {
 
     @Test
     void doesNotStealCdChangerValueForCd() {
-        AuctionParseResult result = parser.parse(""
+        AuctionParseResult result = parser.parsePage(""
                 + "CD NO\n"
                 + "CD Changer YES\n");
 

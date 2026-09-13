@@ -5,13 +5,12 @@
 <th:block th:fragment="inspectionForm">
     <p id="inspectionJobStatus" class="alert alert-ok" hidden></p>
     <p id="inspectionJobError" class="alert alert-error" hidden></p>
-    <p th:if="${successMessage}" class="alert alert-ok" th:text="${successMessage}"></p>
-    <p th:if="${errorMessage}" class="alert alert-error" th:text="${errorMessage}"></p>
 
     <form th:action="@{/inspection/{chassisNo}(chassisNo=${vehicle.chassisNo})}"
           th:object="${record}" method="post" class="vehicle-form prep-form" id="inspectionForm"
           th:attr="data-chassis=${vehicle.chassisNo}, data-fail-url=@{/inspection/{c}/fail-item(c=${vehicle.chassisNo})}, data-clear-fail-url=@{/inspection/{c}/clear-fail-item(c=${vehicle.chassisNo})}">
         <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+        <input type="hidden" name="hub" th:value="${hubMode}">
         <input type="hidden" th:field="*{chassisNo}">
         <article class="panel">
             <div class="panel-head"><h2>Inspection details</h2></div>
@@ -80,15 +79,7 @@
         </button>
 
         <div class="import-view-actions">
-            <button type="submit" class="panel-btn import-form-submit" id="saveInspectionBtn" disabled>
-                Save inspection
-            </button>
-            <a th:if="${stageNav != null and stageNav.nextUrl != null}"
-               th:href="${stageNav.nextUrl}"
-               class="panel-btn ghost import-form-submit">
-                <span th:text="${stageNav.nextLabel}">Next · Workshop</span>
-                <i class="fa-solid fa-chevron-right"></i>
-            </a>
+            <th:block th:replace="preparation-pipeline/fragments/form-actions :: prepFormActions('Save & continue', 'saveInspectionBtn')"></th:block>
         </div>
     </form>
 

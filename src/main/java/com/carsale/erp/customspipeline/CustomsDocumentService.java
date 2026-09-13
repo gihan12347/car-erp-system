@@ -14,16 +14,8 @@ import com.carsale.erp.shared.vehicle.VehicleRepository;
 public class CustomsDocumentService {
 
     private static final String[] DECLARATION_FIELDS = {
-            "customsReference", "declarationType", "declarationPages", "declarationLists", "declarationItems",
-            "totalPackages", "exporterName", "exporterAddress", "consigneeName", "consigneeAddress", "consigneeTin",
-            "declarantName", "declarantAddress", "declarantTin", "countryLastConsignment", "tradingCountry",
-            "countryExport", "countryDestination", "countryOrigin", "vesselFlight", "deliveryTerms", "voyageNoDate",
-            "placeLoadingDischarging", "currencyInvoiced", "totalAmountInvoiced", "exchangeRate", "paymentTerms",
-            "bankCode", "bankName", "bankBranch", "bankReference", "locationOfGoods", "hsCode", "grossMassKg",
-            "netMassKg", "blAwbNo", "goodsDescription", "modelSpec", "yearOfManufacture", "dateOfRegistration",
-            "clearanceChassisNo", "clearanceEngineNo", "itemPrice", "valueNcy", "engineCapacityCc",
-            "taxCid", "taxSur", "taxVat", "taxXid", "taxVel", "taxOther", "totalTaxAmount",
-            "invoiceFob", "invoiceFreight", "invoiceInsurance", "invoiceTotal", "declarantDate",
+            "exchangeRate", "valueNcy",
+            "invoiceFob", "invoiceFreight", "invoiceInsurance", "invoiceOther", "invoiceTotal",
             "page2OriginalName", "page2StoredName", "page2ContentType", "ocrTextPage2"
     };
 

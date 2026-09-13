@@ -362,6 +362,10 @@ public class CustomsDocument {
 
     @Lob
     @Column(columnDefinition = "TEXT")
+    private String invoiceOther;
+
+    @Lob
+    @Column(columnDefinition = "TEXT")
     private String invoiceTotal;
 
     @Lob
@@ -1309,6 +1313,14 @@ public class CustomsDocument {
 
     public void setInvoiceInsurance(String invoiceInsurance) {
         this.invoiceInsurance = invoiceInsurance;
+    }
+
+    public String getInvoiceOther() {
+        return invoiceOther;
+    }
+
+    public void setInvoiceOther(String invoiceOther) {
+        this.invoiceOther = invoiceOther;
     }
 
     public String getInvoiceTotal() {

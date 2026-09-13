@@ -2,7 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <body>
 
-<section th:fragment="workshopView(vehicle, workshop, workshopReady)" class="prep-view-stage">
+<section th:fragment="workshopView(vehicle, workshop, workshopReady)" class="import-view-stage">
     <div class="panel import-view-empty" th:if="${workshop == null}">
         <i class="fa-solid fa-wrench"></i>
         <strong>No workshop job yet</strong>
@@ -14,7 +14,7 @@
                 <i class="fa-solid fa-chevron-left"></i>
                 Previous
             </a>
-            <a th:href="@{/workshop/{c}(c=${vehicle.chassisNo})}" class="panel-btn import-form-submit">Start workshop job</a>
+            <a th:href="@{/workshop/{c}(c=${vehicle.chassisNo}, hub=1)}" class="panel-btn import-form-submit">Start workshop job</a>
             <span class="panel-btn ghost import-form-submit is-disabled"
                   aria-disabled="true"
                   title="Finish every workshop job first">
@@ -60,7 +60,7 @@
                 <i class="fa-solid fa-chevron-left"></i>
                 Previous
             </a>
-            <a th:href="@{/workshop/{c}(c=${vehicle.chassisNo})}" class="panel-btn ghost import-form-submit">Edit workshop</a>
+            <a th:href="@{/workshop/{c}(c=${vehicle.chassisNo}, hub=1)}" class="panel-btn ghost import-form-submit">Edit workshop</a>
             <a th:if="${canEnterYard and stageNav != null and stageNav.nextUrl != null}"
                th:href="${stageNav.nextUrl}"
                class="panel-btn import-form-submit">

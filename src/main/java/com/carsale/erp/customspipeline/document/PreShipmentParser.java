@@ -1,16 +1,18 @@
-package com.carsale.erp.importpipeline.preshipment;
+package com.carsale.erp.customspipeline.document;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.carsale.erp.shared.document.DocumentParser;
+import com.carsale.erp.shared.ocr.DocumentAiClient;
 import org.springframework.stereotype.Service;
 
 import com.carsale.erp.importpipeline.auction.AuctionParseResult;
 
 @Service
-public class PreShipmentParser {
+public class PreShipmentParser implements DocumentParser {
 
     private static final String[] ATTRIBUTE_ONLY_PREFIXES = new String[] {
             "Marks of accident on chassis (by visual check)",
@@ -46,7 +48,7 @@ public class PreShipmentParser {
             15, 15, 9, 10, 10, 12, 12, 12, 4, 4, 5, 5, 16, 11, 14, 6, 7, 7, 8, 13, 13, 1, 0, 0, 0, 2, 3
     };
 
-    public AuctionParseResult parse(String text) {
+    public AuctionParseResult parsePage(String text) {
         AuctionParseResult result = new AuctionParseResult();
         if (text == null || text.trim().isEmpty()) {
             result.setSuccess(false);
@@ -62,7 +64,7 @@ public class PreShipmentParser {
         ));
         result.put("documentTitle", firstNonNull(
                 extractLabelValue(normalized, "Document Title"),
-                extractHeading(normalized, "PRE-SHIPMENT INSPECTION CERTIFICATE")
+                extractHeading(normalized)
         ));
         result.put("bvNumber", extractBvNumber(normalized));
         result.put("certificateDate", firstNonNull(
@@ -145,6 +147,11 @@ public class PreShipmentParser {
         return result;
     }
 
+    @Override
+    public AuctionParseResult parsePage(DocumentAiClient.DocumentAiResult documentAi) {
+        return null;
+    }
+
     private String normalize(String text) {
         return text.replace('\r', '\n')
                 .replaceAll("[ ]+", " ")
@@ -152,8 +159,8 @@ public class PreShipmentParser {
     }
 
     private static final class VehicleRowIndex {
-        private final Map<Integer, String> byNumber = new LinkedHashMap<Integer, String>();
-        private final Map<String, String> byAttribute = new LinkedHashMap<String, String>();
+        private final Map<Integer, String> byNumber = new LinkedHashMap<>();
+        private final Map<String, String> byAttribute = new LinkedHashMap<>();
     }
 
     private VehicleRowIndex buildVehicleRowIndex(String section) {
@@ -167,7 +174,7 @@ public class PreShipmentParser {
         String[] lines = section.split("\n");
         for (int i = 0; i < lines.length; i++) {
             String line = lines[i].trim();
-            if (line.length() == 0 || isTableHeaderLine(line) || isVehicleSectionBoundary(line)) {
+            if (line.isEmpty() || isTableHeaderLine(line) || isVehicleSectionBoundary(line)) {
                 continue;
             }
 
@@ -192,7 +199,7 @@ public class PreShipmentParser {
                 String rest = parenNumbered.group(2).trim();
                 if (rest.endsWith(":") && i + 1 < lines.length) {
                     String nextLine = lines[i + 1].trim();
-                    if (nextLine.length() > 0
+                    if (!nextLine.isEmpty()
                             && !isVehicleFieldLabelLine(nextLine)
                             && !isVehicleSectionBoundary(nextLine)
                             && !nextLine.matches("(?i)^\\(\\s*\\d{1,2}\\s*\\).*")) {
@@ -251,13 +258,13 @@ public class PreShipmentParser {
             }
 
             String value = stripLeadingParenthetical(cleanValue(rest.substring(prefix.length())));
-            if (value == null || value.length() == 0) {
+            if (value == null || value.isEmpty()) {
                 continue;
             }
 
             Integer mappedNumber = number;
             if (mappedNumber == null && ATTRIBUTE_ONLY_NUMBERS[i] > 0) {
-                mappedNumber = Integer.valueOf(ATTRIBUTE_ONLY_NUMBERS[i]);
+                mappedNumber = ATTRIBUTE_ONLY_NUMBERS[i];
             }
             registerVehicleRow(index, mappedNumber, prefix, value);
             return true;
@@ -267,15 +274,15 @@ public class PreShipmentParser {
 
     private void registerVehicleRow(VehicleRowIndex index, Integer number, String attribute, String value) {
         String cleanedValue = stripLeadingParenthetical(cleanValue(value));
-        if (cleanedValue == null || cleanedValue.length() == 0) {
+        if (cleanedValue == null || cleanedValue.isEmpty()) {
             return;
         }
 
         String cleanedAttribute = cleanValue(attribute);
-        if (cleanedAttribute != null && cleanedAttribute.length() > 0 && !isTableHeaderLine(cleanedAttribute)) {
+        if (cleanedAttribute != null && !cleanedAttribute.isEmpty() && !isTableHeaderLine(cleanedAttribute)) {
             index.byAttribute.put(normalizeVehicleAttribute(cleanedAttribute), cleanedValue);
         }
-        if (number != null && number.intValue() >= 1 && number.intValue() <= 16) {
+        if (number != null && number >= 1 && number <= 16) {
             index.byNumber.put(number, cleanedValue);
         }
     }
@@ -315,14 +322,14 @@ public class PreShipmentParser {
     ) {
         if (index != null) {
             if (number >= 1 && number <= 16) {
-                String byNumber = index.byNumber.get(Integer.valueOf(number));
-                if (byNumber != null && byNumber.length() > 0) {
+                String byNumber = index.byNumber.get(number);
+                if (byNumber != null && !byNumber.isEmpty()) {
                     return byNumber;
                 }
             }
-            for (int i = 0; i < labels.length; i++) {
-                String byAttribute = index.byAttribute.get(normalizeVehicleAttribute(labels[i]));
-                if (byAttribute != null && byAttribute.length() > 0) {
+            for (String label : labels) {
+                String byAttribute = index.byAttribute.get(normalizeVehicleAttribute(label));
+                if (byAttribute != null && !byAttribute.isEmpty()) {
                     return byAttribute;
                 }
             }
@@ -348,17 +355,17 @@ public class PreShipmentParser {
     }
 
     private String firstNonNull(String... values) {
-        for (int i = 0; i < values.length; i++) {
-            if (values[i] != null && values[i].trim().length() > 0) {
-                return values[i];
+        for (String value : values) {
+            if (value != null && !value.trim().isEmpty()) {
+                return value;
             }
         }
         return null;
     }
 
-    private String extractHeading(String text, String heading) {
-        if (text.toUpperCase().contains(heading.toUpperCase())) {
-            return heading;
+    private String extractHeading(String text) {
+        if (text.toUpperCase().contains("PRE-SHIPMENT INSPECTION CERTIFICATE".toUpperCase())) {
+            return "PRE-SHIPMENT INSPECTION CERTIFICATE";
         }
         return null;
     }
@@ -418,8 +425,7 @@ public class PreShipmentParser {
     }
 
     private String extractNumbered(String text, int number, String... labels) {
-        for (int i = 0; i < labels.length; i++) {
-            String label = labels[i];
+        for (String label : labels) {
             Pattern pattern = Pattern.compile(
                     "(?:^|\\n)\\s*(?:\\(\\s*" + number + "\\s*\\)|"
                             + number + "(?![0-9])(?:\\.|\\s+|\\t+))\\s*"
@@ -474,11 +480,11 @@ public class PreShipmentParser {
 
         int start = -1;
         int markerLength = 0;
-        for (int i = 0; i < startMarkers.length; i++) {
-            int index = indexOfIgnoreCase(text, startMarkers[i]);
+        for (String startMarker : startMarkers) {
+            int index = indexOfIgnoreCase(text, startMarker);
             if (index >= 0 && (start < 0 || index < start)) {
                 start = index;
-                markerLength = startMarkers[i].length();
+                markerLength = startMarker.length();
             }
         }
         if (start < 0) {
@@ -495,8 +501,8 @@ public class PreShipmentParser {
                 "End of certificate",
                 "This certificate"
         };
-        for (int i = 0; i < endMarkers.length; i++) {
-            int index = indexOfIgnoreCase(section, endMarkers[i]);
+        for (String endMarker : endMarkers) {
+            int index = indexOfIgnoreCase(section, endMarker);
             if (index > markerLength && index < end) {
                 end = index;
             }
@@ -514,12 +520,12 @@ public class PreShipmentParser {
     }
 
     private String extractVehicleField(String vehicleSection, String fullText, int number, String... labels) {
-        for (int i = 0; i < labels.length; i++) {
+        for (String label : labels) {
             String value = firstNonNull(
-                    extractFromScopedText(vehicleSection, number, labels[i]),
-                    extractFromScopedText(fullText, number, labels[i])
+                    extractFromScopedText(vehicleSection, number, label),
+                    extractFromScopedText(fullText, number, label)
             );
-            if (value != null && value.length() > 0) {
+            if (value != null && !value.isEmpty()) {
                 return value;
             }
         }
@@ -582,9 +588,9 @@ public class PreShipmentParser {
 
         String tail = text.substring(labelMatcher.end());
         String[] lines = tail.split("\n");
-        for (int i = 0; i < lines.length; i++) {
-            String line = cleanValue(lines[i]);
-            if (line.length() == 0) {
+        for (String s : lines) {
+            String line = cleanValue(s);
+            if (line.isEmpty()) {
                 continue;
             }
             if (isVehicleFieldLabelLine(line) || isVehicleSectionBoundary(line)) {
@@ -629,19 +635,19 @@ public class PreShipmentParser {
 
     private String extractInspectionOrgName(String text) {
         String section = extractInspectionOrgSection(text);
-        String name = extractLetteredField(section, "a", "Name of inspection organisation");
+        String name = extractLetteredField(section, "Name of inspection organisation");
         if (name == null) {
-            name = extractLetteredField(section, "a", "Name");
+            name = extractLetteredField(section, "Name");
         }
-        if (name != null && name.length() > 0) {
+        if (name != null && !name.isEmpty()) {
             return name;
         }
-        return extractAfterHeading(text, "Name of Inspection Organisation", "BUREAU VERITAS");
+        return extractAfterHeading(text);
     }
 
     private String extractInspectionOrgAddress(String text) {
         String section = extractInspectionOrgSection(text);
-        return extractLetteredBlock(section, "b", "Address");
+        return extractLetteredBlock(section);
     }
 
     private String extractInspectionOrgSection(String text) {
@@ -660,12 +666,12 @@ public class PreShipmentParser {
 
     private String extractApplicantName(String text) {
         String section = extractApplicantSection(text);
-        return extractLetteredField(section, "a", "Name");
+        return extractLetteredField(section, "Name");
     }
 
     private String extractApplicantAddress(String text) {
         String section = extractApplicantSection(text);
-        return extractLetteredBlock(section, "b", "Address");
+        return extractLetteredBlock(section);
     }
 
     private String extractApplicantSection(String text) {
@@ -679,13 +685,13 @@ public class PreShipmentParser {
         return section;
     }
 
-    private String extractLetteredBlock(String section, String letter, String label) {
+    private String extractLetteredBlock(String section) {
         if (section == null || section.trim().isEmpty()) {
             return null;
         }
 
         Pattern labelOnly = Pattern.compile(
-                "\\(\\s*" + letter + "\\s*\\)\\s*" + label + "\\s*[:\\.]?\\s*$",
+                "\\(\\s*" + "b" + "\\s*\\)\\s*" + "Address" + "\\s*[:\\.]?\\s*$",
                 Pattern.CASE_INSENSITIVE | Pattern.MULTILINE
         );
         Matcher labelMatcher = labelOnly.matcher(section);
@@ -697,7 +703,7 @@ public class PreShipmentParser {
         }
 
         Pattern marker = Pattern.compile(
-                "\\(\\s*" + letter + "\\s*\\)\\s*" + label + "\\s*[:\\.]?\\s*(.*)",
+                "\\(\\s*" + "b" + "\\s*\\)\\s*" + "Address" + "\\s*[:\\.]?\\s*(.*)",
                 Pattern.CASE_INSENSITIVE | Pattern.DOTALL
         );
         Matcher matcher = marker.matcher(section);
@@ -710,7 +716,7 @@ public class PreShipmentParser {
             return null;
         }
         String inline = cleanAddressValue(stripContactSuffix(stripTrailingSubFields(cleanValue(tail.replace('\n', ' ')))));
-        if (inline != null && inline.length() > 0 && !isSubFieldLabel(inline)) {
+        if (inline != null && !inline.isEmpty() && !isSubFieldLabel(inline)) {
             return inline;
         }
         return collectLinesUntilContact(tail);
@@ -731,9 +737,9 @@ public class PreShipmentParser {
         }
         String[] lines = tail.split("\n");
         StringBuilder builder = new StringBuilder();
-        for (int i = 0; i < lines.length; i++) {
-            String line = cleanValue(lines[i]);
-            if (line.length() == 0) {
+        for (String s : lines) {
+            String line = cleanValue(s);
+            if (line.isEmpty()) {
                 continue;
             }
             if (isSubFieldLabel(line) || isLetteredContinuationLabel(line)) {
@@ -744,13 +750,13 @@ public class PreShipmentParser {
             }
             if (isContactLine(line)) {
                 String beforeContact = cleanAddressValue(line);
-                if (beforeContact != null && beforeContact.length() > 0) {
+                if (beforeContact != null && !beforeContact.isEmpty()) {
                     appendLine(builder, beforeContact);
                 }
                 break;
             }
             String addressLine = cleanAddressValue(line);
-            if (addressLine != null && addressLine.length() > 0) {
+            if (addressLine != null && !addressLine.isEmpty()) {
                 appendLine(builder, addressLine);
             }
         }
@@ -775,7 +781,7 @@ public class PreShipmentParser {
         if (lettered.find()) {
             line = line.substring(0, lettered.start());
         }
-        return line == null ? null : line.trim();
+        return line.trim();
     }
 
     private String stripContactSuffix(String line) {
@@ -795,60 +801,60 @@ public class PreShipmentParser {
     /**
      * Reads BV sub-fields such as "(a) Name:" where the value may be on the same line or the next line.
      */
-    private String extractLetteredField(String section, String letter, String label) {
+    private String extractLetteredField(String section, String label) {
         if (section == null || section.trim().isEmpty()) {
             return null;
         }
 
         Pattern inline = Pattern.compile(
-                "\\(\\s*" + letter + "\\s*\\)\\s*" + Pattern.quote(label) + "\\s*[:\\.]?\\s*(.+?)(?=\\s*\\([a-z]\\)\\s*\\w|\\s*(?:Tel|Fax|Email|No\\.)\\b|$)",
+                "\\(\\s*" + "a" + "\\s*\\)\\s*" + Pattern.quote(label) + "\\s*[:\\.]?\\s*(.+?)(?=\\s*\\([a-z]\\)\\s*\\w|\\s*(?:Tel|Fax|Email|No\\.)\\b|$)",
                 Pattern.CASE_INSENSITIVE | Pattern.DOTALL
         );
         Matcher inlineMatcher = inline.matcher(section.replace('\n', ' '));
         if (inlineMatcher.find()) {
             String value = cleanValue(inlineMatcher.group(1));
-            if (value != null && value.length() > 0 && !isSubFieldLabel(value)) {
+            if (value != null && !value.isEmpty() && !isSubFieldLabel(value)) {
                 return value;
             }
         }
 
         Pattern sameLine = Pattern.compile(
-                "\\(\\s*" + letter + "\\s*\\)\\s*" + Pattern.quote(label) + "\\s*[:\\.]?\\s*([^\\n]+)",
+                "\\(\\s*" + "a" + "\\s*\\)\\s*" + Pattern.quote(label) + "\\s*[:\\.]?\\s*([^\\n]+)",
                 Pattern.CASE_INSENSITIVE
         );
         Matcher sameLineMatcher = sameLine.matcher(section);
         if (sameLineMatcher.find()) {
             String value = cleanValue(sameLineMatcher.group(1));
-            if (value != null && value.length() > 0 && !isSubFieldLabel(value) && !isContactLine(value)) {
+            if (value != null && !value.isEmpty() && !isSubFieldLabel(value) && !isContactLine(value)) {
                 return value;
             }
         }
 
         Pattern inlineShort = Pattern.compile(
-                "\\(\\s*" + letter + "\\s*\\)\\s*Name\\b\\s*[:\\.]?\\s*(.+?)(?=\\s*\\([a-z]\\)\\s*\\w|\\s*(?:Tel|Fax|Email|No\\.)\\b|$)",
+                "\\(\\s*" + "a" + "\\s*\\)\\s*Name\\b\\s*[:\\.]?\\s*(.+?)(?=\\s*\\([a-z]\\)\\s*\\w|\\s*(?:Tel|Fax|Email|No\\.)\\b|$)",
                 Pattern.CASE_INSENSITIVE | Pattern.DOTALL
         );
         if ("Name".equalsIgnoreCase(label)) {
             inlineMatcher = inlineShort.matcher(section.replace('\n', ' '));
             if (inlineMatcher.find()) {
                 String value = cleanValue(inlineMatcher.group(1));
-                if (value != null && value.length() > 0 && !isSubFieldLabel(value)) {
+                if (value != null && !value.isEmpty() && !isSubFieldLabel(value)) {
                     return value;
                 }
             }
         }
 
         Pattern labelOnly = Pattern.compile(
-                "\\(\\s*" + letter + "\\s*\\)\\s*" + Pattern.quote(label) + "\\s*[:\\.]?\\s*$",
+                "\\(\\s*" + "a" + "\\s*\\)\\s*" + Pattern.quote(label) + "\\s*[:\\.]?\\s*$",
                 Pattern.CASE_INSENSITIVE | Pattern.MULTILINE
         );
         Matcher labelMatcher = labelOnly.matcher(section);
         if (labelMatcher.find()) {
             String tail = section.substring(labelMatcher.end());
             String[] lines = tail.split("\n");
-            for (int i = 0; i < lines.length; i++) {
-                String line = cleanValue(lines[i]);
-                if (line.length() == 0) {
+            for (String s : lines) {
+                String line = cleanValue(s);
+                if (line.isEmpty()) {
                     continue;
                 }
                 if (isSubFieldLabel(line) || isContactLine(line)) {
@@ -878,16 +884,16 @@ public class PreShipmentParser {
         return lower.startsWith("place of inspection") || lower.startsWith("date of inspection");
     }
 
-    private String extractAfterHeading(String text, String heading, String fallback) {
-        int index = text.toLowerCase().indexOf(heading.toLowerCase());
+    private String extractAfterHeading(String text) {
+        int index = text.toLowerCase().indexOf("Name of Inspection Organisation".toLowerCase());
         if (index < 0) {
-            return fallback;
+            return "BUREAU VERITAS";
         }
-        String tail = text.substring(index + heading.length()).trim();
+        String tail = text.substring(index + "Name of Inspection Organisation".length()).trim();
         String[] lines = tail.split("\n");
-        for (int i = 0; i < lines.length; i++) {
-            String line = cleanValue(lines[i]);
-            if (line.length() == 0) {
+        for (String s : lines) {
+            String line = cleanValue(s);
+            if (line.isEmpty()) {
                 continue;
             }
             if (line.toLowerCase().startsWith("particulars of")) {
@@ -898,49 +904,7 @@ public class PreShipmentParser {
             }
             return line;
         }
-        return fallback;
-    }
-
-    private String extractBlockAfterLabel(String text, String heading, String... stopMarkers) {
-        int index = text.toLowerCase().indexOf(heading.toLowerCase());
-        if (index < 0) {
-            return null;
-        }
-        String tail = text.substring(index + heading.length());
-        int stop = findEarliestMarker(tail, stopMarkers);
-        if (stop > 0) {
-            tail = tail.substring(0, stop);
-        }
-        String[] lines = tail.split("\n");
-        StringBuilder builder = new StringBuilder();
-        for (int i = 0; i < lines.length; i++) {
-            String line = cleanValue(lines[i]);
-            if (line.length() == 0) {
-                continue;
-            }
-            if (line.toLowerCase().startsWith("particulars of")) {
-                break;
-            }
-            if (isContactLine(line)) {
-                break;
-            }
-            if (builder.length() > 0) {
-                builder.append('\n');
-            }
-            builder.append(line);
-        }
-        return builder.length() == 0 ? null : builder.toString();
-    }
-
-    private int findEarliestMarker(String text, String... markers) {
-        int earliest = -1;
-        for (int i = 0; i < markers.length; i++) {
-            int index = indexOfIgnoreCase(text, markers[i]);
-            if (index >= 0 && (earliest < 0 || index < earliest)) {
-                earliest = index;
-            }
-        }
-        return earliest;
+        return "BUREAU VERITAS";
     }
 
     private int indexOfIgnoreCase(String text, String marker) {
@@ -1003,8 +967,8 @@ public class PreShipmentParser {
     }
 
     private String matchFirst(String section, String... patterns) {
-        for (int i = 0; i < patterns.length; i++) {
-            Matcher matcher = Pattern.compile(patterns[i], Pattern.CASE_INSENSITIVE).matcher(section);
+        for (String pattern : patterns) {
+            Matcher matcher = Pattern.compile(pattern, Pattern.CASE_INSENSITIVE).matcher(section);
             if (matcher.find()) {
                 return matcher.group(1);
             }
@@ -1034,7 +998,7 @@ public class PreShipmentParser {
         if (emailIndex > 0) {
             cleaned = cleaned.substring(0, emailIndex).trim();
         }
-        return cleaned.length() == 0 ? null : cleaned;
+        return cleaned.isEmpty() ? null : cleaned;
     }
 
     private String stripLeadingParenthetical(String value) {
@@ -1050,7 +1014,7 @@ public class PreShipmentParser {
         }
         String cleaned = value.trim().replaceAll("\\s{2,}", " ");
         cleaned = cleaned.replaceAll("^[.:]+", "").trim();
-        if (cleaned.length() == 0 || "not applicable".equalsIgnoreCase(cleaned)) {
+        if (cleaned.isEmpty() || "not applicable".equalsIgnoreCase(cleaned)) {
             return cleaned;
         }
         return cleaned;

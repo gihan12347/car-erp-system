@@ -1524,6 +1524,220 @@ body.sheet-page .preship-fields .field-grid .equipment-field {
     background: #faf8f4;
 }
 
+/* Assessment notice — invoice-style price breakdown */
+.assessment-taxes-panel .panel-head {
+    margin-bottom: 4px;
+    gap: 12px;
+}
+
+.price-breakdown-currency-note {
+    flex-shrink: 0;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--muted);
+    letter-spacing: 0.02em;
+}
+
+.price-breakdown {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    padding: 4px 4px 8px;
+}
+
+.price-breakdown-lines,
+.price-breakdown-totals {
+    display: flex;
+    flex-direction: column;
+}
+
+.vehicle-form .price-breakdown-row,
+.price-breakdown-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(140px, 46%);
+    align-items: center;
+    gap: 12px 16px;
+    margin: 0;
+    padding: 11px 8px;
+    border-bottom: 1px solid var(--line);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: text;
+}
+
+.price-breakdown-lines .price-breakdown-row:last-child {
+    border-bottom: none;
+}
+
+.price-breakdown-totals {
+    margin-top: 6px;
+    padding-top: 4px;
+    border-top: 2px solid var(--ink);
+}
+
+.price-breakdown-totals .price-breakdown-row {
+    border-bottom: 1px solid var(--line);
+    padding-top: 12px;
+    padding-bottom: 12px;
+}
+
+.price-breakdown-totals .price-breakdown-row:last-child {
+    border-bottom: none;
+}
+
+.price-breakdown-label {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    min-width: 0;
+    color: var(--ink);
+    font-weight: 500;
+    line-height: 1.35;
+}
+
+.price-breakdown-code {
+    flex: 0 0 auto;
+    min-width: 2.4em;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: var(--muted);
+    text-transform: uppercase;
+}
+
+.price-breakdown-name {
+    min-width: 0;
+}
+
+.price-breakdown-row.is-total .price-breakdown-name,
+.price-breakdown-row.is-paid .price-breakdown-name {
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.price-breakdown-amount {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 6px;
+    min-width: 0;
+}
+
+.price-breakdown-currency {
+    flex: 0 0 auto;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: var(--muted);
+}
+
+.price-breakdown-row.is-paid .price-breakdown-currency {
+    color: var(--sea);
+}
+
+.vehicle-form .price-breakdown-row input,
+.price-breakdown-row input {
+    display: block;
+    width: 100%;
+    min-width: 0;
+    margin: 0;
+    padding: 8px 10px;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    background: transparent;
+    box-shadow: none;
+    color: var(--ink);
+    font: inherit;
+    font-size: 14px;
+    font-variant-numeric: tabular-nums;
+    font-weight: 600;
+    text-align: right;
+    transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
+}
+
+.vehicle-form .price-breakdown-row input:hover,
+.price-breakdown-row input:hover {
+    border-color: #e7e2d8;
+    background: #faf8f4;
+}
+
+.vehicle-form .price-breakdown-row input:focus,
+.price-breakdown-row input:focus {
+    border-color: var(--sea);
+    outline: 2px solid rgba(15, 118, 110, 0.16);
+    background: #fff;
+    box-shadow: none;
+}
+
+.price-breakdown-row.is-total {
+    background: #f8faf9;
+    border-radius: 8px 8px 0 0;
+}
+
+.price-breakdown-row.is-paid {
+    background: #eef8f5;
+    border-radius: 0 0 8px 8px;
+}
+
+.vehicle-form .price-breakdown-row.is-total input,
+.vehicle-form .price-breakdown-row.is-paid input,
+.price-breakdown-row.is-total input,
+.price-breakdown-row.is-paid input {
+    font-size: 15px;
+    font-weight: 700;
+}
+
+.price-breakdown-row.is-paid .price-breakdown-name,
+.vehicle-form .price-breakdown-row.is-paid input,
+.price-breakdown-row.is-paid input {
+    color: var(--sea);
+}
+
+.vehicle-form .price-breakdown-row input.readonly-field,
+.price-breakdown-row input.readonly-field {
+    background: transparent;
+    color: var(--ink);
+    cursor: default;
+}
+
+.vehicle-form .price-breakdown-row input.readonly-field:hover,
+.vehicle-form .price-breakdown-row input.readonly-field:focus,
+.price-breakdown-row input.readonly-field:hover,
+.price-breakdown-row input.readonly-field:focus {
+    border-color: transparent;
+    background: transparent;
+    outline: none;
+    box-shadow: none;
+}
+
+.vehicle-form .price-breakdown-row.is-paid input.readonly-field,
+.price-breakdown-row.is-paid input.readonly-field {
+    color: var(--sea);
+}
+
+@media (max-width: 520px) {
+    .assessment-taxes-panel .panel-head {
+        flex-wrap: wrap;
+        align-items: flex-start;
+    }
+
+    .vehicle-form .price-breakdown-row,
+    .price-breakdown-row {
+        grid-template-columns: 1fr;
+        gap: 6px;
+        padding: 12px 4px;
+    }
+
+    .price-breakdown-amount {
+        justify-content: flex-start;
+    }
+
+    .vehicle-form .price-breakdown-row input,
+    .price-breakdown-row input {
+        text-align: left;
+    }
+}
+
 body.sheet-page .preship-fields .field-grid input:not([type="radio"]):not([type="checkbox"]),
 body.sheet-page .preship-fields .field-grid textarea {
     margin-top: 8px;
@@ -5203,11 +5417,19 @@ body.prep-page .vehicle-form {
 }
 
 .panel-btn.is-disabled,
-.pipeline-cell-status.is-locked,
-.import-pipeline-step.is-locked {
+.pipeline-cell-status.is-locked {
     opacity: 0.55;
     cursor: not-allowed;
     pointer-events: none;
+}
+
+.import-pipeline-step.is-locked {
+    opacity: 0.55;
+}
+
+a.import-pipeline-step.is-locked {
+    cursor: pointer;
+    pointer-events: auto;
 }
 
 .import-pipeline-steps li.is-locked {

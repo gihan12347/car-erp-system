@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!-- Previous + Save — same pattern as import-pipeline/fragments/form-actions. -->
+<th:block th:fragment="prepFormActions(saveLabel, buttonId)">
+    <a th:if="${stageNav != null and stageNav.prevUrl != null}"
+       th:href="${stageNav.prevUrl}"
+       class="panel-btn ghost import-form-submit">
+        <i class="fa-solid fa-chevron-left"></i>
+        Previous
+    </a>
+    <button type="submit" class="panel-btn import-form-submit"
+            th:id="${buttonId}"
+            th:disabled="${buttonId != null and buttonId == 'saveInspectionBtn'}"
+            th:text="${saveLabel != null and !#strings.isEmpty(saveLabel) ? saveLabel : 'Save & continue'}">
+        Save &amp; continue
+    </button>
+</th:block>
+
+</body>
+</html>

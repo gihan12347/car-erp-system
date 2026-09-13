@@ -1,18 +1,20 @@
-package com.carsale.erp.importpipeline.equipment;
+package com.carsale.erp.customspipeline.document;
 
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
+import com.carsale.erp.importpipeline.equipment.EquipmentInspectionFields;
+import com.carsale.erp.shared.document.DocumentParser;
+import com.carsale.erp.shared.ocr.DocumentAiClient;
 import org.springframework.stereotype.Service;
 
 import com.carsale.erp.importpipeline.auction.AuctionParseResult;
 import com.carsale.erp.importpipeline.equipment.EquipmentInspectionFields.FieldDef;
 
 @Service
-public class EquipmentInspectionParser {
+public class EquipmentInspectionParser implements DocumentParser {
 
     private static final String VALUE_GROUP = "(YES|NO|OK|N\\s*/\\s*A|N\\.?\\s*A\\.?|NA|NIL|NONE|NOT\\s+APPLICABLE"
             + "|SINGLE|DUAL|AUTO|MANUAL|PLASTIC|STEEL|OTHER|HARD|SOFT|PASS|NORMAL|\\d{1,2})";
@@ -22,7 +24,7 @@ public class EquipmentInspectionParser {
             Pattern.CASE_INSENSITIVE
     );
 
-    public AuctionParseResult parse(String text) {
+    public AuctionParseResult parsePage(String text) {
         AuctionParseResult result = new AuctionParseResult(text);
         if (text == null || text.trim().isEmpty()) {
             result.setSuccess(false);
@@ -68,6 +70,11 @@ public class EquipmentInspectionParser {
         return result;
     }
 
+    @Override
+    public AuctionParseResult parsePage(DocumentAiClient.DocumentAiResult documentAi) {
+        return null;
+    }
+
     private String scopedText(FieldDef field, String exteriorText, String bodyKitText, String truckText, String fullText) {
         if (EquipmentInspectionFields.GROUP_BODY_KIT.equals(field.getGroup())) {
             return firstNonEmpty(bodyKitText, exteriorText, fullText);
@@ -84,8 +91,8 @@ public class EquipmentInspectionParser {
         }
         String[] aliases = field.getAliases().clone();
         Arrays.sort(aliases, Comparator.comparingInt(String::length).reversed());
-        for (int i = 0; i < aliases.length; i++) {
-            String value = extractAfterLabel(text, aliases[i]);
+        for (String alias : aliases) {
+            String value = extractAfterLabel(text, alias);
             if (value != null) {
                 return value;
             }
@@ -116,8 +123,8 @@ public class EquipmentInspectionParser {
         }
         int from = startMatcher.start();
         int to = text.length();
-        for (int i = 0; i < ends.length; i++) {
-            Pattern endPattern = Pattern.compile("(?i)" + Pattern.quote(ends[i]));
+        for (String end : ends) {
+            Pattern endPattern = Pattern.compile("(?i)" + Pattern.quote(end));
             Matcher endMatcher = endPattern.matcher(text);
             if (endMatcher.find(startMatcher.end()) && endMatcher.start() < to && endMatcher.start() > from) {
                 to = endMatcher.start();
@@ -160,18 +167,18 @@ public class EquipmentInspectionParser {
     }
 
     private static String firstNonNull(String... values) {
-        for (int i = 0; i < values.length; i++) {
-            if (values[i] != null && !values[i].trim().isEmpty()) {
-                return values[i];
+        for (String value : values) {
+            if (value != null && !value.trim().isEmpty()) {
+                return value;
             }
         }
         return null;
     }
 
     private static String firstNonEmpty(String... values) {
-        for (int i = 0; i < values.length; i++) {
-            if (values[i] != null && !values[i].trim().isEmpty()) {
-                return values[i];
+        for (String value : values) {
+            if (value != null && !value.trim().isEmpty()) {
+                return value;
             }
         }
         return "";

@@ -73,38 +73,84 @@
                     </div>
 
                     <div class="sheet-fields preship-fields">
-                        <article class="panel">
-                            <div class="panel-head"><h2>Declarant &amp; consignee</h2></div>
-                            <div class="field-grid">
-                                <label>Declarant ID <input type="text" th:field="*{assessmentDeclarantId}" id="assessmentDeclarantId"></label>
-                                <label>Declarant name <input type="text" th:field="*{assessmentDeclarantName}" id="assessmentDeclarantName"></label>
-                                <label class="span-2">Declarant address <textarea th:field="*{assessmentDeclarantAddress}" id="assessmentDeclarantAddress" rows="2"></textarea></label>
-                                <label>CHA expiry <input type="text" th:field="*{assessmentDeclarantChaExp}" id="assessmentDeclarantChaExp"></label>
-                                <label>Consignee ID <input type="text" th:field="*{assessmentConsigneeId}" id="assessmentConsigneeId"></label>
-                                <label>Consignee name <input type="text" th:field="*{assessmentConsigneeName}" id="assessmentConsigneeName"></label>
-                                <label class="span-2">Consignee address <textarea th:field="*{assessmentConsigneeAddress}" id="assessmentConsigneeAddress" rows="2"></textarea></label>
+                        <article class="panel assessment-taxes-panel">
+                            <div class="panel-head">
+                                <h2>Item taxes &amp; totals</h2>
+                                <span class="price-breakdown-currency-note">All amounts in LKR</span>
                             </div>
-                        </article>
-
-                        <article class="panel">
-                            <div class="panel-head"><h2>Global taxes</h2></div>
-                            <div class="field-grid">
-                                <label>OTC · Over time charges <input type="text" th:field="*{assessmentTaxOtc}" id="assessmentTaxOtc"></label>
-                                <label>COM · Computer fee <input type="text" th:field="*{assessmentTaxCom}" id="assessmentTaxCom"></label>
-                                <label>EXM · Examination fees <input type="text" th:field="*{assessmentTaxExm}" id="assessmentTaxExm"></label>
-                            </div>
-                        </article>
-
-                        <article class="panel">
-                            <div class="panel-head"><h2>Item taxes &amp; totals</h2></div>
-                            <div class="field-grid">
-                                <label>CID · Customs import duty <input type="text" th:field="*{assessmentTaxCid}" id="assessmentTaxCid"></label>
-                                <label>SUR · Surcharge <input type="text" th:field="*{assessmentTaxSur}" id="assessmentTaxSur"></label>
-                                <label>XID · Excise duty <input type="text" th:field="*{assessmentTaxXid}" id="assessmentTaxXid"></label>
-                                <label>VAT · Value added tax <input type="text" th:field="*{assessmentTaxVat}" id="assessmentTaxVat"></label>
-                                <label>VEL · Vehicle entitlement levy <input type="text" th:field="*{assessmentTaxVel}" id="assessmentTaxVel"></label>
-                                <label>Total assessed <input type="text" th:field="*{assessmentTotalAssessed}" id="assessmentTotalAssessed"></label>
-                                <label>Total amount paid <input type="text" th:field="*{assessmentTotalPaid}" id="assessmentTotalPaid"></label>
+                            <div class="price-breakdown">
+                                <div class="price-breakdown-lines">
+                                    <label class="price-breakdown-row">
+                                        <span class="price-breakdown-label">
+                                            <span class="price-breakdown-code">CID</span>
+                                            <span class="price-breakdown-name">Customs import duty</span>
+                                        </span>
+                                        <span class="price-breakdown-amount">
+                                            <input type="text" th:field="*{assessmentTaxCid}" id="assessmentTaxCid" inputmode="decimal" autocomplete="off">
+                                            <span class="price-breakdown-currency" aria-hidden="true">LKR</span>
+                                        </span>
+                                    </label>
+                                    <label class="price-breakdown-row">
+                                        <span class="price-breakdown-label">
+                                            <span class="price-breakdown-code">SUR</span>
+                                            <span class="price-breakdown-name">Surcharge</span>
+                                        </span>
+                                        <span class="price-breakdown-amount">
+                                            <input type="text" th:field="*{assessmentTaxSur}" id="assessmentTaxSur" inputmode="decimal" autocomplete="off">
+                                            <span class="price-breakdown-currency" aria-hidden="true">LKR</span>
+                                        </span>
+                                    </label>
+                                    <label class="price-breakdown-row">
+                                        <span class="price-breakdown-label">
+                                            <span class="price-breakdown-code">XID</span>
+                                            <span class="price-breakdown-name">Excise duty</span>
+                                        </span>
+                                        <span class="price-breakdown-amount">
+                                            <input type="text" th:field="*{assessmentTaxXid}" id="assessmentTaxXid" inputmode="decimal" autocomplete="off">
+                                            <span class="price-breakdown-currency" aria-hidden="true">LKR</span>
+                                        </span>
+                                    </label>
+                                    <label class="price-breakdown-row">
+                                        <span class="price-breakdown-label">
+                                            <span class="price-breakdown-code">VAT</span>
+                                            <span class="price-breakdown-name">Value added tax</span>
+                                        </span>
+                                        <span class="price-breakdown-amount">
+                                            <input type="text" th:field="*{assessmentTaxVat}" id="assessmentTaxVat" inputmode="decimal" autocomplete="off">
+                                            <span class="price-breakdown-currency" aria-hidden="true">LKR</span>
+                                        </span>
+                                    </label>
+                                    <label class="price-breakdown-row">
+                                        <span class="price-breakdown-label">
+                                            <span class="price-breakdown-code">VEL</span>
+                                            <span class="price-breakdown-name">Vehicle entitlement levy</span>
+                                        </span>
+                                        <span class="price-breakdown-amount">
+                                            <input type="text" th:field="*{assessmentTaxVel}" id="assessmentTaxVel" inputmode="decimal" autocomplete="off">
+                                            <span class="price-breakdown-currency" aria-hidden="true">LKR</span>
+                                        </span>
+                                    </label>
+                                </div>
+                                <div class="price-breakdown-totals">
+                                    <label class="price-breakdown-row is-total">
+                                        <span class="price-breakdown-label">
+                                            <span class="price-breakdown-name">Total tax</span>
+                                        </span>
+                                        <span class="price-breakdown-amount">
+                                            <input type="text" th:field="*{assessmentTotalAssessed}" id="assessmentTotalAssessed" inputmode="decimal" autocomplete="off">
+                                            <span class="price-breakdown-currency" aria-hidden="true">LKR</span>
+                                        </span>
+                                    </label>
+                                    <label class="price-breakdown-row is-paid">
+                                        <span class="price-breakdown-label">
+                                            <span class="price-breakdown-name">Total amount paid</span>
+                                        </span>
+                                        <span class="price-breakdown-amount">
+                                            <input type="text" th:field="*{assessmentTotalPaid}" id="assessmentTotalPaid" inputmode="decimal" autocomplete="off">
+                                            <span class="price-breakdown-currency" aria-hidden="true">LKR</span>
+                                        </span>
+                                    </label>
+                                </div>
                             </div>
                         </article>
 

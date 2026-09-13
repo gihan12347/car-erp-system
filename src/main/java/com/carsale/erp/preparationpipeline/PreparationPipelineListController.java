@@ -91,6 +91,9 @@ public class PreparationPipelineListController {
             return "redirect:" + preparationProgressService.redirectWhenNotEligible(vehicle);
         }
 
+        preparationProgressService.syncVehicleStage(chassisNo);
+        vehicle = vehicleService.findByChassisNo(chassisNo);
+
         PreparationProgress status = preparationProgressService.progressFor(vehicle);
         java.util.List<String> prepKeys = pipelineStageService.keys(PipelineStageService.FLOW_PREP);
         int stageIndex = PreparationStageUrls.clampStageIndex(
@@ -103,23 +106,8 @@ public class PreparationPipelineListController {
             return "redirect:/workshop-yard";
         }
 
-        if (FlowStage.INSPECTION.getStageKey().equals(stageKey)
-                && vehicleInspectionService.findByChassisNo(chassisNo) == null) {
-            return "redirect:/inspection/" + PreparationStageUrls.encode(chassisNo);
-        }
-        if (FlowStage.WORKSHOP.getStageKey().equals(stageKey) && workshopService.findByChassisNo(chassisNo) == null) {
-            return "redirect:/workshop/" + PreparationStageUrls.encode(chassisNo);
-        }
-        if (FlowStage.YARD.getStageKey().equals(stageKey) && !status.isCanEnterYard()) {
-            redirectAttributes.addFlashAttribute("errorMessage",
-                    "Finish every workshop job before opening the yard section.");
-            return "redirect:/workshop/" + PreparationStageUrls.encode(chassisNo);
-        }
-        if (FlowStage.YARD.getStageKey().equals(stageKey) && yardService.findByChassisNo(chassisNo) == null) {
-            return "redirect:/yard/" + PreparationStageUrls.encode(chassisNo);
-        }
-        List<PipelineStage> importKeys = pipelineStageService.list(PipelineStageService.FLOW_PREP);
-        NavLinks nav = viewLinks(chassisNo, stageIndex, status, importKeys, FlowPipeline.PREP);
+        List<PipelineStage> prepStages = pipelineStageService.list(PipelineStageService.FLOW_PREP);
+        NavLinks nav = viewLinks(chassisNo, stageIndex, status, prepStages, FlowPipeline.PREP);
         model.addAttribute("pageTitle", nav.getStageLabel());
         model.addAttribute("activeMenu", "workshop-yard");
         model.addAttribute("vehicle", vehicle);

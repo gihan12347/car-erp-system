@@ -1,9 +1,9 @@
 package com.carsale.erp.importpipeline.preshipment;
 
-import com.carsale.erp.shared.vehicle.Vehicle;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.carsale.erp.customspipeline.document.PreShipmentParser;
 import org.junit.jupiter.api.Test;
 
 import com.carsale.erp.importpipeline.auction.AuctionParseResult;
@@ -14,7 +14,7 @@ class PreShipmentParserTest {
 
     @Test
     void parsesSampleBvCertificateFields() {
-        AuctionParseResult result = parser.parse(SAMPLE_TEXT);
+        AuctionParseResult result = parser.parsePage(SAMPLE_TEXT);
 
         assertTrue(result.isSuccess());
         assertEquals("007028J", result.getFields().get("certificateReference"));
@@ -51,7 +51,7 @@ class PreShipmentParserTest {
 
     @Test
     void parsesTableLayoutVehicleParticulars() {
-        AuctionParseResult result = parser.parse(TABLE_SAMPLE_TEXT);
+        AuctionParseResult result = parser.parsePage(TABLE_SAMPLE_TEXT);
 
         assertTrue(result.isSuccess());
         assertEquals("STATION WAGON", result.getFields().get("vehicleType"));
@@ -68,7 +68,7 @@ class PreShipmentParserTest {
 
     @Test
     void parsesMultilineVehicleParticulars() {
-        AuctionParseResult result = parser.parse(MULTILINE_SAMPLE_TEXT);
+        AuctionParseResult result = parser.parsePage(MULTILINE_SAMPLE_TEXT);
 
         assertEquals("STATION WAGON", result.getFields().get("vehicleType"));
         assertEquals("TOYOTA", result.getFields().get("make"));
@@ -78,7 +78,7 @@ class PreShipmentParserTest {
 
     @Test
     void parsesUserReportedRowsWithoutRowTenPrefix() {
-        AuctionParseResult result = parser.parse(USER_ROWS_TEXT);
+        AuctionParseResult result = parser.parsePage(USER_ROWS_TEXT);
 
         assertEquals("32km", result.getFields().get("inspectionMileage"));
         assertEquals("2,690cc", result.getFields().get("engineCapacity"));
@@ -91,7 +91,7 @@ class PreShipmentParserTest {
 
     @Test
     void parsesBvParenthesisCertificateFormat() {
-        AuctionParseResult result = parser.parse(BV_PAREN_FORMAT_TEXT);
+        AuctionParseResult result = parser.parsePage(BV_PAREN_FORMAT_TEXT);
 
         assertEquals("32km", result.getFields().get("inspectionMileage"));
         assertEquals("2,690cc", result.getFields().get("engineCapacity"));
@@ -106,7 +106,7 @@ class PreShipmentParserTest {
 
     @Test
     void parsesBvParenthesisSplitLines() {
-        AuctionParseResult result = parser.parse(BV_PAREN_SPLIT_TEXT);
+        AuctionParseResult result = parser.parsePage(BV_PAREN_SPLIT_TEXT);
 
         assertEquals("2,690cc", result.getFields().get("engineCapacity"));
         assertEquals("2TR-2705714", result.getFields().get("engineNo"));

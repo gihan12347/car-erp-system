@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="en">
 <head th:replace="shared/head :: head(${pageTitle})"></head>
-<body class="prep-page">
+<body class="sheet-page import-form-page">
 <div class="app-shell">
     <aside th:replace="shared/sidebar :: sidebar(${activeMenu})"></aside>
     <div class="app-main">
@@ -9,7 +9,7 @@
         <main class="page-content">
             <div class="dash-head">
                 <div>
-                    <h1 th:text="${'Step ' + @pipelineStageService.displayNumber('PREP', 'inspection') + ' · Inspection'}">Step 1 · Inspection</h1>
+                    <h1 th:text="${'Step ' + @pipelineStageService.displayNumber('PREP', 'inspection') + ' · ' + @pipelineStageService.title('PREP', 'inspection')}">Step 1 · Inspection</h1>
                     <p class="form-lead">Fill every item. Selecting <strong>No</strong> creates a workshop job immediately. Save stays off until all fields are filled.</p>
                 </div>
             </div>
@@ -23,6 +23,9 @@
                     ${canEnterYard},
                     ${vehicle.model},
                     false)"></div>
+
+            <p th:if="${successMessage}" class="alert alert-ok" th:text="${successMessage}"></p>
+            <p th:if="${errorMessage}" class="alert alert-error" th:text="${errorMessage}"></p>
 
             <div th:replace="preparation-pipeline/inspection/form-fields :: inspectionForm"></div>
         </main>

@@ -46,6 +46,21 @@ public class DatabaseSchemaUpdater implements CommandLineRunner {
         createVehicleInspectionsTable();
         createVehicleInspectionLinesTable();
         addWorkshopJobInspectionItemKey();
+        addClearanceInvoiceOtherColumn();
+    }
+
+    private void addClearanceInvoiceOtherColumn() {
+        try {
+            if (hasTableColumn("clearance_documents", "invoice_other")) {
+                return;
+            }
+            jdbcTemplate.execute(
+                    "ALTER TABLE clearance_documents ADD COLUMN invoice_other TEXT NULL"
+            );
+            log.info("Added clearance_documents.invoice_other");
+        } catch (Exception ex) {
+            log.warn("Could not add clearance_documents.invoice_other: {}", ex.getMessage());
+        }
     }
 
     private void createInspectionItemsTable() {

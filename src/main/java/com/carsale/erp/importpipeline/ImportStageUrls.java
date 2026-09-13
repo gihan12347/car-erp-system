@@ -116,7 +116,7 @@ public final class ImportStageUrls {
     }
 
     public static String redirectAfterPhotosSave(String chassisNo, List<String> keys) {
-        return PipelineStageUtils.redirectAfterStageSave(chassisNo, "/auction/", keys, FlowStage.PHOTOS.getStageKey());
+        return PipelineStageUtils.redirectAfterStageSave(chassisNo, FlowPipeline.IMPORT.getCurrentBase(), keys, FlowStage.PHOTOS.getStageKey());
     }
 
     public static boolean isStageComplete(String stageKey, PipelineProgress status) {

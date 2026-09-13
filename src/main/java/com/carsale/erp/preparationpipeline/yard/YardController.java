@@ -3,7 +3,6 @@ package com.carsale.erp.preparationpipeline.yard;
 import com.carsale.erp.preparationpipeline.PreparationStageUrls;
 import java.nio.charset.StandardCharsets;
 
-import com.carsale.erp.shared.pipeline.FlowPipeline;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -11,6 +10,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.util.UriUtils;
 
@@ -43,13 +43,17 @@ public class YardController {
     }
 
     @GetMapping
-    public String list() {
+    public String list(@RequestParam(value = "q", required = false) String query) {
+        if (query != null && !query.trim().isEmpty()) {
+            return "redirect:/workshop-yard?q=" + UriUtils.encodeQueryParam(query.trim(), StandardCharsets.UTF_8);
+        }
         return "redirect:/workshop-yard";
     }
 
     @GetMapping("/{chassisNo}")
     public String form(
             @PathVariable String chassisNo,
+            @RequestParam(value = "hub", defaultValue = "false") boolean hub,
             Model model,
             RedirectAttributes redirectAttributes
     ) {
@@ -66,11 +70,14 @@ public class YardController {
         if (!status.isCanEnterYard()) {
             redirectAttributes.addFlashAttribute("errorMessage",
                     "Finish every workshop job before opening the yard section.");
-            return "redirect:/workshop/" + encodeChassis(chassisNo);
+            return "redirect:" + PreparationStageUrls.editUrlFor(
+                    encodeChassis(chassisNo), FlowStage.WORKSHOP.getStageKey());
         }
         YardRecord record = yardService.prepareForm(chassisNo);
-        model.addAttribute("pageTitle", "Yard");
+        model.addAttribute("pageTitle", pipelineStageService.title(
+                PipelineStageService.FLOW_PREP, FlowStage.YARD.getStageKey()));
         model.addAttribute("activeMenu", "workshop-yard");
+        model.addAttribute("hubMode", hub);
         model.addAttribute("vehicle", vehicle);
         model.addAttribute("record", record);
         model.addAttribute("workshopReady", status.isWorkshopReady());
@@ -78,12 +85,11 @@ public class YardController {
         model.addAttribute("inspectionReady", status.isInspectionReady());
         model.addAttribute("canEnterYard", true);
         model.addAttribute("prepComplete", status.isPipelineCompleted());
-        model.addAttribute("stageNav", PipelineStageService.viewLinks(
+        model.addAttribute("stageNav", PreparationStageUrls.editLinks(
                 chassisNo,
                 pipelineStageService.indexOf(PipelineStageService.FLOW_PREP, FlowStage.YARD.getStageKey()),
                 status,
-                pipelineStageService.list(PipelineStageService.FLOW_PREP),
-                FlowPipeline.PREP
+                pipelineStageService.list(PipelineStageService.FLOW_PREP)
         ));
         return "preparation-pipeline/yard/form";
     }
@@ -92,13 +98,15 @@ public class YardController {
     public String save(
             @PathVariable String chassisNo,
             @ModelAttribute YardRecord record,
+            @RequestParam(value = "hub", defaultValue = "false") boolean hub,
             RedirectAttributes redirectAttributes
     ) {
         record.setChassisNo(chassisNo);
         if (!preparationProgressService.progressFor(chassisNo).isCanEnterYard()) {
             redirectAttributes.addFlashAttribute("errorMessage",
                     "Finish every workshop job before opening the yard section.");
-            return "redirect:/workshop/" + encodeChassis(chassisNo);
+            return "redirect:" + PreparationStageUrls.editUrlFor(
+                    encodeChassis(chassisNo), FlowStage.WORKSHOP.getStageKey());
         }
         try {
             yardService.save(record);
@@ -112,12 +120,11 @@ public class YardController {
             }
             return "redirect:" + PreparationStageUrls.redirectAfterYardSave(
                     chassisNo,
-                    status,
                     pipelineStageService.keys(PipelineStageService.FLOW_PREP)
             );
         } catch (IllegalArgumentException ex) {
             redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
-            return "redirect:/yard/" + encodeChassis(chassisNo);
+            return "redirect:/yard/" + encodeChassis(chassisNo) + (hub ? "?hub=1" : "");
         }
     }
 

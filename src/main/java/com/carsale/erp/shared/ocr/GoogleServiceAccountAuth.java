@@ -33,6 +33,7 @@ public class GoogleServiceAccountAuth {
 
     static final String VISION_SCOPE = "https://www.googleapis.com/auth/cloud-vision";
     static final String TRANSLATE_SCOPE = "https://www.googleapis.com/auth/cloud-translation";
+    static final String CLOUD_PLATFORM_SCOPE = "https://www.googleapis.com/auth/cloud-platform";
 
     private static final long TOKEN_REFRESH_SKEW_MS = 60_000L;
     private static final int CONNECT_TIMEOUT_MS = 30_000;
@@ -61,6 +62,12 @@ public class GoogleServiceAccountAuth {
 
     public Path credentialsFile() {
         return credentialsFile;
+    }
+
+    /** Reads {@code project_id} from the service-account JSON, or null if missing. */
+    public String projectId() throws IOException {
+        Map<String, Object> credentials = readCredentials();
+        return stringValue(credentials.get("project_id"));
     }
 
     public String accessToken(String scope) throws IOException {

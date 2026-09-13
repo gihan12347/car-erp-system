@@ -14,8 +14,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.carsale.erp.importpipeline.auction.AuctionParseResult;
-
 @Service
 public class AuctionSheetOcrService {
 
@@ -50,13 +48,8 @@ public class AuctionSheetOcrService {
             try (InputStream input = file.getInputStream()) {
                 Files.copy(input, temp.toPath(), StandardCopyOption.REPLACE_EXISTING);
             }
-            String raw = imagePreparer.readDocumentText(temp, file.getOriginalFilename(), language, provider);
-            log.info("Auction sheet OCR text:\n{}", raw);
-            result = parser.parse(raw);
-            if (result.getRawText() == null || result.getRawText().trim().isEmpty()) {
-                result.setRawText(raw);
-            }
-            log.info("Auction sheet mapped fields: {}", result.getFields());
+            result = imagePreparer.readDocumentText(temp, file.getOriginalFilename(), language, provider, parser);
+            log.info("Auction sheet OCR text:\n{}", result.getRawText());
             return result;
         } catch (Throwable ex) {
             log.error("Auction sheet OCR failed", ex);

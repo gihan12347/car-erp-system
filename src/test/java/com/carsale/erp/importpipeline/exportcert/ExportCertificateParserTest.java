@@ -1,9 +1,8 @@
 package com.carsale.erp.importpipeline.exportcert;
 
-import com.carsale.erp.account.User;
-import com.carsale.erp.shared.vehicle.Vehicle;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.carsale.erp.customspipeline.document.ExportCertificateParser;
 import org.junit.jupiter.api.Test;
 
 import com.carsale.erp.importpipeline.auction.AuctionParseResult;
@@ -13,7 +12,7 @@ class ExportCertificateParserTest {
     private final ExportCertificateParser parser = new ExportCertificateParser();
 
     @Test
-    void parseExtractsEnglishExportCertificate() {
+    void parsePageExtractsEnglishExportCertificate() {
         String text = "Certificate No: 00884\n"
                 + "Arrangement No: 5051215834190374\n"
                 + "Export Certificate\n"
@@ -51,7 +50,7 @@ class ExportCertificateParserTest {
                 + "Export scheduled day: 26/08/2025\n"
                 + "Issue Date: 27/02/2025\n";
 
-        AuctionParseResult result = parser.parse(text);
+        AuctionParseResult result = parser.parsePage(text);
 
         assertThat(result.isSuccess()).isTrue();
         assertThat(result.getFields()).containsEntry("documentType", "English");
@@ -80,7 +79,7 @@ class ExportCertificateParserTest {
     }
 
     @Test
-    void parseExtractsJapaneseExportCertificateAndNormalizesValues() {
+    void parsePageExtractsJapaneseExportCertificateAndNormalizesValues() {
         String text = "番号 00884\n"
                 + "整理番号 5051215834190374\n"
                 + "輸出予定届出証明書 Export Certificate\n"
@@ -116,7 +115,7 @@ class ExportCertificateParserTest {
                 + "輸出予定日 令和 7 年 8月 26日\n"
                 + "備考 燃料効率基準達成\n";
 
-        AuctionParseResult result = parser.parse(text);
+        AuctionParseResult result = parser.parsePage(text);
 
         assertThat(result.isSuccess()).isTrue();
         assertThat(result.getFields()).containsEntry("documentType", "Japanese");

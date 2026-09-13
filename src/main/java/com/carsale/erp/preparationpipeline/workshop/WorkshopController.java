@@ -3,7 +3,6 @@ package com.carsale.erp.preparationpipeline.workshop;
 import com.carsale.erp.preparationpipeline.PreparationStageUrls;
 import java.nio.charset.StandardCharsets;
 
-import com.carsale.erp.shared.pipeline.FlowPipeline;
 import org.springframework.beans.propertyeditors.CustomNumberEditor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -14,6 +13,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.util.UriUtils;
 
@@ -46,15 +46,13 @@ public class WorkshopController {
     }
 
     @GetMapping
-    public String list() {
+    public String list(@RequestParam(value = "q", required = false) String query) {
+        if (query != null && !query.trim().isEmpty()) {
+            return "redirect:/workshop-yard?q=" + UriUtils.encodeQueryParam(query.trim(), StandardCharsets.UTF_8);
+        }
         return "redirect:/workshop-yard";
     }
 
-    //convert form number(string) attributes to Long
-//    private Long mechanicId; --> impacted
-//    private String notes; --> no impact
-//    private LocalDate workshopDate;  --> no impact
-//    private Boolean completed;  --> no impact
     @InitBinder
     public void initBinder(WebDataBinder binder) {
         binder.registerCustomEditor(Long.class, new CustomNumberEditor(Long.class, true));
@@ -63,6 +61,7 @@ public class WorkshopController {
     @GetMapping("/{chassisNo}")
     public String form(
             @PathVariable String chassisNo,
+            @RequestParam(value = "hub", defaultValue = "false") boolean hub,
             Model model,
             RedirectAttributes redirectAttributes
     ) {
@@ -77,8 +76,10 @@ public class WorkshopController {
         }
         WorkshopJob record = workshopService.prepareForm(chassisNo);
         PreparationProgress status = preparationProgressService.progressFor(vehicle);
-        model.addAttribute("pageTitle", "Workshop");
+        model.addAttribute("pageTitle", pipelineStageService.title(
+                PipelineStageService.FLOW_PREP, FlowStage.WORKSHOP.getStageKey()));
         model.addAttribute("activeMenu", "workshop-yard");
+        model.addAttribute("hubMode", hub);
         model.addAttribute("vehicle", vehicle);
         model.addAttribute("record", record);
         model.addAttribute("workshopReady", status.isWorkshopReady());
@@ -86,12 +87,11 @@ public class WorkshopController {
         model.addAttribute("inspectionReady", status.isInspectionReady());
         model.addAttribute("canEnterYard", status.isCanEnterYard());
         model.addAttribute("prepComplete", status.isPipelineCompleted());
-        model.addAttribute("stageNav", PipelineStageService.viewLinks(
+        model.addAttribute("stageNav", PreparationStageUrls.editLinks(
                 chassisNo,
                 pipelineStageService.indexOf(PipelineStageService.FLOW_PREP, FlowStage.WORKSHOP.getStageKey()),
                 status,
-                pipelineStageService.list(PipelineStageService.FLOW_PREP),
-                FlowPipeline.PREP
+                pipelineStageService.list(PipelineStageService.FLOW_PREP)
         ));
         return "preparation-pipeline/workshop/form";
     }
@@ -100,6 +100,7 @@ public class WorkshopController {
     public String save(
             @PathVariable String chassisNo,
             @ModelAttribute WorkshopJob record,
+            @RequestParam(value = "hub", defaultValue = "false") boolean hub,
             RedirectAttributes redirectAttributes
     ) {
         record.setChassisNo(chassisNo);
@@ -115,7 +116,7 @@ public class WorkshopController {
             );
         } catch (IllegalArgumentException ex) {
             redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
-            return "redirect:/workshop/" + encodeChassis(chassisNo);
+            return "redirect:/workshop/" + encodeChassis(chassisNo) + (hub ? "?hub=1" : "");
         }
     }
 

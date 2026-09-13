@@ -1,5 +1,7 @@
 package com.carsale.erp.importpipeline.auction;
 
+import com.carsale.erp.shared.document.DocumentParser;
+import com.carsale.erp.shared.ocr.DocumentAiClient;
 import com.carsale.erp.shared.ocr.JapaneseTextTranslator;
 import java.util.*;
 import java.util.regex.Matcher;
@@ -7,10 +9,8 @@ import java.util.regex.Pattern;
 
 import org.springframework.stereotype.Component;
 
-import com.carsale.erp.importpipeline.auction.AuctionParseResult;
-
 @Component
-public class AuctionSheetParser {
+public class AuctionSheetParser implements DocumentParser {
 
     private static final Map<String, String> MODEL_MAKES = new LinkedHashMap<>();
     private static final Map<String, String[]> CODE_MODELS = new LinkedHashMap<>();
@@ -64,7 +64,7 @@ public class AuctionSheetParser {
         });
     }
 
-    public AuctionParseResult parse(String rawText) {
+    public AuctionParseResult parsePage(String rawText) {
         AuctionParseResult result = new AuctionParseResult();
         if (rawText == null || rawText.trim().isEmpty()) {
             result.setSuccess(false);
@@ -122,6 +122,11 @@ public class AuctionSheetParser {
                 ? "Filled " + result.getFields().size() + " fields from the auction sheet. Please check and edit."
                 : "The sheet was read, but fields could not be mapped. Please fill them manually.");
         return result;
+    }
+
+    @Override
+    public AuctionParseResult parsePage(DocumentAiClient.DocumentAiResult documentAi) {
+        return null;
     }
 
     private String repairOcrNoise(String text) {

@@ -1,11 +1,8 @@
 package com.carsale.erp.importpipeline.auction;
 
-import com.carsale.erp.shared.vehicle.Vehicle;
 import java.util.Map;
 
 import org.junit.jupiter.api.Test;
-
-import com.carsale.erp.importpipeline.auction.AuctionParseResult;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -35,7 +32,7 @@ class AuctionSheetParserTest {
                 + "乗車定員 5\n"
                 + "ドア形状 5\n";
 
-        Map<String, String> fields = parser.parse(ocr).getFields();
+        Map<String, String> fields = parser.parsePage(ocr).getFields();
 
         assertEquals("A202A-0082833", fields.get("chassisNo"));
         assertEquals("8313", fields.get("lotNo"));
@@ -73,7 +70,7 @@ class AuctionSheetParserTest {
                 + "カラー W25\n"
                 + "車台番号 A2O2A-0082833\n";
 
-        AuctionParseResult result = parser.parse(ocr);
+        AuctionParseResult result = parser.parsePage(ocr);
         assertTrue(result.isSuccess());
         Map<String, String> fields = result.getFields();
 
@@ -107,7 +104,7 @@ class AuctionSheetParserTest {
                 + "S\n"
                 + "A\n";
 
-        Map<String, String> fields = parser.parse(ocr).getFields();
+        Map<String, String> fields = parser.parsePage(ocr).getFields();
 
         assertEquals("5AA-A202A", fields.get("modelCode"));
         assertEquals("A202A-0082833", fields.get("chassisNo"));
@@ -136,7 +133,7 @@ class AuctionSheetParserTest {
                 + "W25\n"
                 + "A202A-0082833\n";
 
-        Map<String, String> fields = parser.parse(ocr).getFields();
+        Map<String, String> fields = parser.parsePage(ocr).getFields();
         assertEquals("S", fields.get("auctionGrade"));
         assertEquals("A", fields.get("interiorGrade"));
     }
@@ -149,7 +146,7 @@ class AuctionSheetParserTest {
                 + "内 A\n"
                 + "A202A-0082833\n";
 
-        Map<String, String> fields = parser.parse(ocr).getFields();
+        Map<String, String> fields = parser.parsePage(ocr).getFields();
         assertEquals("S", fields.get("auctionGrade"));
         assertEquals("B", fields.get("exteriorGrade"));
         assertEquals("A", fields.get("interiorGrade"));
@@ -198,7 +195,7 @@ class AuctionSheetParserTest {
                 + "乗車定員 5\n"
                 + "ドア形状 5\n";
 
-        Map<String, String> fields = englishFirst.parse(ocr).getFields();
+        Map<String, String> fields = englishFirst.parsePage(ocr).getFields();
 
         assertEquals("A202A-0082833", fields.get("chassisNo"));
         assertEquals("8313", fields.get("lotNo"));
@@ -237,7 +234,7 @@ class AuctionSheetParserTest {
                 + "Seating capacity 5\n"
                 + "Doors 5\n";
 
-        Map<String, String> fields = parser.parse(ocr).getFields();
+        Map<String, String> fields = parser.parsePage(ocr).getFields();
 
         assertEquals("A202A-0082833", fields.get("chassisNo"));
         assertEquals("8313", fields.get("lotNo"));
@@ -270,7 +267,7 @@ class AuctionSheetParserTest {
                 + "Exterior color W25\n"
                 + "車台番号 A202A-0082833\n";
 
-        Map<String, String> fields = colorParser.parse(ocr).getFields();
+        Map<String, String> fields = colorParser.parsePage(ocr).getFields();
         assertEquals("W25", fields.get("colorCode"));
         assertEquals("White", fields.get("color"));
     }
@@ -292,7 +289,7 @@ class AuctionSheetParserTest {
                 + "外装色 W25\n"
                 + "車台番号 A202A-0082833\n";
 
-        Map<String, String> fields = colorParser.parse(ocr).getFields();
+        Map<String, String> fields = colorParser.parsePage(ocr).getFields();
         assertEquals("W25", fields.get("colorCode"));
         assertEquals("White", fields.get("color"));
     }
@@ -310,7 +307,7 @@ class AuctionSheetParserTest {
                 + "外装色 パールホワイト\n"
                 + "車台番号 NHP10-1234567\n";
 
-        Map<String, String> fields = colorParser.parse(ocr).getFields();
+        Map<String, String> fields = colorParser.parsePage(ocr).getFields();
         assertEquals("Pearl White", fields.get("color"));
         assertEquals(null, fields.get("colorCode"));
     }
@@ -328,6 +325,6 @@ class AuctionSheetParserTest {
                 + "外装色 パールホワイト\n"
                 + "車台番号 NHP10-1234567\n";
 
-        assertEquals("Pearl White", colorParser.parse(ocr).getFields().get("color"));
+        assertEquals("Pearl White", colorParser.parsePage(ocr).getFields().get("color"));
     }
 }

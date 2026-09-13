@@ -1,5 +1,6 @@
 package com.carsale.erp.importpipeline.equipment;
 
+import com.carsale.erp.customspipeline.document.EquipmentInspectionParser;
 import com.carsale.erp.shared.ocr.OcrClient;
 import com.carsale.erp.shared.ocr.OcrImagePreparer;
 import java.io.File;
@@ -44,10 +45,8 @@ public class EquipmentInspectionOcrService {
             temp = File.createTempFile("equipment-", suffix(file.getOriginalFilename()));
             InputStream input = file.getInputStream();
             Files.copy(input, temp.toPath(), StandardCopyOption.REPLACE_EXISTING);
-            String raw = imagePreparer.readDocumentText(temp, file.getOriginalFilename(), language, provider);
-            log.info("Equipment inspection OCR text:\n{}", raw);
-            AuctionParseResult parsed = parser.parse(raw);
-            log.info("Equipment inspection mapped fields: {}", parsed.getFields());
+            AuctionParseResult parsed = imagePreparer.readDocumentText(temp, file.getOriginalFilename(), language, provider, parser);
+            log.info("Equipment inspection OCR text:\n{}", parsed.getRawText());
             return parsed;
         } catch (Throwable ex) {
             log.error("Equipment inspection OCR failed", ex);

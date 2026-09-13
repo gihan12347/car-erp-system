@@ -23,6 +23,7 @@ public interface OcrClient {
         String value = detail.toLowerCase();
         return value.contains("ocr.space")
                 || value.contains("google cloud vision")
+                || value.contains("document ai")
                 || value.contains("1.5 mb")
                 || value.contains("size limit");
     }

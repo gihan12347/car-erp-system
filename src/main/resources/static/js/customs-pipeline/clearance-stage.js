@@ -375,6 +375,9 @@ window.ClearanceStage = function (config) {
                 try {
                     var result = JSON.parse(xhr.responseText);
                     var filled = fillForm(result);
+                    if (typeof config.onFilled === "function") {
+                        config.onFilled(result, filled);
+                    }
                     var message = result.message || ("Filled " + filled + " fields from the document.");
                     setStatus(message, result.success !== false);
                 } catch (e) {

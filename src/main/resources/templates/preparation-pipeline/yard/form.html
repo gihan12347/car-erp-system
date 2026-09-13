@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="en">
 <head th:replace="shared/head :: head(${pageTitle})"></head>
-<body class="prep-page">
+<body class="sheet-page import-form-page">
 <div class="app-shell">
     <aside th:replace="shared/sidebar :: sidebar(${activeMenu})"></aside>
     <div class="app-main">
@@ -9,7 +9,7 @@
         <main class="page-content">
             <div class="dash-head">
                 <div>
-                    <h1 th:text="${'Step ' + @pipelineStageService.displayNumber('PREP', 'yard') + ' · Yard'}">Step 2 · Yard</h1>
+                    <h1 th:text="${'Step ' + @pipelineStageService.displayNumber('PREP', 'yard') + ' · ' + @pipelineStageService.title('PREP', 'yard')}">Step 3 · Yard</h1>
                     <p class="form-lead">Assign a bay, record keys, and complete the yard inspection. Mark complete when the vehicle is in place.</p>
                 </div>
             </div>
@@ -30,6 +30,7 @@
             <form th:action="@{/yard/{chassisNo}(chassisNo=${vehicle.chassisNo})}"
                   th:object="${record}" method="post" class="vehicle-form prep-form">
                 <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                <input type="hidden" name="hub" th:value="${hubMode}">
                 <input type="hidden" th:field="*{chassisNo}">
 
                 <label class="complete-check panel">
@@ -72,19 +73,7 @@
                 </article>
 
                 <div class="import-view-actions">
-                    <a th:if="${stageNav != null and stageNav.prevUrl != null}"
-                       th:href="${stageNav.prevUrl}"
-                       class="panel-btn ghost import-form-submit">
-                        <i class="fa-solid fa-chevron-left"></i>
-                        Previous · Workshop
-                    </a>
-                    <button type="submit" class="panel-btn import-form-submit">Save yard record</button>
-                    <a th:if="${stageNav != null and stageNav.nextUrl != null}"
-                       th:href="${stageNav.nextUrl}"
-                       class="panel-btn ghost import-form-submit">
-                        <span th:text="${stageNav.nextLabel}">Next · Ready for sale pipeline</span>
-                        <i class="fa-solid fa-chevron-right"></i>
-                    </a>
+                    <th:block th:replace="preparation-pipeline/fragments/form-actions :: prepFormActions('Save & continue', null)"></th:block>
                 </div>
             </form>
         </main>

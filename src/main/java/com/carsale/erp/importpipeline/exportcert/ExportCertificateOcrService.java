@@ -1,5 +1,6 @@
 package com.carsale.erp.importpipeline.exportcert;
 
+import com.carsale.erp.customspipeline.document.ExportCertificateParser;
 import com.carsale.erp.shared.ocr.OcrClient;
 import com.carsale.erp.shared.ocr.OcrImagePreparer;
 import java.io.File;
@@ -44,18 +45,15 @@ public class ExportCertificateOcrService {
             temp = File.createTempFile("export-", suffix(file.getOriginalFilename()));
             InputStream input = file.getInputStream();
             Files.copy(input, temp.toPath(), StandardCopyOption.REPLACE_EXISTING);
-            String raw = imagePreparer.readDocumentText(temp, file.getOriginalFilename(), language, provider);
-            log.info("Export certificate OCR text:\n{}", raw);
-            AuctionParseResult parsed = parser.parse(raw);
-            if (!parser.looksJapanese(raw) && !"eng".equalsIgnoreCase(language)) {
-                String englishRaw = imagePreparer.readDocumentText(temp, file.getOriginalFilename(), "eng", provider);
-                AuctionParseResult englishParsed = parser.parse(englishRaw);
+            AuctionParseResult parsed = imagePreparer.readDocumentText(temp, file.getOriginalFilename(), language, provider, parser);
+            log.info("Export certificate OCR text:\n{}", parsed.getRawText());
+            if (!parser.looksJapanese(parsed.getRawText()) && !"eng".equalsIgnoreCase(language)) {
+                AuctionParseResult englishParsed = imagePreparer.readDocumentText(temp, file.getOriginalFilename(), "eng", provider, parser);
                 if (englishParsed.getFields().size() > parsed.getFields().size()) {
                     log.info("Export certificate English OCR mapped more fields: {}", englishParsed.getFields());
                     return englishParsed;
                 }
             }
-            log.info("Export certificate mapped fields: {}", parsed.getFields());
             return parsed;
         } catch (Throwable ex) {
             log.error("Export certificate OCR failed", ex);

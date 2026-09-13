@@ -1,5 +1,6 @@
 package com.carsale.erp.importpipeline.coi;
 
+import com.carsale.erp.customspipeline.document.JavicCertificate;
 import com.carsale.erp.importpipeline.ImportStageUrls;
 import java.io.IOException;
 import java.net.URLEncoder;
@@ -24,13 +25,11 @@ import org.springframework.web.util.UriUtils;
 
 import com.carsale.erp.importpipeline.auction.AuctionParseResult;
 import com.carsale.erp.shared.document.SheetUploadResult;
-import com.carsale.erp.importpipeline.coi.InspectionCertificate;
 import com.carsale.erp.shared.vehicle.Vehicle;
 import com.carsale.erp.customspipeline.CustomsDocumentOcrService;
 import com.carsale.erp.customspipeline.CustomsProgressService;
 import com.carsale.erp.importpipeline.ImportProgressService;
 import com.carsale.erp.importpipeline.ImportProgressService.ImportProgress;
-import com.carsale.erp.importpipeline.coi.CertificateOfInspectionService;
 import com.carsale.erp.shared.pipeline.PipelineStageService;
 import com.carsale.erp.shared.pipeline.FlowStage;
 import com.carsale.erp.shared.document.SheetDocumentStorageService;
@@ -47,6 +46,7 @@ public class CertificateOfInspectionController {
     private final ImportProgressService importProgressService;
     private final CustomsProgressService customsProgressService;
     private final PipelineStageService pipelineStageService;
+    private final JavicCertificate javicCertificate;
 
     public CertificateOfInspectionController(
             CertificateOfInspectionService certificateService,
@@ -55,7 +55,7 @@ public class CertificateOfInspectionController {
             SheetDocumentStorageService documentStorageService,
             ImportProgressService importProgressService,
             CustomsProgressService customsProgressService,
-            PipelineStageService pipelineStageService
+            PipelineStageService pipelineStageService, JavicCertificate javicCertificate
     ) {
         this.certificateService = certificateService;
         this.vehicleService = vehicleService;
@@ -64,6 +64,7 @@ public class CertificateOfInspectionController {
         this.importProgressService = importProgressService;
         this.customsProgressService = customsProgressService;
         this.pipelineStageService = pipelineStageService;
+        this.javicCertificate = javicCertificate;
     }
 
     @GetMapping
@@ -179,7 +180,7 @@ public class CertificateOfInspectionController {
             @RequestParam("file") MultipartFile file,
             @RequestParam(value = "provider", required = false) String provider
     ) {
-        return certificateService.remapParseResult(ocrService.parsePage(file, 1, provider));
+        return certificateService.remapParseResult(ocrService.parsePage(file, this.javicCertificate, provider));
     }
 
     @PostMapping("/{chassisNo}")

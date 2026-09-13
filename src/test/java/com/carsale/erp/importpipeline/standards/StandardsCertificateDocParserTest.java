@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test;
 
 import com.carsale.erp.importpipeline.auction.AuctionParseResult;
 
-class StandardsCertificateParserTest {
+class StandardsCertificateDocParserTest {
 
     @Test
     void parseExtractsEmissionSafetyAndVehicleFields() {
@@ -30,7 +30,7 @@ class StandardsCertificateParserTest {
                 + "Date of Inspection 05 March 2025\n"
                 + "Remarks\n";
 
-        AuctionParseResult result = new StandardsCertificateParser().parse(text);
+        AuctionParseResult result = new com.carsale.erp.customspipeline.document.StandardsCertificateDoc().parsePage(text);
 
         assertThat(result.isSuccess()).isTrue();
         assertThat(result.getFields()).containsEntry("scheduleType", "V");

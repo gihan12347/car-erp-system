@@ -1,18 +1,20 @@
-package com.carsale.erp.importpipeline.exportcert;
+package com.carsale.erp.customspipeline.document;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.carsale.erp.shared.document.DocumentParser;
+import com.carsale.erp.shared.ocr.DocumentAiClient;
 import org.springframework.stereotype.Service;
 
 import com.carsale.erp.importpipeline.auction.AuctionParseResult;
 
 @Service
-public class ExportCertificateParser {
+public class ExportCertificateParser implements DocumentParser {
 
     private static final String MEASURE = "([0-9]+(?:\\.[0-9]+)?|-|—|–)";
 
-    public AuctionParseResult parse(String text) {
+    public AuctionParseResult parsePage(String text) {
         AuctionParseResult result = new AuctionParseResult();
         if (text == null || text.trim().isEmpty()) {
             result.setSuccess(false);
@@ -185,7 +187,12 @@ public class ExportCertificateParser {
         return result;
     }
 
-    boolean looksJapanese(String text) {
+    @Override
+    public AuctionParseResult parsePage(DocumentAiClient.DocumentAiResult documentAi) {
+        return null;
+    }
+
+    public boolean looksJapanese(String text) {
         if (text == null) {
             return false;
         }
@@ -274,12 +281,12 @@ public class ExportCertificateParser {
     private String formatDate(int year, String month, String day) {
         int mo = Integer.parseInt(month);
         if (day == null) {
-            return String.format("%02d/%04d", Integer.valueOf(mo), Integer.valueOf(year));
+            return String.format("%02d/%04d", mo, year);
         }
         return String.format("%02d/%02d/%04d",
-                Integer.valueOf(Integer.parseInt(day)),
-                Integer.valueOf(mo),
-                Integer.valueOf(year));
+                Integer.parseInt(day),
+                mo,
+                year);
     }
 
     private String normalizeMake(String value) {
@@ -387,8 +394,8 @@ public class ExportCertificateParser {
             return null;
         }
         String cleaned = value.replaceAll("[\\u2013\\u2014_]+$", "").trim();
-        for (int i = 0; i < stops.length; i++) {
-            cleaned = cleaned.replaceAll("(?i)\\s+" + stops[i] + ".*$", "");
+        for (String stop : stops) {
+            cleaned = cleaned.replaceAll("(?i)\\s+" + stop + ".*$", "");
         }
         cleaned = cleaned.replaceAll("\\s{2,}", " ").trim();
         if (cleaned.isEmpty() || isStampNoise(cleaned)) {
@@ -421,9 +428,9 @@ public class ExportCertificateParser {
         if (values == null) {
             return null;
         }
-        for (int i = 0; i < values.length; i++) {
-            if (values[i] != null && !values[i].trim().isEmpty()) {
-                return values[i];
+        for (String value : values) {
+            if (value != null && !value.trim().isEmpty()) {
+                return value;
             }
         }
         return null;

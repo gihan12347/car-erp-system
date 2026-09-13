@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 
+import com.carsale.erp.customspipeline.document.CustomsDeclaration;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -45,6 +46,7 @@ public class DeclarationController {
     private final SheetDocumentStorageService documentStorageService;
     private final CustomsProgressService customsProgressService;
     private final PipelineStageService pipelineStageService;
+    private final CustomsDeclaration customsDeclaration;
 
     public DeclarationController(
             CustomsDocumentService customsDocumentService,
@@ -52,7 +54,7 @@ public class DeclarationController {
             CustomsDocumentOcrService ocrService,
             SheetDocumentStorageService documentStorageService,
             CustomsProgressService customsProgressService,
-            PipelineStageService pipelineStageService
+            PipelineStageService pipelineStageService, CustomsDeclaration customsDeclaration
     ) {
         this.customsDocumentService = customsDocumentService;
         this.vehicleService = vehicleService;
@@ -60,6 +62,7 @@ public class DeclarationController {
         this.documentStorageService = documentStorageService;
         this.customsProgressService = customsProgressService;
         this.pipelineStageService = pipelineStageService;
+        this.customsDeclaration = customsDeclaration;
     }
 
     @GetMapping
@@ -136,7 +139,7 @@ public class DeclarationController {
             @RequestParam("file") MultipartFile file,
             @RequestParam(value = "provider", required = false) String provider
     ) {
-        return ocrService.parsePage(file, 2, provider);
+        return ocrService.parsePage(file, this.customsDeclaration, provider);
     }
 
     @PostMapping("/{chassisNo}")

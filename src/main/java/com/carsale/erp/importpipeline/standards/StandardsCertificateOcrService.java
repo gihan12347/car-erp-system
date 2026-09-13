@@ -1,5 +1,6 @@
 package com.carsale.erp.importpipeline.standards;
 
+import com.carsale.erp.customspipeline.document.StandardsCertificateDoc;
 import com.carsale.erp.shared.ocr.OcrClient;
 import com.carsale.erp.shared.ocr.OcrImagePreparer;
 import java.io.File;
@@ -21,12 +22,12 @@ public class StandardsCertificateOcrService {
 
     private static final Logger log = LoggerFactory.getLogger(StandardsCertificateOcrService.class);
 
-    private final StandardsCertificateParser parser;
+    private final StandardsCertificateDoc parser;
     private final OcrImagePreparer imagePreparer;
     private final String language;
 
     public StandardsCertificateOcrService(
-            StandardsCertificateParser parser,
+            StandardsCertificateDoc parser,
             OcrImagePreparer imagePreparer,
             @Value("${app.ocr.clearance.language:eng}") String language
     ) {
@@ -44,9 +45,8 @@ public class StandardsCertificateOcrService {
             temp = File.createTempFile("standards-", suffix(file.getOriginalFilename()));
             InputStream input = file.getInputStream();
             Files.copy(input, temp.toPath(), StandardCopyOption.REPLACE_EXISTING);
-            String raw = imagePreparer.readDocumentText(temp, file.getOriginalFilename(), language, provider);
-            log.info("Standards certificate OCR text:\n{}", raw);
-            AuctionParseResult parsed = parser.parse(raw);
+            AuctionParseResult parsed = imagePreparer.readDocumentText(temp, file.getOriginalFilename(), language, provider, parser);
+            log.info("Standards certificate OCR text:\n{}", parsed.getRawText());
             log.info("Standards certificate mapped fields: {}", parsed.getFields());
             return parsed;
         } catch (Throwable ex) {

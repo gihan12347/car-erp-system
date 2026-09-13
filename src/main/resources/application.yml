@@ -42,6 +42,14 @@ app:
       credentialsFile: ${GOOGLE_VISION_CREDENTIALS:config/google-vision-credentials.json}
       apiUrl: https://vision.googleapis.com/v1/images:annotate
       maxUploadBytes: 10000000
+    # Customs declaration Custom Extractor (Document AI). Falls back to OCR+regex if disabled/fails.
+    documentAi:
+      enabled: ${DOCUMENT_AI_ENABLED:true}
+      projectId: ${DOCUMENT_AI_PROJECT_ID:}
+      location: ${DOCUMENT_AI_LOCATION:us}
+      processorId: ${DOCUMENT_AI_PROCESSOR_ID:cd742e4a10abd3c9}
+      processorVersion: ${DOCUMENT_AI_PROCESSOR_VERSION:}
+      maxUploadBytes: 20000000
     preship:
       language: eng
     clearance:

@@ -60,7 +60,8 @@
                                                      nextKey=${!iter.last ? stages[iter.count].stageKey : null},
                                                      nextReady=${nextKey != null and (nextKey == 'inspection' ? row.status.inspectionReady : (nextKey == 'workshop' ? row.status.workshopReady : row.status.yardReady))},
                                                      current=${!ready and pendingKey == stage.stageKey},
-                                                     locked=${stage.stageKey == 'yard' and !ready and !row.status.canEnterYard}"
+                                                     locked=${stage.stageKey == 'yard' and !ready and !row.status.canEnterYard},
+                                                     editHref=${@pipelineStageService.editUrlFor(#uris.escapePathSegment(row.vehicle.chassisNo), stage.stageKey)}"
                                             th:classappend="${(ready ? ' is-done' : (current ? ' is-current' : ' is-pending')) + (ready and nextReady ? ' is-linked' : '') + (locked ? ' is-locked' : '')}"
                                             th:style="'--step:' + ${iter.index}">
                                             <a th:if="${ready}"
@@ -70,29 +71,22 @@
                                                 <i class="fa-solid fa-check"></i>
                                             </a>
                                             <a th:if="${!ready and locked}"
-                                               th:href="@{/workshop/{c}(c=${row.vehicle.chassisNo})}"
+                                               th:href="@{/workshop/{c}(c=${row.vehicle.chassisNo}, hub=1)}"
                                                class="list-pipeline-node"
                                                title="Finish every workshop job first">
                                                 <i class="fa-solid fa-lock"></i>
                                             </a>
-                                            <a th:if="${!ready and !locked and stage.stageKey == 'inspection'}"
-                                               th:href="@{/inspection/{c}(c=${row.vehicle.chassisNo})}"
+                                            <a th:if="${!ready and !locked and editHref != null}"
+                                               th:href="${editHref}"
                                                class="list-pipeline-node"
                                                th:title="${stage.title + (current ? ' — next' : ' — pending')}">
                                                 <span th:text="${iter.count}">1</span>
                                             </a>
-                                            <a th:if="${!ready and !locked and stage.stageKey == 'workshop'}"
-                                               th:href="@{/workshop/{c}(c=${row.vehicle.chassisNo})}"
-                                               class="list-pipeline-node"
-                                               th:title="${stage.title + (current ? ' — next' : ' — pending')}">
-                                                <span th:text="${iter.count}">2</span>
-                                            </a>
-                                            <a th:if="${!ready and !locked and stage.stageKey == 'yard'}"
-                                               th:href="@{/yard/{c}(c=${row.vehicle.chassisNo})}"
-                                               class="list-pipeline-node"
-                                               th:title="${stage.title + (current ? ' — next' : ' — pending')}">
-                                                <span th:text="${iter.count}">3</span>
-                                            </a>
+                                            <span th:if="${!ready and !locked and editHref == null}"
+                                                  class="list-pipeline-node"
+                                                  th:title="${stage.title + (current ? ' — next' : ' — pending')}">
+                                                <span th:text="${iter.count}">1</span>
+                                            </span>
                                             <small th:text="${stage.stageKey == 'inspection' ? 'Inspection' : (stage.stageKey == 'yard' ? 'Yard' : 'Workshop')}">Inspection</small>
                                         </li>
                                     </ol>

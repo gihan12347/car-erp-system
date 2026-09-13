@@ -14,61 +14,67 @@ import javax.imageio.ImageWriteParam;
 import javax.imageio.ImageWriter;
 import javax.imageio.stream.ImageOutputStream;
 
-import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.rendering.PDFRenderer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.carsale.erp.importpipeline.auction.AuctionParseResult;
+import com.carsale.erp.shared.document.DocumentParser;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component
 public class OcrImagePreparer {
 
-    private static final Logger log = LoggerFactory.getLogger(OcrImagePreparer.class);
-
     private final int maxImageSide;
-    private final int pdfRenderDpi;
+    //private final int pdfRenderDpi;
     private final OcrClientRouter ocrClients;
+    private final DocumentAiClient documentAiClient;
 
     public OcrImagePreparer(
             OcrClientRouter ocrClients,
             @Value("${app.ocr.ocrspace.maxImageSide:2200}") int maxImageSide,
-            @Value("${app.ocr.ocrspace.pdfRenderDpi:220}") int pdfRenderDpi
+            DocumentAiClient documentAiClient
     ) {
         this.ocrClients = ocrClients;
         this.maxImageSide = maxImageSide > 0 ? maxImageSide : 2200;
-        this.pdfRenderDpi = pdfRenderDpi > 0 ? pdfRenderDpi : 220;
+        //this.pdfRenderDpi = pdfRenderDpi > 0 ? pdfRenderDpi : 220;
+        this.documentAiClient = documentAiClient;
     }
 
-    public String readDocumentText(File file, String originalName, String language, String provider) throws Exception {
+    public AuctionParseResult readDocumentText(File file, String originalName, String language, String provider, DocumentParser parser) throws Exception {
         OcrClient client = ocrClients.clientFor(provider);
-        String name = originalName == null ? "" : originalName.toLowerCase();
-        if (name.endsWith(".pdf")) {
-            log.info("Cloud OCR ({}) for PDF document: {}", client.displayName(), originalName);
-            StringBuilder text = new StringBuilder();
-            try (PDDocument document = PDDocument.load(file)) {
-                PDFRenderer renderer = new PDFRenderer(document);
-                int pages = document.getNumberOfPages();
-                for (int i = 0; i < pages; i++) {
-                    BufferedImage image = prepare(renderer.renderImageWithDPI(i, pdfRenderDpi));
-                    File imageTemp = writeUploadImage(image, "doc-page-", client);
-                    try {
-                        text.append(client.recognize(imageTemp, language)).append('\n');
-                    } finally {
-                        tryDelete(imageTemp);
-                    }
-                }
-            }
-            return text.toString();
-        }
+        AuctionParseResult result = null;
+        //TODO :: disabled this feature ---- if needed need to enable it with considering Google Document AI
+//        String name = originalName == null ? "" : originalName.toLowerCase();
+//        if (name.endsWith(".pdf")) {
+//            log.info("Cloud OCR ({}) for PDF document: {}", client.displayName(), originalName);
+//            StringBuilder text = new StringBuilder();
+//            try (PDDocument document = PDDocument.load(file)) {
+//                PDFRenderer renderer = new PDFRenderer(document);
+//                int pages = document.getNumberOfPages();
+//                for (int i = 0; i < pages; i++) {
+//                    BufferedImage image = prepare(renderer.renderImageWithDPI(i, pdfRenderDpi));
+//                    File imageTemp = writeUploadImage(image, "doc-page-", client);
+//                    try {
+//                        text.append(client.recognize(imageTemp, language)).append('\n');
+//                    } finally {
+//                        tryDelete(imageTemp);
+//                    }
+//                }
+//            }
+//            return parser.parsePage(text.toString());
+//        }
 
         BufferedImage image = ImageIO.read(file);
         if (image == null) {
             throw new IOException("Unsupported image format.");
         }
-        File imageTemp = writeUploadImage(prepare(image), "doc-", client);
+        File imageTemp = writeUploadImage(prepare(image), client);
         try {
-            return client.recognize(imageTemp, language);
+            if (client instanceof GoogleVisionOcrClient) {
+                result = parser.parsePage(documentAiClient.process(file, originalName));
+            }
+            if (result != null) {
+                return result;
+            }
+            return parser.parsePage(client.recognize(imageTemp, language));
         } finally {
             tryDelete(imageTemp);
         }
@@ -120,9 +126,9 @@ public class OcrImagePreparer {
         return enhanced;
     }
 
-    private File writeUploadImage(BufferedImage source, String prefix, OcrClient client) throws IOException {
+    private File writeUploadImage(BufferedImage source, OcrClient client) throws IOException {
         BufferedImage image = toRgb(source);
-        File temp = File.createTempFile(prefix, ".jpg");
+        File temp = File.createTempFile("doc-", ".jpg");
         float quality = 0.88f;
         double scale = 1.0d;
 

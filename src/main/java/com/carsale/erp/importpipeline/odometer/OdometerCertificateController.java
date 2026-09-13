@@ -1,5 +1,6 @@
 package com.carsale.erp.importpipeline.odometer;
 
+import com.carsale.erp.customspipeline.document.JavicCertificate;
 import com.carsale.erp.importpipeline.ImportStageUrls;
 import java.io.IOException;
 import java.net.URLEncoder;
@@ -47,6 +48,7 @@ public class OdometerCertificateController {
     private final ImportProgressService importProgressService;
     private final CustomsProgressService customsProgressService;
     private final PipelineStageService pipelineStageService;
+    private final JavicCertificate javicCertificate;
 
     public OdometerCertificateController(
             CustomsDocumentService customsDocumentService,
@@ -55,7 +57,7 @@ public class OdometerCertificateController {
             SheetDocumentStorageService documentStorageService,
             ImportProgressService importProgressService,
             CustomsProgressService customsProgressService,
-            PipelineStageService pipelineStageService
+            PipelineStageService pipelineStageService, JavicCertificate javicCertificate
     ) {
         this.customsDocumentService = customsDocumentService;
         this.vehicleService = vehicleService;
@@ -64,6 +66,7 @@ public class OdometerCertificateController {
         this.importProgressService = importProgressService;
         this.customsProgressService = customsProgressService;
         this.pipelineStageService = pipelineStageService;
+        this.javicCertificate = javicCertificate;
     }
 
     @GetMapping
@@ -187,7 +190,7 @@ public class OdometerCertificateController {
             @RequestParam("file") MultipartFile file,
             @RequestParam(value = "provider", required = false) String provider
     ) {
-        return ocrService.parsePage(file, 1, provider);
+        return ocrService.parsePage(file, this.javicCertificate, provider);
     }
 
     @PostMapping("/{chassisNo}")

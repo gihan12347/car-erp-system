@@ -1,17 +1,23 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="en">
 <head th:replace="shared/head :: head(${pageTitle})"></head>
-<body class="prep-page">
+<body class="sheet-page import-form-page import-view-page">
 <div class="app-shell">
     <aside th:replace="shared/sidebar :: sidebar(${activeMenu})"></aside>
     <div class="app-main">
         <header th:replace="shared/topbar :: topbar"></header>
         <main class="page-content">
+            <p th:if="${successMessage}" class="alert alert-ok" th:text="${successMessage}"></p>
+            <p th:if="${errorMessage}" class="alert alert-error" th:text="${errorMessage}"></p>
+
             <div class="dash-head">
                 <div>
-                    <h1 th:if="${stageKey == 'inspection'}">Inspection</h1>
-                    <h1 th:if="${stageKey == 'workshop'}">Workshop</h1>
-                    <h1 th:if="${stageKey == 'yard'}">Yard</h1>
+                    <h1 th:if="${stageKey == 'inspection'}"
+                        th:text="${@pipelineStageService.title('PREP', 'inspection')}">Inspection</h1>
+                    <h1 th:if="${stageKey == 'workshop'}"
+                        th:text="${@pipelineStageService.title('PREP', 'workshop')}">Workshop</h1>
+                    <h1 th:if="${stageKey == 'yard'}"
+                        th:text="${@pipelineStageService.title('PREP', 'yard')}">Yard</h1>
                     <p class="form-lead" th:if="${stageKey == 'inspection'}">Review checklist results. Marking No creates a workshop job.</p>
                     <p class="form-lead" th:if="${stageKey == 'workshop'}">Review repair work, parts, and workshop completion.</p>
                     <p class="form-lead" th:if="${stageKey == 'yard'}">Review bay allocation, keys, and yard inspection.</p>
@@ -40,10 +46,23 @@
             <div class="vehicle-form" th:if="${stageKey == 'yard'}">
                 <div th:replace="preparation-pipeline/fragments/view-yard :: yardView(${vehicle}, ${yard}, ${yardReady})"></div>
             </div>
+
+            <article class="panel import-next-pipeline" th:if="${prepComplete}">
+                <div class="panel-head">
+                    <h2>Next pipeline</h2>
+                    <em class="pill muted-pill">Ready for sale</em>
+                </div>
+                <p class="form-lead">Preparation is complete. Set the asking price and list the vehicle for sale.</p>
+                <div class="import-view-actions">
+                    <a th:href="@{/ready-for-sale/{c}(c=${vehicle.chassisNo})}" class="panel-btn import-form-submit">
+                        Open ready for sale pipeline
+                    </a>
+                    <a th:href="@{/ready-for-sale}" class="panel-btn ghost import-form-submit">All ready for sale</a>
+                </div>
+            </article>
         </main>
     </div>
 </div>
 <script th:src="@{/js/shared/app.js(v=20260905k)}"></script>
-<script th:if="${stageKey == 'inspection'}" th:src="@{/js/preparation-pipeline/inspection.js(v=20260908c)}"></script>
 </body>
 </html>

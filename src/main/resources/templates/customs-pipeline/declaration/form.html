@@ -66,79 +66,84 @@
                     </div>
 
                     <div class="sheet-fields preship-fields">
-                        <article class="panel">
-                            <div class="panel-head"><h2>Declaration header &amp; parties</h2></div>
-                            <div class="field-grid">
-                                <label>Customs reference <input type="text" th:field="*{customsReference}" id="customsReference"></label>
-                                <label>Declaration type <input type="text" th:field="*{declarationType}" id="declarationType"></label>
-                                <label>Total packages <input type="text" th:field="*{totalPackages}" id="totalPackages"></label>
-                                <label>Exporter name <input type="text" th:field="*{exporterName}" id="exporterName"></label>
-                                <label class="field-span-2">Exporter address <textarea th:field="*{exporterAddress}" id="exporterAddress" rows="2"></textarea></label>
-                                <label>Consignee name <input type="text" th:field="*{consigneeName}" id="consigneeName"></label>
-                                <label>Consignee TIN <input type="text" th:field="*{consigneeTin}" id="consigneeTin"></label>
-                                <label class="field-span-2">Consignee address <textarea th:field="*{consigneeAddress}" id="consigneeAddress" rows="2"></textarea></label>
-                                <label>Declarant name <input type="text" th:field="*{declarantName}" id="declarantName"></label>
-                                <label>Declarant TIN <input type="text" th:field="*{declarantTin}" id="declarantTin"></label>
-                                <label class="field-span-2">Declarant address <textarea th:field="*{declarantAddress}" id="declarantAddress" rows="2"></textarea></label>
+                        <article class="panel assessment-taxes-panel">
+                            <div class="panel-head">
+                                <h2>Invoice amount</h2>
+                                <span class="price-breakdown-currency-note">Amounts in JPY · Final value in LKR</span>
                             </div>
-                        </article>
-
-                        <article class="panel">
-                            <div class="panel-head"><h2>Shipping &amp; finance</h2></div>
-                            <div class="field-grid">
-                                <label>Country of export <input type="text" th:field="*{countryExport}" id="countryExport"></label>
-                                <label>Country of destination <input type="text" th:field="*{countryDestination}" id="countryDestination"></label>
-                                <label>Country of origin <input type="text" th:field="*{countryOrigin}" id="countryOrigin"></label>
-                                <label>Vessel / flight <input type="text" th:field="*{vesselFlight}" id="vesselFlight"></label>
-                                <label>Delivery terms <input type="text" th:field="*{deliveryTerms}" id="deliveryTerms"></label>
-                                <label>Voyage no. / date <input type="text" th:field="*{voyageNoDate}" id="voyageNoDate"></label>
-                                <label>Place of loading / discharging <input type="text" th:field="*{placeLoadingDischarging}" id="placeLoadingDischarging"></label>
-                                <label>Currency <input type="text" th:field="*{currencyInvoiced}" id="currencyInvoiced"></label>
-                                <label>Total amount invoiced <input type="text" th:field="*{totalAmountInvoiced}" id="totalAmountInvoiced"></label>
-                                <label>Exchange rate <input type="text" th:field="*{exchangeRate}" id="exchangeRate"></label>
-                                <label>Payment terms <input type="text" th:field="*{paymentTerms}" id="paymentTerms"></label>
-                                <label>Bank code <input type="text" th:field="*{bankCode}" id="bankCode"></label>
-                                <label>Bank name <input type="text" th:field="*{bankName}" id="bankName"></label>
-                                <label>Bank branch <input type="text" th:field="*{bankBranch}" id="bankBranch"></label>
-                                <label>Bank reference <input type="text" th:field="*{bankReference}" id="bankReference"></label>
-                                <label>Location of goods <input type="text" th:field="*{locationOfGoods}" id="locationOfGoods"></label>
-                            </div>
-                        </article>
-
-                        <article class="panel">
-                            <div class="panel-head"><h2>Goods &amp; vehicle</h2></div>
-                            <div class="field-grid">
-                                <label>HS code <input type="text" th:field="*{hsCode}" id="hsCode"></label>
-                                <label>Gross mass (kg) <input type="text" th:field="*{grossMassKg}" id="grossMassKg"></label>
-                                <label>Net mass (kg) <input type="text" th:field="*{netMassKg}" id="netMassKg"></label>
-                                <label>BL / AWB no. <input type="text" th:field="*{blAwbNo}" id="blAwbNo"></label>
-                                <label class="field-span-2">Goods description <textarea th:field="*{goodsDescription}" id="goodsDescription" rows="2"></textarea></label>
-                                <label class="field-span-2">Model / spec <textarea th:field="*{modelSpec}" id="modelSpec" rows="2"></textarea></label>
-                                <label>Year of manufacture <input type="text" th:field="*{yearOfManufacture}" id="yearOfManufacture"></label>
-                                <label>Date of registration <input type="text" th:field="*{dateOfRegistration}" id="dateOfRegistration"></label>
-                                <label>Chassis no. <input type="text" th:field="*{clearanceChassisNo}" id="clearanceChassisNo"></label>
-                                <label>Engine no. <input type="text" th:field="*{clearanceEngineNo}" id="clearanceEngineNo"></label>
-                                <label>Item price <input type="text" th:field="*{itemPrice}" id="itemPrice"></label>
-                                <label>Value (NCY) <input type="text" th:field="*{valueNcy}" id="valueNcy"></label>
-                                <label>Engine capacity <input type="text" th:field="*{engineCapacityCc}" id="engineCapacityCc"></label>
-                            </div>
-                        </article>
-
-                        <article class="panel">
-                            <div class="panel-head"><h2>Taxes &amp; invoice</h2></div>
-                            <div class="field-grid">
-                                <label>CID <input type="text" th:field="*{taxCid}" id="taxCid"></label>
-                                <label>SUR <input type="text" th:field="*{taxSur}" id="taxSur"></label>
-                                <label>VAT <input type="text" th:field="*{taxVat}" id="taxVat"></label>
-                                <label>XID <input type="text" th:field="*{taxXid}" id="taxXid"></label>
-                                <label>VEL <input type="text" th:field="*{taxVel}" id="taxVel"></label>
-                                <label>Other levies <input type="text" th:field="*{taxOther}" id="taxOther"></label>
-                                <label>Total tax <input type="text" th:field="*{totalTaxAmount}" id="totalTaxAmount"></label>
-                                <label>FOB / CIF <input type="text" th:field="*{invoiceFob}" id="invoiceFob"></label>
-                                <label>Freight <input type="text" th:field="*{invoiceFreight}" id="invoiceFreight"></label>
-                                <label>Insurance <input type="text" th:field="*{invoiceInsurance}" id="invoiceInsurance"></label>
-                                <label>Invoice total <input type="text" th:field="*{invoiceTotal}" id="invoiceTotal"></label>
-                                <label>Declarant date <input type="text" th:field="*{declarantDate}" id="declarantDate"></label>
+                            <div class="price-breakdown">
+                                <div class="price-breakdown-lines">
+                                    <label class="price-breakdown-row">
+                                        <span class="price-breakdown-label">
+                                            <span class="price-breakdown-code">FOB</span>
+                                            <span class="price-breakdown-name">FOB / CIF</span>
+                                        </span>
+                                        <span class="price-breakdown-amount">
+                                            <input type="text" th:field="*{invoiceFob}" id="invoiceFob" inputmode="decimal" autocomplete="off">
+                                            <span class="price-breakdown-currency" aria-hidden="true">JPY</span>
+                                        </span>
+                                    </label>
+                                    <label class="price-breakdown-row">
+                                        <span class="price-breakdown-label">
+                                            <span class="price-breakdown-code">FRT</span>
+                                            <span class="price-breakdown-name">Freight</span>
+                                        </span>
+                                        <span class="price-breakdown-amount">
+                                            <input type="text" th:field="*{invoiceFreight}" id="invoiceFreight" inputmode="decimal" autocomplete="off">
+                                            <span class="price-breakdown-currency" aria-hidden="true">JPY</span>
+                                        </span>
+                                    </label>
+                                    <label class="price-breakdown-row">
+                                        <span class="price-breakdown-label">
+                                            <span class="price-breakdown-code">INS</span>
+                                            <span class="price-breakdown-name">Insurance</span>
+                                        </span>
+                                        <span class="price-breakdown-amount">
+                                            <input type="text" th:field="*{invoiceInsurance}" id="invoiceInsurance" inputmode="decimal" autocomplete="off">
+                                            <span class="price-breakdown-currency" aria-hidden="true">JPY</span>
+                                        </span>
+                                    </label>
+                                    <label class="price-breakdown-row">
+                                        <span class="price-breakdown-label">
+                                            <span class="price-breakdown-code">OTH</span>
+                                            <span class="price-breakdown-name">Other</span>
+                                        </span>
+                                        <span class="price-breakdown-amount">
+                                            <input type="text" th:field="*{invoiceOther}" id="invoiceOther" inputmode="decimal" autocomplete="off">
+                                            <span class="price-breakdown-currency" aria-hidden="true">JPY</span>
+                                        </span>
+                                    </label>
+                                </div>
+                                <div class="price-breakdown-totals">
+                                    <label class="price-breakdown-row is-total">
+                                        <span class="price-breakdown-label">
+                                            <span class="price-breakdown-name">Total</span>
+                                        </span>
+                                        <span class="price-breakdown-amount">
+                                            <input type="text" th:field="*{invoiceTotal}" id="invoiceTotal" inputmode="decimal" autocomplete="off">
+                                            <span class="price-breakdown-currency" aria-hidden="true">JPY</span>
+                                        </span>
+                                    </label>
+                                    <label class="price-breakdown-row">
+                                        <span class="price-breakdown-label">
+                                            <span class="price-breakdown-code">FX</span>
+                                            <span class="price-breakdown-name">Exchange rate</span>
+                                        </span>
+                                        <span class="price-breakdown-amount">
+                                            <input type="text" th:field="*{exchangeRate}" id="exchangeRate" inputmode="decimal" autocomplete="off">
+                                            <span class="price-breakdown-currency" aria-hidden="true">×</span>
+                                        </span>
+                                    </label>
+                                    <label class="price-breakdown-row is-paid">
+                                        <span class="price-breakdown-label">
+                                            <span class="price-breakdown-name">Value (NCY)</span>
+                                        </span>
+                                        <span class="price-breakdown-amount">
+                                            <input type="text" th:field="*{valueNcy}" id="valueNcy" inputmode="decimal" autocomplete="off">
+                                            <span class="price-breakdown-currency" aria-hidden="true">LKR</span>
+                                        </span>
+                                    </label>
+                                </div>
                             </div>
                         </article>
 
@@ -171,7 +176,7 @@
 
 <script th:src="@{/js/shared/app.js(v=20260905k)}"></script>
 <script th:src="@{/js/shared/document-viewer.js(v=20260826d)}"></script>
-<script th:src="@{/js/customs-pipeline/clearance-stage.js(v=20260908a)}"></script>
-<script th:src="@{/js/customs-pipeline/declaration.js(v=20260908a)}"></script>
+<script th:src="@{/js/customs-pipeline/clearance-stage.js(v=20260911a)}"></script>
+<script th:src="@{/js/customs-pipeline/declaration.js(v=20260911b)}"></script>
 </body>
 </html>
