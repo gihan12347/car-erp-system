@@ -20,6 +20,13 @@ public class AppPageController {
         return "dashboard";
     }
 
+    @GetMapping("/configuration")
+    public String configuration(Model model) {
+        model.addAttribute("pageTitle", "Configuration");
+        model.addAttribute("activeMenu", "configuration");
+        return "configuration";
+    }
+
     @GetMapping("/vehicles")
     public String legacyVehicles() {
         return "redirect:/auction";
@@ -66,15 +73,13 @@ public class AppPageController {
 
     @GetMapping("/reports")
     public String reports(Model model) {
-        return module(model, "Reports", "reports", "fa-chart-pie",
+        return module(model, "Reports", "reports", "fa-chart-column",
                 "Operational and financial reports across the pipeline.");
     }
 
     @GetMapping("/profile")
-    public String profile(Model model) {
-        model.addAttribute("pageTitle", "Profile");
-        model.addAttribute("activeMenu", "");
-        return "profile";
+    public String profile() {
+        return "redirect:/settings";
     }
 
     private String module(Model model, String title, String key, String icon, String description) {

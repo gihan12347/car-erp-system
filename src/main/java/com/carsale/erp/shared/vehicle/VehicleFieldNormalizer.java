@@ -1,6 +1,8 @@
 package com.carsale.erp.shared.vehicle;
 
-import com.carsale.erp.shared.vehicle.Vehicle;
+import java.util.regex.Matcher;
+
+import com.carsale.erp.shared.regex.RegexConstants;
 
 final class VehicleFieldNormalizer {
 
@@ -52,13 +54,11 @@ final class VehicleFieldNormalizer {
         }
         // If OCR pasted a long header line, keep only a plausible registration snippet.
         if (trimmed.length() > 24) {
-            java.util.regex.Matcher monthYear = java.util.regex.Pattern
-                    .compile("(January|February|March|April|May|June|July|August|September|October|November|December)\\s+\\d{4}")
-                    .matcher(trimmed);
+            Matcher monthYear = RegexConstants.Dates.MONTH_FULL_YEAR_PATTERN.matcher(trimmed);
             if (monthYear.find()) {
                 return monthYear.group();
             }
-            java.util.regex.Matcher yearOnly = java.util.regex.Pattern.compile("\\b(19|20)\\d{2}\\b").matcher(trimmed);
+            Matcher yearOnly = RegexConstants.Dates.YEAR_WORD_PATTERN.matcher(trimmed);
             if (yearOnly.find()) {
                 return yearOnly.group();
             }

@@ -12,27 +12,33 @@
 
             <div class="dash-head">
                 <div>
+                    <h1 th:if="${stageKey == 'bl'}">Bill of lading</h1>
                     <h1 th:if="${stageKey == 'declaration'}">Customs declaration</h1>
                     <h1 th:if="${stageKey == 'assessment'}">Assessment notice</h1>
                     <h1 th:if="${stageKey == 'worksheet'}">Working sheet</h1>
+                    <p class="form-lead" th:if="${stageKey == 'bl'}">Review the bill of lading number, issue date, and landing cost.</p>
                     <p class="form-lead" th:if="${stageKey == 'declaration'}">Review the Sri Lanka customs declaration data.</p>
                     <p class="form-lead" th:if="${stageKey == 'assessment'}">Review the ASYCUDA assessment notice and tax amounts.</p>
                     <p class="form-lead" th:if="${stageKey == 'worksheet'}">Review the motor vehicle working sheet and valuation figures.</p>
                 </div>
                 <div th:replace="shared/pipeline-delete :: pipelineDeleteBtn(
                         @{/customs/{c}/delete(c=${vehicle.chassisNo})},
-                        'Delete customs clearance data? Preparation and ready-for-sale data will also be deleted.')"></div>
+                        'Delete customs clearance data? Preparation and sale pipeline data will also be deleted.')"></div>
             </div>
 
             <div th:replace="customs-pipeline/fragments/pipeline :: clearancePipelineSteps(
                     ${stageKey},
                     ${vehicle.chassisNo},
+                    ${blReady},
                     ${declarationReady},
                     ${assessmentReady},
                     ${worksheetReady},
                     ${vehicle.model},
                     true)"></div>
 
+            <div class="vehicle-form clearance-form" th:if="${stageKey == 'bl'}">
+                <div th:replace="customs-pipeline/fragments/view :: clearanceViewBl(${vehicle}, ${clearance}, ${blReady})"></div>
+            </div>
             <div class="vehicle-form clearance-form" th:if="${stageKey == 'declaration'}">
                 <div th:replace="customs-pipeline/fragments/view :: clearanceViewDeclaration(${vehicle}, ${clearance}, ${declarationReady})"></div>
             </div>
@@ -48,12 +54,12 @@
                     <h2>Next pipeline</h2>
                     <em class="pill muted-pill" th:text="${vehicle.stage.displayName}">Workshop</em>
                 </div>
-                <p class="form-lead">Customs clearance is complete. Continue with the preparation pipeline, then list the vehicle in the ready for sale pipeline.</p>
+                <p class="form-lead">Customs clearance is complete. Continue with the preparation pipeline, then list the vehicle in the sale pipeline.</p>
                 <div class="import-view-actions">
                     <a th:href="@{/workshop-yard/{c}(c=${vehicle.chassisNo})}" class="panel-btn import-form-submit">
                         Open preparation pipeline
                     </a>
-                    <a th:href="@{/ready-for-sale}" class="panel-btn ghost import-form-submit">Ready for sale pipeline</a>
+                    <a th:href="@{/ready-for-sale}" class="panel-btn ghost import-form-submit">Sale pipeline</a>
                 </div>
             </article>
         </main>

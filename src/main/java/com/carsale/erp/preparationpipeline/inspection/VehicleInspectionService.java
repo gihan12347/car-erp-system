@@ -64,7 +64,7 @@ public class VehicleInspectionService {
 
     public boolean isComplete(String chassisNo) {
         VehicleInspection record = findByChassisNo(chassisNo);
-        return record != null && record.isCompleted();
+        return isFilled(record);
     }
 
     @Transactional
@@ -84,9 +84,9 @@ public class VehicleInspectionService {
         existing.setInspector(incoming.getInspector());
         existing.setInspectionDate(incoming.getInspectionDate());
         existing.setNotes(incoming.getNotes());
-        existing.setCompleted(incoming.isCompleted());
         syncLines(existing, incoming.getLines());
         validateFilled(existing);
+        existing.setCompleted(true);
         VehicleInspection saved = vehicleInspectionRepository.save(existing);
         syncWorkshopJobsFromNoItems(saved);
         return saved;
@@ -291,6 +291,26 @@ public class VehicleInspectionService {
                 throw new IllegalArgumentException("Mark every inspection item OK, No, or N/A.");
             }
         }
+    }
+
+    private boolean isFilled(VehicleInspection inspection) {
+        if (inspection == null) {
+            return false;
+        }
+        if (isBlank(inspection.getInspector()) || isBlank(inspection.getInspectionDate())) {
+            return false;
+        }
+        boolean any = false;
+        for (VehicleInspectionLine line : inspection.getLines()) {
+            if (line == null || line.isBlankCustom()) {
+                continue;
+            }
+            if (isBlank(line.getItemTitle()) || isBlank(line.getResult())) {
+                return false;
+            }
+            any = true;
+        }
+        return any;
     }
 
     private static VehicleInspectionLine findLine(VehicleInspection inspection, InspectionFailRequest request) {

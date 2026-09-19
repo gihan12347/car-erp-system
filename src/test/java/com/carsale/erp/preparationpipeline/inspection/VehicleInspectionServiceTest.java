@@ -50,6 +50,7 @@ class VehicleInspectionServiceTest {
         }
         lineNamed(form, "Brakes").setResult("NO");
         vehicleInspectionService.save(form);
+        assertThat(vehicleInspectionService.isComplete("TEST-INS-SAVE")).isTrue();
         WorkshopJob job = workshopService.findByChassisNo("TEST-INS-SAVE");
         assertThat(job).isNotNull();
         assertThat(job.getLines()).hasSize(1);
@@ -111,6 +112,7 @@ class VehicleInspectionServiceTest {
             line.setResult("OK");
         }
         vehicleInspectionService.save(form);
+        assertThat(vehicleInspectionService.isComplete("TEST-INS-OK")).isTrue();
         assertThat(workshopService.findByChassisNo("TEST-INS-OK")).isNull();
     }
 

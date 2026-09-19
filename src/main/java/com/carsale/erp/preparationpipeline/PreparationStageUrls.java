@@ -51,15 +51,7 @@ public final class PreparationStageUrls {
                 chassisNo, FlowPipeline.PREP.getCurrentBase(), keys, FlowStage.INSPECTION.getStageKey());
     }
 
-    public static String redirectAfterWorkshopSave(String chassisNo, PreparationProgress status, List<String> keys) {
-        String encoded = encode(chassisNo);
-        int index = keys == null ? -1 : keys.indexOf(FlowStage.WORKSHOP.getStageKey());
-        if (index >= 0 && index < keys.size() - 1) {
-            String nextKey = keys.get(index + 1);
-            if (FlowStage.YARD.getStageKey().equals(nextKey) && !status.isCanEnterYard()) {
-                return editUrlFor(encoded, FlowStage.WORKSHOP.getStageKey());
-            }
-        }
+    public static String redirectAfterWorkshopSave(String chassisNo, List<String> keys) {
         return PipelineStageUtils.redirectAfterStageSave(
                 chassisNo, FlowPipeline.PREP.getCurrentBase(), keys, FlowStage.WORKSHOP.getStageKey());
     }
@@ -67,6 +59,11 @@ public final class PreparationStageUrls {
     public static String redirectAfterYardSave(String chassisNo, List<String> keys) {
         return PipelineStageUtils.redirectAfterStageSave(
                 chassisNo, FlowPipeline.PREP.getCurrentBase(), keys, FlowStage.YARD.getStageKey());
+    }
+
+    public static String redirectAfterSaleSave(String chassisNo, List<String> keys) {
+        return PipelineStageUtils.redirectAfterStageSave(
+                chassisNo, FlowPipeline.PREP.getCurrentBase(), keys, FlowStage.SALE.getStageKey());
     }
 
     public static NavLinks editLinks(String chassisNo, int stageIndex, PreparationProgress status, List<PipelineStage> keys) {

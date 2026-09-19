@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<section th:fragment="registrationView(vehicle, registration, registrationReady)" class="import-view-stage">
+    <div class="panel import-view-empty" th:if="${registration == null}">
+        <i class="fa-solid fa-id-card"></i>
+        <strong>No registration yet</strong>
+        <p>Enter the local plate number and RMV date to complete this step.</p>
+        <div class="import-view-actions">
+            <a th:if="${stageNav != null and stageNav.prevUrl != null}"
+               th:href="${stageNav.prevUrl}"
+               class="panel-btn ghost import-form-submit">
+                <i class="fa-solid fa-chevron-left"></i>
+                Previous
+            </a>
+            <a th:href="@{/registration/{c}(c=${vehicle.chassisNo}, hub=1)}" class="panel-btn import-form-submit">Start registration</a>
+        </div>
+    </div>
+
+    <div th:if="${registration != null}">
+        <article class="panel">
+            <div class="panel-head"><h2>Local registration</h2></div>
+            <div class="field-grid">
+                <label>Registration no. <input type="text" th:value="${registration.registrationNo}" readonly class="readonly-field"></label>
+                <label>Registered date <input type="text" th:value="${registration.registeredDate}" readonly class="readonly-field"></label>
+                <label>Registered owner <input type="text" th:value="${registration.registeredOwner}" readonly class="readonly-field"></label>
+                <label>RMV office <input type="text" th:value="${registration.rmvOffice}" readonly class="readonly-field"></label>
+                <label>File no. <input type="text" th:value="${registration.fileNo}" readonly class="readonly-field"></label>
+            </div>
+        </article>
+        <article class="panel">
+            <div class="panel-head"><h2>License &amp; insurance</h2></div>
+            <div class="field-grid">
+                <label>Revenue license no. <input type="text" th:value="${registration.revenueLicenseNo}" readonly class="readonly-field"></label>
+                <label>Revenue license expiry <input type="text" th:value="${registration.revenueLicenseExpiry}" readonly class="readonly-field"></label>
+                <label>Insurance company <input type="text" th:value="${registration.insuranceCompany}" readonly class="readonly-field"></label>
+                <label>Policy no. <input type="text" th:value="${registration.insurancePolicyNo}" readonly class="readonly-field"></label>
+                <label>Insurance expiry <input type="text" th:value="${registration.insuranceExpiry}" readonly class="readonly-field"></label>
+            </div>
+        </article>
+        <article class="panel" th:if="${registration.notes != null and !#strings.isEmpty(registration.notes)}">
+            <div class="panel-head"><h2>Notes</h2></div>
+            <p class="sale-profile-note" th:text="${registration.notes}">—</p>
+        </article>
+        <div class="import-view-actions">
+            <a th:if="${stageNav != null and stageNav.prevUrl != null}"
+               th:href="${stageNav.prevUrl}"
+               class="panel-btn ghost import-form-submit">
+                <i class="fa-solid fa-chevron-left"></i>
+                Previous
+            </a>
+            <a th:href="@{/registration/{c}(c=${vehicle.chassisNo}, hub=1)}" class="panel-btn import-form-submit">Edit registration</a>
+        </div>
+    </div>
+</section>
+
+</body>
+</html>

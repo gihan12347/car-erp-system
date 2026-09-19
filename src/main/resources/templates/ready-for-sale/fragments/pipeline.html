@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<nav th:fragment="salePipelineSteps(currentStep, chassisNo, listingReady, vehicleLabel, viewMode, detailsReady, registrationReady)"
+     class="import-pipeline panel"
+     th:with="isView=${viewMode != null and viewMode}, detailsDone=${detailsReady == null or detailsReady}, listingDone=${listingReady != null and listingReady}, registrationDone=${registrationReady != null and registrationReady}, saleComplete=${detailsDone and listingDone and registrationDone}, orderedStages=${@pipelineStageService.list('READY')}"
+     th:classappend="${saleComplete} ? ' is-import-complete' : ''"
+     aria-label="Sale pipeline">
+    <div class="import-pipeline-head">
+        <div>
+            <strong class="import-pipeline-kicker">Sale pipeline</strong>
+            <p class="import-pipeline-lead" th:if="${chassisNo != null and !#strings.isEmpty(chassisNo)}">
+                <span th:text="${vehicleLabel != null ? vehicleLabel : chassisNo}">Toyota Aqua</span>
+                · <span class="import-pipeline-chassis" th:text="${chassisNo}">NHP10-884211</span>
+            </p>
+        </div>
+        <a th:if="${chassisNo != null and !#strings.isEmpty(chassisNo) and !isView}"
+           th:href="@{/ready-for-sale/{chassisNo}(chassisNo=${chassisNo})}"
+           class="import-pipeline-hub-link">
+            <i class="fa-solid fa-gauge-high"></i> Vehicle hub
+        </a>
+        <a th:if="${chassisNo != null and !#strings.isEmpty(chassisNo) and isView}"
+           th:href="@{/ready-for-sale}"
+           class="import-pipeline-hub-link">
+            <i class="fa-solid fa-list"></i> All vehicles
+        </a>
+    </div>
+
+    <div class="import-pipeline-scroller">
+    <ol class="import-pipeline-steps is-fill"
+        th:style="'--pipeline-cols: ' + ${orderedStages.size()}">
+        <th:block th:each="stage, iter : ${orderedStages}">
+            <li th:if="${stage.stageKey == 'details'}"
+                data-sale-step="details"
+                th:attr="data-step-count=${iter.count}"
+                th:classappend="${(currentStep == 'details' ? ' is-current' : '') + (detailsDone ? ' is-done' : ' is-pending')}">
+                <a th:href="@{/ready-for-sale/{chassisNo}(chassisNo=${chassisNo}, stage=${iter.index})}"
+                   class="import-pipeline-step">
+                    <span class="import-pipeline-step-icon">
+                        <i th:if="${detailsDone}" class="fa-solid fa-check"></i>
+                        <span th:unless="${detailsDone}" th:text="${iter.count}">1</span>
+                    </span>
+                    <span class="import-pipeline-step-copy">
+                        <strong th:text="${stage.title}">Details</strong>
+                        <small th:text="${stage.subtitle}">Vehicle details and images</small>
+                        <em class="pipeline-step-status" th:classappend="${detailsDone} ? ' done' : ' pending'"
+                            th:text="${detailsDone} ? 'Complete' : 'Pending'">Complete</em>
+                    </span>
+                </a>
+            </li>
+            <li th:if="${stage.stageKey == 'listing'}"
+                data-sale-step="listing"
+                th:attr="data-step-count=${iter.count}"
+                th:classappend="${(currentStep == 'listing' ? ' is-current' : '') + (listingDone ? ' is-done' : ' is-pending')}">
+                <a th:if="${isView}"
+                   th:href="@{/ready-for-sale/{chassisNo}(chassisNo=${chassisNo}, stage=${iter.index})}"
+                   class="import-pipeline-step">
+                    <span class="import-pipeline-step-icon">
+                        <i th:if="${listingDone}" class="fa-solid fa-check"></i>
+                        <span th:unless="${listingDone}" th:text="${iter.count}">2</span>
+                    </span>
+                    <span class="import-pipeline-step-copy">
+                        <strong th:text="${stage.title}">Listing</strong>
+                        <small th:text="${stage.subtitle}">Price and list the vehicle</small>
+                        <em class="pipeline-step-status" th:classappend="${listingDone} ? ' done' : ' pending'"
+                            th:text="${listingDone} ? 'Complete' : 'Pending'">Pending</em>
+                    </span>
+                </a>
+                <a th:unless="${isView}"
+                   th:href="@{/listing/{chassisNo}(chassisNo=${chassisNo}, hub=1)}"
+                   class="import-pipeline-step">
+                    <span class="import-pipeline-step-icon">
+                        <i th:if="${listingDone}" class="fa-solid fa-check"></i>
+                        <span th:unless="${listingDone}" th:text="${iter.count}">2</span>
+                    </span>
+                    <span class="import-pipeline-step-copy">
+                        <strong th:text="${stage.title}">Listing</strong>
+                        <small th:text="${stage.subtitle}">Price and list the vehicle</small>
+                        <em class="pipeline-step-status" th:classappend="${listingDone} ? ' done' : ' pending'"
+                            th:text="${listingDone} ? 'Complete' : 'Pending'">Pending</em>
+                    </span>
+                </a>
+            </li>
+            <li th:if="${stage.stageKey == 'registration'}"
+                data-sale-step="registration"
+                th:attr="data-step-count=${iter.count}"
+                th:classappend="${(currentStep == 'registration' ? ' is-current' : '') + (registrationDone ? ' is-done' : ' is-pending')}">
+                <a th:if="${isView}"
+                   th:href="@{/ready-for-sale/{chassisNo}(chassisNo=${chassisNo}, stage=${iter.index})}"
+                   class="import-pipeline-step">
+                    <span class="import-pipeline-step-icon">
+                        <i th:if="${registrationDone}" class="fa-solid fa-check"></i>
+                        <span th:unless="${registrationDone}" th:text="${iter.count}">3</span>
+                    </span>
+                    <span class="import-pipeline-step-copy">
+                        <strong th:text="${stage.title}">Registration</strong>
+                        <small th:text="${stage.subtitle}">Local plate and RMV details</small>
+                        <em class="pipeline-step-status" th:classappend="${registrationDone} ? ' done' : ' pending'"
+                            th:text="${registrationDone} ? 'Complete' : 'Pending'">Pending</em>
+                    </span>
+                </a>
+                <a th:unless="${isView}"
+                   th:href="@{/registration/{chassisNo}(chassisNo=${chassisNo}, hub=1)}"
+                   class="import-pipeline-step">
+                    <span class="import-pipeline-step-icon">
+                        <i th:if="${registrationDone}" class="fa-solid fa-check"></i>
+                        <span th:unless="${registrationDone}" th:text="${iter.count}">3</span>
+                    </span>
+                    <span class="import-pipeline-step-copy">
+                        <strong th:text="${stage.title}">Registration</strong>
+                        <small th:text="${stage.subtitle}">Local plate and RMV details</small>
+                        <em class="pipeline-step-status" th:classappend="${registrationDone} ? ' done' : ' pending'"
+                            th:text="${registrationDone} ? 'Complete' : 'Pending'">Pending</em>
+                    </span>
+                </a>
+            </li>
+        </th:block>
+    </ol>
+    </div>
+
+    <p class="import-pipeline-note" th:if="${!listingDone}">
+        <i class="fa-solid fa-circle-info"></i>
+        Details are ready. Continue to listing to assign a sale location and set the price.
+    </p>
+    <p class="import-pipeline-note" th:if="${listingDone and !registrationDone}">
+        <i class="fa-solid fa-circle-info"></i>
+        Listing is complete. Continue to registration for the local plate and RMV details.
+    </p>
+    <script th:src="@{/js/shared/pipeline-scroll.js(v=20260905a)}"></script>
+</nav>
+
+</body>
+</html>

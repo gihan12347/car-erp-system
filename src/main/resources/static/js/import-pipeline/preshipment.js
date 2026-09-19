@@ -23,14 +23,12 @@
     var previewName = "";
     var objectUrl = null;
     var FIELD_ORDER = [
-        "certificateReference", "documentTitle", "pageInfo", "certificateDate", "bvNumber",
         "inspectionOrgName", "inspectionOrgAddress", "inspectionOrgTel", "inspectionOrgFax", "inspectionOrgEmail",
-        "placeOfInspection", "dateOfInspection",
         "applicantName", "applicantAddress", "applicantTel", "applicantFax", "applicantEmail",
         "vehicleType", "make", "model", "commonName", "manufactureGrade", "preshipAuctionGrade",
-        "bodyColour", "fuelType", "firstRegistration", "inspectionMileage", "engineCapacity",
-        "engineNo", "drivingSystem", "accidentMarksOnChassis", "chassisCondition",
-        "fullModelNo", "yearOfManufacture"
+        "bodyColour", "fuelType", "firstRegistration", "inspectionMileage", "engineCapacity", "engineModel",
+        "chassisNo", "engineNo", "drivingSystem", "accidentMarksOnChassis", "chassisCondition",
+        "tyreSize", "wheelBase", "grossVehicleMass"
     ];
     var currentFieldIndex = 0;
 
@@ -289,6 +287,49 @@
         updateActionButtons();
     }
 
+    function normalizeYearMonth(value) {
+        if (!value) {
+            return value;
+        }
+        var text = String(value).trim().replace(/\s+/g, " ");
+        var iso = text.match(/^(\d{4})-(\d{1,2})$/);
+        if (iso) {
+            return iso[1] + "-" + ("0" + iso[2]).slice(-2);
+        }
+        var numeric = text.match(/^(\d{1,2})[/. -](\d{4})$/);
+        if (numeric) {
+            return numeric[2] + "-" + ("0" + numeric[1]).slice(-2);
+        }
+        var yearFirst = text.match(/^(\d{4})[/. -](\d{1,2})$/);
+        if (yearFirst) {
+            return yearFirst[1] + "-" + ("0" + yearFirst[2]).slice(-2);
+        }
+        var named = text.match(/^(Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:t(?:ember)?)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)[.\-/ ]*(\d{4})$/i);
+        if (named) {
+            var months = {
+                jan: "01", feb: "02", mar: "03", apr: "04", may: "05", jun: "06",
+                jul: "07", aug: "08", sep: "09", oct: "10", nov: "11", dec: "12"
+            };
+            var key = named[1].toLowerCase().slice(0, 3);
+            if (months[key]) {
+                return named[2] + "-" + months[key];
+            }
+        }
+        return text;
+    }
+
+    function setFieldValue(el, key, value) {
+        if (!el) {
+            return false;
+        }
+        if (key === "firstRegistration" || (el.type === "month")) {
+            el.value = normalizeYearMonth(value);
+        } else {
+            el.value = value;
+        }
+        return true;
+    }
+
     function fillForm(result) {
         var fields = result.fields || {};
         var filled = 0;
@@ -307,8 +348,7 @@
                 return;
             }
             var el = document.getElementById(key);
-            if (el) {
-                el.value = value;
+            if (setFieldValue(el, key, value)) {
                 filled++;
             }
         });
@@ -322,8 +362,7 @@
                 return;
             }
             var el = document.getElementById(key);
-            if (el) {
-                el.value = value;
+            if (setFieldValue(el, key, value)) {
                 filled++;
             }
         });
@@ -333,6 +372,13 @@
             ocr.value = result.rawText;
         }
         return filled;
+    }
+
+    function normalizeExistingMonthFields() {
+        var firstRegistration = document.getElementById("firstRegistration");
+        if (firstRegistration && firstRegistration.value) {
+            firstRegistration.value = normalizeYearMonth(firstRegistration.value);
+        }
     }
 
     function withParseFile(callback, onError) {
@@ -373,7 +419,7 @@
         withParseFile(function (file) {
             var data = new FormData();
             data.append("file", file);
-            data.append("provider", window.selectedOcrProvider ? window.selectedOcrProvider("") : "ocrspace");
+            data.append("provider", window.selectedOcrProvider ? window.selectedOcrProvider("") : "google");
             var token = document.querySelector('meta[name="_csrf"]');
             var header = document.querySelector('meta[name="_csrf_header"]');
             var xhr = new XMLHttpRequest();
@@ -446,6 +492,7 @@
     });
 
     initExistingDocument();
+    normalizeExistingMonthFields();
 
     function isFieldEmpty(fieldId) {
         var el = document.getElementById(fieldId);

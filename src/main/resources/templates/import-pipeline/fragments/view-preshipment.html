@@ -55,29 +55,7 @@
             </div>
 
             <div class="sheet-fields preship-fields">
-                <article class="panel">
-                    <div class="panel-head"><h2>Inspection organisation</h2></div>
-                    <div class="field-grid">
-                        <label class="span-2">Name <input type="text" th:value="${preShipment.inspectionOrgName}" readonly class="readonly-field"></label>
-                        <label class="span-2">Address <textarea readonly class="readonly-field" rows="3" th:text="${preShipment.inspectionOrgAddress}"></textarea></label>
-                        <label>Tel <input type="text" th:value="${preShipment.inspectionOrgTel}" readonly class="readonly-field"></label>
-                        <label>Fax <input type="text" th:value="${preShipment.inspectionOrgFax}" readonly class="readonly-field"></label>
-                        <label class="span-2">Email <input type="text" th:value="${preShipment.inspectionOrgEmail}" readonly class="readonly-field"></label>
-                        <label class="span-2">Place of inspection <input type="text" th:value="${preShipment.placeOfInspection}" readonly class="readonly-field"></label>
-                        <label>Date of inspection <input type="text" th:value="${preShipment.dateOfInspection}" readonly class="readonly-field"></label>
-                    </div>
-                </article>
-
-                <article class="panel">
-                    <div class="panel-head"><h2>Applicant</h2></div>
-                    <div class="field-grid">
-                        <label class="span-2">Name <input type="text" th:value="${preShipment.applicantName}" readonly class="readonly-field"></label>
-                        <label class="span-2">Address <textarea readonly class="readonly-field" rows="3" th:text="${preShipment.applicantAddress}"></textarea></label>
-                        <label>Tel <input type="text" th:value="${preShipment.applicantTel}" readonly class="readonly-field"></label>
-                        <label>Fax <input type="text" th:value="${preShipment.applicantFax}" readonly class="readonly-field"></label>
-                        <label class="span-2">Email <input type="text" th:value="${preShipment.applicantEmail}" readonly class="readonly-field"></label>
-                    </div>
-                </article>
+                <div th:replace="import-pipeline/fragments/preship-parties :: preshipPartiesView(${preShipment})"></div>
 
                 <article class="panel">
                     <div class="panel-head"><h2>Vehicle particulars</h2></div>
@@ -90,16 +68,18 @@
                         <label>Auction grade <input type="text" th:value="${preShipment.preshipAuctionGrade}" readonly class="readonly-field"></label>
                         <label>Body colour <input type="text" th:value="${preShipment.bodyColour}" readonly class="readonly-field"></label>
                         <label>Fuel type <input type="text" th:value="${preShipment.fuelType}" readonly class="readonly-field"></label>
-                        <label>First registration <input type="text" th:value="${preShipment.firstRegistration}" readonly class="readonly-field"></label>
+                        <label>First registration <input type="month" th:value="${preShipment.firstRegistration}" readonly class="readonly-field"></label>
                         <label>Inspection mileage <input type="text" th:value="${preShipment.inspectionMileage}" readonly class="readonly-field"></label>
                         <label>Engine capacity <input type="text" th:value="${preShipment.engineCapacity}" readonly class="readonly-field"></label>
+                        <label>Engine model <input type="text" th:value="${preShipment.engineModel}" readonly class="readonly-field"></label>
                         <label>Chassis no. <input type="text" th:value="${preShipment.chassisNo}" readonly class="readonly-field"></label>
                         <label>Engine no. <input type="text" th:value="${preShipment.engineNo}" readonly class="readonly-field"></label>
                         <label>Driving system <input type="text" th:value="${preShipment.drivingSystem}" readonly class="readonly-field"></label>
                         <label>Accident marks on chassis <input type="text" th:value="${preShipment.accidentMarksOnChassis}" readonly class="readonly-field"></label>
                         <label>Chassis condition <input type="text" th:value="${preShipment.chassisCondition}" readonly class="readonly-field"></label>
-                        <label>Full model no. <input type="text" th:value="${preShipment.fullModelNo}" readonly class="readonly-field"></label>
-                        <label>Year of manufacture <input type="text" th:value="${preShipment.yearOfManufacture}" readonly class="readonly-field"></label>
+                        <label>Tyre size <input type="text" th:value="${preShipment.tyreSize}" readonly class="readonly-field"></label>
+                        <label>Wheel base <input type="text" th:value="${preShipment.wheelBase}" readonly class="readonly-field"></label>
+                        <label>Gross vehicle mass <input type="text" th:value="${preShipment.grossVehicleMass}" readonly class="readonly-field"></label>
                     </div>
                 </article>
             </div>

@@ -1,6 +1,7 @@
 package com.carsale.erp.customspipeline.document;
 
 import com.carsale.erp.importpipeline.auction.AuctionParseResult;
+import com.carsale.erp.shared.document.document.AssessmentNotice;
 import com.carsale.erp.shared.ocr.DocumentAiClient;
 import org.junit.jupiter.api.Test;
 
@@ -12,7 +13,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class AssessmentNoticeParseTest {
 
-    private final AssessmentNotice parser = new AssessmentNotice();
+    private final AssessmentNotice parser = new AssessmentNotice("");
 
     @Test
     void parsesRealOcrWithAmountsAboveCodesAndBrokenCommas() {

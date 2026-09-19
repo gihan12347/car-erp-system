@@ -10,7 +10,7 @@
             <div class="dash-head">
                 <div>
                     <h1 th:text="${'Step ' + @pipelineStageService.displayNumber('PREP', 'yard') + ' · ' + @pipelineStageService.title('PREP', 'yard')}">Step 3 · Yard</h1>
-                    <p class="form-lead">Assign a bay, record keys, and complete the yard inspection. Mark complete when the vehicle is in place.</p>
+                    <p class="form-lead">Pick the arrival date and an available yard. Saving a yard uses one space from that yard’s capacity.</p>
                 </div>
             </div>
 
@@ -22,7 +22,8 @@
                     ${inspectionReady},
                     ${canEnterYard},
                     ${vehicle.model},
-                    false)"></div>
+                    false,
+                    ${saleReady})"></div>
 
             <p th:if="${successMessage}" class="alert alert-ok" th:text="${successMessage}"></p>
             <p th:if="${errorMessage}" class="alert alert-error" th:text="${errorMessage}"></p>
@@ -32,43 +33,36 @@
                 <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
                 <input type="hidden" name="hub" th:value="${hubMode}">
                 <input type="hidden" th:field="*{chassisNo}">
-
-                <label class="complete-check panel">
-                    <input type="checkbox" th:field="*{completed}">
-                    <span>
-                        <strong>Mark yard complete</strong>
-                        <small>Bay allocated. The vehicle can move to the ready for sale pipeline when workshop is also complete.</small>
-                    </span>
-                </label>
+                <input type="hidden" th:field="*{yardSection}" id="yardSectionValue">
 
                 <article class="panel">
-                    <div class="panel-head"><h2>Location</h2></div>
+                    <div class="panel-head"><h2>Yard assignment</h2></div>
                     <div class="field-grid">
-                        <label>Bay no. <input type="text" th:field="*{bayNo}" placeholder="A-12"></label>
-                        <label>Yard section <input type="text" th:field="*{yardSection}" placeholder="Front row / indoor"></label>
-                        <label>Arrival date <input type="text" th:field="*{arrivalDate}" placeholder="2026-08-22"></label>
-                        <label>Keys location <input type="text" th:field="*{keysLocation}" placeholder="Office key board 4"></label>
-                    </div>
-                </article>
-
-                <article class="panel">
-                    <div class="panel-head"><h2>Inspection</h2></div>
-                    <div class="field-grid">
-                        <label>Status
-                            <select th:field="*{inspectionStatus}">
-                                <option value="PENDING">Pending</option>
-                                <option value="PASSED">Passed</option>
-                                <option value="FAILED">Failed</option>
+                        <label>Date
+                            <input type="date" th:field="*{arrivalDate}" required>
+                        </label>
+                        <label>Available yard
+                            <select th:field="*{bayNo}" id="yardBaySelect"
+                                    th:attr="data-current=*{bayNo}">
+                                <option value="">Select yard…</option>
+                                <option th:each="bay : ${yardBays}"
+                                        th:value="${bay.bayCode}"
+                                        th:text="${bay.full and (record.bayNo == null or not #strings.equalsIgnoreCase(record.bayNo, bay.bayCode))
+                                                ? bay.bayCode + ' · ' + bay.yardName + ' · full'
+                                                : bay.bayCode + ' · ' + bay.yardName + ' · ' + bay.remaining + ' left'}"
+                                        th:disabled="${bay.full and (record.bayNo == null or not #strings.equalsIgnoreCase(record.bayNo, bay.bayCode))}"
+                                        th:attr="data-location=${bay.location},
+                                                 data-remaining=${bay.remaining},
+                                                 data-capacity=${bay.capacity},
+                                                 data-occupied=${bay.occupied},
+                                                 data-name=${bay.yardName}">YD-01 · Main yard · 12 left</option>
                             </select>
                         </label>
-                        <label>Inspector <input type="text" th:field="*{inspector}"></label>
-                        <label>Inspection date <input type="text" th:field="*{inspectionDate}"></label>
-                        <label class="span-2">Condition notes
-                            <textarea th:field="*{conditionNotes}" rows="3"></textarea>
+                        <label>Location
+                            <input type="text" id="yardLocationDisplay" readonly class="readonly-field"
+                                   th:value="${record.yardSection}">
                         </label>
-                        <label class="span-2">Notes
-                            <textarea th:field="*{notes}" rows="3"></textarea>
-                        </label>
+                        <p class="yard-capacity-hint span-2" id="yardCapacityHint" hidden></p>
                     </div>
                 </article>
 
@@ -80,5 +74,14 @@
     </div>
 </div>
 <script th:src="@{/js/shared/app.js(v=20260905k)}"></script>
+<script th:src="@{/js/shared/capacity-select.js(v=20260919a)}"></script>
+<script>
+    window.bindCapacitySelect({
+        selectId: "yardBaySelect",
+        displayId: "yardLocationDisplay",
+        valueId: "yardSectionValue",
+        hintId: "yardCapacityHint"
+    });
+</script>
 </body>
 </html>

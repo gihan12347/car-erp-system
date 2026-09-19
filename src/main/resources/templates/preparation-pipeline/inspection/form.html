@@ -22,7 +22,8 @@
                     ${inspectionReady},
                     ${canEnterYard},
                     ${vehicle.model},
-                    false)"></div>
+                    false,
+                    ${saleReady})"></div>
 
             <p th:if="${successMessage}" class="alert alert-ok" th:text="${successMessage}"></p>
             <p th:if="${errorMessage}" class="alert alert-error" th:text="${errorMessage}"></p>
@@ -33,6 +34,6 @@
 </div>
 
 <script th:src="@{/js/shared/app.js(v=20260905k)}"></script>
-<script th:src="@{/js/preparation-pipeline/inspection.js(v=20260908c)}"></script>
+<script th:src="@{/js/preparation-pipeline/inspection.js(v=20260918a)}"></script>
 </body>
 </html>

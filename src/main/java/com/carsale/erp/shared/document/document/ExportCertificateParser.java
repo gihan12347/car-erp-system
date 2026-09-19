@@ -1,18 +1,17 @@
-package com.carsale.erp.customspipeline.document;
+package com.carsale.erp.shared.document.document;
 
 import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import com.carsale.erp.shared.document.DocumentParser;
 import com.carsale.erp.shared.ocr.DocumentAiClient;
+import com.carsale.erp.shared.utils.CustomsDocumentParserUtils;
 import org.springframework.stereotype.Service;
 
 import com.carsale.erp.importpipeline.auction.AuctionParseResult;
+import com.carsale.erp.shared.regex.RegexConstants;
 
 @Service
 public class ExportCertificateParser implements DocumentParser {
-
-    private static final String MEASURE = "([0-9]+(?:\\.[0-9]+)?|-|—|–)";
 
     public AuctionParseResult parsePage(String text) {
         AuctionParseResult result = new AuctionParseResult();
@@ -22,153 +21,153 @@ public class ExportCertificateParser implements DocumentParser {
             return result;
         }
 
-        String normalized = normalize(text);
+        String normalized = CustomsDocumentParserUtils.normalize(text);
         boolean japanese = looksJapanese(normalized);
-        result.put("certificateNo", firstNonNull(
-                extractLabeled(normalized, "Certificate\\s+No\\.?", "Arrangement", "Export"),
-                extractLabeled(normalized, "(?:^|\\n)\\s*番号", "整理番号", "輸出")
+        result.put("certificateNo", CustomsDocumentParserUtils.firstNonNull(
+                extractLabeled(normalized, RegexConstants.Export.CERTIFICATE_NO, "Arrangement", "Export"),
+                extractLabeled(normalized, RegexConstants.Export.JP_NUMBER, "整理番号", "輸出")
         ));
-        result.put("arrangementNo", firstNonNull(
-                extractLabeled(normalized, "Arrangement\\s+No\\.?", "Registration", "Export"),
+        result.put("arrangementNo", CustomsDocumentParserUtils.firstNonNull(
+                extractLabeled(normalized, RegexConstants.Export.ARRANGEMENT_NO, "Registration", "Export"),
                 extractLabeled(normalized, "整理番号", "車両番号", "輸出"),
                 findLongNumber(normalized)
         ));
-        result.put("registrationNo", firstNonNull(
-                extractLabeled(normalized, "Registration\\s+No\\.?", "Date of Registration", "First"),
-                extractLabeled(normalized, "Motor\\s+vehicle\\s+number", "Grant Date", "First"),
+        result.put("registrationNo", CustomsDocumentParserUtils.firstNonNull(
+                extractLabeled(normalized, RegexConstants.Export.REGISTRATION_NO, "Date of Registration", "First"),
+                extractLabeled(normalized, RegexConstants.Export.MOTOR_VEHICLE_NUMBER, "Grant Date", "First"),
                 extractLabeled(normalized, "車両番号", "交付年月日", "初度")
         ));
-        result.put("registrationDate", normalizeDate(firstNonNull(
+        result.put("registrationDate", normalizeDate(CustomsDocumentParserUtils.firstNonNull(
                 extractLabeled(normalized, "Date of Registration", "First Reg", "Chassis"),
                 extractLabeled(normalized, "Grant Date", "First Grant", "Classification"),
                 extractLabeled(normalized, "交付年月日", "初度検査年月", "自動車の種別")
         )));
-        result.put("firstRegDate", normalizeDate(firstNonNull(
-                extractLabeled(normalized, "First\\s+Reg(?:istration)?\\.?\\s+Date", "Chassis", "Trademark"),
+        result.put("firstRegDate", normalizeDate(CustomsDocumentParserUtils.firstNonNull(
+                extractLabeled(normalized, RegexConstants.Export.FIRST_REG_DATE, "Chassis", "Trademark"),
                 extractLabeled(normalized, "First Grant Date", "Classification", "Use"),
                 extractLabeled(normalized, "初度検査年月", "自動車の種別", "用途")
         )));
-        result.put("issueDate", normalizeDate(firstNonNull(
+        result.put("issueDate", normalizeDate(CustomsDocumentParserUtils.firstNonNull(
                 extractLabeled(normalized, "Issue Date", "Export scheduled", "Notes"),
                 extractLabeled(normalized, "交付年月日", "初度検査年月", "自動車の種別")
         )));
-        result.put("chassisVin", firstNonNull(
-                extractLabeled(normalized, "Chassis\\s+No\\.?", "Trademark", "Maker"),
+        result.put("chassisVin", CustomsDocumentParserUtils.firstNonNull(
+                extractLabeled(normalized, RegexConstants.Export.CHASSIS_NO, "Trademark", "Maker"),
                 extractLabeled(normalized, "Maker's serial number", "Fixed Number", "乗車"),
                 extractLabeled(normalized, "車台番号", "乗車定員", "最大積載量"),
                 findChassis(normalized)
         ));
-        result.put("make", normalizeMake(firstNonNull(
+        result.put("make", normalizeMake(CustomsDocumentParserUtils.firstNonNull(
                 extractLabeled(normalized, "Trademark of the maker", "Model", "Engine"),
                 extractLabeled(normalized, "Maker", "Model", "Engine"),
                 extractLabeled(normalized, "車名", "型式", "原動機")
         )));
-        result.put("model", stripCode(firstNonNull(
-                extractLabeled(normalized, "(?<!Engine\\s)Model", "Engine Model", "Engine Capacity"),
-                extractLabeled(normalized, "(?<!原動機の)型式(?!指定)", "原動機の型式", "燃料")
+        result.put("model", stripCode(CustomsDocumentParserUtils.firstNonNull(
+                extractLabeled(normalized, RegexConstants.Export.MODEL, "Engine Model", "Engine Capacity"),
+                extractLabeled(normalized, RegexConstants.Export.MODEL_JP, "原動機の型式", "燃料")
         )));
-        result.put("engineModel", firstNonNull(
+        result.put("engineModel", CustomsDocumentParserUtils.firstNonNull(
                 extractLabeled(normalized, "Engine Model", "Name of User", "Classification of Fuel"),
                 extractLabeled(normalized, "原動機の型式", "燃料の種別", "総排気量")
         ));
-        result.put("vehicleClassification", normalizeClass(firstNonNull(
+        result.put("vehicleClassification", normalizeClass(CustomsDocumentParserUtils.firstNonNull(
                 extractLabeled(normalized, "Classification of Vehicle", "Use", "Purpose"),
                 extractLabeled(normalized, "自動車の種別", "用途", "自家用")
         )));
-        result.put("useType", normalizeUse(firstNonNull(
-                extractLabeled(normalized, "Use", "Purpose", "Type of Body"),
+        result.put("useType", normalizeUse(CustomsDocumentParserUtils.firstNonNull(
+                extractLabeled(normalized, RegexConstants.Export.USE, "Purpose", "Type of Body"),
                 extractLabeled(normalized, "用途", "自家用", "車体の形状")
         )));
-        result.put("purpose", normalizePurpose(firstNonNull(
+        result.put("purpose", normalizePurpose(CustomsDocumentParserUtils.firstNonNull(
                 extractLabeled(normalized, "Purpose", "Type of Body", "Fixed Number"),
                 extractLabeled(normalized, "自家用・事業用の別", "車体の形状", "車台番号"),
                 extractLabeled(normalized, "自家用・事業用", "車体の形状", "車台番号")
         )));
-        result.put("bodyType", normalizeBody(firstNonNull(
+        result.put("bodyType", normalizeBody(CustomsDocumentParserUtils.firstNonNull(
                 extractLabeled(normalized, "Type of Body", "Fixed Number", "Maxim"),
                 extractLabeled(normalized, "車体の形状", "車台番号", "乗車定員")
         )));
-        result.put("seatingCapacity", firstNonNull(
+        result.put("seatingCapacity", CustomsDocumentParserUtils.firstNonNull(
                 extractMeasure(normalized, "Fixed Number"),
                 extractMeasure(normalized, "乗車定員"),
                 extractLabeled(normalized, "乗車定員", "最大積載量", "車両重量")
         ));
-        result.put("maxCarry", firstNonNull(
-                extractMeasure(normalized, "Maxim(?:um)?\\.?\\s*Carry"),
+        result.put("maxCarry", CustomsDocumentParserUtils.firstNonNull(
+                extractMeasure(normalized, RegexConstants.Export.MAX_CARRY),
                 extractMeasure(normalized, "最大積載量"),
                 extractLabeled(normalized, "最大積載量", "車両重量", "車両総重量")
         ));
-        result.put("weightKg", firstNonNull(
-                extractMeasure(normalized, "(?<!FF\\s)(?<!FR\\s)(?<!RF\\s)(?<!RR\\s)(?<!G/)\\bWeight\\b"),
+        result.put("weightKg", CustomsDocumentParserUtils.firstNonNull(
+                extractMeasure(normalized, RegexConstants.Export.WEIGHT),
                 extractMeasure(normalized, "車両重量")
         ));
-        result.put("grossWeightKg", firstNonNull(
-                extractMeasure(normalized, "G\\s*/\\s*Weight"),
-                extractMeasure(normalized, "G\\.?C\\.?\\s*Weight"),
+        result.put("grossWeightKg", CustomsDocumentParserUtils.firstNonNull(
+                extractMeasure(normalized, RegexConstants.Export.G_WEIGHT),
+                extractMeasure(normalized, RegexConstants.Export.GC_WEIGHT),
                 extractMeasure(normalized, "車両総重量")
         ));
-        result.put("lengthCm", firstNonNull(
+        result.put("lengthCm", CustomsDocumentParserUtils.firstNonNull(
                 extractMeasure(normalized, "Length"),
                 extractMeasure(normalized, "長さ")
         ));
-        result.put("widthCm", firstNonNull(
+        result.put("widthCm", CustomsDocumentParserUtils.firstNonNull(
                 extractMeasure(normalized, "Width"),
                 extractMeasure(normalized, "幅")
         ));
-        result.put("heightCm", firstNonNull(
+        result.put("heightCm", CustomsDocumentParserUtils.firstNonNull(
                 extractMeasure(normalized, "Height"),
                 extractMeasure(normalized, "高さ")
         ));
-        result.put("engineCapacity", firstNonNull(
+        result.put("engineCapacity", CustomsDocumentParserUtils.firstNonNull(
                 extractLabeled(normalized, "Engine Capacity", "Classification of Fuel", "Specification"),
                 extractLabeled(normalized, "総排気量又は定格出力", "前前軸重", "型式指定"),
                 extractLabeled(normalized, "総排気量", "前前軸重", "型式指定")
         ));
-        result.put("fuelType", normalizeFuel(firstNonNull(
+        result.put("fuelType", normalizeFuel(CustomsDocumentParserUtils.firstNonNull(
                 extractLabeled(normalized, "Classification of Fuel", "Specification", "Length"),
                 extractLabeled(normalized, "燃料の種別", "総排気量", "前前軸重")
         )));
-        result.put("specificationNo", firstNonNull(
-                extractLabeled(normalized, "Specification\\s+No\\.?", "Classification No", "Length"),
+        result.put("specificationNo", CustomsDocumentParserUtils.firstNonNull(
+                extractLabeled(normalized, RegexConstants.Export.SPECIFICATION_NO, "Classification No", "Length"),
                 extractLabeled(normalized, "型式指定番号", "類別区分番号", "使用者")
         ));
-        result.put("classificationNo", firstNonNull(
-                extractLabeled(normalized, "Classification\\s+No\\.?", "Name of User", "FF"),
+        result.put("classificationNo", CustomsDocumentParserUtils.firstNonNull(
+                extractLabeled(normalized, RegexConstants.Export.CLASSIFICATION_NO, "Name of User", "FF"),
                 extractLabeled(normalized, "類別区分番号", "使用者", "所有者")
         ));
-        result.put("frontAxleWeight", firstNonNull(
-                extractMeasure(normalized, "FF\\s+Weight"),
-                extractMeasure(normalized, "F\\s+Weight"),
+        result.put("frontAxleWeight", CustomsDocumentParserUtils.firstNonNull(
+                extractMeasure(normalized, RegexConstants.Export.FF_WEIGHT),
+                extractMeasure(normalized, RegexConstants.Export.F_WEIGHT),
                 extractMeasure(normalized, "前前軸重")
         ));
-        result.put("rearAxleWeight", firstNonNull(
-                extractMeasure(normalized, "RR\\s+Weight"),
-                extractMeasure(normalized, "R\\s+Weight"),
+        result.put("rearAxleWeight", CustomsDocumentParserUtils.firstNonNull(
+                extractMeasure(normalized, RegexConstants.Export.RR_WEIGHT),
+                extractMeasure(normalized, RegexConstants.Export.R_WEIGHT),
                 extractMeasure(normalized, "後後軸重")
         ));
-        result.put("frWeight", extractMeasure(normalized, "FR\\s+Weight"));
-        result.put("rfWeight", extractMeasure(normalized, "RF\\s+Weight"));
-        result.put("userName", firstNonNull(
+        result.put("frWeight", extractMeasure(normalized, RegexConstants.Export.FR_WEIGHT));
+        result.put("rfWeight", extractMeasure(normalized, RegexConstants.Export.RF_WEIGHT));
+        result.put("userName", CustomsDocumentParserUtils.firstNonNull(
                 extractLabeled(normalized, "Name of User", "Address of User", "Name of Owner"),
                 extractLabeled(normalized, "使用者の氏名又は名称", "使用者の住所", "所有者")
         ));
-        result.put("userAddress", firstNonNull(
+        result.put("userAddress", CustomsDocumentParserUtils.firstNonNull(
                 extractLabeled(normalized, "Address of User", "Name of Owner", "Address of Owner"),
                 extractLabeled(normalized, "使用者の住所", "所有者の氏名", "所有者の住所")
         ));
-        result.put("ownerName", firstNonNull(
+        result.put("ownerName", CustomsDocumentParserUtils.firstNonNull(
                 extractLabeled(normalized, "Name of Owner", "Address of Owner", "Locality"),
                 extractLabeled(normalized, "所有者の氏名又は名称", "所有者の住所", "使用の本拠")
         ));
-        result.put("ownerAddress", firstNonNull(
+        result.put("ownerAddress", CustomsDocumentParserUtils.firstNonNull(
                 extractLabeled(normalized, "Address of Owner", "Locality", "Export scheduled"),
                 extractLabeled(normalized, "所有者の住所", "使用の本拠", "輸出予定")
         ));
-        result.put("localityOfUse", firstNonNull(
+        result.put("localityOfUse", CustomsDocumentParserUtils.firstNonNull(
                 extractLabeled(normalized, "Locality of principal abode of use", "Export scheduled", "Issue Date"),
                 extractLabeled(normalized, "使用の本拠の位置", "輸出予定日", "備考")
         ));
-        result.put("exportScheduledDate", normalizeDate(firstNonNull(
+        result.put("exportScheduledDate", normalizeDate(CustomsDocumentParserUtils.firstNonNull(
                 extractLabeled(normalized, "Export scheduled day", "Issue Date", "Notes"),
                 extractLabeled(normalized, "輸出予定日", "備考", "証明書有効")
         )));
@@ -192,6 +191,11 @@ public class ExportCertificateParser implements DocumentParser {
         return null;
     }
 
+    @Override
+    public String getProcessorId() {
+        return "";
+    }
+
     public boolean looksJapanese(String text) {
         if (text == null) {
             return false;
@@ -200,21 +204,15 @@ public class ExportCertificateParser implements DocumentParser {
                 || text.contains("車台番号")
                 || text.contains("車両番号")
                 || text.contains("整理番号")
-                || Pattern.compile("[\\u3040-\\u30ff\\u4e00-\\u9faf]").matcher(text).find();
+                || RegexConstants.Text.JAPANESE_SCRIPT_NARROW.matcher(text).find();
     }
 
     private String extractLabeled(String text, String label, String... stops) {
-        Matcher matcher = Pattern.compile(
-                label + "\\s*[:\\.]?\\s*([^\\n]+)",
-                Pattern.CASE_INSENSITIVE
-        ).matcher(text);
+        Matcher matcher = RegexConstants.Labeled.valueAfterLabel(label).matcher(text);
         if (matcher.find()) {
             return cleanLabeled(matcher.group(1), stops);
         }
-        matcher = Pattern.compile(
-                label + "\\s*[:\\.]?\\s*\\n\\s*([^\\n]+)",
-                Pattern.CASE_INSENSITIVE
-        ).matcher(text);
+        matcher = RegexConstants.Labeled.valueOnNextLineAfterLabel(label).matcher(text);
         if (matcher.find()) {
             return cleanLabeled(matcher.group(1), stops);
         }
@@ -222,10 +220,7 @@ public class ExportCertificateParser implements DocumentParser {
     }
 
     private String extractMeasure(String text, String label) {
-        Matcher matcher = Pattern.compile(
-                label + "\\s*[:\\.]?\\s*" + MEASURE + "(?:\\s*(?:kg|cm|L|KW/?L|kW/?L|人|Person))?",
-                Pattern.CASE_INSENSITIVE
-        ).matcher(text);
+        Matcher matcher = RegexConstants.Export.measurementAfterLabel(label).matcher(text);
         if (matcher.find()) {
             return cleanValue(matcher.group(1));
         }
@@ -233,10 +228,7 @@ public class ExportCertificateParser implements DocumentParser {
     }
 
     private String extractRemarks(String text) {
-        Matcher matcher = Pattern.compile(
-                "(?:Remarks|備考)\\s*[:\\.]?\\s*([^\\n]+)",
-                Pattern.CASE_INSENSITIVE
-        ).matcher(text);
+        Matcher matcher = RegexConstants.Export.REMARKS.matcher(text);
         if (!matcher.find()) {
             return null;
         }
@@ -248,7 +240,7 @@ public class ExportCertificateParser implements DocumentParser {
     }
 
     private String findChassis(String text) {
-        Matcher matcher = Pattern.compile("\\b([A-Z0-9]{2,8}-[A-Z0-9]{5,12})\\b").matcher(text);
+        Matcher matcher = RegexConstants.Identifiers.CHASSIS_WIDE.matcher(text);
         if (matcher.find()) {
             return matcher.group(1);
         }
@@ -256,7 +248,7 @@ public class ExportCertificateParser implements DocumentParser {
     }
 
     private String findLongNumber(String text) {
-        Matcher matcher = Pattern.compile("\\b(\\d{14,20})\\b").matcher(text);
+        Matcher matcher = RegexConstants.Identifiers.LONG_NUMBER.matcher(text);
         if (matcher.find()) {
             return matcher.group(1);
         }
@@ -267,11 +259,11 @@ public class ExportCertificateParser implements DocumentParser {
         if (value == null) {
             return null;
         }
-        Matcher reiwa = Pattern.compile("令和\\s*(\\d+)\\s*年\\s*(\\d{1,2})\\s*月(?:\\s*(\\d{1,2})\\s*日)?").matcher(value);
+        Matcher reiwa = RegexConstants.Dates.REIWA_YMD_PATTERN.matcher(value);
         if (reiwa.find()) {
             return formatDate(2018 + Integer.parseInt(reiwa.group(1)), reiwa.group(2), reiwa.group(3));
         }
-        Matcher westernJp = Pattern.compile("(\\d{4})\\s*年\\s*(\\d{1,2})\\s*月(?:\\s*(\\d{1,2})\\s*日)?").matcher(value);
+        Matcher westernJp = RegexConstants.Dates.WESTERN_JP_YMD_PATTERN.matcher(value);
         if (westernJp.find()) {
             return formatDate(Integer.parseInt(westernJp.group(1)), westernJp.group(2), westernJp.group(3));
         }
@@ -386,18 +378,18 @@ public class ExportCertificateParser implements DocumentParser {
         if (value == null) {
             return null;
         }
-        return cleanLabeled(value.replaceAll("\\[\\s*\\d+\\s*\\]", ""));
+        return cleanLabeled(value.replaceAll(RegexConstants.Text.BRACKET_CODE, ""));
     }
 
     private String cleanLabeled(String value, String... stops) {
         if (value == null) {
             return null;
         }
-        String cleaned = value.replaceAll("[\\u2013\\u2014_]+$", "").trim();
+        String cleaned = value.replaceAll(RegexConstants.Text.TRAILING_EMDASH, "").trim();
         for (String stop : stops) {
-            cleaned = cleaned.replaceAll("(?i)\\s+" + stop + ".*$", "");
+            cleaned = RegexConstants.Labeled.fromStopPatternToEnd(stop).matcher(cleaned).replaceAll("");
         }
-        cleaned = cleaned.replaceAll("\\s{2,}", " ").trim();
+        cleaned = cleaned.replaceAll(RegexConstants.Text.WHITESPACE_RUN, " ").trim();
         if (cleaned.isEmpty() || isStampNoise(cleaned)) {
             return null;
         }
@@ -408,7 +400,7 @@ public class ExportCertificateParser implements DocumentParser {
         if (value == null) {
             return null;
         }
-        String cleaned = value.replaceAll("\\s+", "").replace("—", "-").replace("–", "-");
+        String cleaned = value.replaceAll(RegexConstants.Text.WHITESPACE, "").replace("—", "-").replace("–", "-");
         if ("-".equals(cleaned)) {
             return "-";
         }
@@ -422,21 +414,5 @@ public class ExportCertificateParser implements DocumentParser {
                 || upper.contains("TRADE SERVICES")
                 || upper.contains("DOCUMENT CHECKED")
                 || upper.contains("DOCUMENT RECEIVED");
-    }
-
-    private String firstNonNull(String... values) {
-        if (values == null) {
-            return null;
-        }
-        for (String value : values) {
-            if (value != null && !value.trim().isEmpty()) {
-                return value;
-            }
-        }
-        return null;
-    }
-
-    private String normalize(String text) {
-        return text.replace('\r', '\n').replaceAll("[ \t]+", " ").replaceAll("\n{3,}", "\n\n");
     }
 }

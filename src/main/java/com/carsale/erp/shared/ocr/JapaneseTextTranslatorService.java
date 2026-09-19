@@ -11,6 +11,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import com.carsale.erp.shared.regex.RegexConstants;
+
 @Service
 public class JapaneseTextTranslatorService implements JapaneseTextTranslator {
 
@@ -49,7 +51,10 @@ public class JapaneseTextTranslatorService implements JapaneseTextTranslator {
         if (translated == null || translated.trim().isEmpty()) {
             return text;
         }
-        String cleaned = unescapeHtml(translated).replaceAll("[ \\t\\u00A0]+", " ").replaceAll(" *\\n *", "\n").trim();
+        String cleaned = unescapeHtml(translated)
+                .replaceAll(RegexConstants.Text.NBSP_HORIZONTAL, " ")
+                .replaceAll(RegexConstants.Text.NEWLINE_WRAP_SPACE, "\n")
+                .trim();
         cache.put(source, cleaned);
         return cleaned;
     }
@@ -69,7 +74,9 @@ public class JapaneseTextTranslatorService implements JapaneseTextTranslator {
         if (translated == null || translated.trim().isEmpty()) {
             return text;
         }
-        String cleaned = unescapeHtml(translated).replaceAll("[ \\t\\u00A0]+", " ").replaceAll(" *\\n *", "\n");
+        String cleaned = unescapeHtml(translated)
+                .replaceAll(RegexConstants.Text.NBSP_HORIZONTAL, " ")
+                .replaceAll(RegexConstants.Text.NEWLINE_WRAP_SPACE, "\n");
         String restored = AuctionSheetEnglish.restoreSheetTokens(cleaned, tokens);
         cache.put(text, restored);
         return restored;

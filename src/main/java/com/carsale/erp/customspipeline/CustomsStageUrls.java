@@ -46,6 +46,11 @@ public final class CustomsStageUrls {
         return 0;
     }
 
+    public static String redirectAfterBillOfLadingSave(String chassisNo, List<String> keys) {
+        return PipelineStageUtils.redirectAfterStageSave(
+                chassisNo, FlowPipeline.CUSTOMS.getCurrentBase(), keys, FlowStage.BILL_OF_LADING.getStageKey());
+    }
+
     public static String redirectAfterDeclarationSave(String chassisNo, List<String> keys) {
         return PipelineStageUtils.redirectAfterStageSave(
                 chassisNo, FlowPipeline.CUSTOMS.getCurrentBase(), keys, FlowStage.DECLARATION.getStageKey());

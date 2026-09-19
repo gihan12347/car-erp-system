@@ -2,9 +2,9 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <body>
 
-<nav th:fragment="clearancePipelineSteps(currentStep, chassisNo, declarationReady, assessmentReady, worksheetReady, vehicleLabel, viewMode)"
+<nav th:fragment="clearancePipelineSteps(currentStep, chassisNo, blReady, declarationReady, assessmentReady, worksheetReady, vehicleLabel, viewMode)"
      class="import-pipeline panel"
-     th:with="isView=${viewMode != null and viewMode}, worksheetDone=${worksheetReady != null and worksheetReady}, clearanceComplete=${declarationReady and assessmentReady and worksheetDone}, showPrep=${currentStep == 'prep' or (declarationReady and assessmentReady and worksheetDone)}, orderedKeys=${@pipelineStageService.keys('CUSTOMS')}"
+     th:with="isView=${viewMode != null and viewMode}, blDone=${blReady != null and blReady}, worksheetDone=${worksheetReady != null and worksheetReady}, clearanceComplete=${blDone and declarationReady and assessmentReady and worksheetDone}, showPrep=${currentStep == 'prep' or (blDone and declarationReady and assessmentReady and worksheetDone)}, orderedKeys=${@pipelineStageService.keys('CUSTOMS')}"
      th:classappend="${clearanceComplete} ? ' is-import-complete' : ''"
      aria-label="Customs clearance pipeline">
     <div class="import-pipeline-head">
@@ -31,6 +31,39 @@
     <ol class="import-pipeline-steps is-fill"
         th:style="'--pipeline-cols: ' + (${orderedKeys.size()} + (${showPrep} ? 1 : 0))">
         <th:block th:each="key, iter : ${orderedKeys}">
+            <li th:if="${key == 'bl'}"
+                data-clearance-step="bl"
+                th:attr="data-step-count=${iter.count}"
+                th:classappend="${(currentStep == 'bl' ? ' is-current' : '') + (blDone ? ' is-done' : ' is-pending')}">
+                <a th:if="${isView}"
+                   th:href="@{/customs/{chassisNo}(chassisNo=${chassisNo}, stage=${iter.index})}"
+                   class="import-pipeline-step">
+                    <span class="import-pipeline-step-icon">
+                        <i th:if="${blDone}" class="fa-solid fa-check"></i>
+                        <span th:unless="${blDone}" th:text="${iter.count}">1</span>
+                    </span>
+                    <span class="import-pipeline-step-copy">
+                        <strong>Bill of lading</strong>
+                        <small>Ocean B/L and landing cost</small>
+                        <em class="pipeline-step-status" th:classappend="${blDone} ? ' done' : ' pending'"
+                            th:text="${blDone} ? 'Complete' : 'Pending'">Pending</em>
+                    </span>
+                </a>
+                <a th:unless="${isView}"
+                   th:href="@{/bl/{chassisNo}(chassisNo=${chassisNo}, hub=1)}"
+                   class="import-pipeline-step">
+                    <span class="import-pipeline-step-icon">
+                        <i th:if="${blDone}" class="fa-solid fa-check"></i>
+                        <span th:unless="${blDone}" th:text="${iter.count}">1</span>
+                    </span>
+                    <span class="import-pipeline-step-copy">
+                        <strong>Bill of lading</strong>
+                        <small>Ocean B/L and landing cost</small>
+                        <em class="pipeline-step-status" th:classappend="${blDone} ? ' done' : ' pending'"
+                            th:text="${blDone} ? 'Complete' : 'Pending'">Pending</em>
+                    </span>
+                </a>
+            </li>
             <li th:if="${key == 'declaration'}"
                 data-clearance-step="declaration"
                 th:attr="data-step-count=${iter.count}"

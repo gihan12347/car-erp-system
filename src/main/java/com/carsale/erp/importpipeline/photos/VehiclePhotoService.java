@@ -1,15 +1,11 @@
 package com.carsale.erp.importpipeline.photos;
 
 import com.carsale.erp.shared.document.SheetDocumentStorageService;
-import com.carsale.erp.shared.vehicle.Vehicle;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import com.carsale.erp.shared.document.SheetUploadResult;
-import com.carsale.erp.importpipeline.photos.VehiclePhoto;
-import com.carsale.erp.importpipeline.photos.VehiclePhotoRepository;
 import com.carsale.erp.shared.vehicle.VehicleRepository;
 
 @Service
@@ -98,8 +94,8 @@ public class VehiclePhotoService {
             return;
         }
         List<VehiclePhoto> photos = list(chassisNo);
-        for (int i = 0; i < photos.size(); i++) {
-            documentStorageService.deletePhotoIfExists(photos.get(i).getStoredName());
+        for (VehiclePhoto photo : photos) {
+            documentStorageService.deletePhotoIfExists(photo.getStoredName());
         }
         photoRepository.deleteByChassisNo(chassisNo.trim());
     }

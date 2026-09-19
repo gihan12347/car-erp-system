@@ -7,6 +7,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 
+import com.carsale.erp.shared.regex.RegexConstants;
+
 /**
  * Interior, exterior, and safety fields on the vehicle equipment condition sheet.
  */
@@ -166,7 +168,7 @@ public final class EquipmentInspectionFields {
     }
 
     public static String choiceDomId(String key, String option) {
-        String suffix = canonicalChoice(option).replaceAll("[^A-Za-z0-9]+", "");
+        String suffix = canonicalChoice(option).replaceAll(RegexConstants.Text.ALNUM_ONLY, "");
         if (suffix.isEmpty()) {
             suffix = "choice";
         }
@@ -177,7 +179,7 @@ public final class EquipmentInspectionFields {
         if (value == null) {
             return "";
         }
-        String trimmed = value.trim().replaceAll("\\s+", " ");
+        String trimmed = value.trim().replaceAll(RegexConstants.Text.WHITESPACE, " ");
         if (trimmed.isEmpty()) {
             return "";
         }

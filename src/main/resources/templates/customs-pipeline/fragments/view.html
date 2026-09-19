@@ -87,6 +87,111 @@
     </th:block>
 </section>
 
+<section th:fragment="clearanceViewBl(vehicle, clearance, blReady)"
+         class="import-view-stage clearance-form"
+         th:with="page5Url=${clearance != null and clearance.page5StoredName != null ? '/customs/documents/' + clearance.page5StoredName : null},
+                  hasPage5=${clearance != null and clearance.page5StoredName != null and !#strings.isEmpty(clearance.page5StoredName)}">
+
+    <div class="panel import-view-empty" th:if="${clearance == null or !hasPage5}">
+        <i class="fa-solid fa-file-lines"></i>
+        <strong>Bill of lading not uploaded yet</strong>
+        <p>Upload the ocean bill of lading to view the B/L number, issue date, and landing cost.</p>
+        <div class="import-view-actions">
+            <a th:href="@{/bl/{c}(c=${vehicle.chassisNo}, hub=1)}" class="panel-btn import-form-submit">Upload bill of lading</a>
+            <a th:if="${stageNav != null and stageNav.nextUrl != null}"
+               th:href="${stageNav.nextUrl}"
+               class="panel-btn ghost import-form-submit">
+                <span th:text="${stageNav.nextLabel}">Next · Customs declaration</span>
+                <i class="fa-solid fa-chevron-right"></i>
+            </a>
+        </div>
+    </div>
+
+    <th:block th:if="${clearance != null and hasPage5}">
+        <div class="sheet-layout">
+            <div class="sheet-document-col">
+            <aside class="panel sheet-document has-file">
+                <div class="panel-head"><h2>Document preview</h2></div>
+                <div class="sheet-preview-frame">
+                    <img th:if="${!(clearance.page5ContentType != null and #strings.contains(clearance.page5ContentType, 'pdf')) and !(clearance.page5StoredName != null and #strings.endsWith(clearance.page5StoredName, '.pdf'))}"
+                         th:src="@{/customs/documents/{name}(name=${clearance.page5StoredName})}"
+                         alt="Bill of lading preview">
+                    <iframe th:if="${(clearance.page5ContentType != null and #strings.contains(clearance.page5ContentType, 'pdf')) or (clearance.page5StoredName != null and #strings.endsWith(clearance.page5StoredName, '.pdf'))}"
+                            th:src="@{/customs/documents/{name}(name=${clearance.page5StoredName})}"
+                            title="Bill of lading PDF"></iframe>
+                </div>
+            </aside>
+
+            <div th:replace="shared/document-view-toolbar :: documentViewToolbar(
+                    'Bill of lading',
+                    ${clearance.page5OriginalName},
+                    ${page5Url},
+                    ${stageNav != null ? stageNav.editUrl : null})"></div>
+            </div>
+
+            <div class="sheet-fields preship-fields">
+                <article class="panel">
+                    <div class="panel-head"><h2>Bill of lading</h2></div>
+                    <div class="field-grid">
+                        <label>B/L number <input type="text" th:value="${clearance.blNo}" readonly class="readonly-field"></label>
+                        <label>Date of B(s)/L issue <input type="text" th:value="${clearance.dateOfBlIssue}" readonly class="readonly-field"></label>
+                    </div>
+                </article>
+                <article class="panel assessment-taxes-panel">
+                    <div class="panel-head">
+                        <h2>Landing cost</h2>
+                        <span class="price-breakdown-currency-note">Landing cost in USD · Final value in LKR</span>
+                    </div>
+                    <div class="price-breakdown">
+                        <div class="price-breakdown-lines">
+                            <label class="price-breakdown-row">
+                                <span class="price-breakdown-label">
+                                    <span class="price-breakdown-code">USD</span>
+                                    <span class="price-breakdown-name">Landing cost</span>
+                                </span>
+                                <span class="price-breakdown-amount">
+                                    <input type="text" th:value="${clearance.landingCostUsd}" readonly class="readonly-field">
+                                    <span class="price-breakdown-currency" aria-hidden="true">USD</span>
+                                </span>
+                            </label>
+                            <label class="price-breakdown-row">
+                                <span class="price-breakdown-label">
+                                    <span class="price-breakdown-code">FX</span>
+                                    <span class="price-breakdown-name">Exchange rate</span>
+                                </span>
+                                <span class="price-breakdown-amount">
+                                    <input type="text" th:value="${clearance.blExchangeRate}" readonly class="readonly-field">
+                                    <span class="price-breakdown-currency" aria-hidden="true">×</span>
+                                </span>
+                            </label>
+                        </div>
+                        <div class="price-breakdown-totals">
+                            <label class="price-breakdown-row is-paid">
+                                <span class="price-breakdown-label">
+                                    <span class="price-breakdown-name">Value</span>
+                                </span>
+                                <span class="price-breakdown-amount">
+                                    <input type="text" th:value="${clearance.landingCostLkr}" readonly class="readonly-field">
+                                    <span class="price-breakdown-currency" aria-hidden="true">LKR</span>
+                                </span>
+                            </label>
+                        </div>
+                    </div>
+                </article>
+            </div>
+        </div>
+        <div class="import-view-actions">
+            <a th:href="@{/bl/{c}(c=${vehicle.chassisNo}, hub=1)}" class="panel-btn ghost import-form-submit">Edit bill of lading</a>
+            <a th:if="${stageNav != null and stageNav.nextUrl != null}"
+               th:href="${stageNav.nextUrl}"
+               class="panel-btn import-form-submit">
+                <span th:text="${stageNav.nextLabel}">Next · Customs declaration</span>
+                <i class="fa-solid fa-chevron-right"></i>
+            </a>
+        </div>
+    </th:block>
+</section>
+
 <section th:fragment="clearanceViewDeclaration(vehicle, clearance, declarationReady)"
          class="import-view-stage clearance-form"
          th:with="page2Url=${clearance != null and clearance.page2StoredName != null ? '/customs/documents/' + clearance.page2StoredName : null},

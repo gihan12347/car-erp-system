@@ -8,10 +8,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import com.carsale.erp.shared.pipeline.StageReorderRequest;
-import com.carsale.erp.shared.pipeline.StageReorderResult;
-import com.carsale.erp.shared.pipeline.PipelineStageService;
-
 @Controller
 public class StageOrderController {
 

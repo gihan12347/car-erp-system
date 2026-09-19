@@ -7,9 +7,6 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import com.carsale.erp.shared.vehicle.Vehicle;
-import com.carsale.erp.shared.vehicle.VehicleStage;
 import com.carsale.erp.customspipeline.CustomsDocumentRepository;
 import com.carsale.erp.importpipeline.equipment.EquipmentInspectionRepository;
 import com.carsale.erp.importpipeline.coi.InspectionCertificateRepository;
@@ -17,8 +14,8 @@ import com.carsale.erp.importpipeline.exportcert.ExportCertificateRepository;
 import com.carsale.erp.importpipeline.standards.StandardsCertificateRepository;
 import com.carsale.erp.importpipeline.preshipment.PreShipmentInspectionRepository;
 import com.carsale.erp.readypipeline.SaleListingRepository;
+import com.carsale.erp.readypipeline.VehicleRegistrationRepository;
 import com.carsale.erp.preparationpipeline.inspection.VehicleInspectionRepository;
-import com.carsale.erp.shared.vehicle.VehicleRepository;
 import com.carsale.erp.preparationpipeline.workshop.WorkshopJobRepository;
 import com.carsale.erp.preparationpipeline.yard.YardRecordRepository;
 
@@ -37,6 +34,7 @@ public class VehicleService {
     private final YardRecordRepository yardRecordRepository;
     private final VehicleInspectionRepository vehicleInspectionRepository;
     private final SaleListingRepository saleListingRepository;
+    private final VehicleRegistrationRepository vehicleRegistrationRepository;
 
     public VehicleService(
             VehicleRepository vehicleRepository,
@@ -51,7 +49,8 @@ public class VehicleService {
             WorkshopJobRepository workshopJobRepository,
             YardRecordRepository yardRecordRepository,
             VehicleInspectionRepository vehicleInspectionRepository,
-            SaleListingRepository saleListingRepository
+            SaleListingRepository saleListingRepository,
+            VehicleRegistrationRepository vehicleRegistrationRepository
     ) {
         this.vehicleRepository = vehicleRepository;
         this.documentStorageService = documentStorageService;
@@ -66,6 +65,7 @@ public class VehicleService {
         this.yardRecordRepository = yardRecordRepository;
         this.vehicleInspectionRepository = vehicleInspectionRepository;
         this.saleListingRepository = saleListingRepository;
+        this.vehicleRegistrationRepository = vehicleRegistrationRepository;
     }
 
     public List<Vehicle> findAll() {
@@ -204,6 +204,7 @@ public class VehicleService {
 
     private void deleteReadyData(String chassisNo) {
         saleListingRepository.findById(chassisNo).ifPresent(saleListingRepository::delete);
+        vehicleRegistrationRepository.findById(chassisNo).ifPresent(vehicleRegistrationRepository::delete);
     }
 
     private void deletePrepData(String chassisNo) {
@@ -217,6 +218,7 @@ public class VehicleService {
             documentStorageService.deleteClearanceIfExists(record.getPage2StoredName());
             documentStorageService.deleteClearanceIfExists(record.getPage3StoredName());
             documentStorageService.deleteClearanceIfExists(record.getPage4StoredName());
+            documentStorageService.deleteClearanceIfExists(record.getPage5StoredName());
             boolean hasOdometerCertificate = record.getPage1StoredName() != null && !record.getPage1StoredName().trim().isEmpty();
             if (keepOdometerCertificate && hasOdometerCertificate) {
                 record.setPage2OriginalName(null);
@@ -228,6 +230,9 @@ public class VehicleService {
                 record.setPage4OriginalName(null);
                 record.setPage4StoredName(null);
                 record.setPage4ContentType(null);
+                record.setPage5OriginalName(null);
+                record.setPage5StoredName(null);
+                record.setPage5ContentType(null);
                 clearanceDocumentRepository.save(record);
                 return;
             }

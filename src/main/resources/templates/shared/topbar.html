@@ -23,30 +23,6 @@
                 <a href="#"><i class="fa-solid fa-user"></i> New inquiry from Saman</a>
             </div>
         </div>
-
-        <div class="dropdown" data-dropdown>
-            <button type="button" class="user-chip" data-dropdown-trigger>
-                <span class="avatar" th:text="${#strings.substring(#authentication.principal.fullName,0,1)}">G</span>
-                <span class="user-meta">
-                    <strong sec:authentication="principal.fullName">Gihan</strong>
-                    <small>
-                        <th:block th:each="role, iter : ${#authentication.principal.user.roles}">
-                            <span th:text="${role.name.displayName}">Admin</span><th:block th:if="${!iter.last}"> · </th:block>
-                        </th:block>
-                    </small>
-                </span>
-                <i class="fa-solid fa-chevron-down"></i>
-            </button>
-            <div class="dropdown-panel user-panel">
-                <a th:href="@{/profile}"><i class="fa-regular fa-user"></i> Profile</a>
-                <a th:href="@{/settings}" sec:authorize="hasAnyRole('ADMIN','SUPER_ADMIN')">
-                    <i class="fa-solid fa-gear"></i> Settings
-                </a>
-                <form th:action="@{/logout}" method="post">
-                    <button type="submit"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
-                </form>
-            </div>
-        </div>
     </div>
 </header>
 </html>

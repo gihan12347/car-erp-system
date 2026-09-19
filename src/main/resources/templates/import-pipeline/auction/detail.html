@@ -8,7 +8,11 @@
     : (stageKey == 'export' ? 'export'
     : (stageKey == 'photos' ? 'photos' : 'auction'))))))}">
 <head th:replace="shared/head :: head(${pageTitle})"></head>
-<body class="sheet-page import-form-page import-view-page">
+<body class="sheet-page import-form-page import-view-page"
+      th:classappend="${(stageKey == 'preshipment' ? ' preship-page' : '')
+            + (stageKey == 'equipment' ? ' equipment-page' : '')
+            + (stageKey == 'jevic' or stageKey == 'coi' or stageKey == 'standards' or stageKey == 'export' ? ' jevic-page' : '')
+            + (stageKey == 'photos' ? ' photos-page' : '')}">
 <div class="app-shell">
     <aside th:replace="shared/sidebar :: sidebar(${activeMenu})"></aside>
 

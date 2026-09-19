@@ -26,17 +26,20 @@ import com.carsale.erp.shared.vehicle.VehicleService;
 public class YardController {
 
     private final YardService yardService;
+    private final YardBayService yardBayService;
     private final VehicleService vehicleService;
     private final PreparationProgressService preparationProgressService;
     private final PipelineStageService pipelineStageService;
 
     public YardController(
             YardService yardService,
+            YardBayService yardBayService,
             VehicleService vehicleService,
             PreparationProgressService preparationProgressService,
             PipelineStageService pipelineStageService
     ) {
         this.yardService = yardService;
+        this.yardBayService = yardBayService;
         this.vehicleService = vehicleService;
         this.preparationProgressService = preparationProgressService;
         this.pipelineStageService = pipelineStageService;
@@ -67,12 +70,6 @@ public class YardController {
             return "redirect:" + preparationProgressService.redirectWhenNotEligible(vehicle);
         }
         PreparationProgress status = preparationProgressService.progressFor(vehicle);
-        if (!status.isCanEnterYard()) {
-            redirectAttributes.addFlashAttribute("errorMessage",
-                    "Finish every workshop job before opening the yard section.");
-            return "redirect:" + PreparationStageUrls.editUrlFor(
-                    encodeChassis(chassisNo), FlowStage.WORKSHOP.getStageKey());
-        }
         YardRecord record = yardService.prepareForm(chassisNo);
         model.addAttribute("pageTitle", pipelineStageService.title(
                 PipelineStageService.FLOW_PREP, FlowStage.YARD.getStageKey()));
@@ -80,10 +77,12 @@ public class YardController {
         model.addAttribute("hubMode", hub);
         model.addAttribute("vehicle", vehicle);
         model.addAttribute("record", record);
+        model.addAttribute("yardBays", yardBayService.listActive());
         model.addAttribute("workshopReady", status.isWorkshopReady());
         model.addAttribute("yardReady", status.isYardReady());
         model.addAttribute("inspectionReady", status.isInspectionReady());
-        model.addAttribute("canEnterYard", true);
+        model.addAttribute("saleReady", status.isSaleReady());
+        model.addAttribute("canEnterYard", status.isCanEnterYard());
         model.addAttribute("prepComplete", status.isPipelineCompleted());
         model.addAttribute("stageNav", PreparationStageUrls.editLinks(
                 chassisNo,
@@ -102,19 +101,13 @@ public class YardController {
             RedirectAttributes redirectAttributes
     ) {
         record.setChassisNo(chassisNo);
-        if (!preparationProgressService.progressFor(chassisNo).isCanEnterYard()) {
-            redirectAttributes.addFlashAttribute("errorMessage",
-                    "Finish every workshop job before opening the yard section.");
-            return "redirect:" + PreparationStageUrls.editUrlFor(
-                    encodeChassis(chassisNo), FlowStage.WORKSHOP.getStageKey());
-        }
         try {
             yardService.save(record);
             preparationProgressService.syncVehicleStage(chassisNo);
             PreparationProgress status = preparationProgressService.progressFor(chassisNo);
             if (status.isPipelineCompleted()) {
                 redirectAttributes.addFlashAttribute("successMessage",
-                        "Preparation pipeline is complete. Set the asking price for sale.");
+                        "Preparation pipeline is complete. Continue in the sale pipeline.");
             } else {
                 redirectAttributes.addFlashAttribute("successMessage", "Yard record saved.");
             }

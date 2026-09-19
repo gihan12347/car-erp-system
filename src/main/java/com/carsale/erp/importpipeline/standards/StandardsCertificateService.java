@@ -4,9 +4,7 @@ import com.carsale.erp.shared.document.SheetDocumentStorageService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.carsale.erp.importpipeline.standards.StandardsCertificate;
 import com.carsale.erp.shared.vehicle.Vehicle;
-import com.carsale.erp.importpipeline.standards.StandardsCertificateRepository;
 import com.carsale.erp.shared.vehicle.VehicleRepository;
 
 @Service

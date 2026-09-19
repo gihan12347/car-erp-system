@@ -57,7 +57,7 @@ public class CustomsPipelineListController {
     public String delete(@PathVariable String chassisNo, RedirectAttributes redirectAttributes) {
         if (vehicleService.deleteFromFlow(chassisNo, PipelineStageService.FLOW_CUSTOMS)) {
             redirectAttributes.addFlashAttribute("notice",
-                    "Customs clearance data deleted. Preparation and ready-for-sale data were also removed.");
+                    "Customs clearance data deleted. Preparation and sale pipeline data were also removed.");
         } else {
             redirectAttributes.addFlashAttribute("error", "Could not delete customs clearance data.");
         }
@@ -79,7 +79,7 @@ public class CustomsPipelineListController {
         if (hub) {
             return "redirect:" + PipelineStageService.editUrlFor(
                     CustomsStageUrls.encode(chassisNo),
-                    FlowStage.DECLARATION.getStageKey()
+                    FlowStage.BILL_OF_LADING.getStageKey()
             );
         }
         if (!customsProgressService.isEligible(vehicle)) {
@@ -115,6 +115,7 @@ public class CustomsPipelineListController {
         model.addAttribute("activeMenu", "customs");
         model.addAttribute("vehicle", vehicle);
         model.addAttribute("clearance", customsDocumentService.findByChassisNo(chassisNo));
+        model.addAttribute("blReady", status.isBlReady());
         model.addAttribute("declarationReady", status.isDeclarationReady());
         model.addAttribute("assessmentReady", status.isAssessmentReady());
         model.addAttribute("worksheetReady", status.isWorksheetReady());

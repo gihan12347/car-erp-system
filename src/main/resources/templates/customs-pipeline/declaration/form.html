@@ -14,7 +14,7 @@
                 </div>
             </div>
 
-            <div th:replace="customs-pipeline/fragments/pipeline :: clearancePipelineSteps('declaration', ${vehicle.chassisNo}, ${declarationReady}, ${assessmentReady}, ${worksheetReady}, ${vehicle.model}, false)"></div>
+            <div th:replace="customs-pipeline/fragments/pipeline :: clearancePipelineSteps('declaration', ${vehicle.chassisNo}, ${blReady}, ${declarationReady}, ${assessmentReady}, ${worksheetReady}, ${vehicle.model}, false)"></div>
 
             <p th:if="${successMessage}" class="alert alert-ok" th:text="${successMessage}"></p>
             <p th:if="${errorMessage}" class="alert alert-error" th:text="${errorMessage}"></p>

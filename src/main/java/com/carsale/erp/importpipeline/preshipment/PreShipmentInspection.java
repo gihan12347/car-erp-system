@@ -29,6 +29,9 @@ public class PreShipmentInspection {
     @Column(length = 40)
     private String pageInfo;
 
+    @Column(length = 80)
+    private String documentControlNumber;
+
     @Column(length = 120)
     private String inspectionOrgName;
 
@@ -100,6 +103,9 @@ public class PreShipmentInspection {
     @Column(length = 40)
     private String engineCapacity;
 
+    @Column(length = 80)
+    private String engineModel;
+
     @Column(length = 40)
     private String engineNo;
 
@@ -117,6 +123,15 @@ public class PreShipmentInspection {
 
     @Column(length = 20)
     private String yearOfManufacture;
+
+    @Column(length = 120)
+    private String tyreSize;
+
+    @Column(length = 120)
+    private String wheelBase;
+
+    @Column(length = 120)
+    private String grossVehicleMass;
 
     @Lob
     @Column(columnDefinition = "TEXT")
@@ -177,6 +192,14 @@ public class PreShipmentInspection {
 
     public void setPageInfo(String pageInfo) {
         this.pageInfo = pageInfo;
+    }
+
+    public String getDocumentControlNumber() {
+        return documentControlNumber;
+    }
+
+    public void setDocumentControlNumber(String documentControlNumber) {
+        this.documentControlNumber = documentControlNumber;
     }
 
     public String getInspectionOrgName() {
@@ -363,6 +386,14 @@ public class PreShipmentInspection {
         this.engineCapacity = engineCapacity;
     }
 
+    public String getEngineModel() {
+        return engineModel;
+    }
+
+    public void setEngineModel(String engineModel) {
+        this.engineModel = engineModel;
+    }
+
     public String getEngineNo() {
         return engineNo;
     }
@@ -409,6 +440,30 @@ public class PreShipmentInspection {
 
     public void setYearOfManufacture(String yearOfManufacture) {
         this.yearOfManufacture = yearOfManufacture;
+    }
+
+    public String getTyreSize() {
+        return tyreSize;
+    }
+
+    public void setTyreSize(String tyreSize) {
+        this.tyreSize = tyreSize;
+    }
+
+    public String getWheelBase() {
+        return wheelBase;
+    }
+
+    public void setWheelBase(String wheelBase) {
+        this.wheelBase = wheelBase;
+    }
+
+    public String getGrossVehicleMass() {
+        return grossVehicleMass;
+    }
+
+    public void setGrossVehicleMass(String grossVehicleMass) {
+        this.grossVehicleMass = grossVehicleMass;
     }
 
     public String getOcrText() {

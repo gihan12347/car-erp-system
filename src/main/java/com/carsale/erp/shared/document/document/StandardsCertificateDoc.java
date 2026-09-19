@@ -1,18 +1,16 @@
-package com.carsale.erp.customspipeline.document;
+package com.carsale.erp.shared.document.document;
 
 import com.carsale.erp.importpipeline.auction.AuctionParseResult;
 import com.carsale.erp.shared.document.DocumentParser;
 import com.carsale.erp.shared.ocr.DocumentAiClient;
 import com.carsale.erp.shared.utils.CustomsDocumentParserUtils;
+import com.carsale.erp.shared.regex.RegexConstants;
 import org.springframework.stereotype.Component;
 
 import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 @Component
 public class StandardsCertificateDoc implements DocumentParser {
-    private static final String MARK = "[\\u2713\\u2714\\u221A\\u2611xX]|\\[\\s*[xX\\u2713\\u2714]\\s*\\]";
-    private static final String VALUE = "([0-9]+(?:\\.[0-9]+)?|N\\s*/\\s*A|N\\.?\\s*A\\.?|NA|-|—|–)";
 
     @Override
     public AuctionParseResult parsePage(String text) {
@@ -25,33 +23,31 @@ public class StandardsCertificateDoc implements DocumentParser {
 
         String normalized = CustomsDocumentParserUtils.normalize(text);
         result.put("scheduleType", extractSchedule(normalized));
-        result.put("emissionCo", extractEmission(normalized, "\\bCO\\b(?!\\w)"));
-        result.put("emissionNmhc", extractEmission(normalized, "\\bNMHC\\b"));
-        result.put("emissionNox", extractEmission(normalized, "(?<!\\+)\\bNO\\s*x\\b"));
-        result.put("emissionPm", extractEmission(normalized, "\\bPM\\b"));
-        result.put("emissionHcNox", extractEmission(normalized, "\\bHC\\s*\\+\\s*NO\\s*x\\b"));
-        result.put("emissionHc", extractEmission(normalized, "(?<![A-Z])\\bHC\\b(?!\\s*\\+)"));
-        result.put("emissionThc", extractEmission(normalized, "\\bTHC\\b"));
-        result.put("emissionCh4", extractEmission(normalized, "\\bCH\\s*4\\b"));
-        result.put("emissionSmoke", extractEmission(normalized, "\\bSmoke\\b"));
-        result.put("threePointSeatBelts", marked(normalized,
-                "Three\\s+point\\s+seat\\s+belts(?:\\s+for\\s+driver\\s+and\\s+front\\s+passengers)?"));
-        result.put("twoPointSeatBelts", marked(normalized,
-                "Minimum\\s+two\\s+point\\s+seat\\s+belts(?:\\s+for\\s+other\\s+passengers)?"));
+        result.put("emissionCo", extractEmission(normalized, RegexConstants.Standards.CO));
+        result.put("emissionNmhc", extractEmission(normalized, RegexConstants.Standards.NMHC));
+        result.put("emissionNox", extractEmission(normalized, RegexConstants.Standards.NOX));
+        result.put("emissionPm", extractEmission(normalized, RegexConstants.Standards.PM));
+        result.put("emissionHcNox", extractEmission(normalized, RegexConstants.Standards.HC_NOX));
+        result.put("emissionHc", extractEmission(normalized, RegexConstants.Standards.HC));
+        result.put("emissionThc", extractEmission(normalized, RegexConstants.Standards.THC));
+        result.put("emissionCh4", extractEmission(normalized, RegexConstants.Standards.CH4));
+        result.put("emissionSmoke", extractEmission(normalized, RegexConstants.Standards.SMOKE));
+        result.put("threePointSeatBelts", marked(normalized, RegexConstants.Standards.THREE_POINT_BELTS));
+        result.put("twoPointSeatBelts", marked(normalized, RegexConstants.Standards.TWO_POINT_BELTS));
         result.put("driverAirbag", CustomsDocumentParserUtils.firstNonNull(
-                marked(normalized, "Air\\s*Bags?\\s*[:\\-]?\\s*(?:Driver)"),
-                marked(normalized, "Driver(?:'s)?\\s+Air\\s*Bag")
+                marked(normalized, RegexConstants.Standards.DRIVER_AIRBAG_MARK),
+                marked(normalized, RegexConstants.Standards.DRIVER_AIRBAG)
         ));
         result.put("passengerAirbag", CustomsDocumentParserUtils.firstNonNull(
-                marked(normalized, "Front\\s+Passenger"),
-                marked(normalized, "Passenger(?:'s)?\\s+Air\\s*Bag")
+                marked(normalized, RegexConstants.Standards.FRONT_PASSENGER),
+                marked(normalized, RegexConstants.Standards.PASSENGER_AIRBAG)
         ));
-        result.put("absFitted", marked(normalized, "\\bABS\\b"));
+        result.put("absFitted", marked(normalized, RegexConstants.Standards.ABS));
         result.put("make", extractLabeled(normalized, "Make", "Model", "Chassis"));
         result.put("model", extractLabeled(normalized, "Model", "Chassis", "Place of Inspection"));
         result.put("chassisVin", CustomsDocumentParserUtils.firstNonNull(
                 extractLabeled(normalized, "Chassis Number", "Place of Inspection", "Date of Inspection"),
-                extractLabeled(normalized, "Chassis No\\.?", "Place of Inspection", "Date of Inspection"),
+                extractLabeled(normalized, RegexConstants.Standards.CHASSIS_NO, "Place of Inspection", "Date of Inspection"),
                 findChassis(normalized)
         ));
         result.put("placeOfInspection", extractLabeled(
@@ -74,6 +70,11 @@ public class StandardsCertificateDoc implements DocumentParser {
         return null;
     }
 
+    @Override
+    public String getProcessorId() {
+        return "";
+    }
+
     private static String extractSchedule(String text) {
         if (scheduleMarked(text, "V") && !scheduleMarked(text, "III")) {
             return "V";
@@ -91,23 +92,17 @@ public class StandardsCertificateDoc implements DocumentParser {
     }
 
     private static boolean scheduleMarked(String text, String schedule) {
-        Matcher matcher = Pattern.compile(
-                "(?:" + MARK + "\\s*)?Schedule\\s+" + schedule + "(?:\\s*" + MARK + ")?",
-                Pattern.CASE_INSENSITIVE
-        ).matcher(text);
+        Matcher matcher = RegexConstants.Standards.markedSchedule(schedule).matcher(text);
         if (!matcher.find()) {
             return false;
         }
         int from = Math.max(0, matcher.start() - 8);
         int to = Math.min(text.length(), matcher.end() + 12);
-        return Pattern.compile(MARK).matcher(text.substring(from, to)).find();
+        return RegexConstants.Standards.MARK_PATTERN.matcher(text.substring(from, to)).find();
     }
 
     private static String extractEmission(String text, String label) {
-        Matcher matcher = Pattern.compile(
-                label + "\\s*[:\\-]?\\s*" + VALUE + "(?:\\s*g\\s*/\\s*km)?",
-                Pattern.CASE_INSENSITIVE
-        ).matcher(text);
+        Matcher matcher = RegexConstants.Standards.emissionValueAfterLabel(label).matcher(text);
         if (matcher.find()) {
             return cleanValue(matcher.group(1));
         }
@@ -115,14 +110,11 @@ public class StandardsCertificateDoc implements DocumentParser {
     }
 
     private static String marked(String text, String label) {
-        Matcher matcher = Pattern.compile(
-                label + "[^\\n]{0,48}|(?:" + MARK + ")\\s*" + label,
-                Pattern.CASE_INSENSITIVE
-        ).matcher(text);
+        Matcher matcher = RegexConstants.Standards.checkmarkNearLabel(label).matcher(text);
         while (matcher.find()) {
             int from = Math.max(0, matcher.start() - 10);
             int to = Math.min(text.length(), matcher.end() + 10);
-            if (Pattern.compile(MARK).matcher(text.substring(from, to)).find()) {
+            if (RegexConstants.Standards.MARK_PATTERN.matcher(text.substring(from, to)).find()) {
                 return "true";
             }
         }
@@ -130,17 +122,11 @@ public class StandardsCertificateDoc implements DocumentParser {
     }
 
     private static String extractLabeled(String text, String label, String... stops) {
-        Matcher matcher = Pattern.compile(
-                label + "\\s*[:\\.]?\\s*([^\\n]+)",
-                Pattern.CASE_INSENSITIVE
-        ).matcher(text);
+        Matcher matcher = RegexConstants.Labeled.valueAfterLabel(label).matcher(text);
         if (matcher.find()) {
             return cleanLabeled(matcher.group(1), stops);
         }
-        matcher = Pattern.compile(
-                label + "\\s*[:\\.]?\\s*\\n\\s*([^\\n]+)",
-                Pattern.CASE_INSENSITIVE
-        ).matcher(text);
+        matcher = RegexConstants.Labeled.valueOnNextLineAfterLabel(label).matcher(text);
         if (matcher.find()) {
             return cleanLabeled(matcher.group(1), stops);
         }
@@ -148,10 +134,7 @@ public class StandardsCertificateDoc implements DocumentParser {
     }
 
     private static String extractRemarks(String text) {
-        Matcher matcher = Pattern.compile(
-                "Remarks\\s*[:\\.]?\\s*([^\\n]+)",
-                Pattern.CASE_INSENSITIVE
-        ).matcher(text);
+        Matcher matcher = RegexConstants.Standards.REMARKS.matcher(text);
         if (!matcher.find()) {
             return null;
         }
@@ -163,9 +146,7 @@ public class StandardsCertificateDoc implements DocumentParser {
     }
 
     private static String findChassis(String text) {
-        Matcher matcher = Pattern.compile(
-                "\\b([A-Z0-9]{2,8}-[A-Z0-9]{5,12})\\b"
-        ).matcher(text);
+        Matcher matcher = RegexConstants.Identifiers.CHASSIS_WIDE.matcher(text);
         if (matcher.find()) {
             return matcher.group(1);
         }
@@ -176,11 +157,11 @@ public class StandardsCertificateDoc implements DocumentParser {
         if (value == null) {
             return null;
         }
-        String cleaned = value.replaceAll("[\\u2013\\u2014_]+$", "").trim();
+        String cleaned = value.replaceAll(RegexConstants.Text.TRAILING_EMDASH, "").trim();
         for (String stop : stops) {
-            cleaned = cleaned.replaceAll("(?i)\\s+" + Pattern.quote(stop) + ".*$", "");
+            cleaned = RegexConstants.Labeled.fromQuotedStopToEnd(stop).matcher(cleaned).replaceAll("");
         }
-        cleaned = cleaned.replaceAll("\\s{2,}", " ").trim();
+        cleaned = cleaned.replaceAll(RegexConstants.Text.WHITESPACE_RUN, " ").trim();
         if (cleaned.isEmpty() || isStampNoise(cleaned)) {
             return null;
         }
@@ -191,14 +172,14 @@ public class StandardsCertificateDoc implements DocumentParser {
         if (value == null) {
             return null;
         }
-        String cleaned = value.replaceAll("\\s+", "").replace("—", "-").replace("–", "-");
+        String cleaned = value.replaceAll(RegexConstants.Text.WHITESPACE, "").replace("—", "-").replace("–", "-");
         if (cleaned.equalsIgnoreCase("N/A") || cleaned.equalsIgnoreCase("N.A.") || cleaned.equalsIgnoreCase("NA")) {
             return "N/A";
         }
         if ("-".equals(cleaned)) {
             return "-";
         }
-        return value.replaceAll("\\s+", " ").trim();
+        return value.replaceAll(RegexConstants.Text.WHITESPACE, " ").trim();
     }
 
     private static boolean isStampNoise(String value) {

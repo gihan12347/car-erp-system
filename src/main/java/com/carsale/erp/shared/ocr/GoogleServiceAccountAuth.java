@@ -26,6 +26,7 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
+import com.carsale.erp.shared.regex.RegexConstants;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Component
@@ -156,7 +157,7 @@ public class GoogleServiceAccountAuth {
             String encoded = pem
                     .replace("-----BEGIN PRIVATE KEY-----", "")
                     .replace("-----END PRIVATE KEY-----", "")
-                    .replaceAll("\\s", "");
+                    .replaceAll(RegexConstants.Text.ANY_WHITESPACE, "");
             byte[] der = Base64.getDecoder().decode(encoded);
             PrivateKey key = KeyFactory.getInstance("RSA").generatePrivate(new PKCS8EncodedKeySpec(der));
             Signature signature = Signature.getInstance("SHA256withRSA");

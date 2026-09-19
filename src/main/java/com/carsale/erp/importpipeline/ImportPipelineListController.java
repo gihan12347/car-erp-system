@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.carsale.erp.shared.vehicle.Vehicle;
-import com.carsale.erp.importpipeline.ImportProgressService;
 import com.carsale.erp.importpipeline.ImportProgressService.ImportProgress;
 import com.carsale.erp.shared.pipeline.PipelineStageService;
 import com.carsale.erp.shared.vehicle.VehicleService;

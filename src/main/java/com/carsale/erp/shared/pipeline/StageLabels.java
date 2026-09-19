@@ -19,13 +19,4 @@ public enum StageLabels {
     public int getIndex() {
         return index;
     }
-
-    public static String getDescriptionByIndex(int index) {
-        for (StageLabels stage : StageLabels.values()) {
-            if (stage.getIndex() == index) {
-                return stage.getDescription();
-            }
-        }
-        return null;
-    }
 }

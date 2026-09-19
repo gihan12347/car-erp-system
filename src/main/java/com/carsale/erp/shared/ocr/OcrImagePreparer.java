@@ -69,7 +69,7 @@ public class OcrImagePreparer {
         File imageTemp = writeUploadImage(prepare(image), client);
         try {
             if (client instanceof GoogleVisionOcrClient) {
-                result = parser.parsePage(documentAiClient.process(file, originalName));
+                result = parser.parsePage(documentAiClient.process(file, originalName, parser));
             }
             if (result != null) {
                 return result;

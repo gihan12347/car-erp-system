@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="shared/head :: head(${pageTitle})"></head>
+<body>
+<div class="app-shell">
+    <aside th:replace="shared/sidebar :: sidebar(${activeMenu})"></aside>
+    <div class="app-main">
+        <header th:replace="shared/topbar :: topbar"></header>
+        <main class="page-content">
+            <div class="dash-head">
+                <div>
+                    <h1>Configuration</h1>
+                    <p class="form-lead">Set up pipelines, inspection checklists, yards, and sale locations.</p>
+                </div>
+            </div>
+
+            <section class="config-hub">
+                <a th:href="@{/stages}" class="config-tile config-tile--stages">
+                    <img class="config-tile-art" th:src="@{/images/config/illu-stages.svg}" alt="">
+                    <div class="config-tile-copy">
+                        <span class="config-tile-kicker">Pipeline</span>
+                        <h2>Stage order</h2>
+                        <p>Drag and reorder stages for import, customs, preparation, and ready for sale.</p>
+                    </div>
+                    <span class="config-tile-go" aria-hidden="true">
+                        <i class="fa-solid fa-arrow-right"></i>
+                    </span>
+                </a>
+
+                <a th:href="@{/inspection-items}" class="config-tile config-tile--inspection">
+                    <img class="config-tile-art" th:src="@{/images/config/illu-inspection.svg}" alt="">
+                    <div class="config-tile-copy">
+                        <span class="config-tile-kicker">Checklist</span>
+                        <h2>Inspection items</h2>
+                        <p>Choose the checklist that appears on every vehicle inspection.</p>
+                    </div>
+                    <span class="config-tile-go" aria-hidden="true">
+                        <i class="fa-solid fa-arrow-right"></i>
+                    </span>
+                </a>
+
+                <a th:href="@{/yard-bays}" class="config-tile config-tile--yard">
+                    <img class="config-tile-art" th:src="@{/images/config/illu-yard.svg}" alt="">
+                    <div class="config-tile-copy">
+                        <span class="config-tile-kicker">Storage</span>
+                        <h2>Yard configuration</h2>
+                        <p>Add yards with code, name, capacity, and location. Spaces drop as vehicles arrive.</p>
+                    </div>
+                    <span class="config-tile-go" aria-hidden="true">
+                        <i class="fa-solid fa-arrow-right"></i>
+                    </span>
+                </a>
+
+                <a th:href="@{/sale-locations}" class="config-tile config-tile--sale">
+                    <img class="config-tile-art" th:src="@{/images/config/illu-sale.svg}" alt="">
+                    <div class="config-tile-copy">
+                        <span class="config-tile-kicker">Showroom</span>
+                        <h2>Sale configuration</h2>
+                        <p>Set sale lots and capacity. Assigning a vehicle uses a space; selling it frees one.</p>
+                    </div>
+                    <span class="config-tile-go" aria-hidden="true">
+                        <i class="fa-solid fa-arrow-right"></i>
+                    </span>
+                </a>
+            </section>
+        </main>
+    </div>
+</div>
+<script th:src="@{/js/shared/app.js(v=20260905k)}"></script>
+</body>
+</html>

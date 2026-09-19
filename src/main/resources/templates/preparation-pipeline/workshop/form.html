@@ -22,7 +22,8 @@
                     ${inspectionReady},
                     ${canEnterYard},
                     ${vehicle.model},
-                    false)"></div>
+                    false,
+                    ${saleReady})"></div>
 
             <p th:if="${successMessage}" class="alert alert-ok" th:text="${successMessage}"></p>
             <p th:if="${errorMessage}" class="alert alert-error" th:text="${errorMessage}"></p>
@@ -65,19 +66,27 @@
                                        placeholder="e.g. Polish, minor dent, service">
                             </label>
                             <label>Started on
-                                <input type="text" th:field="*{lines[__${stat.index}__].startedOn}" placeholder="2026-08-20">
+                                <input type="date" th:field="*{lines[__${stat.index}__].startedOn}">
                             </label>
                             <label>Completed on
-                                <input type="text" th:field="*{lines[__${stat.index}__].completedOn}" placeholder="2026-08-23">
+                                <input type="date" th:field="*{lines[__${stat.index}__].completedOn}">
                             </label>
                             <label>Labour hours
                                 <input type="text" th:field="*{lines[__${stat.index}__].laborHours}">
                             </label>
                             <label>Estimated cost
-                                <input type="text" th:field="*{lines[__${stat.index}__].estimatedCost}" placeholder="Rs.">
+                                <span class="money-field">
+                                    <input type="text" th:field="*{lines[__${stat.index}__].estimatedCost}"
+                                           inputmode="decimal" autocomplete="off" placeholder="0.00">
+                                    <span class="money-currency" aria-hidden="true">LKR</span>
+                                </span>
                             </label>
                             <label>Actual cost
-                                <input type="text" th:field="*{lines[__${stat.index}__].actualCost}" placeholder="Rs.">
+                                <span class="money-field">
+                                    <input type="text" th:field="*{lines[__${stat.index}__].actualCost}"
+                                           inputmode="decimal" autocomplete="off" placeholder="0.00">
+                                    <span class="money-currency" aria-hidden="true">LKR</span>
+                                </span>
                             </label>
                             <label class="span-2">Parts used
                                 <textarea th:field="*{lines[__${stat.index}__].partsUsed}" rows="2"
@@ -95,18 +104,6 @@
                 </button>
                 <div class="import-view-actions">
                     <th:block th:replace="preparation-pipeline/fragments/form-actions :: prepFormActions('Save & continue', null)"></th:block>
-                    <a th:if="${canEnterYard and stageNav != null and stageNav.nextUrl != null}"
-                       th:href="${stageNav.nextUrl}"
-                       class="panel-btn ghost import-form-submit">
-                        <span th:text="${stageNav.nextLabel}">Next · Yard</span>
-                        <i class="fa-solid fa-chevron-right"></i>
-                    </a>
-                    <span th:unless="${canEnterYard}"
-                          class="panel-btn ghost import-form-submit is-disabled"
-                          aria-disabled="true"
-                          title="Finish every workshop job first">
-                        Complete all jobs to open Yard
-                    </span>
                 </div>
             </form>
         </main>
@@ -134,19 +131,27 @@
                 <input type="text" name="lines[__idx__].jobSummary" placeholder="e.g. Polish, minor dent, service">
             </label>
             <label>Started on
-                <input type="text" name="lines[__idx__].startedOn" placeholder="2026-08-20">
+                <input type="date" name="lines[__idx__].startedOn">
             </label>
             <label>Completed on
-                <input type="text" name="lines[__idx__].completedOn" placeholder="2026-08-23">
+                <input type="date" name="lines[__idx__].completedOn">
             </label>
             <label>Labour hours
                 <input type="text" name="lines[__idx__].laborHours">
             </label>
             <label>Estimated cost
-                <input type="text" name="lines[__idx__].estimatedCost" placeholder="Rs.">
+                <span class="money-field">
+                    <input type="text" name="lines[__idx__].estimatedCost"
+                           inputmode="decimal" autocomplete="off" placeholder="0.00">
+                    <span class="money-currency" aria-hidden="true">LKR</span>
+                </span>
             </label>
             <label>Actual cost
-                <input type="text" name="lines[__idx__].actualCost" placeholder="Rs.">
+                <span class="money-field">
+                    <input type="text" name="lines[__idx__].actualCost"
+                           inputmode="decimal" autocomplete="off" placeholder="0.00">
+                    <span class="money-currency" aria-hidden="true">LKR</span>
+                </span>
             </label>
             <label class="span-2">Parts used
                 <textarea name="lines[__idx__].partsUsed" rows="2" placeholder="Filters, pads, bulbs..."></textarea>
@@ -159,6 +164,6 @@
 </template>
 
 <script th:src="@{/js/shared/app.js(v=20260905k)}"></script>
-<script th:src="@{/js/preparation-pipeline/workshop.js(v=20260908c)}"></script>
+<script th:src="@{/js/preparation-pipeline/workshop.js(v=20260918a)}"></script>
 </body>
 </html>

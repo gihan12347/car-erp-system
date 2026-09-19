@@ -15,11 +15,12 @@
                 Previous
             </a>
             <a th:href="@{/workshop/{c}(c=${vehicle.chassisNo}, hub=1)}" class="panel-btn import-form-submit">Start workshop job</a>
-            <span class="panel-btn ghost import-form-submit is-disabled"
-                  aria-disabled="true"
-                  title="Finish every workshop job first">
-                Complete all jobs to open Yard
-            </span>
+            <a th:if="${stageNav != null and stageNav.nextUrl != null}"
+               th:href="${stageNav.nextUrl}"
+               class="panel-btn ghost import-form-submit">
+                <span th:text="${stageNav.nextLabel}">Next · Yard</span>
+                <i class="fa-solid fa-chevron-right"></i>
+            </a>
         </div>
     </div>
 
@@ -37,10 +38,20 @@
                 <label>Technician <input type="text" th:value="${line.technician}" readonly class="readonly-field"></label>
                 <label>Labour hours <input type="text" th:value="${line.laborHours}" readonly class="readonly-field"></label>
                 <label class="span-2">Summary <input type="text" th:value="${line.jobSummary}" readonly class="readonly-field"></label>
-                <label>Started on <input type="text" th:value="${line.startedOn}" readonly class="readonly-field"></label>
-                <label>Completed on <input type="text" th:value="${line.completedOn}" readonly class="readonly-field"></label>
-                <label>Estimated cost <input type="text" th:value="${line.estimatedCost}" readonly class="readonly-field"></label>
-                <label>Actual cost <input type="text" th:value="${line.actualCost}" readonly class="readonly-field"></label>
+                <label>Started on <input type="date" th:value="${line.startedOn}" readonly class="readonly-field"></label>
+                <label>Completed on <input type="date" th:value="${line.completedOn}" readonly class="readonly-field"></label>
+                <label>Estimated cost
+                    <span class="money-field">
+                        <input type="text" th:value="${line.estimatedCost}" readonly class="readonly-field">
+                        <span class="money-currency" aria-hidden="true">LKR</span>
+                    </span>
+                </label>
+                <label>Actual cost
+                    <span class="money-field">
+                        <input type="text" th:value="${line.actualCost}" readonly class="readonly-field">
+                        <span class="money-currency" aria-hidden="true">LKR</span>
+                    </span>
+                </label>
                 <label class="span-2">Parts used
                     <textarea th:text="${line.partsUsed}" readonly class="readonly-field" rows="2"></textarea>
                 </label>
@@ -61,18 +72,12 @@
                 Previous
             </a>
             <a th:href="@{/workshop/{c}(c=${vehicle.chassisNo}, hub=1)}" class="panel-btn ghost import-form-submit">Edit workshop</a>
-            <a th:if="${canEnterYard and stageNav != null and stageNav.nextUrl != null}"
+            <a th:if="${stageNav != null and stageNav.nextUrl != null}"
                th:href="${stageNav.nextUrl}"
                class="panel-btn import-form-submit">
                 <span th:text="${stageNav.nextLabel}">Next · Yard</span>
                 <i class="fa-solid fa-chevron-right"></i>
             </a>
-            <span th:unless="${canEnterYard}"
-                  class="panel-btn import-form-submit is-disabled"
-                  aria-disabled="true"
-                  title="Finish every workshop job first">
-                Complete all jobs to open Yard
-            </span>
         </div>
     </div>
 </section>

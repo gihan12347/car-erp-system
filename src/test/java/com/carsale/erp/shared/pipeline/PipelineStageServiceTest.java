@@ -88,15 +88,21 @@ class PipelineStageServiceTest {
     }
 
     @Test
-    void customsPipelineHasDeclarationAssessmentAndWorksheetStages() {
+    void customsPipelineHasBlDeclarationAssessmentAndWorksheetStages() {
         assertThat(pipelineStageService.keys("CUSTOMS"))
-                .containsExactlyInAnyOrder("declaration", "assessment", "worksheet");
+                .containsExactlyInAnyOrder("bl", "declaration", "assessment", "worksheet");
     }
 
     @Test
     void prepPipelineStartsWithInspectionThenWorkshopAndYard() {
         assertThat(pipelineStageService.keys("PREP"))
-                .containsExactly("inspection", "workshop", "yard");
+                .containsExactly("inspection", "workshop", "yard", "sale");
+    }
+
+    @Test
+    void readyPipelineHasDetailsListingAndRegistration() {
+        assertThat(pipelineStageService.keys("READY"))
+                .contains("details", "listing", "registration");
     }
 
     @Test
@@ -169,6 +175,24 @@ class PipelineStageServiceTest {
 
     @Test
     @Transactional
+    void ensureDefaultsAddsMissingBillOfLadingStage() {
+        PipelineFlow customsFlow = pipelineFlowRepository.findByFlowKey("CUSTOMS")
+                .orElseThrow(IllegalStateException::new);
+        PipelineFlow joined = pipelineFlowRepository.findByIdWithStages(customsFlow.getId())
+                .orElseThrow(IllegalStateException::new);
+        joined.getStages().removeIf(stage -> "bl".equals(stage.getStageKey()));
+        pipelineFlowRepository.saveAndFlush(joined);
+
+        assertThat(pipelineStageService.keys("CUSTOMS")).doesNotContain("bl");
+
+        pipelineStageService.ensureDefaults();
+
+        assertThat(pipelineStageService.keys("CUSTOMS")).contains("bl");
+        assertThat(pipelineStageService.keys("CUSTOMS").get(0)).isEqualTo("bl");
+    }
+
+    @Test
+    @Transactional
     void ensureDefaultsAddsMissingWorksheetStage() {
         PipelineFlow customsFlow = pipelineFlowRepository.findByFlowKey("CUSTOMS")
                 .orElseThrow(IllegalStateException::new);
@@ -228,5 +252,22 @@ class PipelineStageServiceTest {
 
         assertThat(pipelineStageService.keys("IMPORT")).contains("jevic");
         assertThat(pipelineStageService.keys("CUSTOMS")).doesNotContain("jevic");
+    }
+
+    @Test
+    @Transactional
+    void ensureDefaultsAddsMissingRegistrationStage() {
+        PipelineFlow readyFlow = pipelineFlowRepository.findByFlowKey("READY")
+                .orElseThrow(IllegalStateException::new);
+        PipelineFlow joined = pipelineFlowRepository.findByIdWithStages(readyFlow.getId())
+                .orElseThrow(IllegalStateException::new);
+        joined.getStages().removeIf(stage -> "registration".equals(stage.getStageKey()));
+        pipelineFlowRepository.saveAndFlush(joined);
+
+        assertThat(pipelineStageService.keys("READY")).doesNotContain("registration");
+
+        pipelineStageService.ensureDefaults();
+
+        assertThat(pipelineStageService.keys("READY")).contains("registration");
     }
 }

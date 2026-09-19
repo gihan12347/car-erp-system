@@ -10,12 +10,16 @@ public enum FlowStage {
     EXPORT("export", "/export/", "Export certificate", "Export"),
     PHOTOS("photos", "/photos/", "Vehicle images", "Images"),
     DECLARATION("declaration", "/declaration/", "Customs declaration", "CUSDEC"),
+    BILL_OF_LADING("bl", "/bl/", "Bill of lading", "B/L"),
     ASSESSMENT("assessment", "/assessment/", "Assessment notice", "Assessment"),
     WORKSHEET("worksheet", "/worksheet/", "Working sheet", "Worksheet"),
     WORKSHOP("workshop", "/workshop/", "Workshop", "Workshop"),
     INSPECTION("inspection", "/inspection/", "Inspection", "Inspection"),
     YARD("yard", "/yard/", "Yard", "Yard"),
-    LISTING("listing", "", "", "");
+    SALE("sale", "/sale/", "Sale", "Sale"),
+    DETAILS("details", "/ready-for-sale/", "Details", "Details"),
+    LISTING("listing", "/listing/", "Listing", "Listing"),
+    REGISTRATION("registration", "/registration/", "Registration", "Reg");
 
     private final String stageKey;
     private final String urlPath;

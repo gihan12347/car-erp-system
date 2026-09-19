@@ -1,6 +1,6 @@
 package com.carsale.erp.importpipeline.exportcert;
 
-import com.carsale.erp.customspipeline.document.ExportCertificateParser;
+import com.carsale.erp.shared.document.document.ExportCertificateParser;
 import com.carsale.erp.shared.ocr.OcrClient;
 import com.carsale.erp.shared.ocr.OcrImagePreparer;
 import java.io.File;

@@ -1,6 +1,7 @@
 package com.carsale.erp.customspipeline.document;
 
 import com.carsale.erp.importpipeline.auction.AuctionParseResult;
+import com.carsale.erp.shared.document.document.CustomsDeclaration;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -9,7 +10,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class CustomsDeclarationInvoiceParseTest {
 
-    private final CustomsDeclaration parser = new CustomsDeclaration();
+    private final CustomsDeclaration parser = new CustomsDeclaration("");
 
     @Test
     void parsesInlineInvoiceSectionFromNoisyOcr() {

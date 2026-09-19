@@ -2,9 +2,9 @@ package com.carsale.erp.shared.pipeline;
 
 public enum FlowPipeline {
     IMPORT("IMPORT", "Import pipeline", "Auction, pre-shipment, equipment, JEVIC, inspection, standards, export, and photos", "fa-route", 0, "/auction/"),
-    CUSTOMS("CUSTOMS", "Customs clearance pipeline", "CUSDEC, assessment notice, and working sheet", "fa-passport", 1, "/customs/"),
-    PREP("PREP", "Preparation pipeline", "Workshop jobs and yard allocation", "fa-wrench", 2, "/workshop-yard/"),
-    READY("READY", "Ready for sale pipeline", "Price and list the vehicle", "fa-flag-checkered", 3, "/ready-for-sale/");
+    CUSTOMS("CUSTOMS", "Customs clearance pipeline", "Bill of lading, CUSDEC, assessment notice, and working sheet", "fa-passport", 1, "/customs/"),
+    PREP("PREP", "Preparation pipeline", "Inspection, workshop, yard, and sale assignment", "fa-wrench", 2, "/workshop-yard/"),
+    READY("READY", "Sale pipeline", "Details, listing, and registration", "fa-tags", 3, "/ready-for-sale/");
 
     private final String flowKey;
     private final String title;

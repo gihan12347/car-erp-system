@@ -45,37 +45,11 @@
                     '',
                     ${record.documentOriginalName},
                     'Choose a JPG, PNG, or PDF certificate to upload and preview.',
-                    'ocrspace')"></div>
+                    'google')"></div>
             </div>
 
             <div class="sheet-fields preship-fields">
-                <article class="panel">
-                    <div class="panel-head"><h2>Inspection organisation</h2></div>
-                    <div class="field-grid">
-                        <label class="span-2">Name <input type="text" th:field="*{inspectionOrgName}" id="inspectionOrgName"></label>
-                        <label class="span-2">Address
-                            <textarea th:field="*{inspectionOrgAddress}" id="inspectionOrgAddress" rows="3"></textarea>
-                        </label>
-                        <label>Tel <input type="text" th:field="*{inspectionOrgTel}" id="inspectionOrgTel"></label>
-                        <label>Fax <input type="text" th:field="*{inspectionOrgFax}" id="inspectionOrgFax"></label>
-                        <label class="span-2">Email <input type="text" th:field="*{inspectionOrgEmail}" id="inspectionOrgEmail"></label>
-                        <label class="span-2">Place of inspection <input type="text" th:field="*{placeOfInspection}" id="placeOfInspection"></label>
-                        <label>Date of inspection <input type="text" th:field="*{dateOfInspection}" id="dateOfInspection"></label>
-                    </div>
-                </article>
-
-                <article class="panel">
-                    <div class="panel-head"><h2>Applicant</h2></div>
-                    <div class="field-grid">
-                        <label class="span-2">Name <input type="text" th:field="*{applicantName}" id="applicantName"></label>
-                        <label class="span-2">Address
-                            <textarea th:field="*{applicantAddress}" id="applicantAddress" rows="3"></textarea>
-                        </label>
-                        <label>Tel <input type="text" th:field="*{applicantTel}" id="applicantTel"></label>
-                        <label>Fax <input type="text" th:field="*{applicantFax}" id="applicantFax"></label>
-                        <label class="span-2">Email <input type="text" th:field="*{applicantEmail}" id="applicantEmail"></label>
-                    </div>
-                </article>
+                <div th:replace="import-pipeline/fragments/preship-parties :: preshipPartiesEdit"></div>
 
                 <article class="panel">
                     <div class="panel-head"><h2>Vehicle particulars</h2></div>
@@ -88,22 +62,25 @@
                         <label>Auction grade <input type="text" th:field="*{preshipAuctionGrade}" id="preshipAuctionGrade"></label>
                         <label>Body colour <input type="text" th:field="*{bodyColour}" id="bodyColour"></label>
                         <label>Fuel type <input type="text" th:field="*{fuelType}" id="fuelType"></label>
-                        <label>First registration <input type="text" th:field="*{firstRegistration}" id="firstRegistration"></label>
+                        <label>First registration <input type="month" th:field="*{firstRegistration}" id="firstRegistration"></label>
                         <label>Inspection mileage <input type="text" th:field="*{inspectionMileage}" id="inspectionMileage"></label>
                         <label>Engine capacity <input type="text" th:field="*{engineCapacity}" id="engineCapacity"></label>
+                        <label>Engine model <input type="text" th:field="*{engineModel}" id="engineModel"></label>
+                        <label>Chassis no. <input type="text" th:field="*{chassisNo}" id="chassisNo" maxlength="40"></label>
                         <label>Engine no. <input type="text" th:field="*{engineNo}" id="engineNo"></label>
                         <label>Driving system <input type="text" th:field="*{drivingSystem}" id="drivingSystem"></label>
                         <label>Accident marks on chassis <input type="text" th:field="*{accidentMarksOnChassis}" id="accidentMarksOnChassis"></label>
                         <label>Chassis condition <input type="text" th:field="*{chassisCondition}" id="chassisCondition"></label>
-                        <label>Full model no. <input type="text" th:field="*{fullModelNo}" id="fullModelNo"></label>
-                        <label>Year of manufacture <input type="text" th:field="*{yearOfManufacture}" id="yearOfManufacture"></label>
+                        <label>Tyre size <input type="text" th:field="*{tyreSize}" id="tyreSize"></label>
+                        <label>Wheel base <input type="text" th:field="*{wheelBase}" id="wheelBase"></label>
+                        <label>Gross vehicle mass <input type="text" th:field="*{grossVehicleMass}" id="grossVehicleMass"></label>
                     </div>
                 </article>
 
-                <button type="submit" class="panel-btn import-form-submit"
-                        th:text="${continueTarget != null and !#strings.isEmpty(continueTarget)}
+                <div th:replace="import-pipeline/fragments/form-actions :: importFormActions(
+                        ${continueTarget != null and !#strings.isEmpty(continueTarget)
                                 ? |Save & continue · ${@pipelineStageService.title('IMPORT', continueTarget)}|
-                                : 'Save & continue'">Save &amp; continue</button>
+                                : 'Save & continue'})"></div>
             </div>
         </div>
     </form>
@@ -129,7 +106,7 @@
 
     <script th:src="@{/js/shared/app.js(v=20260905k)}"></script>
     <script th:src="@{/js/shared/document-viewer.js(v=20260826d)}"></script>
-    <script th:src="@{/js/import-pipeline/preshipment.js(v=20260829a)}"></script>
+    <script th:src="@{/js/import-pipeline/preshipment.js(v=20260918d)}"></script>
     <script th:src="@{/js/shared/chassis-check.js(v=20260827a)}"></script>
 </th:block>
 

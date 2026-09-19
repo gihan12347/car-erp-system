@@ -1,4 +1,4 @@
-package com.carsale.erp.customspipeline.document;
+package com.carsale.erp.shared.document.document;
 
 import java.util.Arrays;
 import java.util.Comparator;
@@ -8,21 +8,15 @@ import java.util.regex.Pattern;
 import com.carsale.erp.importpipeline.equipment.EquipmentInspectionFields;
 import com.carsale.erp.shared.document.DocumentParser;
 import com.carsale.erp.shared.ocr.DocumentAiClient;
+import com.carsale.erp.shared.utils.CustomsDocumentParserUtils;
 import org.springframework.stereotype.Service;
 
 import com.carsale.erp.importpipeline.auction.AuctionParseResult;
 import com.carsale.erp.importpipeline.equipment.EquipmentInspectionFields.FieldDef;
+import com.carsale.erp.shared.regex.RegexConstants;
 
 @Service
 public class EquipmentInspectionParser implements DocumentParser {
-
-    private static final String VALUE_GROUP = "(YES|NO|OK|N\\s*/\\s*A|N\\.?\\s*A\\.?|NA|NIL|NONE|NOT\\s+APPLICABLE"
-            + "|SINGLE|DUAL|AUTO|MANUAL|PLASTIC|STEEL|OTHER|HARD|SOFT|PASS|NORMAL|\\d{1,2})";
-
-    private static final Pattern VALUE_AFTER_LABEL = Pattern.compile(
-            "\\s*[:\\-]?\\s*(" + VALUE_GROUP + ")\\b",
-            Pattern.CASE_INSENSITIVE
-    );
 
     public AuctionParseResult parsePage(String text) {
         AuctionParseResult result = new AuctionParseResult(text);
@@ -40,20 +34,20 @@ public class EquipmentInspectionParser implements DocumentParser {
         String truckText = section(normalized, "Truck Body", "SAFETY EQUIPMENT", "Drivers Airbag", "Driver's Airbag");
 
         for (FieldDef field : EquipmentInspectionFields.interior()) {
-            result.put(field.getKey(), firstNonNull(
+            result.put(field.getKey(), CustomsDocumentParserUtils.firstNonNull(
                     extractValue(interiorText, field),
                     extractValue(normalized, field)
             ));
         }
         for (FieldDef field : EquipmentInspectionFields.exterior()) {
             String scoped = scopedText(field, exteriorText, bodyKitText, truckText, normalized);
-            result.put(field.getKey(), firstNonNull(
+            result.put(field.getKey(), CustomsDocumentParserUtils.firstNonNull(
                     extractValue(scoped, field),
                     extractValue(normalized, field)
             ));
         }
         for (FieldDef field : EquipmentInspectionFields.safety()) {
-            result.put(field.getKey(), firstNonNull(
+            result.put(field.getKey(), CustomsDocumentParserUtils.firstNonNull(
                     extractValue(safetyText, field),
                     extractValue(normalized, field)
             ));
@@ -73,6 +67,11 @@ public class EquipmentInspectionParser implements DocumentParser {
     @Override
     public AuctionParseResult parsePage(DocumentAiClient.DocumentAiResult documentAi) {
         return null;
+    }
+
+    @Override
+    public String getProcessorId() {
+        return "";
     }
 
     private String scopedText(FieldDef field, String exteriorText, String bodyKitText, String truckText, String fullText) {
@@ -101,13 +100,11 @@ public class EquipmentInspectionParser implements DocumentParser {
     }
 
     private String extractAfterLabel(String text, String label) {
-        Pattern labelPattern = Pattern.compile(
-                "(?i)(?<![A-Za-z0-9])" + Pattern.quote(label)
-        );
+        Pattern labelPattern = RegexConstants.Labeled.ignoreCaseAtWordBoundary(label);
         Matcher labels = labelPattern.matcher(text);
         while (labels.find()) {
             String tail = text.substring(labels.end());
-            Matcher value = VALUE_AFTER_LABEL.matcher(tail);
+            Matcher value = RegexConstants.Equipment.VALUE_AFTER_LABEL.matcher(tail);
             if (value.lookingAt()) {
                 return normalizeValue(value.group(1));
             }
@@ -116,7 +113,7 @@ public class EquipmentInspectionParser implements DocumentParser {
     }
 
     private String section(String text, String start, String... ends) {
-        Pattern startPattern = Pattern.compile("(?i)" + Pattern.quote(start));
+        Pattern startPattern = RegexConstants.Labeled.quotedTextIgnoreCase(start);
         Matcher startMatcher = startPattern.matcher(text);
         if (!startMatcher.find()) {
             return "";
@@ -124,7 +121,7 @@ public class EquipmentInspectionParser implements DocumentParser {
         int from = startMatcher.start();
         int to = text.length();
         for (String end : ends) {
-            Pattern endPattern = Pattern.compile("(?i)" + Pattern.quote(end));
+            Pattern endPattern = RegexConstants.Labeled.quotedTextIgnoreCase(end);
             Matcher endMatcher = endPattern.matcher(text);
             if (endMatcher.find(startMatcher.end()) && endMatcher.start() < to && endMatcher.start() > from) {
                 to = endMatcher.start();
@@ -136,8 +133,8 @@ public class EquipmentInspectionParser implements DocumentParser {
     private String normalize(String text) {
         String value = text.replace('\u00a0', ' ');
         value = value.replace("\r\n", "\n").replace('\r', '\n');
-        value = value.replaceAll("[\\t]+", " ");
-        value = value.replaceAll(" +", " ");
+        value = value.replaceAll(RegexConstants.Text.TABS, " ");
+        value = value.replaceAll(RegexConstants.Text.SPACES, " ");
         return value;
     }
 
@@ -145,34 +142,23 @@ public class EquipmentInspectionParser implements DocumentParser {
         if (value == null) {
             return null;
         }
-        String trimmed = value.trim().replaceAll("\\s+", " ");
-        String compact = trimmed.toUpperCase(Locale.ROOT).replace(" ", "");
-        if ("YES".equals(compact) || "Y".equals(compact)) {
-            return "YES";
-        }
-        if ("NO".equals(compact) || "N".equals(compact)) {
-            return "NO";
-        }
-        if ("OK".equals(compact)) {
-            return "OK";
-        }
-        if ("NA".equals(compact) || "N/A".equals(compact) || "N.A.".equals(compact) || "N.A".equals(compact)
-                || "NIL".equals(compact) || "NONE".equals(compact) || "NOTAPPLICABLE".equals(compact)) {
-            return "N/A";
-        }
-        if (trimmed.matches("\\d{1,2}")) {
-            return trimmed;
-        }
-        return trimmed.toUpperCase(Locale.ROOT);
+        String trimmed = value.trim().replaceAll(RegexConstants.Text.WHITESPACE, " ");
+        return getNormalizedValue(trimmed.toUpperCase(Locale.ROOT).replace(" ", ""));
     }
 
-    private static String firstNonNull(String... values) {
-        for (String value : values) {
-            if (value != null && !value.trim().isEmpty()) {
-                return value;
-            }
+    private String getNormalizedValue(String compact) {
+        switch (compact) {
+            case "YES":
+            case "Y":
+                return "YES";
+            case "NO":
+            case "N":
+                return "NO";
+            case "OK":
+                return "OK";
+            default:
+                return "N/A";
         }
-        return null;
     }
 
     private static String firstNonEmpty(String... values) {

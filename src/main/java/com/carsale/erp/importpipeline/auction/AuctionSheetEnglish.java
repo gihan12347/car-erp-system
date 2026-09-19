@@ -1,6 +1,7 @@
 package com.carsale.erp.importpipeline.auction;
 
 import com.carsale.erp.shared.ocr.JapaneseTextTranslator;
+import com.carsale.erp.shared.regex.RegexConstants;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -8,20 +9,13 @@ import java.util.regex.Pattern;
 
 public final class AuctionSheetEnglish {
 
-    private static final Pattern JAPANESE = Pattern.compile("[\\u3040-\\u30FF\\u4E00-\\u9FFF]");
-    private static final Pattern PRESERVE = Pattern.compile(
-            "[A-Z]{1,5}\\d{2,3}[A-Z0-9]{0,2}-\\d{5,8}"
-                    + "|(?:[0-9][A-Z]{2}|[A-Z]{3})-[A-Z0-9]{3,10}"
-                    + "|(?<![A-Z0-9])[A-Z]\\d{2}(?![A-Z0-9])"
-                    + "|(?<![A-Z0-9])\\d[A-Z]\\d(?![A-Z0-9])",
-            Pattern.CASE_INSENSITIVE);
     private static final String[] MONTHS = new String[] {
             "", "Jan", "Feb", "Mar", "Apr", "May", "Jun",
             "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
     };
 
     public static boolean containsJapanese(String value) {
-        return value != null && JAPANESE.matcher(value).find();
+        return value != null && RegexConstants.Text.JAPANESE_SCRIPT.matcher(value).find();
     }
 
     public static String translateLine(String line, JapaneseTextTranslator translator) {
@@ -42,7 +36,7 @@ public final class AuctionSheetEnglish {
     }
 
     public static String maskSheetTokens(String line, List<String> tokens) {
-        Matcher matcher = PRESERVE.matcher(line);
+        Matcher matcher = RegexConstants.Identifiers.PRESERVE_SHEET_TOKEN.matcher(line);
         StringBuffer buffer = new StringBuffer();
         while (matcher.find()) {
             tokens.add(matcher.group());
@@ -59,7 +53,7 @@ public final class AuctionSheetEnglish {
         String result = translated;
         List<String> missing = new ArrayList<>();
         for (int i = 0; i < tokens.size(); i++) {
-            Pattern marker = Pattern.compile("\\[\\[\\s*T\\s*" + i + "\\s*\\]\\]", Pattern.CASE_INSENSITIVE);
+            Pattern marker = RegexConstants.Identifiers.translationPlaceholder(i);
             Matcher found = marker.matcher(result);
             if (found.find()) {
                 result = found.replaceAll(Matcher.quoteReplacement(tokens.get(i)));
@@ -68,9 +62,11 @@ public final class AuctionSheetEnglish {
             }
         }
         if (!missing.isEmpty()) {
-            result = result.replaceAll("[ \\t]+$", "") + " " + String.join(" ", missing);
+            result = result.replaceAll(RegexConstants.Text.TRAILING_HORIZONTAL, "") + " " + String.join(" ", missing);
         }
-        return result.replaceAll("[ \\t\\u00A0]+", " ").replaceAll(" *\\n *", "\n").trim();
+        return result.replaceAll(RegexConstants.Text.NBSP_HORIZONTAL, " ")
+                .replaceAll(RegexConstants.Text.NEWLINE_WRAP_SPACE, "\n")
+                .trim();
     }
 
     public static String convert(String value, JapaneseTextTranslator translator) {
@@ -85,18 +81,18 @@ public final class AuctionSheetEnglish {
                 result = translated;
             }
         }
-        result = result.replaceAll("[\\u3040-\\u30FF\\u4E00-\\u9FFF]", " ");
-        result = result.replaceAll("[|｜]+", " ");
-        result = result.replaceAll("(?<=[A-Za-z0-9])\\(", " (");
-        result = result.replaceAll("\\s+,", ",");
-        result = result.replaceAll("(?i)HybridZ", "Hybrid Z");
-        result = result.replaceAll("\\s+", " ").trim();
-        result = result.replaceAll("(^,\\s*)+|(\\s*,)+$", "");
+        result = result.replaceAll(RegexConstants.Text.JAPANESE_SCRIPT.pattern(), " ");
+        result = result.replaceAll(RegexConstants.Text.PIPE, " ");
+        result = result.replaceAll(RegexConstants.Text.SPACE_BEFORE_PAREN, " (");
+        result = result.replaceAll(RegexConstants.Text.SPACE_BEFORE_COMMA, ",");
+        result = result.replaceAll(RegexConstants.Text.HYBRID_Z, "Hybrid Z");
+        result = result.replaceAll(RegexConstants.Text.WHITESPACE, " ").trim();
+        result = result.replaceAll(RegexConstants.Text.LEADING_TRAILING_COMMAS, "");
         return result.isEmpty() ? null : result;
     }
 
     private static String convertDates(String value) {
-        Matcher era = Pattern.compile("(令和|平成|昭和)\\s*(\\d{1,2}|元)\\s*年\\s*(\\d{1,2})\\s*月").matcher(value);
+        Matcher era = RegexConstants.Dates.ERA_YEAR_MONTH_PATTERN.matcher(value);
         StringBuffer buffer = new StringBuffer();
         while (era.find()) {
             int year = toWesternYear(era.group(1), era.group(2));

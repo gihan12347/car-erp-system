@@ -19,7 +19,7 @@
     </div>
 
     <div th:unless="${inspection == null}">
-        <article class="panel">
+        <article class="panel inspection-details-panel">
             <div class="panel-head"><h2>Inspection details</h2></div>
             <div class="field-grid">
                 <label>Inspector <input type="text" th:value="${inspection.inspector}" readonly class="readonly-field"></label>
@@ -27,19 +27,27 @@
             </div>
         </article>
 
-        <article class="panel inspection-item-card" th:each="line, stat : ${inspection.lines}">
-            <div class="panel-head workshop-job-head">
-                <h2>
-                    <span th:text="${line.itemTitle}">Engine</span>
-                    <em class="pill muted-pill"
-                        th:text="${T(com.carsale.erp.preparationpipeline.inspection.InspectionResults).display(line.result)}">OK</em>
-                </h2>
-            </div>
-            <div class="field-grid" th:if="${line.notes != null and !#strings.isEmpty(line.notes)}">
-                <label class="span-2">Notes
-                    <textarea th:text="${line.notes}" readonly class="readonly-field" rows="2"></textarea>
-                </label>
-            </div>
+        <article class="panel inspection-checklist-panel">
+            <div class="panel-head"><h2>Checklist</h2></div>
+            <ul class="inspection-checklist">
+                <li class="inspection-check-row"
+                    th:each="line, stat : ${inspection.lines}"
+                    th:with="resultKey=${T(com.carsale.erp.preparationpipeline.inspection.InspectionResults).cssClass(line.result)},
+                             resultLabel=${T(com.carsale.erp.preparationpipeline.inspection.InspectionResults).display(line.result)}"
+                    th:classappend="${' is-' + #strings.toLowerCase(resultKey)}">
+                    <span class="inspection-check" th:title="${resultLabel}" th:aria-label="${resultLabel}">
+                        <i class="fa-solid fa-check" th:if="${resultKey == 'OK'}" aria-hidden="true"></i>
+                        <i class="fa-solid fa-xmark" th:if="${resultKey == 'NO'}" aria-hidden="true"></i>
+                        <i class="fa-solid fa-minus" th:if="${resultKey == 'NA'}" aria-hidden="true"></i>
+                    </span>
+                    <div class="inspection-check-body">
+                        <strong th:text="${line.itemTitle}">Engine</strong>
+                        <p class="inspection-check-note"
+                           th:if="${line.notes != null and !#strings.isEmpty(line.notes)}"
+                           th:text="${line.notes}">Need to replace</p>
+                    </div>
+                </li>
+            </ul>
         </article>
 
         <div class="import-view-actions">

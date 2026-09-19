@@ -23,12 +23,17 @@ import javax.persistence.Table;
         @SecondaryTable(
                 name = "clearance_working_sheets",
                 pkJoinColumns = @PrimaryKeyJoinColumn(name = "chassis_no")
+        ),
+        @SecondaryTable(
+                name = "clearance_bills_of_lading",
+                pkJoinColumns = @PrimaryKeyJoinColumn(name = "chassis_no")
         )
 })
 @org.hibernate.annotations.Tables({
         @org.hibernate.annotations.Table(appliesTo = "clearance_assessment_notices", optional = true),
         @org.hibernate.annotations.Table(appliesTo = "clearance_jevic_inspections", optional = true),
-        @org.hibernate.annotations.Table(appliesTo = "clearance_working_sheets", optional = true)
+        @org.hibernate.annotations.Table(appliesTo = "clearance_working_sheets", optional = true),
+        @org.hibernate.annotations.Table(appliesTo = "clearance_bills_of_lading", optional = true)
 })
 public class CustomsDocument {
 
@@ -658,6 +663,43 @@ public class CustomsDocument {
     @Lob
     @Column(table = "clearance_working_sheets", columnDefinition = "TEXT")
     private String ocrTextPage4;
+
+    /* Page 5 — Bill of lading (own table: clearance_documents is at InnoDB row-size limit) */
+    @Lob
+    @Column(name = "bl_no", table = "clearance_bills_of_lading", columnDefinition = "TEXT")
+    private String blNo;
+
+    @Lob
+    @Column(name = "date_of_bl_issue", table = "clearance_bills_of_lading", columnDefinition = "TEXT")
+    private String dateOfBlIssue;
+
+    @Lob
+    @Column(name = "landing_cost_usd", table = "clearance_bills_of_lading", columnDefinition = "TEXT")
+    private String landingCostUsd;
+
+    @Lob
+    @Column(name = "bl_exchange_rate", table = "clearance_bills_of_lading", columnDefinition = "TEXT")
+    private String blExchangeRate;
+
+    @Lob
+    @Column(name = "landing_cost_lkr", table = "clearance_bills_of_lading", columnDefinition = "TEXT")
+    private String landingCostLkr;
+
+    @Lob
+    @Column(table = "clearance_bills_of_lading", columnDefinition = "TEXT")
+    private String page5OriginalName;
+
+    @Lob
+    @Column(table = "clearance_bills_of_lading", columnDefinition = "TEXT")
+    private String page5StoredName;
+
+    @Lob
+    @Column(table = "clearance_bills_of_lading", columnDefinition = "TEXT")
+    private String page5ContentType;
+
+    @Lob
+    @Column(table = "clearance_bills_of_lading", columnDefinition = "TEXT")
+    private String ocrTextPage5;
 
     public String getChassisNo() {
         return chassisNo;
@@ -1913,5 +1955,77 @@ public class CustomsDocument {
 
     public void setOcrTextPage4(String ocrTextPage4) {
         this.ocrTextPage4 = ocrTextPage4;
+    }
+
+    public String getBlNo() {
+        return blNo;
+    }
+
+    public void setBlNo(String blNo) {
+        this.blNo = blNo;
+    }
+
+    public String getDateOfBlIssue() {
+        return dateOfBlIssue;
+    }
+
+    public void setDateOfBlIssue(String dateOfBlIssue) {
+        this.dateOfBlIssue = dateOfBlIssue;
+    }
+
+    public String getLandingCostUsd() {
+        return landingCostUsd;
+    }
+
+    public void setLandingCostUsd(String landingCostUsd) {
+        this.landingCostUsd = landingCostUsd;
+    }
+
+    public String getBlExchangeRate() {
+        return blExchangeRate;
+    }
+
+    public void setBlExchangeRate(String blExchangeRate) {
+        this.blExchangeRate = blExchangeRate;
+    }
+
+    public String getLandingCostLkr() {
+        return landingCostLkr;
+    }
+
+    public void setLandingCostLkr(String landingCostLkr) {
+        this.landingCostLkr = landingCostLkr;
+    }
+
+    public String getPage5OriginalName() {
+        return page5OriginalName;
+    }
+
+    public void setPage5OriginalName(String page5OriginalName) {
+        this.page5OriginalName = page5OriginalName;
+    }
+
+    public String getPage5StoredName() {
+        return page5StoredName;
+    }
+
+    public void setPage5StoredName(String page5StoredName) {
+        this.page5StoredName = page5StoredName;
+    }
+
+    public String getPage5ContentType() {
+        return page5ContentType;
+    }
+
+    public void setPage5ContentType(String page5ContentType) {
+        this.page5ContentType = page5ContentType;
+    }
+
+    public String getOcrTextPage5() {
+        return ocrTextPage5;
+    }
+
+    public void setOcrTextPage5(String ocrTextPage5) {
+        this.ocrTextPage5 = ocrTextPage5;
     }
 }

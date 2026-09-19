@@ -1,5 +1,6 @@
 package com.carsale.erp.importpipeline.auction;
 
+import com.carsale.erp.shared.document.document.WorkingSheet;
 import com.carsale.erp.shared.ocr.OcrClient;
 import com.carsale.erp.shared.ocr.OcrImagePreparer;
 import java.io.File;
@@ -19,12 +20,12 @@ public class AuctionSheetOcrService {
 
     private static final Logger log = LoggerFactory.getLogger(AuctionSheetOcrService.class);
 
-    private final AuctionSheetParser parser;
+    private final WorkingSheet.AuctionSheetParser parser;
     private final OcrImagePreparer imagePreparer;
     private final String language;
 
     public AuctionSheetOcrService(
-            AuctionSheetParser parser,
+            WorkingSheet.AuctionSheetParser parser,
             OcrImagePreparer imagePreparer,
             @Value("${app.ocr.ocrspace.language:jpn}") String language
     ) {

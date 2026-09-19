@@ -29,7 +29,6 @@ public class SecurityConfig {
                 .and()
                 .authorizeRequests()
                     .antMatchers("/css/**", "/js/**", "/images/**", "/favicon.ico", "/favicon.svg", "/login").permitAll()
-                    .antMatchers("/settings/**").hasAnyRole("ADMIN", "SUPER_ADMIN")
                     .anyRequest().authenticated()
                 .and()
                 .formLogin()

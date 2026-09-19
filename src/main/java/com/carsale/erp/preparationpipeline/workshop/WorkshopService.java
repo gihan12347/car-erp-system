@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.carsale.erp.shared.vehicle.Vehicle;
 import com.carsale.erp.shared.vehicle.VehicleRepository;
+import com.carsale.erp.shared.regex.RegexConstants;
 
 @Service
 public class WorkshopService {
@@ -29,6 +30,7 @@ public class WorkshopService {
         WorkshopJob record = workshopJobRepository.findById(chassisNo.trim()).orElse(null);
         if (record != null) {
             migrateLegacyLine(record);
+            normalizeLineDates(record);
         }
         return record;
     }
@@ -48,41 +50,35 @@ public class WorkshopService {
             return record;
         }
         migrateLegacyLine(record);
+        normalizeLineDates(record);
         return record;
     }
 
     public boolean isComplete(String chassisNo) {
         WorkshopJob record = findByChassisNo(chassisNo);
-        return record != null && record.isCompleted();
+        return record != null && allJobsComplete(record);
     }
 
     public boolean canEnterYard(String chassisNo) {
-        WorkshopJob record = findByChassisNo(chassisNo);
-        if (record == null) {
-            return false;
-        }
+        return isComplete(chassisNo);
+    }
+
+    private static boolean allJobsComplete(WorkshopJob record) {
         List<WorkshopJobLine> lines = record.getLines();
         if (lines == null || lines.isEmpty()) {
-            return record.isCompleted();
+            return true;
         }
+        boolean any = false;
         for (WorkshopJobLine line : lines) {
             if (line == null || line.isEmpty()) {
                 continue;
             }
+            any = true;
             if (!"COMPLETE".equals(line.getJobStatus())) {
                 return false;
             }
         }
-        return hasRealJobLine(lines) || record.isCompleted();
-    }
-
-    private static boolean hasRealJobLine(List<WorkshopJobLine> lines) {
-        for (WorkshopJobLine line : lines) {
-            if (line != null && !line.isEmpty()) {
-                return true;
-            }
-        }
-        return false;
+        return any || record.isCompleted();
     }
 
     @Transactional
@@ -199,13 +195,14 @@ public class WorkshopService {
             existing = new WorkshopJob();
             existing.setChassisNo(chassisNo);
         }
-        existing.setCompleted(incoming.isCompleted());
-        if (incoming.isCompleted()) {
+        syncLines(existing, incoming.getLines());
+        boolean complete = allJobsComplete(existing);
+        existing.setCompleted(complete);
+        if (complete) {
             existing.setJobStatus("COMPLETE");
         } else if (isBlank(existing.getJobStatus())) {
             existing.setJobStatus("PENDING");
         }
-        syncLines(existing, incoming.getLines());
         return workshopJobRepository.save(existing);
     }
 
@@ -229,10 +226,14 @@ public class WorkshopService {
             if (incomingLine.getId() != null && currentById.containsKey(incomingLine.getId())) {
                 WorkshopJobLine managed = currentById.get(incomingLine.getId());
                 BeanUtils.copyProperties(incomingLine, managed, "id", "job");
+                managed.setStartedOn(normalizeIsoDate(managed.getStartedOn()));
+                managed.setCompletedOn(normalizeIsoDate(managed.getCompletedOn()));
                 managed.setJob(existing);
                 next.add(managed);
             } else {
                 incomingLine.setId(null);
+                incomingLine.setStartedOn(normalizeIsoDate(incomingLine.getStartedOn()));
+                incomingLine.setCompletedOn(normalizeIsoDate(incomingLine.getCompletedOn()));
                 incomingLine.setJob(existing);
                 next.add(incomingLine);
             }
@@ -288,5 +289,46 @@ public class WorkshopService {
 
     private static boolean isBlank(String value) {
         return value == null || value.trim().isEmpty();
+    }
+
+    private static void normalizeLineDates(WorkshopJob record) {
+        if (record == null || record.getLines() == null) {
+            return;
+        }
+        for (WorkshopJobLine line : record.getLines()) {
+            if (line == null) {
+                continue;
+            }
+            line.setStartedOn(normalizeIsoDate(line.getStartedOn()));
+            line.setCompletedOn(normalizeIsoDate(line.getCompletedOn()));
+        }
+    }
+
+    static String normalizeIsoDate(String raw) {
+        if (raw == null) {
+            return null;
+        }
+        String value = raw.trim();
+        if (value.isEmpty()) {
+            return null;
+        }
+        if (value.matches(RegexConstants.Dates.ISO_DATE)) {
+            return value;
+        }
+        java.util.regex.Matcher slash = RegexConstants.Dates.DAY_MONTH_YEAR_NUMERIC_PATTERN.matcher(value);
+        if (slash.matches()) {
+            return String.format("%s-%02d-%02d",
+                    slash.group(3),
+                    Integer.parseInt(slash.group(2)),
+                    Integer.parseInt(slash.group(1)));
+        }
+        java.util.regex.Matcher yearFirst = RegexConstants.Dates.YEAR_MONTH_DAY_NUMERIC_PATTERN.matcher(value);
+        if (yearFirst.matches()) {
+            return String.format("%s-%02d-%02d",
+                    yearFirst.group(1),
+                    Integer.parseInt(yearFirst.group(2)),
+                    Integer.parseInt(yearFirst.group(3)));
+        }
+        return value;
     }
 }

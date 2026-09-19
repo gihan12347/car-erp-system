@@ -5,6 +5,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 
+import com.carsale.erp.shared.regex.RegexConstants;
+
 /**
  * Workshop inspection checklist choices: OK, No, N/A.
  */
@@ -48,7 +50,7 @@ public final class InspectionResults {
         if (value == null) {
             return "";
         }
-        String trimmed = value.trim().replaceAll("\\s+", " ");
+        String trimmed = value.trim().replaceAll(RegexConstants.Text.WHITESPACE, " ");
         if (trimmed.isEmpty()) {
             return "";
         }
@@ -81,7 +83,7 @@ public final class InspectionResults {
         if (NA.equals(canonical)) {
             return "NA";
         }
-        String suffix = canonical.replaceAll("[^A-Za-z0-9]+", "");
+        String suffix = canonical.replaceAll(RegexConstants.Text.ALNUM_ONLY, "");
         return suffix.isEmpty() ? "choice" : suffix;
     }
 }

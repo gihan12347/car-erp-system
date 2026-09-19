@@ -142,6 +142,7 @@ public class VehicleInspectionController {
         model.addAttribute("workshopReady", status.isWorkshopReady());
         model.addAttribute("yardReady", status.isYardReady());
         model.addAttribute("inspectionReady", status.isInspectionReady());
+        model.addAttribute("saleReady", status.isSaleReady());
         model.addAttribute("canEnterYard", status.isCanEnterYard());
         model.addAttribute("prepComplete", status.isPipelineCompleted());
         model.addAttribute("stageNav", PreparationStageUrls.editLinks(

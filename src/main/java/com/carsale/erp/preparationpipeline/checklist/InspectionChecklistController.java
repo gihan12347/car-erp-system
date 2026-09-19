@@ -9,8 +9,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import com.carsale.erp.preparationpipeline.checklist.InspectionItemService;
-
 @Controller
 @RequestMapping("/inspection-items")
 public class InspectionChecklistController {

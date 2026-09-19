@@ -4,9 +4,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.Locale;
 import com.carsale.erp.importpipeline.auction.AuctionParseResult;
+import com.carsale.erp.shared.regex.RegexConstants;
 
 public class CustomsDocumentParserUtils {
-    private static final String TAX_CODE_BOUNDARY = "OTC|COM|EXM|CID|SUR|XID|VAT|VEL|SEL";
 
     public static String firstNonNull(String... values) {
         if (values == null) {
@@ -40,15 +40,14 @@ public class CustomsDocumentParserUtils {
     }
 
     public static String normalize(String text) {
-        return text.replace('\r', '\n').replaceAll("[ \t]+", " ").replaceAll("\n{3,}", "\n\n");
+        return text.replace('\r', '\n')
+                .replaceAll(RegexConstants.Text.HORIZONTAL_SPACE, " ")
+                .replaceAll(RegexConstants.Text.MANY_NEWLINES, "\n\n");
     }
 
     public static String extractLabel(String text, String... labels) {
         for (String label : labels) {
-            Pattern pattern = Pattern.compile(
-                    Pattern.quote(label) + "(?:\\s*#|\\s*No\\.?)?\\s*[:\\.]?\\s*([^\\n]+)",
-                    Pattern.CASE_INSENSITIVE
-            );
+            Pattern pattern = RegexConstants.Labeled.valueAfterQuotedLabelOrNumber(label);
             Matcher matcher = pattern.matcher(text);
             if (matcher.find()) {
                 return clean(matcher.group(1));
@@ -58,7 +57,7 @@ public class CustomsDocumentParserUtils {
     }
 
     public static String findChassis(String text) {
-        Matcher matcher = Pattern.compile("\\b([A-Z0-9]{3,10}-[0-9]{5,10})\\b").matcher(text);
+        Matcher matcher = RegexConstants.Identifiers.CHASSIS.matcher(text);
         if (matcher.find()) {
             return matcher.group(1);
         }
@@ -66,7 +65,7 @@ public class CustomsDocumentParserUtils {
     }
 
     public static String extractHsCode(String text) {
-        Matcher matcher = Pattern.compile("\\b(8703\\.\\d{2}\\.\\d{2})\\b").matcher(text);
+        Matcher matcher = RegexConstants.Identifiers.HS_CODE.matcher(text);
         if (matcher.find()) {
             return matcher.group(1);
         }
@@ -88,10 +87,8 @@ public class CustomsDocumentParserUtils {
     }
 
     private static String taxCodeSnippet(String text, String taxCode) {
-        Matcher matcher = Pattern.compile(
-                "\\b" + Pattern.quote(taxCode) + "\\b([\\s\\S]*?)(?=\\b(?:" + TAX_CODE_BOUNDARY + ")\\b|\\z)",
-                Pattern.CASE_INSENSITIVE
-        ).matcher(text);
+        Matcher matcher = RegexConstants.Assessment.snippetAfterTaxCode(taxCode, RegexConstants.Assessment.TAX_CODE_BOUNDARY)
+                .matcher(text);
         if (!matcher.find()) {
             return null;
         }
@@ -104,16 +101,16 @@ public class CustomsDocumentParserUtils {
         }
 
         // Prefer the rightmost full amount (tax value column is on the right).
-        Matcher grouped = Pattern.compile("(\\d{1,3}(?:[\\s.,\\u00A0\\u202F]\\d{3})+)").matcher(snippet);
+        Matcher grouped = RegexConstants.Amounts.GROUPED_SPACED_PATTERN.matcher(snippet);
         String lastGrouped = null;
         while (grouped.find()) {
             lastGrouped = grouped.group(1);
         }
         if (lastGrouped != null) {
-            return formatThousands(lastGrouped.replaceAll("\\D", ""));
+            return formatThousands(lastGrouped.replaceAll(RegexConstants.Text.NON_DIGIT, ""));
         }
 
-        Matcher compact = Pattern.compile("(\\d{4,})").matcher(snippet);
+        Matcher compact = RegexConstants.Amounts.COMPACT_DIGITS_PATTERN.matcher(snippet);
         String lastCompact = null;
         while (compact.find()) {
             lastCompact = compact.group(1);
@@ -138,9 +135,9 @@ public class CustomsDocumentParserUtils {
         if (lead == 0) {
             lead = 3;
         }
-        result.append(digits.substring(0, lead));
+        result.append(digits, 0, lead);
         for (int i = lead; i < length; i += 3) {
-            result.append(',').append(digits.substring(i, i + 3));
+            result.append(',').append(digits, i, i + 3);
         }
         return result.toString();
     }
@@ -149,8 +146,8 @@ public class CustomsDocumentParserUtils {
         if (value == null) {
             return null;
         }
-        String cleaned = value.trim().replaceAll("\\s{2,}", " ");
-        cleaned = cleaned.replaceAll("^[.:|\\-/]+", "").replaceAll("[\\-/]+$", "").trim();
+        String cleaned = value.trim().replaceAll(RegexConstants.Text.WHITESPACE_RUN, " ");
+        cleaned = cleaned.replaceAll(RegexConstants.Text.LEADING_PUNCT, "").replaceAll(RegexConstants.Text.TRAILING_DASH, "").trim();
         if (cleaned.isEmpty() || isEmptyToken(cleaned)) {
             return null;
         }

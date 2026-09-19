@@ -1,23 +1,26 @@
 package com.carsale.erp.preparationpipeline.yard;
 
-import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.carsale.erp.shared.vehicle.Vehicle;
-import com.carsale.erp.preparationpipeline.yard.YardRecord;
 import com.carsale.erp.shared.vehicle.VehicleRepository;
-import com.carsale.erp.preparationpipeline.yard.YardRecordRepository;
 
 @Service
 public class YardService {
 
     private final VehicleRepository vehicleRepository;
     private final YardRecordRepository yardRecordRepository;
+    private final YardBayService yardBayService;
 
-    public YardService(VehicleRepository vehicleRepository, YardRecordRepository yardRecordRepository) {
+    public YardService(
+            VehicleRepository vehicleRepository,
+            YardRecordRepository yardRecordRepository,
+            YardBayService yardBayService
+    ) {
         this.vehicleRepository = vehicleRepository;
         this.yardRecordRepository = yardRecordRepository;
+        this.yardBayService = yardBayService;
     }
 
     public YardRecord findByChassisNo(String chassisNo) {
@@ -43,7 +46,7 @@ public class YardService {
 
     public boolean isComplete(String chassisNo) {
         YardRecord record = findByChassisNo(chassisNo);
-        return record != null && record.isCompleted();
+        return isAssigned(record);
     }
 
     @Transactional
@@ -59,14 +62,31 @@ public class YardService {
             incoming.setInspectionStatus("PENDING");
         }
 
+        if (!isBlank(incoming.getBayNo())) {
+            YardBay yard = yardBayService.requireAssignable(incoming.getBayNo(), chassisNo);
+            incoming.setBayNo(yard.getBayCode());
+            incoming.setYardSection(yard.getLocation());
+        }
+
+        incoming.setCompleted(isAssigned(incoming));
+
         YardRecord existing = yardRecordRepository.findById(chassisNo).orElse(null);
         if (existing != null) {
-            BeanUtils.copyProperties(incoming, existing);
+            existing.setBayNo(incoming.getBayNo());
+            existing.setYardSection(incoming.getYardSection());
+            existing.setArrivalDate(incoming.getArrivalDate());
+            existing.setCompleted(incoming.isCompleted());
             existing.setChassisNo(chassisNo);
             return yardRecordRepository.save(existing);
         }
         incoming.setChassisNo(chassisNo);
         return yardRecordRepository.save(incoming);
+    }
+
+    private static boolean isAssigned(YardRecord record) {
+        return record != null
+                && !isBlank(record.getBayNo())
+                && !isBlank(record.getArrivalDate());
     }
 
     private static boolean isBlank(String value) {

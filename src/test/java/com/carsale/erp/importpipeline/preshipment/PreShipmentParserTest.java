@@ -3,14 +3,14 @@ package com.carsale.erp.importpipeline.preshipment;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.carsale.erp.customspipeline.document.PreShipmentParser;
+import com.carsale.erp.shared.document.document.PreShipmentParser;
 import org.junit.jupiter.api.Test;
 
 import com.carsale.erp.importpipeline.auction.AuctionParseResult;
 
 class PreShipmentParserTest {
 
-    private final PreShipmentParser parser = new PreShipmentParser();
+    private final PreShipmentParser parser = new PreShipmentParser("");
 
     @Test
     void parsesSampleBvCertificateFields() {
@@ -37,7 +37,7 @@ class PreShipmentParserTest {
         assertEquals("LAND CRUISER 250", result.getFields().get("commonName"));
         assertEquals("PEARL WHITE", result.getFields().get("bodyColour"));
         assertEquals("GASOLINE", result.getFields().get("fuelType"));
-        assertEquals("May-2025", result.getFields().get("firstRegistration"));
+        assertEquals("2025-05", result.getFields().get("firstRegistration"));
         assertEquals("32km", result.getFields().get("inspectionMileage"));
         assertEquals("2,690cc", result.getFields().get("engineCapacity"));
         assertEquals("TRJ250-0025161", result.getFields().get("chassisNo"));
@@ -112,6 +112,49 @@ class PreShipmentParserTest {
         assertEquals("2TR-2705714", result.getFields().get("engineNo"));
         assertEquals("4WD", result.getFields().get("drivingSystem"));
         assertEquals("Good", result.getFields().get("chassisCondition"));
+    }
+
+    @Test
+    void parsesDocumentAiEntitiesIntoFormFields() {
+        java.util.List<com.carsale.erp.shared.ocr.DocumentAiClient.DocumentAiEntity> entities =
+                new java.util.ArrayList<com.carsale.erp.shared.ocr.DocumentAiClient.DocumentAiEntity>();
+        entities.add(new com.carsale.erp.shared.ocr.DocumentAiClient.DocumentAiEntity(
+                "applicant_name", "KAN-DE (NAGOYA) TRADING CO., LTD.", 0.98));
+        entities.add(new com.carsale.erp.shared.ocr.DocumentAiClient.DocumentAiEntity(
+                "inspection_organization_name", "BUREAU VERITAS", 0.98));
+        entities.add(new com.carsale.erp.shared.ocr.DocumentAiClient.DocumentAiEntity(
+                "make", "TOYOTA", 0.97));
+        entities.add(new com.carsale.erp.shared.ocr.DocumentAiClient.DocumentAiEntity(
+                "chassis_no", "TRJ250-0025161", 0.99));
+        entities.add(new com.carsale.erp.shared.ocr.DocumentAiClient.DocumentAiEntity(
+                "tyre_size", "265/65R18", 0.9));
+        entities.add(new com.carsale.erp.shared.ocr.DocumentAiClient.DocumentAiEntity(
+                "tyre_size", "265/70R17", 0.9));
+        entities.add(new com.carsale.erp.shared.ocr.DocumentAiClient.DocumentAiEntity(
+                "auction_grade", "4.5", 0.9));
+        entities.add(new com.carsale.erp.shared.ocr.DocumentAiClient.DocumentAiEntity(
+                "commonly_called", "LAND CRUISER 250", 0.9));
+        entities.add(new com.carsale.erp.shared.ocr.DocumentAiClient.DocumentAiEntity(
+                "marks_of_accident_on_chassis", "No", 0.9));
+        entities.add(new com.carsale.erp.shared.ocr.DocumentAiClient.DocumentAiEntity(
+                "year_month_of_first_registration", "May-2025", 0.95));
+        entities.add(new com.carsale.erp.shared.ocr.DocumentAiClient.DocumentAiEntity(
+                "vehicle_details", "ignored parent", 0.5));
+
+        AuctionParseResult result = parser.parsePage(
+                new com.carsale.erp.shared.ocr.DocumentAiClient.DocumentAiResult("raw", entities));
+
+        assertTrue(result.isSuccess());
+        assertEquals("KAN-DE (NAGOYA) TRADING CO., LTD", result.getFields().get("applicantName"));
+        assertEquals("BUREAU VERITAS", result.getFields().get("inspectionOrgName"));
+        assertEquals("TOYOTA", result.getFields().get("make"));
+        assertEquals("TRJ250-0025161", result.getFields().get("chassisNo"));
+        assertEquals("265/65R18 / 265/70R17", result.getFields().get("tyreSize"));
+        assertEquals("4.5", result.getFields().get("preshipAuctionGrade"));
+        assertEquals("LAND CRUISER 250", result.getFields().get("commonName"));
+        assertEquals("No", result.getFields().get("accidentMarksOnChassis"));
+        assertEquals("2025-05", result.getFields().get("firstRegistration"));
+        assertEquals("", parser.getProcessorId());
     }
 
     private static final String BV_PAREN_FORMAT_TEXT =

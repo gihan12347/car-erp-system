@@ -5,7 +5,7 @@ public enum VehicleStage {
     SHIPPING("Shipping"),
     CUSTOMS("Customs"),
     WORKSHOP("Workshop"),
-    READY("Ready for sale"),
+    READY("Sale"),
     RESERVED("Reserved"),
     SOLD("Sold");
 

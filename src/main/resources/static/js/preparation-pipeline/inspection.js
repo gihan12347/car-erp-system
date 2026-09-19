@@ -12,7 +12,7 @@
     }
 
     function cards() {
-        return list.querySelectorAll(".inspection-item-card");
+        return list.querySelectorAll(".inspection-check-row");
     }
 
     function csrfHeaders() {
@@ -51,9 +51,11 @@
             return;
         }
         var notes = card.querySelector(".inspection-item-notes");
+        var isNo = selectedResult(card) === "NO";
         if (notes) {
-            notes.hidden = selectedResult(card) !== "NO";
+            notes.hidden = !isNo;
         }
+        card.classList.toggle("has-notes", isNo);
     }
 
     function syncAllNotes() {
@@ -242,7 +244,7 @@
             return;
         }
         event.preventDefault();
-        var card = button.closest(".inspection-item-card");
+        var card = button.closest(".inspection-check-row");
         if (card && card.classList.contains("is-custom")) {
             card.parentNode.removeChild(card);
             reindex();
@@ -252,7 +254,7 @@
     list.addEventListener("change", function (event) {
         var radio = event.target;
         if (radio && radio.type === "radio") {
-            var card = radio.closest(".inspection-item-card");
+            var card = radio.closest(".inspection-check-row");
             syncItemNotes(card);
             if (radio.value === "NO" && radio.checked) {
                 createWorkshopJob(card, radio);

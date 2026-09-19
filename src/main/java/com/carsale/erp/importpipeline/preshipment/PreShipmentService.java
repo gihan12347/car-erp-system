@@ -1,11 +1,13 @@
 package com.carsale.erp.importpipeline.preshipment;
 
+import com.carsale.erp.shared.document.document.PreShipmentParser;
 import com.carsale.erp.shared.document.SheetDocumentStorageService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.carsale.erp.shared.vehicle.Vehicle;
 import com.carsale.erp.shared.vehicle.VehicleRepository;
+import com.carsale.erp.shared.regex.RegexConstants;
 
 @Service
 public class PreShipmentService {
@@ -28,7 +30,9 @@ public class PreShipmentService {
         if (chassisNo == null || chassisNo.trim().isEmpty()) {
             return null;
         }
-        return preShipmentRepository.findById(chassisNo.trim()).orElse(null);
+        PreShipmentInspection record = preShipmentRepository.findById(chassisNo.trim()).orElse(null);
+        normalizeDateFields(record);
+        return record;
     }
 
     public PreShipmentInspection prepareForm(String chassisNo) {
@@ -43,6 +47,7 @@ public class PreShipmentService {
             record.setChassisNo(chassisNo);
             prefillFromVehicle(record, vehicle);
         }
+        normalizeDateFields(record);
         return record;
     }
 
@@ -58,6 +63,7 @@ public class PreShipmentService {
         if (incoming == null || incoming.getChassisNo() == null || incoming.getChassisNo().trim().isEmpty()) {
             throw new IllegalArgumentException("Chassis number is required.");
         }
+        normalizeDateFields(incoming);
         PreShipmentInspection existing = preShipmentRepository.findById(incoming.getChassisNo().trim()).orElse(null);
         if (existing != null) {
             keepStoredDocument(incoming, existing);
@@ -95,8 +101,8 @@ public class PreShipmentService {
         record.setDrivingSystem(vehicle.getDriveSystem());
         record.setPreshipAuctionGrade(vehicle.getAuctionGrade());
         record.setFullModelNo(vehicle.getModelCode());
-        if (vehicle.getYear() != null && vehicle.getYear().matches(".*\\d{4}.*")) {
-            java.util.regex.Matcher matcher = java.util.regex.Pattern.compile("(\\d{4})").matcher(vehicle.getYear());
+        if (vehicle.getYear() != null && vehicle.getYear().matches(RegexConstants.Dates.CONTAINS_YEAR)) {
+            java.util.regex.Matcher matcher = RegexConstants.Dates.YEAR_CAPTURE_PATTERN.matcher(vehicle.getYear());
             if (matcher.find()) {
                 record.setYearOfManufacture(matcher.group(1));
             }
@@ -109,6 +115,7 @@ public class PreShipmentService {
         target.setBvNumber(source.getBvNumber());
         target.setCertificateDate(source.getCertificateDate());
         target.setPageInfo(source.getPageInfo());
+        target.setDocumentControlNumber(source.getDocumentControlNumber());
         target.setInspectionOrgName(source.getInspectionOrgName());
         target.setInspectionOrgAddress(source.getInspectionOrgAddress());
         target.setInspectionOrgTel(source.getInspectionOrgTel());
@@ -132,15 +139,26 @@ public class PreShipmentService {
         target.setFirstRegistration(source.getFirstRegistration());
         target.setInspectionMileage(source.getInspectionMileage());
         target.setEngineCapacity(source.getEngineCapacity());
+        target.setEngineModel(source.getEngineModel());
         target.setEngineNo(source.getEngineNo());
         target.setDrivingSystem(source.getDrivingSystem());
         target.setAccidentMarksOnChassis(source.getAccidentMarksOnChassis());
         target.setChassisCondition(source.getChassisCondition());
         target.setFullModelNo(source.getFullModelNo());
         target.setYearOfManufacture(source.getYearOfManufacture());
+        target.setTyreSize(source.getTyreSize());
+        target.setWheelBase(source.getWheelBase());
+        target.setGrossVehicleMass(source.getGrossVehicleMass());
         target.setOcrText(source.getOcrText());
         target.setDocumentOriginalName(source.getDocumentOriginalName());
         target.setDocumentStoredName(source.getDocumentStoredName());
         target.setDocumentContentType(source.getDocumentContentType());
+    }
+
+    private void normalizeDateFields(PreShipmentInspection record) {
+        if (record == null) {
+            return;
+        }
+        record.setFirstRegistration(PreShipmentParser.normalizeYearMonth(record.getFirstRegistration()));
     }
 }

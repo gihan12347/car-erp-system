@@ -3,6 +3,7 @@ package com.carsale.erp.preparationpipeline;
 import com.carsale.erp.preparationpipeline.inspection.VehicleInspectionService;
 import com.carsale.erp.preparationpipeline.workshop.WorkshopService;
 import com.carsale.erp.preparationpipeline.yard.YardService;
+import com.carsale.erp.readypipeline.SaleListingService;
 import com.carsale.erp.customspipeline.CustomsProgressService;
 import com.carsale.erp.shared.pipeline.PipelineProgress;
 import com.carsale.erp.shared.pipeline.FlowStage;
@@ -28,6 +29,7 @@ public class PreparationProgressService {
     private final WorkshopService workshopService;
     private final YardService yardService;
     private final VehicleInspectionService vehicleInspectionService;
+    private final SaleListingService saleListingService;
 
     public PreparationProgressService(
             VehicleRepository vehicleRepository,
@@ -35,7 +37,8 @@ public class PreparationProgressService {
             CustomsProgressService customsProgressService,
             WorkshopService workshopService,
             YardService yardService,
-            VehicleInspectionService vehicleInspectionService
+            VehicleInspectionService vehicleInspectionService,
+            SaleListingService saleListingService
     ) {
         this.vehicleRepository = vehicleRepository;
         this.vehicleService = vehicleService;
@@ -43,24 +46,26 @@ public class PreparationProgressService {
         this.workshopService = workshopService;
         this.yardService = yardService;
         this.vehicleInspectionService = vehicleInspectionService;
+        this.saleListingService = saleListingService;
     }
 
     public PreparationProgress progressFor(Vehicle vehicle) {
         if (vehicle == null) {
-            return new PreparationProgress(false, false, false, false);
+            return new PreparationProgress(false, false, false, false, false);
         }
         return progressFor(vehicle.getChassisNo());
     }
 
     public PreparationProgress progressFor(String chassisNo) {
         if (chassisNo == null || chassisNo.trim().isEmpty()) {
-            return new PreparationProgress(false, false, false, false);
+            return new PreparationProgress(false, false, false, false, false);
         }
         return new PreparationProgress(
                 workshopService.isComplete(chassisNo),
                 yardService.isComplete(chassisNo),
                 vehicleInspectionService.isComplete(chassisNo),
-                workshopService.canEnterYard(chassisNo)
+                workshopService.canEnterYard(chassisNo),
+                saleListingService.isAssignmentComplete(chassisNo)
         );
     }
 
@@ -167,12 +172,14 @@ public class PreparationProgressService {
         private final boolean yardReady;
         private final boolean inspectionReady;
         private final boolean canEnterYard;
+        private final boolean saleReady;
 
-        public PreparationProgress(boolean workshopReady, boolean yardReady, boolean inspectionReady, boolean canEnterYard) {
+        public PreparationProgress(boolean workshopReady, boolean yardReady, boolean inspectionReady, boolean canEnterYard, boolean saleReady) {
             this.workshopReady = workshopReady;
             this.yardReady = yardReady;
             this.inspectionReady = inspectionReady;
             this.canEnterYard = canEnterYard;
+            this.saleReady = saleReady;
         }
 
         public boolean isWorkshopReady() {
@@ -191,28 +198,38 @@ public class PreparationProgressService {
             return canEnterYard;
         }
 
+        public boolean isSaleReady() {
+            return saleReady;
+        }
+
         @Override
         public boolean hasAnyCompletedStage() {
-            return workshopReady || yardReady || inspectionReady;
+            return workshopReady || yardReady || inspectionReady || saleReady;
         }
 
         @Override
         public int completedCount() {
-            return (workshopReady ? 1 : 0) + (yardReady ? 1 : 0) + (inspectionReady ? 1 : 0);
+            return (workshopReady ? 1 : 0) + (yardReady ? 1 : 0) + (inspectionReady ? 1 : 0) + (saleReady ? 1 : 0);
         }
 
         public boolean isPipelineCompleted() {
-            return workshopReady && yardReady && inspectionReady;
+            return workshopReady && yardReady && inspectionReady && saleReady;
         }
 
         public boolean isStageComplete(String stageKey) {
-            if (FlowStage.YARD.getStageKey().equals(stageKey)) {
-                return yardReady;
-            }
             if (FlowStage.INSPECTION.getStageKey().equals(stageKey)) {
                 return inspectionReady;
             }
-            return workshopReady;
+            if (FlowStage.WORKSHOP.getStageKey().equals(stageKey)) {
+                return workshopReady;
+            }
+            if (FlowStage.YARD.getStageKey().equals(stageKey)) {
+                return yardReady;
+            }
+            if (FlowStage.SALE.getStageKey().equals(stageKey)) {
+                return saleReady;
+            }
+            return false;
         }
 
          public String firstIncompleteStageKey(List<String> keys) {

@@ -26,6 +26,12 @@ public class SaleListing {
     @Column(length = 40)
     private String listedOn;
 
+    @Column(name = "sale_code", length = 40)
+    private String saleCode;
+
+    @Column(name = "sale_location", length = 80)
+    private String saleLocation;
+
     @Lob
     @Column(columnDefinition = "TEXT")
     private String listingNotes;
@@ -36,6 +42,12 @@ public class SaleListing {
 
     @Column(nullable = false)
     private boolean listed;
+
+    @Column(nullable = false)
+    private boolean sold;
+
+    @Column(name = "assignment_complete", nullable = false)
+    private boolean assignmentComplete;
 
     public String getChassisNo() {
         return chassisNo;
@@ -77,6 +89,22 @@ public class SaleListing {
         this.listedOn = listedOn;
     }
 
+    public String getSaleCode() {
+        return saleCode;
+    }
+
+    public void setSaleCode(String saleCode) {
+        this.saleCode = saleCode;
+    }
+
+    public String getSaleLocation() {
+        return saleLocation;
+    }
+
+    public void setSaleLocation(String saleLocation) {
+        this.saleLocation = saleLocation;
+    }
+
     public String getListingNotes() {
         return listingNotes;
     }
@@ -99,5 +127,21 @@ public class SaleListing {
 
     public void setListed(boolean listed) {
         this.listed = listed;
+    }
+
+    public boolean isSold() {
+        return sold;
+    }
+
+    public void setSold(boolean sold) {
+        this.sold = sold;
+    }
+
+    public boolean isAssignmentComplete() {
+        return assignmentComplete;
+    }
+
+    public void setAssignmentComplete(boolean assignmentComplete) {
+        this.assignmentComplete = assignmentComplete;
     }
 }

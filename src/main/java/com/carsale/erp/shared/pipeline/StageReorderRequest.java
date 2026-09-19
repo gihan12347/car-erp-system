@@ -6,7 +6,7 @@ import java.util.List;
 public class StageReorderRequest {
 
     private Long flowId;
-    private List<String> stageKeys = new ArrayList<String>();
+    private List<String> stageKeys = new ArrayList<>();
 
     public Long getFlowId() {
         return flowId;

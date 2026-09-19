@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.carsale.erp.shared.vehicle.Vehicle;
 import com.carsale.erp.shared.vehicle.VehicleRepository;
+import com.carsale.erp.shared.regex.RegexConstants;
 
 @Service
 public class CustomsDocumentService {
@@ -40,6 +41,11 @@ public class CustomsDocumentService {
             "worksheetClearingAgent", "worksheetFiscalFob", "worksheetFiscalFreight", "worksheetFiscalInsurance",
             "worksheetFiscalOptions", "worksheetFiscalTotal",
             "page4OriginalName", "page4StoredName", "page4ContentType", "ocrTextPage4"
+    };
+
+    private static final String[] BILL_OF_LADING_FIELDS = {
+            "blNo", "dateOfBlIssue", "landingCostUsd", "blExchangeRate", "landingCostLkr",
+            "page5OriginalName", "page5StoredName", "page5ContentType", "ocrTextPage5"
     };
 
     private final VehicleRepository vehicleRepository;
@@ -80,6 +86,11 @@ public class CustomsDocumentService {
     public boolean hasOdometerCertificate(String chassisNo) {
         CustomsDocument record = findByChassisNo(chassisNo);
         return record != null && hasStoredName(record.getPage1StoredName());
+    }
+
+    public boolean hasBillOfLading(String chassisNo) {
+        CustomsDocument record = findByChassisNo(chassisNo);
+        return record != null && hasStoredName(record.getPage5StoredName());
     }
 
     public boolean hasDeclaration(String chassisNo) {
@@ -140,6 +151,15 @@ public class CustomsDocumentService {
         copyOdometerFields(incoming, existing);
         existing.setChassisNo(incoming.getChassisNo().trim());
         customsDocumentRepository.save(existing);
+    }
+
+    @Transactional
+    public CustomsDocument saveBillOfLading(CustomsDocument incoming) {
+        CustomsDocument existing = prepareStageSave(incoming);
+        deleteReplacedPage(existing.getPage5StoredName(), incoming.getPage5StoredName());
+        copyFields(incoming, existing, BILL_OF_LADING_FIELDS);
+        existing.setChassisNo(incoming.getChassisNo().trim());
+        return customsDocumentRepository.save(existing);
     }
 
     @Transactional
@@ -254,6 +274,9 @@ public class CustomsDocumentService {
         incoming.setPage4OriginalName(existing.getPage4OriginalName());
         incoming.setPage4StoredName(existing.getPage4StoredName());
         incoming.setPage4ContentType(existing.getPage4ContentType());
+        incoming.setPage5OriginalName(existing.getPage5OriginalName());
+        incoming.setPage5StoredName(existing.getPage5StoredName());
+        incoming.setPage5ContentType(existing.getPage5ContentType());
     }
 
     private void deleteReplacedPage(String oldStored, String newStored) {
@@ -275,8 +298,8 @@ public class CustomsDocumentService {
             record.setGoodsDescription(description);
         }
         setIfPresent(record::setEngineCapacityCc, vehicle.getEngineSize());
-        if (vehicle.getYear() != null && vehicle.getYear().matches(".*\\d{4}.*")) {
-            java.util.regex.Matcher matcher = java.util.regex.Pattern.compile("(\\d{4})").matcher(vehicle.getYear());
+        if (vehicle.getYear() != null && vehicle.getYear().matches(RegexConstants.Dates.CONTAINS_YEAR)) {
+            java.util.regex.Matcher matcher = RegexConstants.Dates.YEAR_CAPTURE_PATTERN.matcher(vehicle.getYear());
             if (matcher.find()) {
                 record.setYearOfManufacture(matcher.group(1));
             }
@@ -295,7 +318,7 @@ public class CustomsDocumentService {
         if (make.isEmpty() && model.isEmpty()) {
             return null;
         }
-        return ("USED " + make + " " + model).trim().replaceAll("\\s{2,}", " ");
+        return ("USED " + make + " " + model).trim().replaceAll(RegexConstants.Text.WHITESPACE_RUN, " ");
     }
 
     private boolean hasStoredName(String storedName) {

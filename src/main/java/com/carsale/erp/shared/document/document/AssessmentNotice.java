@@ -1,9 +1,11 @@
-package com.carsale.erp.customspipeline.document;
+package com.carsale.erp.shared.document.document;
 
 import com.carsale.erp.shared.ocr.DocumentAiClient;
 import com.carsale.erp.shared.utils.CustomsDocumentParserUtils;
+import com.carsale.erp.shared.regex.RegexConstants;
 import com.carsale.erp.importpipeline.auction.AuctionParseResult;
 import com.carsale.erp.shared.document.DocumentParser;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -22,31 +24,12 @@ import java.util.regex.Pattern;
 @Component
 public class AssessmentNotice implements DocumentParser {
 
-    private static final String AMOUNT =
-            "(\\d{1,3}(?:[,.\\u00A0\\u202F]\\d{3})+|\\d{3,})";
-
-    private static final Pattern ITEM_TAXES_SECTION = Pattern.compile(
-            "Item\\s+taxes([\\s\\S]*?)(?=Total\\s+assessed|Total\\s+amount\\s+paid|\\z)",
-            Pattern.CASE_INSENSITIVE
-    );
-
-    private static final Pattern GLOBAL_TAXES_SECTION = Pattern.compile(
-            "Global\\s+taxes([\\s\\S]*?)(?=Item\\s+taxes|Total\\s+assessed|\\z)",
-            Pattern.CASE_INSENSITIVE
-    );
-
     private static final String[] ITEM_CODES = {"CID", "SUR", "XID", "VAT", "VEL"};
     private static final String[] GLOBAL_CODES = {"OTC", "COM", "EXM"};
 
-    private static final Pattern CODE_ON_LINE = Pattern.compile(
-            "\\b(OTC|COM|EXM|CID|SUR|XID|VAT|VEL)\\b",
-            Pattern.CASE_INSENSITIVE
-    );
-
-    private static final Pattern AMOUNT_ON_LINE = Pattern.compile(AMOUNT);
-
     private static final Map<String, String> TYPE_TO_FIELD = new LinkedHashMap<>();
     private static final Map<String, String> TAX_CODE_TO_FIELD = new LinkedHashMap<>();
+    private final String processorId;
 
     static {
         TYPE_TO_FIELD.put("total_amount_paid", "assessmentTotalPaid");
@@ -89,6 +72,10 @@ public class AssessmentNotice implements DocumentParser {
         TAX_CODE_TO_FIELD.put("EXM", "assessmentTaxExm");
     }
 
+    public AssessmentNotice(@Value("${app.ocr.documentAi.assessmentNoticeProcessorId:}") String processorId) {
+        this.processorId = processorId == null ? "" : processorId.trim();
+    }
+
     @Override
     public AuctionParseResult parsePage(String text) {
         AuctionParseResult result = new AuctionParseResult();
@@ -119,12 +106,12 @@ public class AssessmentNotice implements DocumentParser {
         result.put("assessmentConsigneeName", consignee[1]);
         result.put("assessmentConsigneeAddress", consignee[2]);
 
-        Map<String, String> globalTaxes = extractTaxTable(normalized, GLOBAL_TAXES_SECTION, GLOBAL_CODES);
+        Map<String, String> globalTaxes = extractTaxTable(normalized, RegexConstants.Assessment.GLOBAL_TAXES_SECTION, GLOBAL_CODES);
         result.put("assessmentTaxOtc", globalTaxes.get("OTC"));
         result.put("assessmentTaxCom", globalTaxes.get("COM"));
         result.put("assessmentTaxExm", globalTaxes.get("EXM"));
 
-        Map<String, String> itemTaxes = extractTaxTable(normalized, ITEM_TAXES_SECTION, ITEM_CODES);
+        Map<String, String> itemTaxes = extractTaxTable(normalized, RegexConstants.Assessment.ITEM_TAXES_SECTION, ITEM_CODES);
         result.put("assessmentTaxCid", itemTaxes.get("CID"));
         result.put("assessmentTaxSur", itemTaxes.get("SUR"));
         result.put("assessmentTaxXid", itemTaxes.get("XID"));
@@ -143,6 +130,7 @@ public class AssessmentNotice implements DocumentParser {
     @Override
     public AuctionParseResult parsePage(DocumentAiClient.DocumentAiResult documentAi) {
         AuctionParseResult result = new AuctionParseResult();
+
         if (documentAi == null) {
             result.setSuccess(false);
             result.setMessage("Document AI returned no result.");
@@ -164,36 +152,40 @@ public class AssessmentNotice implements DocumentParser {
                     pendingValue = null;
                     continue;
                 }
-                if ("tax_code".equals(type) || "taxcode".equals(type)) {
-                    if (pendingCode != null && pendingValue != null) {
-                        flushTax(result, pendingCode, pendingValue);
-                        pendingValue = null;
-                    }
-                    pendingCode = extractTaxCode(entity.getValue());
-                    continue;
-                }
-                if ("tax_value".equals(type) || "taxvalue".equals(type)) {
-                    pendingValue = cleanMoney(entity.getValue());
-                    if (pendingCode != null && pendingValue != null) {
-                        flushTax(result, pendingCode, pendingValue);
-                        pendingCode = null;
-                        pendingValue = null;
-                    }
-                    continue;
-                }
-                if ("tax_description".equals(type) || "taxdescription".equals(type) || "totals".equals(type)) {
+                TaxParseResult taxResult = handleTaxType(
+                        type,
+                        entity,
+                        result,
+                        pendingCode,
+                        pendingValue
+                );
+                if (taxResult.isHandled()) {
+                    pendingCode = taxResult.getPendingCode();
+                    pendingValue = taxResult.getPendingValue();
                     continue;
                 }
                 String field = mapType(entity.getType());
                 if (field != null) {
-                    result.put(field, moneyField(field) ? cleanMoney(entity.getValue()) : cleanText(entity.getValue()));
+                    result.put(
+                            field,
+                            moneyField(field)
+                                    ? cleanMoney(entity.getValue())
+                                    : cleanText(entity.getValue())
+                    );
                 }
             }
             flushTax(result, pendingCode, pendingValue);
         }
+
         fillMissingFromText(result, documentAi.getText());
         CustomsDocumentParserUtils.finish(result, "Document AI (assessment notice)");
+
         return result;
+    }
+
+    @Override
+    public String getProcessorId() {
+        return this.processorId;
     }
 
     private static String fixBrokenCommas(String text) {
@@ -201,7 +193,7 @@ public class AssessmentNotice implements DocumentParser {
             return null;
         }
         // Collapse spaces after thousands separators produced by OCR
-        return text.replaceAll(",\\s+(?=\\d{3}\\b)", ",");
+        return text.replaceAll(RegexConstants.Amounts.THOUSANDS_SPACE, ",");
     }
 
     private static Map<String, String> extractTaxTable(String text, Pattern sectionPattern, String[] codes) {
@@ -248,14 +240,14 @@ public class AssessmentNotice implements DocumentParser {
 
         String pendingAmount = null;
         String pendingCode = null;
-        String[] lines = section.split("\\n");
+        String[] lines = section.split(RegexConstants.Text.NEWLINE);
         for (String s : lines) {
             String line = s.trim();
             if (line.isEmpty()) {
                 continue;
             }
             // Strip trailing junk like "300]"
-            line = line.replaceAll("[\\]\\|]+$", "").trim();
+            line = line.replaceAll(RegexConstants.Text.TRAILING_LINE_JUNK, "").trim();
 
             List<String> codesOnLine = codesOnLine(line, allowedCodes);
             List<String> amountsOnLine = amountsOnLine(line);
@@ -303,7 +295,7 @@ public class AssessmentNotice implements DocumentParser {
 
     private static List<String> codesOnLine(String line, String[] allowedCodes) {
         List<String> found = new ArrayList<>();
-        Matcher matcher = CODE_ON_LINE.matcher(line);
+        Matcher matcher = RegexConstants.Assessment.CODE_ON_LINE.matcher(line);
         while (matcher.find()) {
             String code = matcher.group(1).toUpperCase(Locale.ROOT);
             for (String allowed : allowedCodes) {
@@ -318,7 +310,7 @@ public class AssessmentNotice implements DocumentParser {
 
     private static List<String> amountsOnLine(String line) {
         List<String> found = new ArrayList<>();
-        Matcher matcher = AMOUNT_ON_LINE.matcher(line);
+        Matcher matcher = RegexConstants.Amounts.GROUPED_PATTERN.matcher(line);
         while (matcher.find()) {
             String amount = normalizeAmount(matcher.group(1));
             if (amount != null) {
@@ -330,10 +322,7 @@ public class AssessmentNotice implements DocumentParser {
 
     private static String extractCodeAmount(String text, String code, String[] allCodes) {
         String boundary = joinCodes(allCodes);
-        Pattern pattern = Pattern.compile(
-                "\\b" + Pattern.quote(code) + "\\b([\\s\\S]*?)(?=\\b(?:" + boundary + ")\\b|\\z)",
-                Pattern.CASE_INSENSITIVE
-        );
+        Pattern pattern = RegexConstants.Assessment.snippetAfterTaxCode(code, boundary);
         Matcher matcher = pattern.matcher(text);
         if (!matcher.find()) {
             return null;
@@ -356,7 +345,7 @@ public class AssessmentNotice implements DocumentParser {
         if (snippet == null || snippet.trim().isEmpty()) {
             return null;
         }
-        Matcher matcher = Pattern.compile(AMOUNT).matcher(snippet);
+        Matcher matcher = RegexConstants.Amounts.GROUPED_PATTERN.matcher(snippet);
         String last = null;
         while (matcher.find()) {
             last = normalizeAmount(matcher.group(1));
@@ -366,20 +355,14 @@ public class AssessmentNotice implements DocumentParser {
 
     private static String extractLabeledAmount(String text, String... labels) {
         for (String label : labels) {
-            Pattern pattern = Pattern.compile(
-                    Pattern.quote(label) + "[^\\d]{0,40}?" + AMOUNT,
-                    Pattern.CASE_INSENSITIVE
-            );
+            Pattern pattern = RegexConstants.Assessment.amountAfterQuotedLabel(label);
             Matcher matcher = pattern.matcher(text);
             if (matcher.find()) {
                 return normalizeAmount(matcher.group(1));
             }
         }
         // OCR sometimes splits "Total amount paid"
-        Matcher paid = Pattern.compile(
-                "Total\\s+amount\\s+paid\\s*[:\\.]?\\s*" + AMOUNT,
-                Pattern.CASE_INSENSITIVE
-        ).matcher(text);
+        Matcher paid = RegexConstants.Assessment.TOTAL_AMOUNT_PAID.matcher(text);
         if (paid.find()) {
             return normalizeAmount(paid.group(1));
         }
@@ -390,7 +373,7 @@ public class AssessmentNotice implements DocumentParser {
         if (raw == null) {
             return null;
         }
-        String digits = raw.replaceAll("\\D", "");
+        String digits = raw.replaceAll(RegexConstants.Text.NON_DIGIT, "");
         if (digits.length() <= 2) {
             return null;
         }
@@ -407,9 +390,9 @@ public class AssessmentNotice implements DocumentParser {
         if (lead == 0) {
             lead = 3;
         }
-        result.append(digits.substring(0, lead));
+        result.append(digits, 0, lead);
         for (int i = lead; i < length; i += 3) {
-            result.append(',').append(digits.substring(i, i + 3));
+            result.append(',').append(digits, i, i + 3);
         }
         return result.toString();
     }
@@ -423,10 +406,7 @@ public class AssessmentNotice implements DocumentParser {
     }
 
     private static String extractAssessmentOffice(String text) {
-        Matcher matcher = Pattern.compile(
-                "([A-Za-z][A-Za-z ]+Import Office(?:\\s*-\\s*Sea)?)",
-                Pattern.CASE_INSENSITIVE
-        ).matcher(text);
+        Matcher matcher = RegexConstants.Assessment.IMPORT_OFFICE.matcher(text);
         if (matcher.find()) {
             return CustomsDocumentParserUtils.clean(matcher.group(1));
         }
@@ -434,10 +414,7 @@ public class AssessmentNotice implements DocumentParser {
     }
 
     private static String extractAssessmentNoticeRef(String text) {
-        Matcher matcher = Pattern.compile(
-                "\\b(\\d{4}\\s+[A-Z]{2,}\\d*\\s+[IA]\\s+\\d{3,})\\b",
-                Pattern.CASE_INSENSITIVE
-        ).matcher(text);
+        Matcher matcher = RegexConstants.Assessment.NOTICE_REF.matcher(text);
         if (matcher.find()) {
             return CustomsDocumentParserUtils.clean(matcher.group(1));
         }
@@ -445,25 +422,19 @@ public class AssessmentNotice implements DocumentParser {
     }
 
     private static String extractAssessmentModel(String text) {
-        Matcher matcher = Pattern.compile("\\b(IM\\s*\\d)\\b", Pattern.CASE_INSENSITIVE).matcher(text);
+        Matcher matcher = RegexConstants.Assessment.MODEL_IM.matcher(text);
         if (matcher.find()) {
-            return matcher.group(1).replaceAll("\\s+", " ").toUpperCase(Locale.ROOT);
+            return matcher.group(1).replaceAll(RegexConstants.Text.WHITESPACE, " ").toUpperCase(Locale.ROOT);
         }
         return CustomsDocumentParserUtils.extractLabel(text, "Model");
     }
 
     private static String extractLabeledDateRef(String text, String label) {
-        Matcher matcher = Pattern.compile(
-                Pattern.quote(label) + "\\s*[:\\.]?\\s*(\\d{1,2}/\\d{1,2}/\\d{4}\\s+[IA]\\s+\\d{3,})",
-                Pattern.CASE_INSENSITIVE
-        ).matcher(text);
+        Matcher matcher = RegexConstants.Assessment.customsRefAfterQuotedLabel(label).matcher(text);
         if (matcher.find()) {
             return CustomsDocumentParserUtils.clean(matcher.group(1));
         }
-        matcher = Pattern.compile(
-                Pattern.quote(label) + "[^\\n]{0,40}?(\\d{1,2}/\\d{1,2}/\\d{4}\\s+[IA]\\s+\\d{3,})",
-                Pattern.CASE_INSENSITIVE
-        ).matcher(text);
+        matcher = RegexConstants.Assessment.customsRefNearQuotedLabel(label).matcher(text);
         if (matcher.find()) {
             return CustomsDocumentParserUtils.clean(matcher.group(1));
         }
@@ -471,25 +442,19 @@ public class AssessmentNotice implements DocumentParser {
     }
 
     private static String extractDeclarantReference(String text) {
-        Matcher matcher = Pattern.compile(
-                "Declarant reference\\s*[:\\.]?\\s*(\\d{4}\\s*#?\\s*\\d+)",
-                Pattern.CASE_INSENSITIVE
-        ).matcher(text);
+        Matcher matcher = RegexConstants.Assessment.DECLARANT_REFERENCE.matcher(text);
         if (matcher.find()) {
-            return CustomsDocumentParserUtils.clean(matcher.group(1).replaceAll("\\s+", " "));
+            return CustomsDocumentParserUtils.clean(matcher.group(1).replaceAll(RegexConstants.Text.WHITESPACE, " "));
         }
-        matcher = Pattern.compile("\\b(\\d{4}\\s*#\\s*\\d+)\\b").matcher(text);
+        matcher = RegexConstants.Assessment.HASH_REFERENCE.matcher(text);
         if (matcher.find()) {
-            return CustomsDocumentParserUtils.clean(matcher.group(1).replaceAll("\\s+", " "));
+            return CustomsDocumentParserUtils.clean(matcher.group(1).replaceAll(RegexConstants.Text.WHITESPACE, " "));
         }
         return null;
     }
 
     private static String extractAssessmentPackages(String text) {
-        Matcher matcher = Pattern.compile(
-                "Packages\\s*[:\\.]?\\s*([\\d,]+(?:\\.\\d+)?)",
-                Pattern.CASE_INSENSITIVE
-        ).matcher(text);
+        Matcher matcher = RegexConstants.Assessment.PACKAGES.matcher(text);
         if (matcher.find()) {
             return matcher.group(1);
         }
@@ -497,10 +462,7 @@ public class AssessmentNotice implements DocumentParser {
     }
 
     private static String extractChaExpiry(String text) {
-        Matcher matcher = Pattern.compile(
-                "CHA\\s*EXP\\s*[:\\.]?\\s*(\\d{1,2}/\\d{1,2}/\\d{4})",
-                Pattern.CASE_INSENSITIVE
-        ).matcher(text);
+        Matcher matcher = RegexConstants.Assessment.CHA_EXP.matcher(text);
         if (matcher.find()) {
             return matcher.group(1);
         }
@@ -509,21 +471,14 @@ public class AssessmentNotice implements DocumentParser {
 
     private static String[] extractAssessmentParty(String text, String heading, String stopHeading) {
         String[] empty = new String[] { null, null, null };
-        Pattern blockPattern = Pattern.compile(
-                "(?:^|\\n)\\s*" + Pattern.quote(heading)
-                        + "(?!\\s+reference)\\b[\\s\\S]*?(?=(?:^|\\n)\\s*" + Pattern.quote(stopHeading) + "\\b|$)",
-                Pattern.CASE_INSENSITIVE
-        );
+        Pattern blockPattern = RegexConstants.Assessment.sectionBetweenHeadings(heading, stopHeading);
         Matcher blockMatcher = blockPattern.matcher(text);
         if (!blockMatcher.find()) {
             return empty;
         }
         String block = blockMatcher.group();
         String id = null;
-        Matcher idMatcher = Pattern.compile(
-                "\\bID\\b\\s*[:\\.]?\\s*(\\d[\\d\\-]{6,})",
-                Pattern.CASE_INSENSITIVE
-        ).matcher(block);
+        Matcher idMatcher = RegexConstants.Assessment.PARTY_ID.matcher(block);
         if (idMatcher.find()) {
             id = idMatcher.group(1);
         }
@@ -532,7 +487,7 @@ public class AssessmentNotice implements DocumentParser {
             name = null;
         }
         if (name == null) {
-            Matcher nameMatcher = Pattern.compile("(?m)^\\s*([A-Z][A-Z0-9 .,&'/\\-]{6,})\\s*$").matcher(block);
+            Matcher nameMatcher = RegexConstants.Assessment.PARTY_NAME.matcher(block);
             while (nameMatcher.find()) {
                 String candidate = CustomsDocumentParserUtils.clean(nameMatcher.group(1));
                 if (candidate == null) {
@@ -552,10 +507,7 @@ public class AssessmentNotice implements DocumentParser {
         }
         String address = CustomsDocumentParserUtils.extractLabel(block, "Address");
         if (address == null) {
-            Matcher addressMatcher = Pattern.compile(
-                    "(?m)^\\s*(NO\\.?\\s*\\d[^\\n]+|\\d+[A-Z0-9 /\\-,]+[A-Z][^\\n]{4,})\\s*$",
-                    Pattern.CASE_INSENSITIVE
-            ).matcher(block);
+            Matcher addressMatcher = RegexConstants.Assessment.PARTY_ADDRESS.matcher(block);
             if (addressMatcher.find()) {
                 address = CustomsDocumentParserUtils.clean(addressMatcher.group(1));
             }
@@ -583,26 +535,26 @@ public class AssessmentNotice implements DocumentParser {
         if (raw == null) {
             return null;
         }
-        String value = raw.trim().replaceAll("\\s+", " ");
-        value = value.replaceAll("(?i)\\b(LKR|SLR|USD|RS\\.?)\\b", "").trim();
-        value = value.replaceAll("[^0-9.,]", "");
+        String value = raw.trim().replaceAll(RegexConstants.Text.WHITESPACE, " ");
+        value = value.replaceAll(RegexConstants.Amounts.CURRENCY_LKR, "").trim();
+        value = value.replaceAll(RegexConstants.Text.CURRENCY_CHARS, "");
         if (value.isEmpty()) {
             return null;
         }
         if (value.indexOf(',') >= 0) {
-            if (value.matches(".*\\.0+$")) {
+            if (value.matches(RegexConstants.Amounts.TRAILING_ZERO_DECIMALS)) {
                 value = value.substring(0, value.lastIndexOf('.'));
             }
             return value;
         }
         int dot = value.lastIndexOf('.');
-        String intPart = (dot >= 0 ? value.substring(0, dot) : value).replaceAll("\\D", "");
-        String decPart = dot >= 0 ? value.substring(dot + 1).replaceAll("\\D", "") : "";
+        String intPart = (dot >= 0 ? value.substring(0, dot) : value).replaceAll(RegexConstants.Text.NON_DIGIT, "");
+        String decPart = dot >= 0 ? value.substring(dot + 1).replaceAll(RegexConstants.Text.NON_DIGIT, "") : "";
         if (intPart.isEmpty()) {
             return null;
         }
         String formatted = formatThousands(intPart);
-        if (decPart.isEmpty() || decPart.matches("0+")) {
+        if (decPart.isEmpty() || decPart.matches(RegexConstants.Amounts.ALL_ZEROS)) {
             return formatted;
         }
         return formatted + "." + decPart;
@@ -612,7 +564,7 @@ public class AssessmentNotice implements DocumentParser {
         if (raw == null || raw.trim().isEmpty()) {
             return null;
         }
-        Matcher matcher = CODE_ON_LINE.matcher(raw);
+        Matcher matcher = RegexConstants.Assessment.CODE_ON_LINE.matcher(raw);
         if (matcher.find()) {
             return matcher.group(1).toUpperCase(Locale.ROOT);
         }
@@ -644,7 +596,7 @@ public class AssessmentNotice implements DocumentParser {
         if (raw == null) {
             return null;
         }
-        String value = raw.trim().replaceAll("\\s+", " ");
+        String value = raw.trim().replaceAll(RegexConstants.Text.WHITESPACE, " ");
         return value.isEmpty() ? null : value;
     }
 
@@ -677,5 +629,70 @@ public class AssessmentNotice implements DocumentParser {
             return "";
         }
         return type.trim().toLowerCase(Locale.ROOT).replace(' ', '_');
+    }
+
+    private TaxParseResult handleTaxType(
+            String type,
+            DocumentAiClient.DocumentAiEntity entity,
+            AuctionParseResult result,
+            String pendingCode,
+            String pendingValue) {
+
+        switch (type) {
+            case "tax_code":
+            case "taxcode":
+                if (pendingCode != null && pendingValue != null) {
+                    flushTax(result, pendingCode, pendingValue);
+                    pendingValue = null;
+                }
+
+                pendingCode = extractTaxCode(entity.getValue());
+                return new TaxParseResult(true, pendingCode, pendingValue);
+
+            case "tax_value":
+            case "taxvalue":
+                pendingValue = cleanMoney(entity.getValue());
+
+                if (pendingCode != null && pendingValue != null) {
+                    flushTax(result, pendingCode, pendingValue);
+                    pendingCode = null;
+                    pendingValue = null;
+                }
+
+                return new TaxParseResult(true, pendingCode, pendingValue);
+
+            case "tax_description":
+            case "taxdescription":
+            case "totals":
+                return new TaxParseResult(true, pendingCode, pendingValue);
+
+            default:
+                return new TaxParseResult(false, pendingCode, pendingValue);
+        }
+    }
+
+    private static class TaxParseResult {
+
+        private final boolean handled;
+        private final String pendingCode;
+        private final String pendingValue;
+
+        TaxParseResult(boolean handled, String pendingCode, String pendingValue) {
+            this.handled = handled;
+            this.pendingCode = pendingCode;
+            this.pendingValue = pendingValue;
+        }
+
+        public boolean isHandled() {
+            return handled;
+        }
+
+        public String getPendingCode() {
+            return pendingCode;
+        }
+
+        public String getPendingValue() {
+            return pendingValue;
+        }
     }
 }

@@ -2,6 +2,7 @@ package com.carsale.erp.importpipeline.standards;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.carsale.erp.shared.document.document.StandardsCertificateDoc;
 import org.junit.jupiter.api.Test;
 
 import com.carsale.erp.importpipeline.auction.AuctionParseResult;
@@ -30,7 +31,7 @@ class StandardsCertificateDocParserTest {
                 + "Date of Inspection 05 March 2025\n"
                 + "Remarks\n";
 
-        AuctionParseResult result = new com.carsale.erp.customspipeline.document.StandardsCertificateDoc().parsePage(text);
+        AuctionParseResult result = new StandardsCertificateDoc().parsePage(text);
 
         assertThat(result.isSuccess()).isTrue();
         assertThat(result.getFields()).containsEntry("scheduleType", "V");

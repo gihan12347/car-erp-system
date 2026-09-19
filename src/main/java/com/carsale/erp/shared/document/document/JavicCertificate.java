@@ -1,7 +1,8 @@
-package com.carsale.erp.customspipeline.document;
+package com.carsale.erp.shared.document.document;
 
 import com.carsale.erp.shared.ocr.DocumentAiClient;
 import com.carsale.erp.shared.utils.CustomsDocumentParserUtils;
+import com.carsale.erp.shared.regex.RegexConstants;
 import com.carsale.erp.importpipeline.auction.AuctionParseResult;
 import com.carsale.erp.shared.document.DocumentParser;
 import org.springframework.stereotype.Component;
@@ -25,30 +26,31 @@ public class JavicCertificate implements DocumentParser {
 
         result.put("jevicCertificateNo", extractJevicCertificateNo(normalized));
         result.put("jevicIssueDate", CustomsDocumentParserUtils.firstNonNull(
-                extractJevicDate(normalized, "Date\\s+of\\s+Issue", "Inspection\\s+Branch", "CERTIFICATE"),
+                extractJevicDate(normalized, RegexConstants.Javic.DATE_OF_ISSUE,
+                        RegexConstants.Javic.INSPECTION_BRANCH, "CERTIFICATE"),
                 extractJevicIssueDate(normalized)
         ));
         result.put("jevicLocation", CustomsDocumentParserUtils.firstNonNull(
-                extractJevicScalar(normalized, "Inspection\\s+Branch", "Inspected Motor", "Make"),
+                extractJevicScalar(normalized, RegexConstants.Javic.INSPECTION_BRANCH, "Inspected Motor", "Make"),
                 extractJevicLocation(normalized)
         ));
         result.put("jevicMake", extractJevicScalar(normalized, "Make", "Model", "Date of Inspection"));
         result.put("jevicModel", extractJevicScalar(
                 normalized, "Model", "Engine Capacity", "Date of Inspection", "Location"));
         result.put("jevicEngineCapacity", extractJevicScalar(
-                normalized, "Engine\\s+Capacity", "Year of First", "Chassis Number", "Chassis"));
+                normalized, RegexConstants.Javic.ENGINE_CAPACITY, "Year of First", "Chassis Number", "Chassis"));
         result.put("jevicFirstRegistration", extractJevicScalar(
-                normalized, "Year\\s+of\\s+First\\s+Registration", "Chassis Number", "Chassis", "Engine Number"));
+                normalized, RegexConstants.Javic.FIRST_REGISTRATION, "Chassis Number", "Chassis", "Engine Number"));
         result.put("jevicChassisVin", extractJevicChassis(normalized));
         result.put("jevicEngineNo", extractJevicScalar(
-                normalized, "Engine\\s+Number", "Inspected Mileage", "Odometer", "Inspection Date"));
+                normalized, RegexConstants.Javic.ENGINE_NUMBER, "Inspected Mileage", "Odometer", "Inspection Date"));
         result.put("jevicCurrentOdometer", CustomsDocumentParserUtils.firstNonNull(
                 extractInspectedMileage(normalized),
                 extractJevicOdometer(normalized)
         ));
         result.put("jevicInspectionDate", CustomsDocumentParserUtils.firstNonNull(
-                extractJevicDate(normalized, "Inspection\\s+Date", "Remarks"),
-                extractJevicDate(normalized, "Date\\s+of\\s+Inspection", "Location", "Certificate")
+                extractJevicDate(normalized, RegexConstants.Javic.INSPECTION_DATE, "Remarks"),
+                extractJevicDate(normalized, RegexConstants.Javic.DATE_OF_INSPECTION, "Location", "Certificate")
         ));
         result.put("jevicRemarks", extractJevicRemarks(normalized));
         result.put("jevicAuctionReadingDate", extractJevicReadingRow(normalized, "Auction Reading", "Dealer Reading"));
@@ -65,19 +67,18 @@ public class JavicCertificate implements DocumentParser {
         return null;
     }
 
+    @Override
+    public String getProcessorId() {
+        return "";
+    }
+
     private static String extractJevicCertificateNo(String text) {
-        Matcher matcher = Pattern.compile(
-                "Certificate\\s+No\\.?\\s*[:\\.]?\\s*(?:Date\\s+of\\s+Issue\\s*[:\\.]?\\s*)*(LK1-[A-Z0-9]+)",
-                Pattern.CASE_INSENSITIVE
-        ).matcher(text);
+        Matcher matcher = RegexConstants.Javic.CERT_NO_LABELED.matcher(text);
         if (matcher.find()) {
             return matcher.group(1).toUpperCase(Locale.ROOT);
         }
 
-        matcher = Pattern.compile(
-                "Certificate\\s+No\\.?\\s*[:\\.]?\\s*\\n\\s*(LK1-[A-Z0-9]+)",
-                Pattern.CASE_INSENSITIVE
-        ).matcher(text);
+        matcher = RegexConstants.Javic.CERT_NO_NEXT.matcher(text);
         if (matcher.find()) {
             return matcher.group(1).toUpperCase(Locale.ROOT);
         }
@@ -85,7 +86,7 @@ public class JavicCertificate implements DocumentParser {
     }
 
     private static String findJevicCertNo(String text) {
-        Matcher matcher = Pattern.compile("\\b(LK1-[A-Z0-9]+)\\b", Pattern.CASE_INSENSITIVE).matcher(text);
+        Matcher matcher = RegexConstants.Javic.CERT_NO.matcher(text);
         if (matcher.find()) {
             return matcher.group(1).toUpperCase();
         }
@@ -93,20 +94,12 @@ public class JavicCertificate implements DocumentParser {
     }
 
     private static String extractJevicDate(String text, String labelPattern, String... afterStops) {
-        Matcher matcher = Pattern.compile(
-                labelPattern + "\\s*[:\\.]?\\s*(?:"
-                        + joinStopLabels(afterStops)
-                        + "\\s*[:\\.]?\\s*)*(\\d{1,2}/\\d{1,2}/\\d{4})",
-                Pattern.CASE_INSENSITIVE
-        ).matcher(text);
+        Matcher matcher = RegexConstants.Javic.slashDateAfterLabel(labelPattern, joinStopLabels(afterStops)).matcher(text);
         if (matcher.find()) {
             return matcher.group(1);
         }
 
-        matcher = Pattern.compile(
-                labelPattern + "\\s*[:\\.]?\\s*\\n\\s*(\\d{1,2}/\\d{1,2}/\\d{4})",
-                Pattern.CASE_INSENSITIVE
-        ).matcher(text);
+        matcher = RegexConstants.Javic.slashDateOnNextLineAfterLabel(labelPattern).matcher(text);
         if (matcher.find()) {
             return matcher.group(1);
         }
@@ -122,29 +115,24 @@ public class JavicCertificate implements DocumentParser {
             if (i > 0) {
                 builder.append("|");
             }
-            builder.append("(?:").append(labels[i]).append(")");
+            builder.append(RegexConstants.Labeled.nonCapturingGroup(labels[i]));
         }
         return builder.toString();
     }
 
     private static String extractJevicIssueDate(String text) {
-        String direct = extractJevicDate(text, "Date\\s+of\\s+Issue", "Current\\s+Odometer", "Auction");
+        String direct = extractJevicDate(text, RegexConstants.Javic.DATE_OF_ISSUE,
+                RegexConstants.Javic.CURRENT_ODOMETER_LABEL, "Auction");
         if (direct != null) {
             return direct;
         }
 
-        Matcher matcher = Pattern.compile(
-                "LK1-[A-Z0-9]+\\s+(\\d{1,2}/\\d{1,2}/\\d{4})",
-                Pattern.CASE_INSENSITIVE
-        ).matcher(text);
+        Matcher matcher = RegexConstants.Javic.ISSUE_AFTER_CERT.matcher(text);
         if (matcher.find()) {
             return matcher.group(1);
         }
 
-        matcher = Pattern.compile(
-                "LK1-[A-Z0-9]+\\s*\\n\\s*(\\d{1,2}/\\d{1,2}/\\d{4})",
-                Pattern.CASE_INSENSITIVE
-        ).matcher(text);
+        matcher = RegexConstants.Javic.ISSUE_AFTER_CERT_NEXT.matcher(text);
         if (matcher.find()) {
             return matcher.group(1);
         }
@@ -152,10 +140,7 @@ public class JavicCertificate implements DocumentParser {
     }
 
     private static String extractJevicScalar(String text, String labelPattern, String... stopLabels) {
-         Matcher matcher = Pattern.compile(
-                labelPattern + "(?:\\s*#|\\s*No\\.?)?\\s*[:\\.]?\\s*([^\\n]+)",
-                Pattern.CASE_INSENSITIVE
-        ).matcher(text);
+        Matcher matcher = RegexConstants.Labeled.valueAfterLabelOrNumber(labelPattern).matcher(text);
         if (matcher.find()) {
             String inline = trimBeforeNextJevicLabel(matcher.group(1), stopLabels);
             String cleaned = cleanJevicValue(inline);
@@ -164,10 +149,7 @@ public class JavicCertificate implements DocumentParser {
             }
         }
 
-        matcher = Pattern.compile(
-                labelPattern + "(?:\\s*#|\\s*No\\.?)?\\s*[:\\.]?\\s*\\n\\s*([^\\n]+)",
-                Pattern.CASE_INSENSITIVE
-        ).matcher(text);
+        matcher = RegexConstants.Labeled.valueOnNextLineAfterLabelOrNumber(labelPattern).matcher(text);
         if (matcher.find()) {
             String nextLine = trimBeforeNextJevicLabel(matcher.group(1), stopLabels);
             return cleanJevicValue(nextLine);
@@ -190,20 +172,14 @@ public class JavicCertificate implements DocumentParser {
 
         int cut = trimmed.length();
         for (String aDefault : defaults) {
-            Pattern pattern = Pattern.compile(
-                    "\\s+" + Pattern.quote(aDefault) + "(?:\\s*[:\\.]?|\\s+No\\.?\\s*[:\\.]?)",
-                    Pattern.CASE_INSENSITIVE
-            );
+            Pattern pattern = RegexConstants.Labeled.stopAfterJevicLabel(aDefault);
             Matcher matcher = pattern.matcher(trimmed);
             if (matcher.find() && matcher.start() < cut) {
                 cut = matcher.start();
             }
         }
         for (String stopLabel : stopLabels) {
-            Pattern pattern = Pattern.compile(
-                    "\\s+" + Pattern.quote(stopLabel) + "(?:\\s*[:\\.]?|\\s+No\\.?\\s*[:\\.]?)",
-                    Pattern.CASE_INSENSITIVE
-            );
+            Pattern pattern = RegexConstants.Labeled.stopAfterJevicLabel(stopLabel);
             Matcher matcher = pattern.matcher(trimmed);
             if (matcher.find() && matcher.start() < cut) {
                 cut = matcher.start();
@@ -252,12 +228,7 @@ public class JavicCertificate implements DocumentParser {
     }
 
     private String extractJevicLocation(String text) {
-        Matcher matcher = Pattern.compile(
-                "\\bLocation\\s*:\\s*(?:Certificate\\s+No\\.?\\s*:\\s*)*(?:Date\\s+of\\s+Issue\\s*:\\s*)*"
-                        + "([A-Za-z][A-Za-z0-9 \\-/]+?)"
-                        + "(?=\\s*(?:Certificate\\s+No|Date\\s+of\\s+Issue|Current\\s+Odometer|LK1-|\\n|$))",
-                Pattern.CASE_INSENSITIVE
-        ).matcher(text);
+        Matcher matcher = RegexConstants.Javic.LOCATION.matcher(text);
         if (matcher.find()) {
             String value = cleanJevicValue(CustomsDocumentParserUtils.trimBeforeToken(matcher.group(1), "LK1-"));
             if (value != null) {
@@ -265,11 +236,7 @@ public class JavicCertificate implements DocumentParser {
             }
         }
 
-        matcher = Pattern.compile(
-                "\\bLocation\\s*:\\s*\\n\\s*([A-Za-z][A-Za-z0-9 \\-/]+)"
-                        + "(?=\\s*(?:\\n|Certificate|Date\\s+of\\s+Issue|LK1-))",
-                Pattern.CASE_INSENSITIVE
-        ).matcher(text);
+        matcher = RegexConstants.Javic.LOCATION_NEXT.matcher(text);
         if (matcher.find()) {
             String value = cleanJevicValue(CustomsDocumentParserUtils.trimBeforeToken(matcher.group(1), "LK1-"));
             if (value != null) {
@@ -281,18 +248,12 @@ public class JavicCertificate implements DocumentParser {
     }
 
     private static String extractJevicLocationNearCertificate(String text) {
-        Matcher matcher = Pattern.compile(
-                "([A-Za-z][A-Za-z0-9 \\-/]{2,}?)\\s+LK1-[A-Z0-9]+",
-                Pattern.CASE_INSENSITIVE
-        ).matcher(text);
+        Matcher matcher = RegexConstants.Javic.LOCATION_BEFORE_CERT.matcher(text);
         if (matcher.find()) {
             return cleanJevicValue(matcher.group(1));
         }
 
-        matcher = Pattern.compile(
-                "([A-Za-z][A-Za-z0-9 \\-/]{2,}?)\\s*\\n\\s*LK1-[A-Z0-9]+",
-                Pattern.CASE_INSENSITIVE
-        ).matcher(text);
+        matcher = RegexConstants.Javic.LOCATION_BEFORE_CERT_NEXT.matcher(text);
         if (matcher.find()) {
             return cleanJevicValue(matcher.group(1));
         }
@@ -300,9 +261,9 @@ public class JavicCertificate implements DocumentParser {
     }
 
     private static String extractJevicChassis(String text) {
-        String value = extractJevicScalar(text, "Chassis\\s+Number", "Engine Number", "Inspected Mileage");
+        String value = extractJevicScalar(text, RegexConstants.Javic.CHASSIS_NUMBER, "Engine Number", "Inspected Mileage");
         if (value == null) {
-            value = extractJevicScalar(text, "Chassis\\s*/\\s*VIN", "Make", "Model");
+            value = extractJevicScalar(text, RegexConstants.Javic.CHASSIS_VIN, "Make", "Model");
         }
         if (value == null) {
             value = extractJevicScalar(text, "Chassis/VIN", "Make", "Model");
@@ -314,22 +275,14 @@ public class JavicCertificate implements DocumentParser {
     }
 
     private static String extractInspectedMileage(String text) {
-        Matcher matcher = Pattern.compile(
-                "Inspected\\s+Mileage(?:\\s*\\(\\s*Odometer\\s+Reading\\s*\\))?\\s*[:\\.]?\\s*"
-                        + "(\\d+[\\d,]*\\s*(?:km|KM|Km|miles|Miles)?)",
-                Pattern.CASE_INSENSITIVE
-        ).matcher(text);
+        Matcher matcher = RegexConstants.Javic.INSPECTED_MILEAGE.matcher(text);
         if (matcher.find()) {
             String value = cleanJevicValue(matcher.group(1));
             if (value != null && !isJevicFieldLabel(value)) {
                 return value;
             }
         }
-        matcher = Pattern.compile(
-                "Inspected\\s+Mileage(?:\\s*\\(\\s*Odometer\\s+Reading\\s*\\))?\\s*[:\\.]?\\s*\\n\\s*"
-                        + "(\\d+[\\d,]*\\s*(?:km|KM|Km|miles|Miles)?)",
-                Pattern.CASE_INSENSITIVE
-        ).matcher(text);
+        matcher = RegexConstants.Javic.INSPECTED_MILEAGE_NEXT.matcher(text);
         if (matcher.find()) {
             return cleanJevicValue(matcher.group(1));
         }
@@ -337,17 +290,11 @@ public class JavicCertificate implements DocumentParser {
     }
 
     private static String extractJevicRemarks(String text) {
-        Matcher matcher = Pattern.compile(
-                "Remarks\\s*[:\\.]?\\s*([^\\n]+)",
-                Pattern.CASE_INSENSITIVE
-        ).matcher(text);
+        Matcher matcher = RegexConstants.Javic.REMARKS.matcher(text);
         if (matcher.find()) {
             return cleanJevicValue(trimBeforeNextJevicLabel(matcher.group(1)));
         }
-        matcher = Pattern.compile(
-                "Remarks\\s*[:\\.]?\\s*\\n\\s*([^\\n]+)",
-                Pattern.CASE_INSENSITIVE
-        ).matcher(text);
+        matcher = RegexConstants.Javic.REMARKS_NEXT.matcher(text);
         if (matcher.find()) {
             return cleanJevicValue(trimBeforeNextJevicLabel(matcher.group(1)));
         }
@@ -355,10 +302,7 @@ public class JavicCertificate implements DocumentParser {
     }
 
     private static String extractJevicOdometer(String text) {
-        Matcher matcher = Pattern.compile(
-                "\\bCurrent\\s+Odometer\\s+Reading\\b[\\s\\S]{0,160}?(\\d+[\\d,]*\\s*(?:km|KM|Km|miles|Miles)\\b)",
-                Pattern.CASE_INSENSITIVE
-        ).matcher(text);
+        Matcher matcher = RegexConstants.Javic.CURRENT_ODOMETER_NEAR.matcher(text);
         if (matcher.find()) {
             String value = cleanJevicValue(matcher.group(1));
             if (value != null) {
@@ -366,12 +310,7 @@ public class JavicCertificate implements DocumentParser {
             }
         }
 
-        matcher = Pattern.compile(
-                "\\bCurrent\\s+Odometer\\s+Reading\\b\\s*[:\\.]?\\s*"
-                        + "(?:Auction\\s+Reading\\s*/\\s*Date\\s*[:\\.]?\\s*)*"
-                        + "(\\d+[\\d,]*\\s*(?:km|KM|Km|miles|Miles)?)",
-                Pattern.CASE_INSENSITIVE
-        ).matcher(text);
+        matcher = RegexConstants.Javic.CURRENT_ODOMETER.matcher(text);
         if (matcher.find()) {
             String value = cleanJevicValue(matcher.group(1));
             if (value != null && !isJevicFieldLabel(value)) {
@@ -379,18 +318,12 @@ public class JavicCertificate implements DocumentParser {
             }
         }
 
-        matcher = Pattern.compile(
-                "\\bCurrent\\s+Odometer\\s+Reading\\b\\s*[:\\.]?\\s*\\n\\s*(\\d+[\\d,]*\\s*(?:km|KM|Km|miles|Miles)?)",
-                Pattern.CASE_INSENSITIVE
-        ).matcher(text);
+        matcher = RegexConstants.Javic.CURRENT_ODOMETER_NEXT.matcher(text);
         if (matcher.find()) {
             return cleanJevicValue(matcher.group(1));
         }
 
-        matcher = Pattern.compile(
-                "\\bCurrent\\s+Odometer\\s+Reading\\b\\s*[:\\.]?\\s*(?:Auction\\s+Reading\\s*/\\s*Date\\s*[:\\.]?\\s*)*\\n\\s*(\\d+[\\d,]*\\s*(?:km|KM|Km|miles|Miles)?)",
-                Pattern.CASE_INSENSITIVE
-        ).matcher(text);
+        matcher = RegexConstants.Javic.CURRENT_ODOMETER_SKIP_NEXT.matcher(text);
         if (matcher.find()) {
             return cleanJevicValue(matcher.group(1));
         }
@@ -398,11 +331,8 @@ public class JavicCertificate implements DocumentParser {
     }
 
     private static String extractJevicReadingRow(String text, String rowLabel, String... followingRowLabels) {
-        String labelPattern = rowLabel.replace(" ", "\\s+");
-        Matcher matcher = Pattern.compile(
-                "(?:^|\\n)\\s*" + labelPattern + "\\s*/\\s*Date\\s*[:\\.]?\\s*([^\\n]{0,60})",
-                Pattern.CASE_INSENSITIVE
-        ).matcher(text);
+        String labelPattern = RegexConstants.Javic.replaceSpacesWithWhitespace(rowLabel);
+        Matcher matcher = RegexConstants.Javic.odometerRowDateValue(labelPattern).matcher(text);
         if (!matcher.find()) {
             return null;
         }
@@ -420,15 +350,15 @@ public class JavicCertificate implements DocumentParser {
     }
 
     private static boolean isOdometerReadingValue(String value) {
-        return value != null && value.trim().matches("(?i)\\d+[\\d,]*\\s*(?:km|miles)?");
+        return value != null && value.trim().matches(RegexConstants.Javic.ODOMETER_MATCH);
     }
 
     private static String cleanReadingValue(String raw) {
         if (raw == null) {
             return null;
         }
-        String normalized = raw.replaceAll("\\s+/\\s*", " / ").trim();
-        if (normalized.matches("(?i)[-–—\\s/]+")) {
+        String normalized = raw.replaceAll(RegexConstants.Text.SLASH_SPACES, " / ").trim();
+        if (normalized.matches(RegexConstants.Text.EMPTY_MARKERS)) {
             return null;
         }
         if (isJevicFieldLabel(normalized)) {

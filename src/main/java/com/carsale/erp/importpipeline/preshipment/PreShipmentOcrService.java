@@ -1,6 +1,6 @@
 package com.carsale.erp.importpipeline.preshipment;
 
-import com.carsale.erp.customspipeline.document.PreShipmentParser;
+import com.carsale.erp.shared.document.document.PreShipmentParser;
 import com.carsale.erp.shared.ocr.OcrClient;
 import com.carsale.erp.shared.ocr.OcrImagePreparer;
 import java.io.File;
@@ -56,7 +56,6 @@ public class PreShipmentOcrService {
             }
             AuctionParseResult parsed = imagePreparer.readDocumentText(temp, file.getOriginalFilename(), language, provider, parser);
             log.info("Pre-shipment OCR text:\n{}", parsed.getRawText());
-            log.info("Pre-shipment mapped fields: {}", parsed.getFields());
             return parsed;
         } catch (Throwable ex) {
             log.error("Pre-shipment OCR failed", ex);

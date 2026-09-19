@@ -25,15 +25,12 @@ import org.springframework.web.util.UriUtils;
 
 import com.carsale.erp.importpipeline.auction.AuctionParseResult;
 import com.carsale.erp.shared.document.SheetUploadResult;
-import com.carsale.erp.importpipeline.preshipment.PreShipmentInspection;
 import com.carsale.erp.shared.vehicle.Vehicle;
 import com.carsale.erp.customspipeline.CustomsProgressService;
 import com.carsale.erp.importpipeline.ImportProgressService;
 import com.carsale.erp.importpipeline.ImportProgressService.ImportProgress;
 import com.carsale.erp.shared.pipeline.PipelineStageService;
 import com.carsale.erp.shared.pipeline.FlowStage;
-import com.carsale.erp.importpipeline.preshipment.PreShipmentOcrService;
-import com.carsale.erp.importpipeline.preshipment.PreShipmentService;
 import com.carsale.erp.shared.document.SheetDocumentStorageService;
 import com.carsale.erp.shared.vehicle.VehicleService;
 
@@ -123,7 +120,6 @@ public class PreShipmentCertificateController {
             importProgressService.syncVehicleStage(chassisNo);
             customsProgressService.syncVehicleStage(chassisNo);
             redirectAttributes.addFlashAttribute("successMessage", "Pre-shipment certificate saved.");
-            ImportProgress status = importProgressService.progressFor(chassisNo);
             return "redirect:" + ImportStageUrls.redirectAfterPreshipSave(
                     chassisNo,
                     pipelineStageService.keys(PipelineStageService.FLOW_IMPORT)

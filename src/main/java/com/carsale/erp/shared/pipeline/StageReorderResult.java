@@ -3,13 +3,11 @@ package com.carsale.erp.shared.pipeline;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.carsale.erp.shared.pipeline.PipelineStage;
-
 public class StageReorderResult {
 
     private boolean success;
     private String message;
-    private List<PipelineStage> stages = new ArrayList<PipelineStage>();
+    private List<PipelineStage> stages = new ArrayList<>();
 
     public static StageReorderResult ok(String message, List<PipelineStage> stages) {
         StageReorderResult result = new StageReorderResult();

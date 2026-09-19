@@ -2,7 +2,7 @@ package com.carsale.erp.importpipeline.exportcert;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.carsale.erp.customspipeline.document.ExportCertificateParser;
+import com.carsale.erp.shared.document.document.ExportCertificateParser;
 import org.junit.jupiter.api.Test;
 
 import com.carsale.erp.importpipeline.auction.AuctionParseResult;

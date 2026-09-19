@@ -10,7 +10,7 @@
             <div class="dash-head">
                 <div>
                     <h1>Customs clearance pipeline</h1>
-                    <p class="form-lead">Complete the Sri Lanka customs declaration, ASYCUDA assessment notice, and working sheet. When all three are done, the vehicle moves to the preparation pipeline.</p>
+                    <p class="form-lead">Complete the bill of lading, Sri Lanka customs declaration, ASYCUDA assessment notice, and working sheet. When all four are done, the vehicle moves to the preparation pipeline.</p>
                 </div>
             </div>
 
@@ -43,7 +43,7 @@
                         <tbody>
                         <tr th:each="row : ${rows}"
                             th:with="stages=${pipelineStages != null ? pipelineStages : @pipelineStageService.list('CUSTOMS')},
-                                     pendingKey=${!row.status.declarationReady ? 'declaration' : (!row.status.assessmentReady ? 'assessment' : (!row.status.worksheetReady ? 'worksheet' : null))}"
+                                     pendingKey=${row.status.firstIncompleteStageKey(pipelineKeys)}"
                             th:classappend="${row.status.clearanceComplete} ? ' pipeline-row-complete' : ''">
                             <td><strong th:text="${row.vehicle.chassisNo}">TRJ250-0025161</strong></td>
                             <td>
@@ -56,9 +56,9 @@
                                      th:classappend="${row.status.clearanceComplete} ? ' is-complete' : ''">
                                     <ol class="list-pipeline-flow">
                                         <li th:each="stage, iter : ${stages}"
-                                            th:with="ready=${stage.stageKey == 'declaration' ? row.status.declarationReady : (stage.stageKey == 'assessment' ? row.status.assessmentReady : row.status.worksheetReady)},
+                                            th:with="ready=${row.status.isStageComplete(stage.stageKey)},
                                                      nextKey=${!iter.last ? stages[iter.count].stageKey : null},
-                                                     nextReady=${nextKey != null and (nextKey == 'declaration' ? row.status.declarationReady : (nextKey == 'assessment' ? row.status.assessmentReady : row.status.worksheetReady))},
+                                                     nextReady=${nextKey != null and row.status.isStageComplete(nextKey)},
                                                      current=${!ready and pendingKey == stage.stageKey},
                                                      editHref=${@pipelineStageService.editUrlFor(#uris.escapePathSegment(row.vehicle.chassisNo), stage.stageKey)}"
                                             th:classappend="${(ready ? ' is-done' : (current ? ' is-current' : ' is-pending')) + (ready and nextReady ? ' is-linked' : '')}"
@@ -80,7 +80,7 @@
                                                   th:title="${stage.title + (current ? ' — next' : ' — pending')}">
                                                 <span th:text="${iter.count}">1</span>
                                             </span>
-                                            <small th:text="${stage.stageKey == 'assessment' ? 'Assessment' : (stage.stageKey == 'worksheet' ? 'Worksheet' : 'CUSDEC')}">CUSDEC</small>
+                                            <small th:text="${stage.stageKey == 'bl' ? 'B/L' : (stage.stageKey == 'assessment' ? 'Assessment' : (stage.stageKey == 'worksheet' ? 'Worksheet' : 'CUSDEC'))}">CUSDEC</small>
                                         </li>
                                     </ol>
                                 </div>
@@ -97,7 +97,7 @@
                                     </a>
                                     <div th:replace="shared/pipeline-delete :: pipelineDeleteBtn(
                                             @{/customs/{c}/delete(c=${row.vehicle.chassisNo})},
-                                            'Delete customs clearance data? Preparation and ready-for-sale data will also be deleted.')"></div>
+                                            'Delete customs clearance data? Preparation and sale pipeline data will also be deleted.')"></div>
                                 </div>
                             </td>
                         </tr>

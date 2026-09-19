@@ -18,6 +18,7 @@ import com.carsale.erp.preparationpipeline.inspection.VehicleInspectionService;
 import com.carsale.erp.shared.vehicle.VehicleService;
 import com.carsale.erp.preparationpipeline.workshop.WorkshopService;
 import com.carsale.erp.preparationpipeline.yard.YardService;
+import com.carsale.erp.readypipeline.SaleListingService;
 
 import static com.carsale.erp.shared.pipeline.PipelineStageService.viewLinks;
 
@@ -29,6 +30,7 @@ public class PreparationPipelineListController {
     private final WorkshopService workshopService;
     private final YardService yardService;
     private final VehicleInspectionService vehicleInspectionService;
+    private final SaleListingService saleListingService;
     private final PipelineStageService pipelineStageService;
 
     public PreparationPipelineListController(
@@ -37,6 +39,7 @@ public class PreparationPipelineListController {
             WorkshopService workshopService,
             YardService yardService,
             VehicleInspectionService vehicleInspectionService,
+            SaleListingService saleListingService,
             PipelineStageService pipelineStageService
     ) {
         this.vehicleService = vehicleService;
@@ -44,13 +47,14 @@ public class PreparationPipelineListController {
         this.workshopService = workshopService;
         this.yardService = yardService;
         this.vehicleInspectionService = vehicleInspectionService;
+        this.saleListingService = saleListingService;
         this.pipelineStageService = pipelineStageService;
     }
 
     @GetMapping("/workshop-yard")
     public String list(@RequestParam(value = "q", required = false) String query, Model model) {
         List<Vehicle> vehicles = preparationProgressService.listEligible(query);
-        List<PreparationListRow> rows = new ArrayList<PreparationListRow>();
+        List<PreparationListRow> rows = new ArrayList<>();
         for (Vehicle vehicle : vehicles) {
             rows.add(new PreparationListRow(vehicle, preparationProgressService.progressFor(vehicle)));
         }
@@ -67,7 +71,7 @@ public class PreparationPipelineListController {
     public String delete(@PathVariable String chassisNo, RedirectAttributes redirectAttributes) {
         if (vehicleService.deleteFromFlow(chassisNo, PipelineStageService.FLOW_PREP)) {
             redirectAttributes.addFlashAttribute("notice",
-                    "Preparation data deleted. Ready-for-sale data was also removed.");
+                    "Preparation data deleted. Sale pipeline data was also removed.");
         } else {
             redirectAttributes.addFlashAttribute("error", "Could not delete preparation data.");
         }
@@ -114,9 +118,11 @@ public class PreparationPipelineListController {
         model.addAttribute("workshop", workshopService.findByChassisNo(chassisNo));
         model.addAttribute("yard", yardService.findByChassisNo(chassisNo));
         model.addAttribute("inspection", vehicleInspectionService.findByChassisNo(chassisNo));
+        model.addAttribute("listing", saleListingService.findByChassisNo(chassisNo));
         model.addAttribute("workshopReady", status.isWorkshopReady());
         model.addAttribute("yardReady", status.isYardReady());
         model.addAttribute("inspectionReady", status.isInspectionReady());
+        model.addAttribute("saleReady", status.isSaleReady());
         model.addAttribute("canEnterYard", status.isCanEnterYard());
         model.addAttribute("prepComplete", status.isPipelineCompleted());
         model.addAttribute("stageIndex", stageIndex);

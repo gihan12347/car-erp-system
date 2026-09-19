@@ -47,7 +47,10 @@ app:
       enabled: ${DOCUMENT_AI_ENABLED:true}
       projectId: ${DOCUMENT_AI_PROJECT_ID:}
       location: ${DOCUMENT_AI_LOCATION:us}
-      processorId: ${DOCUMENT_AI_PROCESSOR_ID:cd742e4a10abd3c9}
+      assessmentNoticeProcessorId: ${DOCUMENT_AI_ASSESSMENT_NOTICE_PROCESSOR_ID:6c0528b295451166}
+      cusdecProcessorId: ${DOCUMENT_AI_CUSDEC_PROCESSOR_ID:cd742e4a10abd3c9}
+      billOfLandingProcessorId: ${DOCUMENT_AI_BILL_OF_LANDING_PROCESSOR_ID:d0ad3dd16d4dd283}
+      preShipmentProcessorId: ${DOCUMENT_AI_PRE_SHIPMENT_PROCESSOR_ID:3fb83da8bb489dec}
       processorVersion: ${DOCUMENT_AI_PROCESSOR_VERSION:}
       assessmentProcessorId: ${DOCUMENT_AI_ASSESSMENT_PROCESSOR_ID:}
       assessmentProcessorVersion: ${DOCUMENT_AI_ASSESSMENT_PROCESSOR_VERSION:}

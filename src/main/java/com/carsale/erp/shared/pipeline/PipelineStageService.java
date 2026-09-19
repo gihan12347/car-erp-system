@@ -40,7 +40,10 @@ public class PipelineStageService implements CommandLineRunner {
         seedIfMissing(FLOW_PREP, defaultPrep());
         seedIfMissing(FLOW_READY, defaultReady());
         refreshImportDocumentCopy();
+        refreshSalePipelineCopy();
         placePrepInspectionFirst();
+        placeBillOfLadingFirst();
+        placeSaleDetailsFirst();
     }
 
     @Transactional
@@ -77,6 +80,46 @@ public class PipelineStageService implements CommandLineRunner {
         pipelineStageRepository.save(customsJevic);
         reindex(importFlow.getId());
         reindex(customsFlow.getId());
+    }
+
+    @Transactional
+    public void refreshSalePipelineCopy() {
+        PipelineFlow ready = pipelineFlowRepository.findByFlowKey(FLOW_READY).orElse(null);
+        if (ready != null) {
+            if (blankOrOneOf(ready.getTitle(), "Ready for sale pipeline")) {
+                ready.setTitle(FlowPipeline.READY.getTitle());
+            }
+            if (blankOrOneOf(ready.getDescription(), "Price and list the vehicle",
+                    "Details, listing, and registration")) {
+                ready.setDescription(FlowPipeline.READY.getDescription());
+            }
+            if (blankOrOneOf(ready.getIcon(), "fa-flag-checkered")) {
+                ready.setIcon(FlowPipeline.READY.getIcon());
+            }
+            pipelineFlowRepository.save(ready);
+            PipelineStage listing = pipelineStageRepository
+                    .findByFlowIdAndStageKey(ready.getId(), FlowStage.LISTING.getStageKey())
+                    .orElse(null);
+            if (listing != null && blankOrOneOf(listing.getTitle(), "Sale listing")) {
+                listing.setTitle("Listing");
+                pipelineStageRepository.save(listing);
+            }
+        }
+        PipelineFlow prep = pipelineFlowRepository.findByFlowKey(FLOW_PREP).orElse(null);
+        if (prep == null) {
+            return;
+        }
+        if (blankOrOneOf(prep.getDescription(), "Workshop jobs and yard allocation")) {
+            prep.setDescription(FlowPipeline.PREP.getDescription());
+            pipelineFlowRepository.save(prep);
+        }
+        PipelineStage yard = pipelineStageRepository
+                .findByFlowIdAndStageKey(prep.getId(), FlowStage.YARD.getStageKey())
+                .orElse(null);
+        if (yard != null && blankOrOneOf(yard.getSubtitle(), "Bay, keys, inspection")) {
+            yard.setSubtitle("Date and available yard");
+            pipelineStageRepository.save(yard);
+        }
     }
 
     private void refreshImportDocumentCopy() {
@@ -169,6 +212,72 @@ public class PipelineStageService implements CommandLineRunner {
         stages.remove(inspection);
         inspection.setSortOrder(0);
         pipelineStageRepository.save(inspection);
+        for (int i = 0; i < stages.size(); i++) {
+            stages.get(i).setSortOrder(i + 1);
+            pipelineStageRepository.save(stages.get(i));
+        }
+    }
+
+    @Transactional
+    public void placeSaleDetailsFirst() {
+        PipelineFlow flow = pipelineFlowRepository.findByFlowKey(FLOW_READY).orElse(null);
+        if (flow == null) {
+            return;
+        }
+        PipelineFlow joined = pipelineFlowRepository.findByIdWithStages(flow.getId()).orElse(null);
+        if (joined == null || joined.getStages().isEmpty()) {
+            return;
+        }
+        List<PipelineStage> stages = new ArrayList<>(joined.getStages());
+        stages.sort(Comparator.comparingInt(PipelineStage::getSortOrder));
+        PipelineStage details = null;
+        for (PipelineStage stage : stages) {
+            if (FlowStage.DETAILS.getStageKey().equals(stage.getStageKey())) {
+                details = stage;
+                break;
+            }
+        }
+        if (details == null) {
+            return;
+        }
+        if (FlowStage.DETAILS.getStageKey().equals(stages.get(0).getStageKey())) {
+            return;
+        }
+        stages.remove(details);
+        details.setSortOrder(0);
+        pipelineStageRepository.save(details);
+        for (int i = 0; i < stages.size(); i++) {
+            stages.get(i).setSortOrder(i + 1);
+            pipelineStageRepository.save(stages.get(i));
+        }
+    }
+
+    @Transactional
+    public void placeBillOfLadingFirst() {
+        PipelineFlow flow = pipelineFlowRepository.findByFlowKey(FLOW_CUSTOMS).orElse(null);
+        if (flow == null) {
+            return;
+        }
+        List<PipelineStage> stages = new ArrayList<>(pipelineStageRepository.findByFlowIdOrdered(flow.getId()));
+        if (stages.isEmpty()) {
+            return;
+        }
+        PipelineStage billOfLading = null;
+        for (PipelineStage stage : stages) {
+            if (FlowStage.BILL_OF_LADING.getStageKey().equals(stage.getStageKey())) {
+                billOfLading = stage;
+                break;
+            }
+        }
+        if (billOfLading == null) {
+            return;
+        }
+        if (FlowStage.BILL_OF_LADING.getStageKey().equals(stages.get(0).getStageKey())) {
+            return;
+        }
+        stages.remove(billOfLading);
+        billOfLading.setSortOrder(0);
+        pipelineStageRepository.save(billOfLading);
         for (int i = 0; i < stages.size(); i++) {
             stages.get(i).setSortOrder(i + 1);
             pipelineStageRepository.save(stages.get(i));
@@ -358,6 +467,7 @@ public class PipelineStageService implements CommandLineRunner {
 
     private static List<DefaultStage> defaultCustoms() {
         return Arrays.asList(
+                new DefaultStage(FlowStage.BILL_OF_LADING.getStageKey(), "Bill of lading", "Ocean B/L and landing cost"),
                 new DefaultStage(FlowStage.DECLARATION.getStageKey(), "Customs declaration", "Sri Lanka CUSDEC"),
                 new DefaultStage(FlowStage.ASSESSMENT.getStageKey(), "Assessment notice", "ASYCUDA assessment"),
                 new DefaultStage(FlowStage.WORKSHEET.getStageKey(), "Working sheet", "Motor vehicle valuation")
@@ -368,13 +478,16 @@ public class PipelineStageService implements CommandLineRunner {
         return Arrays.asList(
                 new DefaultStage(FlowStage.INSPECTION.getStageKey(), "Inspection", "Checklist items and results"),
                 new DefaultStage(FlowStage.WORKSHOP.getStageKey(), "Workshop", "Repairs, parts, completion"),
-                new DefaultStage(FlowStage.YARD.getStageKey(), "Yard", "Bay, keys, inspection")
+                new DefaultStage(FlowStage.YARD.getStageKey(), "Yard", "Date and available yard"),
+                new DefaultStage(FlowStage.SALE.getStageKey(), "Sale", "Date and available sale")
         );
     }
 
     private static List<DefaultStage> defaultReady() {
-        return Collections.singletonList(
-                new DefaultStage(FlowStage.LISTING.getStageKey(), "Sale listing", "Price and list the vehicle")
+        return Arrays.asList(
+                new DefaultStage(FlowStage.DETAILS.getStageKey(), "Details", "Vehicle details and images"),
+                new DefaultStage(FlowStage.LISTING.getStageKey(), "Listing", "Price and list the vehicle"),
+                new DefaultStage(FlowStage.REGISTRATION.getStageKey(), "Registration", "Local plate and RMV details")
         );
     }
 

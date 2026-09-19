@@ -1,6 +1,6 @@
 package com.carsale.erp.importpipeline.coi;
 
-import com.carsale.erp.customspipeline.document.JavicCertificate;
+import com.carsale.erp.shared.document.document.JavicCertificate;
 import com.carsale.erp.importpipeline.ImportStageUrls;
 import java.io.IOException;
 import java.net.URLEncoder;

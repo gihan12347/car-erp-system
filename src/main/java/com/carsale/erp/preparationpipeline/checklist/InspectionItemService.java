@@ -9,6 +9,8 @@ import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.carsale.erp.shared.regex.RegexConstants;
+
 @Service
 @Order(4)
 public class InspectionItemService implements CommandLineRunner {
@@ -109,13 +111,13 @@ public class InspectionItemService implements CommandLineRunner {
             return "item";
         }
         String slug = title.trim().toLowerCase(Locale.ROOT)
-                .replaceAll("[^a-z0-9]+", "-")
-                .replaceAll("^-+|-+$", "");
+                .replaceAll(RegexConstants.Text.LOWER_SLUG, "-")
+                .replaceAll(RegexConstants.Text.SLUG_EDGE_DASH, "");
         if (slug.isEmpty()) {
             return "item";
         }
         if (slug.length() > 70) {
-            return slug.substring(0, 70).replaceAll("-+$", "");
+            return slug.substring(0, 70).replaceAll(RegexConstants.Text.TRAILING_DASHES, "");
         }
         return slug;
     }
@@ -124,7 +126,7 @@ public class InspectionItemService implements CommandLineRunner {
         if (title == null || title.trim().isEmpty()) {
             throw new IllegalArgumentException("Inspection item name is required.");
         }
-        String cleaned = title.trim().replaceAll("\\s+", " ");
+        String cleaned = title.trim().replaceAll(RegexConstants.Text.WHITESPACE, " ");
         if (cleaned.length() > 160) {
             throw new IllegalArgumentException("Inspection item name is too long.");
         }

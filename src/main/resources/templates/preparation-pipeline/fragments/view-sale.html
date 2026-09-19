@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<section th:fragment="saleView(vehicle, listing, saleReady)" class="import-view-stage">
+    <div class="panel import-view-empty" th:if="${listing == null or listing.saleCode == null or #strings.isEmpty(listing.saleCode)}">
+        <i class="fa-solid fa-tags"></i>
+        <strong>No sale assignment yet</strong>
+        <p>Select a date and an available sale. Saving a sale uses one space from that location’s capacity.</p>
+        <div class="import-view-actions">
+            <a th:if="${stageNav != null and stageNav.prevUrl != null}"
+               th:href="${stageNav.prevUrl}"
+               class="panel-btn ghost import-form-submit">
+                <i class="fa-solid fa-chevron-left"></i>
+                Previous
+            </a>
+            <a th:href="@{/sale/{c}(c=${vehicle.chassisNo}, hub=1)}" class="panel-btn import-form-submit">Start sale assignment</a>
+            <a th:if="${stageNav != null and stageNav.nextUrl != null}"
+               th:href="${stageNav.nextUrl}"
+               class="panel-btn ghost import-form-submit">
+                <span th:text="${stageNav.nextLabel}">Next · Sale pipeline</span>
+                <i class="fa-solid fa-chevron-right"></i>
+            </a>
+        </div>
+    </div>
+
+    <div th:if="${listing != null and listing.saleCode != null and !#strings.isEmpty(listing.saleCode)}">
+        <article class="panel">
+            <div class="panel-head"><h2>Sale assignment</h2></div>
+            <div class="field-grid">
+                <label>Date <input type="text" th:value="${listing.listedOn}" readonly class="readonly-field"></label>
+                <label>Sale <input type="text" th:value="${listing.saleCode}" readonly class="readonly-field"></label>
+                <label>Location <input type="text" th:value="${listing.saleLocation}" readonly class="readonly-field"></label>
+            </div>
+        </article>
+        <div class="import-view-actions">
+            <a th:if="${stageNav != null and stageNav.prevUrl != null}"
+               th:href="${stageNav.prevUrl}"
+               class="panel-btn ghost import-form-submit">
+                <i class="fa-solid fa-chevron-left"></i>
+                Previous
+            </a>
+            <a th:href="@{/sale/{c}(c=${vehicle.chassisNo}, hub=1)}" class="panel-btn ghost import-form-submit">Edit sale</a>
+            <a th:if="${stageNav != null and stageNav.nextUrl != null}"
+               th:href="${stageNav.nextUrl}"
+               class="panel-btn import-form-submit">
+                <span th:text="${stageNav.nextLabel}">Next · Sale pipeline</span>
+                <i class="fa-solid fa-chevron-right"></i>
+            </a>
+        </div>
+    </div>
+</section>
+
+</body>
+</html>

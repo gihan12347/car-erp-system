@@ -24,7 +24,6 @@ import org.springframework.web.util.UriUtils;
 
 import com.carsale.erp.importpipeline.auction.AuctionParseResult;
 import com.carsale.erp.shared.document.SheetUploadResult;
-import com.carsale.erp.importpipeline.standards.StandardsCertificate;
 import com.carsale.erp.shared.vehicle.Vehicle;
 import com.carsale.erp.customspipeline.CustomsProgressService;
 import com.carsale.erp.importpipeline.ImportProgressService;
@@ -32,8 +31,6 @@ import com.carsale.erp.importpipeline.ImportProgressService.ImportProgress;
 import com.carsale.erp.shared.pipeline.PipelineStageService;
 import com.carsale.erp.shared.pipeline.FlowStage;
 import com.carsale.erp.shared.document.SheetDocumentStorageService;
-import com.carsale.erp.importpipeline.standards.StandardsCertificateOcrService;
-import com.carsale.erp.importpipeline.standards.StandardsCertificateService;
 import com.carsale.erp.shared.vehicle.VehicleService;
 
 @Controller

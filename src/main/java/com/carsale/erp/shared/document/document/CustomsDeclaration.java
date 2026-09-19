@@ -1,9 +1,11 @@
-package com.carsale.erp.customspipeline.document;
+package com.carsale.erp.shared.document.document;
 
 import com.carsale.erp.shared.ocr.DocumentAiClient;
 import com.carsale.erp.shared.utils.CustomsDocumentParserUtils;
+import com.carsale.erp.shared.regex.RegexConstants;
 import com.carsale.erp.importpipeline.auction.AuctionParseResult;
 import com.carsale.erp.shared.document.DocumentParser;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
@@ -16,71 +18,8 @@ import java.util.regex.Pattern;
  */
 @Component
 public class CustomsDeclaration implements DocumentParser {
-    private static final String DEC_MONEY =
-            "(\\d{1,3}(?:[.,]\\d{3})+\\.\\d{2}|\\d{4,}\\.\\d{2})";
-    private static final Pattern INVOICE_SECTION = Pattern.compile(
-            "(?:\\(\\s*)?TOTAL\\s+INVOICE\\s+AMOUNT(?:\\s*\\))?"
-                    + "([\\s\\S]*?)"
-                    + "(?=Declaration\\s+Submitted|Authorised\\s+Signatory|Authorized\\s+Signatory"
-                    + "|\\b53\\.\\b|I\\s+do\\s+hereby|COLOMBO\\s+MOTOR\\s+TRADING\\s+COMPANY\\s+do\\b"
-                    + "|\\bB\\s*/\\s*L\\s*:|\\bExchange\\s+Rate\\b|\\bValue\\s*\\(?\\s*NCY|\\z)",
-            Pattern.CASE_INSENSITIVE
-    );
-    private static final Pattern SECTION_FALLBACK = Pattern.compile(
-            "(?:FOB\\s*/\\s*CIF|F0[0O]\\s*/\\s*CIF)\\s*" + DEC_MONEY
-                    + "[\\s\\S]{0,400}?\\bTOTAL\\b\\s*" + DEC_MONEY,
-            Pattern.CASE_INSENSITIVE
-    );
-    private static final Pattern LINE_FOB = Pattern.compile(
-            "(?:FOB\\s*/\\s*CIF|F0[0O]\\s*/\\s*CIF)\\s*[:\\-.]?\\s*" + DEC_MONEY + "(?:\\s*J?PY)?",
-            Pattern.CASE_INSENSITIVE
-    );
-    private static final Pattern LINE_FREIGHT = Pattern.compile(
-            "\\bFREIGHT\\b\\s*[:\\-.]?\\s*" + DEC_MONEY + "(?:\\s*J?PY)?",
-            Pattern.CASE_INSENSITIVE
-    );
-    private static final Pattern LINE_INSURANCE = Pattern.compile(
-            "\\bINSURANCE\\b\\s*[:\\-.]?\\s*" + DEC_MONEY + "(?:\\s*J?PY)?",
-            Pattern.CASE_INSENSITIVE
-    );
-    private static final Pattern LINE_OTHER = Pattern.compile(
-            "\\bOTHER\\b\\s*[:\\-.]?\\s*" + DEC_MONEY + "(?:\\s*J?PY)?",
-            Pattern.CASE_INSENSITIVE
-    );
-    private static final Pattern LINE_TOTAL = Pattern.compile(
-            "\\bTOTAL\\b\\s*[:\\-.]?\\s*" + DEC_MONEY + "(?:\\s*J?PY)?",
-            Pattern.CASE_INSENSITIVE
-    );
-    private static final Pattern LABEL_ONLY = Pattern.compile(
-            "(?:FOB\\s*/\\s*CIF|F0[0O]\\s*/\\s*CIF|FREIGHT|INSURANCE|OTHER|TOTAL)",
-            Pattern.CASE_INSENSITIVE
-    );
-    private static final Pattern ORPHAN_AMOUNT = Pattern.compile(
-            DEC_MONEY + "\\s*(?:J?PY)?",
-            Pattern.CASE_INSENSITIVE
-    );
-    private static final Pattern FREIGHT_BL = Pattern.compile(
-            "B\\s*/\\s*L\\s*:\\s*FRT\\b[\\s\\S]{0,100}?JPY\\s*" + DEC_MONEY,
-            Pattern.CASE_INSENSITIVE
-    );
-    private static final Pattern TOTAL_INVOICED = Pattern.compile(
-            "Currency\\s+And\\s+Total\\s+Amount\\s+Invoiced[\\s\\S]{0,120}?JPY\\s*" + DEC_MONEY,
-            Pattern.CASE_INSENSITIVE
-    );
-    private static final Pattern EXCHANGE_RATE = Pattern.compile(
-            "(?:23\\.?\\s*)?Exchange\\s+Rate\\s*[:\\-.]?\\s*(\\d+\\.\\d{2,6})",
-            Pattern.CASE_INSENSITIVE
-    );
-    private static final Pattern VALUE_NCY = Pattern.compile(
-            "(?:46\\.?\\s*)?Value\\s*\\(?\\s*NCY\\s*\\)?\\s*[:\\-.]?\\s*" + DEC_MONEY,
-            Pattern.CASE_INSENSITIVE
-    );
-    private static final Pattern VALUE_NCY_NEAR = Pattern.compile(
-            "(?:46\\.?\\s*)?Value\\s*\\(?\\s*NCY\\s*\\)?[\\s\\S]{0,80}?" + DEC_MONEY,
-            Pattern.CASE_INSENSITIVE
-    );
-
     private static final Map<String, String> TYPE_TO_FIELD = new LinkedHashMap<>();
+    private final String processorId;
 
     static {
         TYPE_TO_FIELD.put("exchange_rate", "exchangeRate");
@@ -104,6 +43,10 @@ public class CustomsDeclaration implements DocumentParser {
         TYPE_TO_FIELD.put("valuency", "valueNcy");
     }
 
+    public CustomsDeclaration(@Value("${app.ocr.documentAi.cusdecProcessorId:}") String processorId) {
+        this.processorId = processorId == null ? "" : processorId.trim();
+    }
+
     @Override
     public AuctionParseResult parsePage(String text) {
         AuctionParseResult result = new AuctionParseResult();
@@ -125,11 +68,11 @@ public class CustomsDeclaration implements DocumentParser {
         String total = null;
 
         if (section != null) {
-            fob = money(LINE_FOB, section);
-            freight = money(LINE_FREIGHT, section);
-            insurance = money(LINE_INSURANCE, section);
-            other = money(LINE_OTHER, section);
-            total = money(LINE_TOTAL, section);
+            fob = money(RegexConstants.Declaration.LINE_FOB, section);
+            freight = money(RegexConstants.Declaration.LINE_FREIGHT, section);
+            insurance = money(RegexConstants.Declaration.LINE_INSURANCE, section);
+            other = money(RegexConstants.Declaration.LINE_OTHER, section);
+            total = money(RegexConstants.Declaration.LINE_TOTAL, section);
 
             String[] columnar = extractColumnar(section, fob, freight, insurance, other, total);
             fob = firstNonBlank(fob, columnar[0]);
@@ -140,10 +83,10 @@ public class CustomsDeclaration implements DocumentParser {
         }
 
         if (freight == null) {
-            freight = money(FREIGHT_BL, normalized);
+            freight = money(RegexConstants.Declaration.FREIGHT_BL, normalized);
         }
         if (total == null) {
-            total = money(TOTAL_INVOICED, normalized);
+            total = money(RegexConstants.Declaration.TOTAL_INVOICED, normalized);
         }
 
         result.put("invoiceFob", fob);
@@ -183,8 +126,13 @@ public class CustomsDeclaration implements DocumentParser {
         return result;
     }
 
+    @Override
+    public String getProcessorId() {
+        return this.processorId;
+    }
+
     private static String invoiceSection(String text) {
-        Matcher matcher = INVOICE_SECTION.matcher(text);
+        Matcher matcher = RegexConstants.Declaration.INVOICE_SECTION.matcher(text);
         String last = null;
         while (matcher.find()) {
             last = matcher.group(1);
@@ -192,7 +140,7 @@ public class CustomsDeclaration implements DocumentParser {
         if (last != null && looksLikeInvoiceSection(last)) {
             return last;
         }
-        Matcher fallback = SECTION_FALLBACK.matcher(text);
+        Matcher fallback = RegexConstants.Declaration.SECTION_FALLBACK.matcher(text);
         String block = null;
         while (fallback.find()) {
             block = fallback.group();
@@ -219,7 +167,7 @@ public class CustomsDeclaration implements DocumentParser {
             String total
     ) {
         List<String> labels = new ArrayList<>();
-        Matcher labelMatcher = LABEL_ONLY.matcher(section);
+        Matcher labelMatcher = RegexConstants.Declaration.LABEL_ONLY.matcher(section);
         while (labelMatcher.find()) {
             String kind = normalizeLabel(labelMatcher.group());
             if (!labels.contains(kind)) {
@@ -228,7 +176,7 @@ public class CustomsDeclaration implements DocumentParser {
         }
 
         List<String> amounts = new ArrayList<>();
-        Matcher amountMatcher = ORPHAN_AMOUNT.matcher(section);
+        Matcher amountMatcher = RegexConstants.Declaration.ORPHAN_AMOUNT.matcher(section);
         while (amountMatcher.find()) {
             String value = normalizeMoney(amountMatcher.group(1));
             if (value != null) {
@@ -328,7 +276,7 @@ public class CustomsDeclaration implements DocumentParser {
     }
 
     private static String extractExchangeRate(String text) {
-        Matcher matcher = EXCHANGE_RATE.matcher(text);
+        Matcher matcher = RegexConstants.Declaration.EXCHANGE_RATE.matcher(text);
         String value = null;
         while (matcher.find()) {
             value = matcher.group(1);
@@ -337,7 +285,7 @@ public class CustomsDeclaration implements DocumentParser {
     }
 
     private static String extractValueNcy(String text) {
-        return firstNonBlank(money(VALUE_NCY, text), money(VALUE_NCY_NEAR, text));
+        return firstNonBlank(money(RegexConstants.Declaration.VALUE_NCY, text), money(RegexConstants.Declaration.VALUE_NCY_NEAR, text));
     }
 
     private static String money(Pattern pattern, String text) {
@@ -363,14 +311,14 @@ public class CustomsDeclaration implements DocumentParser {
         boolean hasComma = value.indexOf(',') >= 0;
         if (hasDot && hasComma) {
             int lastSep = Math.max(value.lastIndexOf('.'), value.lastIndexOf(','));
-            String intPart = value.substring(0, lastSep).replaceAll("[.,]", "");
-            String decPart = value.substring(lastSep + 1).replaceAll("\\D", "");
+            String intPart = value.substring(0, lastSep).replaceAll(RegexConstants.Text.COMMA_OR_DOT, "");
+            String decPart = value.substring(lastSep + 1).replaceAll(RegexConstants.Text.NON_DIGIT, "");
             if (intPart.isEmpty()) {
                 return null;
             }
             return withThousands(intPart) + (decPart.isEmpty() ? "" : "." + decPart);
         }
-        if (value.matches("\\d{1,3}(?:\\.\\d{3})+\\.\\d{2}")) {
+        if (value.matches(RegexConstants.Amounts.EUROPEAN_MONEY)) {
             int lastDot = value.lastIndexOf('.');
             String intPart = value.substring(0, lastDot).replace(".", "");
             return withThousands(intPart) + value.substring(lastDot);
@@ -424,9 +372,9 @@ public class CustomsDeclaration implements DocumentParser {
         if (raw == null) {
             return null;
         }
-        String value = raw.trim().replaceAll("\\s+", " ");
-        value = value.replaceAll("(?i)\\bJ?PY\\b", "").trim();
-        value = value.replaceAll("^[.:|\\-/]+", "").replaceAll("[\\-/]+$", "").trim();
+        String value = raw.trim().replaceAll(RegexConstants.Text.WHITESPACE, " ");
+        value = value.replaceAll(RegexConstants.Amounts.CURRENCY_JPY, "").trim();
+        value = value.replaceAll(RegexConstants.Text.LEADING_PUNCT, "").replaceAll(RegexConstants.Text.TRAILING_DASH, "").trim();
         if (value.isEmpty()) {
             return null;
         }

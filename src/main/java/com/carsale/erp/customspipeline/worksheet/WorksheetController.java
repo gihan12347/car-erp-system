@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 
-import com.carsale.erp.customspipeline.document.WorkingSheet;
+import com.carsale.erp.shared.document.document.WorkingSheet;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -171,6 +171,7 @@ public class WorksheetController {
     }
 
     private void addPipelineFlags(Model model, CustomsProgress status) {
+        model.addAttribute("blReady", status.isBlReady());
         model.addAttribute("declarationReady", status.isDeclarationReady());
         model.addAttribute("assessmentReady", status.isAssessmentReady());
         model.addAttribute("worksheetReady", status.isWorksheetReady());

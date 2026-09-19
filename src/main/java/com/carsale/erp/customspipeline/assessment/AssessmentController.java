@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 
-import com.carsale.erp.customspipeline.document.AssessmentNotice;
+import com.carsale.erp.shared.document.document.AssessmentNotice;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -165,6 +165,7 @@ public class AssessmentController {
     }
 
     private void addPipelineFlags(Model model, CustomsProgress status) {
+        model.addAttribute("blReady", status.isBlReady());
         model.addAttribute("declarationReady", status.isDeclarationReady());
         model.addAttribute("assessmentReady", status.isAssessmentReady());
         model.addAttribute("worksheetReady", status.isWorksheetReady());

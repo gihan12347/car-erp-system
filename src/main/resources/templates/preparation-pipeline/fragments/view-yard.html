@@ -3,25 +3,10 @@
 <body>
 
 <section th:fragment="yardView(vehicle, yard, yardReady)" class="import-view-stage">
-    <div class="panel import-view-empty" th:if="${!canEnterYard and !yardReady}">
-        <i class="fa-solid fa-lock"></i>
-        <strong>Yard is locked</strong>
-        <p>Finish every workshop job before opening the yard section.</p>
-        <div class="import-view-actions">
-            <a th:if="${stageNav != null and stageNav.prevUrl != null}"
-               th:href="${stageNav.prevUrl}"
-               class="panel-btn ghost import-form-submit">
-                <i class="fa-solid fa-chevron-left"></i>
-                Previous
-            </a>
-            <a th:href="@{/workshop/{c}(c=${vehicle.chassisNo}, hub=1)}" class="panel-btn import-form-submit">Open workshop</a>
-        </div>
-    </div>
-
-    <div class="panel import-view-empty" th:if="${canEnterYard and yard == null}">
+    <div class="panel import-view-empty" th:if="${yard == null}">
         <i class="fa-solid fa-warehouse"></i>
         <strong>No yard record yet</strong>
-        <p>Assign a bay, record keys, and complete the yard inspection.</p>
+        <p>Select a date and an available yard. Saving a yard uses one space from that yard’s capacity.</p>
         <div class="import-view-actions">
             <a th:if="${stageNav != null and stageNav.prevUrl != null}"
                th:href="${stageNav.prevUrl}"
@@ -30,31 +15,22 @@
                 Previous
             </a>
             <a th:href="@{/yard/{c}(c=${vehicle.chassisNo}, hub=1)}" class="panel-btn import-form-submit">Start yard record</a>
+            <a th:if="${stageNav != null and stageNav.nextUrl != null}"
+               th:href="${stageNav.nextUrl}"
+               class="panel-btn ghost import-form-submit">
+                <span th:text="${stageNav.nextLabel}">Next · Sale</span>
+                <i class="fa-solid fa-chevron-right"></i>
+            </a>
         </div>
     </div>
 
-    <div th:if="${yard != null and (canEnterYard or yardReady)}">
+    <div th:if="${yard != null}">
         <article class="panel">
-            <div class="panel-head"><h2>Location</h2></div>
+            <div class="panel-head"><h2>Yard assignment</h2></div>
             <div class="field-grid">
-                <label>Bay no. <input type="text" th:value="${yard.bayNo}" readonly class="readonly-field"></label>
-                <label>Yard section <input type="text" th:value="${yard.yardSection}" readonly class="readonly-field"></label>
-                <label>Arrival date <input type="text" th:value="${yard.arrivalDate}" readonly class="readonly-field"></label>
-                <label>Keys location <input type="text" th:value="${yard.keysLocation}" readonly class="readonly-field"></label>
-            </div>
-        </article>
-        <article class="panel">
-            <div class="panel-head"><h2>Inspection</h2></div>
-            <div class="field-grid">
-                <label>Status <input type="text" th:value="${yard.inspectionStatus}" readonly class="readonly-field"></label>
-                <label>Inspector <input type="text" th:value="${yard.inspector}" readonly class="readonly-field"></label>
-                <label>Inspection date <input type="text" th:value="${yard.inspectionDate}" readonly class="readonly-field"></label>
-                <label class="span-2">Condition notes
-                    <textarea th:text="${yard.conditionNotes}" readonly class="readonly-field" rows="3"></textarea>
-                </label>
-                <label class="span-2">Notes
-                    <textarea th:text="${yard.notes}" readonly class="readonly-field" rows="3"></textarea>
-                </label>
+                <label>Date <input type="text" th:value="${yard.arrivalDate}" readonly class="readonly-field"></label>
+                <label>Yard <input type="text" th:value="${yard.bayNo}" readonly class="readonly-field"></label>
+                <label>Location <input type="text" th:value="${yard.yardSection}" readonly class="readonly-field"></label>
             </div>
         </article>
         <div class="import-view-actions">
@@ -68,7 +44,7 @@
             <a th:if="${stageNav != null and stageNav.nextUrl != null}"
                th:href="${stageNav.nextUrl}"
                class="panel-btn import-form-submit">
-                <span th:text="${stageNav.nextLabel}">Next · Ready for sale pipeline</span>
+                <span th:text="${stageNav.nextLabel}">Next · Sale</span>
                 <i class="fa-solid fa-chevron-right"></i>
             </a>
         </div>

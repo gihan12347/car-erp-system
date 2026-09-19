@@ -18,13 +18,16 @@
                         th:text="${@pipelineStageService.title('PREP', 'workshop')}">Workshop</h1>
                     <h1 th:if="${stageKey == 'yard'}"
                         th:text="${@pipelineStageService.title('PREP', 'yard')}">Yard</h1>
+                    <h1 th:if="${stageKey == 'sale'}"
+                        th:text="${@pipelineStageService.title('PREP', 'sale')}">Sale</h1>
                     <p class="form-lead" th:if="${stageKey == 'inspection'}">Review checklist results. Marking No creates a workshop job.</p>
                     <p class="form-lead" th:if="${stageKey == 'workshop'}">Review repair work, parts, and workshop completion.</p>
-                    <p class="form-lead" th:if="${stageKey == 'yard'}">Review bay allocation, keys, and yard inspection.</p>
+                    <p class="form-lead" th:if="${stageKey == 'yard'}">Review the assigned date and yard.</p>
+                    <p class="form-lead" th:if="${stageKey == 'sale'}">Review the assigned date and sale location.</p>
                 </div>
                 <div th:replace="shared/pipeline-delete :: pipelineDeleteBtn(
                         @{/workshop-yard/{c}/delete(c=${vehicle.chassisNo})},
-                        'Delete preparation data? Ready-for-sale data will also be deleted.')"></div>
+                        'Delete preparation data? Sale pipeline data will also be deleted.')"></div>
             </div>
 
             <div th:replace="preparation-pipeline/fragments/pipeline :: prepPipelineSteps(
@@ -35,7 +38,8 @@
                     ${inspectionReady},
                     ${canEnterYard},
                     ${vehicle.model},
-                    true)"></div>
+                    true,
+                    ${saleReady})"></div>
 
             <div class="vehicle-form" th:if="${stageKey == 'inspection'}">
                 <div th:replace="preparation-pipeline/fragments/view-inspection :: inspectionView(${vehicle}, ${inspection}, ${inspectionReady})"></div>
@@ -46,18 +50,21 @@
             <div class="vehicle-form" th:if="${stageKey == 'yard'}">
                 <div th:replace="preparation-pipeline/fragments/view-yard :: yardView(${vehicle}, ${yard}, ${yardReady})"></div>
             </div>
+            <div class="vehicle-form" th:if="${stageKey == 'sale'}">
+                <div th:replace="preparation-pipeline/fragments/view-sale :: saleView(${vehicle}, ${listing}, ${saleReady})"></div>
+            </div>
 
             <article class="panel import-next-pipeline" th:if="${prepComplete}">
                 <div class="panel-head">
                     <h2>Next pipeline</h2>
-                    <em class="pill muted-pill">Ready for sale</em>
+                    <em class="pill muted-pill">Sale</em>
                 </div>
-                <p class="form-lead">Preparation is complete. Set the asking price and list the vehicle for sale.</p>
+                <p class="form-lead">Preparation is complete. Open the sale pipeline to price and list the vehicle.</p>
                 <div class="import-view-actions">
                     <a th:href="@{/ready-for-sale/{c}(c=${vehicle.chassisNo})}" class="panel-btn import-form-submit">
-                        Open ready for sale pipeline
+                        Open sale pipeline
                     </a>
-                    <a th:href="@{/ready-for-sale}" class="panel-btn ghost import-form-submit">All ready for sale</a>
+                    <a th:href="@{/ready-for-sale}" class="panel-btn ghost import-form-submit">All sale vehicles</a>
                 </div>
             </article>
         </main>

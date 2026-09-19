@@ -2,6 +2,7 @@ package com.carsale.erp.importpipeline.auction;
 
 import java.util.Map;
 
+import com.carsale.erp.shared.document.document.WorkingSheet;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -9,7 +10,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class AuctionSheetParserTest {
 
-    private final AuctionSheetParser parser = new AuctionSheetParser(text -> text);
+    private final WorkingSheet.AuctionSheetParser parser = new WorkingSheet.AuctionSheetParser(text -> text);
 
     @Test
     void parsesHandwrittenRaizeHybridSheet() {
@@ -154,7 +155,7 @@ class AuctionSheetParserTest {
 
     @Test
     void translatesSheetToEnglishBeforeExtracting() {
-        AuctionSheetParser englishFirst = new AuctionSheetParser(text -> {
+        WorkingSheet.AuctionSheetParser englishFirst = new WorkingSheet.AuctionSheetParser(text -> {
             if (text == null) {
                 return null;
             }
@@ -256,7 +257,7 @@ class AuctionSheetParserTest {
 
     @Test
     void readsColorAndCodeFromTranslatedEnglish() {
-        AuctionSheetParser colorParser = new AuctionSheetParser(text -> {
+        WorkingSheet.AuctionSheetParser colorParser = new WorkingSheet.AuctionSheetParser(text -> {
             if (text == null) {
                 return null;
             }
@@ -274,7 +275,7 @@ class AuctionSheetParserTest {
 
     @Test
     void keepsColorCodeWhenTranslationTurnsCodeIntoColorName() {
-        AuctionSheetParser colorParser = new AuctionSheetParser(text -> {
+        WorkingSheet.AuctionSheetParser colorParser = new WorkingSheet.AuctionSheetParser(text -> {
             if (text != null && text.contains("外装色")) {
                 return "Exterior color White";
             }
@@ -296,7 +297,7 @@ class AuctionSheetParserTest {
 
     @Test
     void doesNotUseColorNameLettersAsColorCode() {
-        AuctionSheetParser colorParser = new AuctionSheetParser(text -> {
+        WorkingSheet.AuctionSheetParser colorParser = new WorkingSheet.AuctionSheetParser(text -> {
             if (text != null && text.contains("パールホワイト")) {
                 return "Exterior color Pearl White";
             }
@@ -314,7 +315,7 @@ class AuctionSheetParserTest {
 
     @Test
     void translatesJapaneseColorThroughTranslator() {
-        AuctionSheetParser colorParser = new AuctionSheetParser(text -> {
+        WorkingSheet.AuctionSheetParser colorParser = new WorkingSheet.AuctionSheetParser(text -> {
             if (text != null && text.contains("パールホワイト")) {
                 return "Pearl White";
             }

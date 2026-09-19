@@ -1,18 +1,64 @@
-package com.carsale.erp.customspipeline.document;
+package com.carsale.erp.shared.document.document;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.carsale.erp.shared.document.DocumentParser;
 import com.carsale.erp.shared.ocr.DocumentAiClient;
+import com.carsale.erp.shared.utils.CustomsDocumentParserUtils;
+import com.carsale.erp.shared.regex.RegexConstants;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import com.carsale.erp.importpipeline.auction.AuctionParseResult;
 
 @Service
 public class PreShipmentParser implements DocumentParser {
+
+    private static final Map<String, String> TYPE_TO_FIELD = new LinkedHashMap<>();
+    private static final String[] MULTI_VALUE_FIELDS = {
+            "grossVehicleMass", "tyreSize", "wheelBase"
+    };
+
+    static {
+        TYPE_TO_FIELD.put("applicant_address", "applicantAddress");
+        TYPE_TO_FIELD.put("applicant_email", "applicantEmail");
+        TYPE_TO_FIELD.put("applicant_fax", "applicantFax");
+        TYPE_TO_FIELD.put("applicant_name", "applicantName");
+        TYPE_TO_FIELD.put("applicant_tel", "applicantTel");
+        TYPE_TO_FIELD.put("inspection_organization_address", "inspectionOrgAddress");
+        TYPE_TO_FIELD.put("inspection_organization_email", "inspectionOrgEmail");
+        TYPE_TO_FIELD.put("inspection_organization_fax", "inspectionOrgFax");
+        TYPE_TO_FIELD.put("inspection_organization_name", "inspectionOrgName");
+        TYPE_TO_FIELD.put("inspection_organization_tel", "inspectionOrgTel");
+        TYPE_TO_FIELD.put("auction_grade", "preshipAuctionGrade");
+        TYPE_TO_FIELD.put("body_colour", "bodyColour");
+        TYPE_TO_FIELD.put("body_color", "bodyColour");
+        TYPE_TO_FIELD.put("chassis_no", "chassisNo");
+        TYPE_TO_FIELD.put("commonly_called", "commonName");
+        TYPE_TO_FIELD.put("condition_of_chassis", "chassisCondition");
+        TYPE_TO_FIELD.put("driving_system", "drivingSystem");
+        TYPE_TO_FIELD.put("engine_capacity", "engineCapacity");
+        TYPE_TO_FIELD.put("engine_model", "engineModel");
+        TYPE_TO_FIELD.put("engine_no", "engineNo");
+        TYPE_TO_FIELD.put("fuel_type", "fuelType");
+        TYPE_TO_FIELD.put("gross_vehicle_mass", "grossVehicleMass");
+        TYPE_TO_FIELD.put("inspection_mileage", "inspectionMileage");
+        TYPE_TO_FIELD.put("make", "make");
+        TYPE_TO_FIELD.put("manufacture_grade", "manufactureGrade");
+        TYPE_TO_FIELD.put("marks_of_accident_on_chassis", "accidentMarksOnChassis");
+        TYPE_TO_FIELD.put("model", "model");
+        TYPE_TO_FIELD.put("type_of_vehicle", "vehicleType");
+        TYPE_TO_FIELD.put("tyre_size", "tyreSize");
+        TYPE_TO_FIELD.put("tire_size", "tyreSize");
+        TYPE_TO_FIELD.put("wheel_base", "wheelBase");
+        TYPE_TO_FIELD.put("year_month_of_first_registration", "firstRegistration");
+    }
 
     private static final String[] ATTRIBUTE_ONLY_PREFIXES = new String[] {
             "Marks of accident on chassis (by visual check)",
@@ -48,6 +94,14 @@ public class PreShipmentParser implements DocumentParser {
             15, 15, 9, 10, 10, 12, 12, 12, 4, 4, 5, 5, 16, 11, 14, 6, 7, 7, 8, 13, 13, 1, 0, 0, 0, 2, 3
     };
 
+    private final String processorId;
+
+    public PreShipmentParser(
+            @Value("${app.ocr.documentAi.preShipmentProcessorId:}") String processorId
+    ) {
+        this.processorId = processorId == null ? "" : processorId.trim();
+    }
+
     public AuctionParseResult parsePage(String text) {
         AuctionParseResult result = new AuctionParseResult();
         if (text == null || text.trim().isEmpty()) {
@@ -56,18 +110,18 @@ public class PreShipmentParser implements DocumentParser {
             return result;
         }
 
-        String normalized = normalize(text);
+        String normalized = CustomsDocumentParserUtils.normalize(text);
 
-        result.put("certificateReference", firstNonNull(
+        result.put("certificateReference", CustomsDocumentParserUtils.firstNonNull(
                 extractLabelValue(normalized, "Document No"),
                 extractReference(normalized)
         ));
-        result.put("documentTitle", firstNonNull(
+        result.put("documentTitle", CustomsDocumentParserUtils.firstNonNull(
                 extractLabelValue(normalized, "Document Title"),
                 extractHeading(normalized)
         ));
         result.put("bvNumber", extractBvNumber(normalized));
-        result.put("certificateDate", firstNonNull(
+        result.put("certificateDate", CustomsDocumentParserUtils.firstNonNull(
                 extractHeaderDate(normalized),
                 extractCertificateDate(normalized)
         ));
@@ -106,34 +160,35 @@ public class PreShipmentParser implements DocumentParser {
         result.put("preshipAuctionGrade", lookupVehicleValue(vehicleRows, vehicleSection, normalized, 6, "Auction Grade"));
         result.put("bodyColour", lookupVehicleValue(vehicleRows, vehicleSection, normalized, 7, "Body colour", "Body color"));
         result.put("fuelType", lookupVehicleValue(vehicleRows, vehicleSection, normalized, 8, "Fuel type"));
-        result.put("firstRegistration", lookupVehicleValue(vehicleRows, vehicleSection, normalized, 9, "Year/month of first registration"));
-        result.put("inspectionMileage", firstNonNull(
+        result.put("firstRegistration", normalizeYearMonth(lookupVehicleValue(
+                vehicleRows, vehicleSection, normalized, 9, "Year/month of first registration")));
+        result.put("inspectionMileage", CustomsDocumentParserUtils.firstNonNull(
                 lookupVehicleValue(vehicleRows, vehicleSection, normalized, 10, "Inspection mileage (odometer reading)"),
                 lookupVehicleValue(vehicleRows, vehicleSection, normalized, 10, "Inspection mileage")
         ));
         result.put("engineCapacity", lookupVehicleValue(vehicleRows, vehicleSection, normalized, 11, "Engine capacity"));
-        result.put("chassisNo", firstNonNull(
+        result.put("chassisNo", CustomsDocumentParserUtils.firstNonNull(
                 lookupVehicleValue(vehicleRows, vehicleSection, normalized, 12, "Chassis No. (original)"),
                 lookupVehicleValue(vehicleRows, vehicleSection, normalized, 12, "Chassis No")
         ));
-        result.put("engineNo", firstNonNull(
+        result.put("engineNo", CustomsDocumentParserUtils.firstNonNull(
                 lookupVehicleValue(vehicleRows, vehicleSection, normalized, 13, "Engine No."),
                 lookupVehicleValue(vehicleRows, vehicleSection, normalized, 13, "Engine No")
         ));
         result.put("drivingSystem", lookupVehicleValue(vehicleRows, vehicleSection, normalized, 14, "Driving system"));
-        result.put("accidentMarksOnChassis", firstNonNull(
+        result.put("accidentMarksOnChassis", CustomsDocumentParserUtils.firstNonNull(
                 lookupVehicleValue(vehicleRows, vehicleSection, normalized, 15, "Marks of accident on chassis (by visual check)"),
                 lookupVehicleValue(vehicleRows, vehicleSection, normalized, 15, "Marks of accident on chassis")
         ));
         result.put("chassisCondition", lookupVehicleValue(vehicleRows, vehicleSection, normalized, 16, "Condition of chassis"));
 
         String remarksSection = vehicleSection != null ? vehicleSection : normalized;
-        result.put("fullModelNo", firstNonNull(
+        result.put("fullModelNo", CustomsDocumentParserUtils.firstNonNull(
                 lookupVehicleValue(vehicleRows, remarksSection, normalized, 0, "Full Model No"),
                 extractLabelValue(remarksSection, "Full Model No"),
                 extractLabelValue(normalized, "Full Model No")
         ));
-        result.put("yearOfManufacture", firstNonNull(
+        result.put("yearOfManufacture", CustomsDocumentParserUtils.firstNonNull(
                 lookupVehicleValue(vehicleRows, remarksSection, normalized, 0, "Year of Manufacture"),
                 extractLabelValue(remarksSection, "Year of Manufacture"),
                 extractLabelValue(normalized, "Year of Manufacture")
@@ -149,13 +204,202 @@ public class PreShipmentParser implements DocumentParser {
 
     @Override
     public AuctionParseResult parsePage(DocumentAiClient.DocumentAiResult documentAi) {
+        AuctionParseResult result = new AuctionParseResult();
+        if (documentAi == null) {
+            result.setSuccess(false);
+            result.setMessage("Document AI returned no result.");
+            return result;
+        }
+        result.setRawText(documentAi.getText());
+        Map<String, List<String>> multiValues = new LinkedHashMap<>();
+        List<DocumentAiClient.DocumentAiEntity> entities = documentAi.getEntities();
+        if (entities != null) {
+            for (DocumentAiClient.DocumentAiEntity entity : entities) {
+                if (entity == null) {
+                    continue;
+                }
+                String field = mapType(entity.getType());
+                if (field == null) {
+                    continue;
+                }
+                String value = cleanDocumentAiValue(field, entity.getValue());
+                if (value == null || value.isEmpty()) {
+                    continue;
+                }
+                if (isMultiValueField(field)) {
+                    List<String> values = multiValues.computeIfAbsent(field, k -> new ArrayList<>());
+                    if (!values.contains(value)) {
+                        values.add(value);
+                    }
+                    continue;
+                }
+                if (!result.getFields().containsKey(field)) {
+                    result.put(field, value);
+                }
+            }
+        }
+        for (Map.Entry<String, List<String>> entry : multiValues.entrySet()) {
+            if (!entry.getValue().isEmpty()) {
+                result.put(entry.getKey(), joinValues(entry.getValue()));
+            }
+        }
+        fillMissingFromText(result, documentAi.getText());
+        CustomsDocumentParserUtils.finish(result, "Document AI (pre-shipment certificate)");
+        return result;
+    }
+
+    @Override
+    public String getProcessorId() {
+        return this.processorId;
+    }
+
+    static String mapType(String type) {
+        if (type == null || type.trim().isEmpty()) {
+            return null;
+        }
+        String key = type.trim().toLowerCase(Locale.ROOT).replace(' ', '_');
+        if ("vehicle_details".equals(key) || "vehicle_detail".equals(key)) {
+            return null;
+        }
+        String mapped = TYPE_TO_FIELD.get(key);
+        if (mapped != null) {
+            return mapped;
+        }
+        int slash = key.lastIndexOf('/');
+        if (slash >= 0 && slash + 1 < key.length()) {
+            return TYPE_TO_FIELD.get(key.substring(slash + 1));
+        }
         return null;
     }
 
-    private String normalize(String text) {
-        return text.replace('\r', '\n')
-                .replaceAll("[ ]+", " ")
-                .replaceAll("\n{3,}", "\n\n");
+    static String cleanDocumentAiValue(String field, String raw) {
+        if (raw == null) {
+            return null;
+        }
+        String value = raw.trim().replaceAll(RegexConstants.Text.WHITESPACE, " ");
+        value = value.replaceAll(RegexConstants.Text.LEADING_PUNCT, "").replaceAll(RegexConstants.Text.TRAILING_PUNCT, "").trim();
+        if (value.isEmpty() || "not applicable".equalsIgnoreCase(value)) {
+            return value.isEmpty() ? null : value;
+        }
+        if ("bvNumber".equals(field)) {
+            return value.toUpperCase(Locale.ROOT).replaceAll(RegexConstants.Text.WHITESPACE, "");
+        }
+        if ("firstRegistration".equals(field)) {
+            return normalizeYearMonth(value);
+        }
+        return value;
+    }
+
+    public static String normalizeYearMonth(String raw) {
+        if (raw == null) {
+            return null;
+        }
+        String value = raw.trim().replaceAll(RegexConstants.Text.WHITESPACE, " ");
+        if (value.isEmpty() || "not applicable".equalsIgnoreCase(value)) {
+            return value.isEmpty() ? null : value;
+        }
+        Matcher iso = RegexConstants.Dates.YEAR_MONTH_ISO_PATTERN.matcher(value);
+        if (iso.matches()) {
+            return String.format(Locale.ROOT, "%s-%02d", iso.group(1), Integer.parseInt(iso.group(2)));
+        }
+        Matcher numeric = RegexConstants.Dates.MONTH_YEAR_NUMERIC_PATTERN.matcher(value);
+        if (numeric.matches()) {
+            return String.format(Locale.ROOT, "%s-%02d", numeric.group(2), Integer.parseInt(numeric.group(1)));
+        }
+        Matcher yearFirst = RegexConstants.Dates.YEAR_MONTH_NUMERIC_PATTERN.matcher(value);
+        if (yearFirst.matches()) {
+            return String.format(Locale.ROOT, "%s-%02d", yearFirst.group(1), Integer.parseInt(yearFirst.group(2)));
+        }
+        Matcher named = RegexConstants.Dates.NAMED_MONTH_YEAR_PATTERN.matcher(value);
+        if (named.matches()) {
+            Integer month = monthNumber(named.group(1));
+            if (month != null) {
+                return String.format(Locale.ROOT, "%s-%02d", named.group(2), month);
+            }
+        }
+        return value;
+    }
+
+    private static Integer monthNumber(String monthToken) {
+        if (monthToken == null || monthToken.isEmpty()) {
+            return null;
+        }
+        String key = monthToken.toLowerCase(Locale.ROOT);
+        if (key.startsWith("jan")) {
+            return 1;
+        }
+        if (key.startsWith("feb")) {
+            return 2;
+        }
+        if (key.startsWith("mar")) {
+            return 3;
+        }
+        if (key.startsWith("apr")) {
+            return 4;
+        }
+        if (key.equals("may")) {
+            return 5;
+        }
+        if (key.startsWith("jun")) {
+            return 6;
+        }
+        if (key.startsWith("jul")) {
+            return 7;
+        }
+        if (key.startsWith("aug")) {
+            return 8;
+        }
+        if (key.startsWith("sep")) {
+            return 9;
+        }
+        if (key.startsWith("oct")) {
+            return 10;
+        }
+        if (key.startsWith("nov")) {
+            return 11;
+        }
+        if (key.startsWith("dec")) {
+            return 12;
+        }
+        return null;
+    }
+
+    private static boolean isMultiValueField(String field) {
+        for (String multi : MULTI_VALUE_FIELDS) {
+            if (multi.equals(field)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static String joinValues(List<String> values) {
+        StringBuilder builder = new StringBuilder();
+        for (String value : values) {
+            if (value == null || value.trim().isEmpty()) {
+                continue;
+            }
+            if (builder.length() > 0) {
+                builder.append(" / ");
+            }
+            builder.append(value.trim());
+        }
+        return builder.length() == 0 ? null : builder.toString();
+    }
+
+    private void fillMissingFromText(AuctionParseResult result, String text) {
+        if (text == null || text.trim().isEmpty()) {
+            return;
+        }
+        AuctionParseResult fromText = parsePage(text);
+        if (fromText == null || fromText.getFields() == null) {
+            return;
+        }
+        for (Map.Entry<String, String> entry : fromText.getFields().entrySet()) {
+            if (!result.getFields().containsKey(entry.getKey())) {
+                result.put(entry.getKey(), entry.getValue());
+            }
+        }
     }
 
     private static final class VehicleRowIndex {
@@ -171,7 +415,7 @@ public class PreShipmentParser implements DocumentParser {
 
         parseBvParenthesisRows(section, index);
 
-        String[] lines = section.split("\n");
+        String[] lines = section.split(RegexConstants.Text.LF);
         for (int i = 0; i < lines.length; i++) {
             String line = lines[i].trim();
             if (line.isEmpty() || isTableHeaderLine(line) || isVehicleSectionBoundary(line)) {
@@ -179,7 +423,7 @@ public class PreShipmentParser implements DocumentParser {
             }
 
             if (line.indexOf('\t') >= 0) {
-                String[] columns = line.split("\\t", -1);
+                String[] columns = line.split(RegexConstants.Text.TAB, -1);
                 if (columns.length >= 3) {
                     registerVehicleRow(index, parseRowNumber(columns[0]), columns[1], columns[2]);
                     continue;
@@ -190,10 +434,7 @@ public class PreShipmentParser implements DocumentParser {
                 }
             }
 
-            Matcher parenNumbered = Pattern.compile(
-                    "^\\(\\s*(\\d{1,2})\\s*\\)\\s*(.+)$",
-                    Pattern.CASE_INSENSITIVE
-            ).matcher(line);
+            Matcher parenNumbered = RegexConstants.PreShipment.PAREN_NUMBERED.matcher(line);
             if (parenNumbered.matches()) {
                 Integer rowNum = parseRowNumber(parenNumbered.group(1));
                 String rest = parenNumbered.group(2).trim();
@@ -202,7 +443,7 @@ public class PreShipmentParser implements DocumentParser {
                     if (!nextLine.isEmpty()
                             && !isVehicleFieldLabelLine(nextLine)
                             && !isVehicleSectionBoundary(nextLine)
-                            && !nextLine.matches("(?i)^\\(\\s*\\d{1,2}\\s*\\).*")) {
+                            && !nextLine.matches(RegexConstants.PreShipment.PAREN_NUMBERED_LINE)) {
                         rest = rest + " " + nextLine;
                         i++;
                     }
@@ -212,10 +453,7 @@ public class PreShipmentParser implements DocumentParser {
                 }
             }
 
-            Matcher numbered = Pattern.compile(
-                    "^(\\d{1,2})\\s+(.+)$",
-                    Pattern.CASE_INSENSITIVE
-            ).matcher(line);
+            Matcher numbered = RegexConstants.PreShipment.NUMBERED.matcher(line);
             if (numbered.matches()) {
                 if (matchAttributeValue(index, parseRowNumber(numbered.group(1)), numbered.group(2).trim())) {
                     continue;
@@ -228,10 +466,7 @@ public class PreShipmentParser implements DocumentParser {
     }
 
     private void parseBvParenthesisRows(String section, VehicleRowIndex index) {
-        Pattern row = Pattern.compile(
-                "\\(\\s*(\\d{1,2})\\s*\\)\\s*([^:\\n]+?)\\s*:\\s*([^\\n]+)",
-                Pattern.CASE_INSENSITIVE
-        );
+        Pattern row = RegexConstants.PreShipment.INLINE_NUMBERED;
         Matcher matcher = row.matcher(section);
         while (matcher.find()) {
             registerVehicleRow(
@@ -296,7 +531,7 @@ public class PreShipmentParser implements DocumentParser {
             return null;
         }
         String trimmed = cleanValue(value);
-        if (trimmed == null || !trimmed.matches("\\d{1,2}")) {
+        if (trimmed == null || !trimmed.matches(RegexConstants.Dates.ONE_OR_TWO_DIGITS)) {
             return null;
         }
         return Integer.valueOf(trimmed);
@@ -307,9 +542,9 @@ public class PreShipmentParser implements DocumentParser {
             return "";
         }
         String normalized = attribute.trim().toLowerCase();
-        normalized = normalized.replaceAll("\\([^)]*\\)", " ");
-        normalized = normalized.replaceAll("\\.+$", "");
-        normalized = normalized.replaceAll("\\s+", " ").trim();
+        normalized = normalized.replaceAll(RegexConstants.Text.PARENTHESES, " ");
+        normalized = normalized.replaceAll(RegexConstants.Text.TRAILING_DOTS, "");
+        normalized = normalized.replaceAll(RegexConstants.Text.WHITESPACE, " ").trim();
         return normalized;
     }
 
@@ -337,7 +572,7 @@ public class PreShipmentParser implements DocumentParser {
         if (number >= 1 && number <= 16) {
             return extractVehicleField(vehicleSection, fullText, number, labels);
         }
-        return firstNonNull(extractAttributeValueRow(vehicleSection, 0, labels[0]),
+        return CustomsDocumentParserUtils.firstNonNull(extractAttributeValueRow(vehicleSection, 0, labels[0]),
                 extractAttributeValueRow(fullText, 0, labels[0]));
     }
 
@@ -354,15 +589,6 @@ public class PreShipmentParser implements DocumentParser {
                 || lower.startsWith("attribute value");
     }
 
-    private String firstNonNull(String... values) {
-        for (String value : values) {
-            if (value != null && !value.trim().isEmpty()) {
-                return value;
-            }
-        }
-        return null;
-    }
-
     private String extractHeading(String text) {
         if (text.toUpperCase().contains("PRE-SHIPMENT INSPECTION CERTIFICATE".toUpperCase())) {
             return "PRE-SHIPMENT INSPECTION CERTIFICATE";
@@ -371,7 +597,7 @@ public class PreShipmentParser implements DocumentParser {
     }
 
     private String extractReference(String text) {
-        Matcher matcher = Pattern.compile("\\b(\\d{6}[A-Z])\\b").matcher(text);
+        Matcher matcher = RegexConstants.PreShipment.REFERENCE.matcher(text);
         if (matcher.find()) {
             return matcher.group(1);
         }
@@ -379,18 +605,15 @@ public class PreShipmentParser implements DocumentParser {
     }
 
     private String extractBvNumber(String text) {
-        Matcher matcher = Pattern.compile("\\b(SRL\\d{4,}\\s*-\\s*\\d{2,})\\b", Pattern.CASE_INSENSITIVE).matcher(text);
+        Matcher matcher = RegexConstants.PreShipment.BV_NUMBER.matcher(text);
         if (matcher.find()) {
-            return matcher.group(1).toUpperCase().replaceAll("\\s+", "");
+            return matcher.group(1).toUpperCase().replaceAll(RegexConstants.Text.WHITESPACE, "");
         }
         return null;
     }
 
     private String extractHeaderDate(String text) {
-        Matcher matcher = Pattern.compile(
-                "(?:^|\\n)\\s*Date\\s*[:\\.]?\\s*(\\d{1,2}-[A-Za-z]{3}-\\d{2,4})\\b",
-                Pattern.CASE_INSENSITIVE | Pattern.MULTILINE
-        ).matcher(text);
+        Matcher matcher = RegexConstants.PreShipment.HEADER_DATE.matcher(text);
         if (matcher.find()) {
             return matcher.group(1);
         }
@@ -398,14 +621,11 @@ public class PreShipmentParser implements DocumentParser {
     }
 
     private String extractCertificateDate(String text) {
-        Matcher matcher = Pattern.compile(
-                "PRE[-\\s]?SHIPMENT INSPECTION CERTIFICATE[^\\n]{0,80}?\\b(\\d{1,2}-[A-Za-z]{3}-\\d{2,4})\\b",
-                Pattern.CASE_INSENSITIVE
-        ).matcher(text);
+        Matcher matcher = RegexConstants.PreShipment.CERTIFICATE_DATE.matcher(text);
         if (matcher.find()) {
             return matcher.group(1);
         }
-        Matcher top = Pattern.compile("\\b(\\d{1,2}-[A-Za-z]{3}-\\d{2})\\b").matcher(text);
+        Matcher top = RegexConstants.Dates.DAY_MON_YEAR_PATTERN.matcher(text);
         if (top.find()) {
             return top.group(1);
         }
@@ -413,11 +633,11 @@ public class PreShipmentParser implements DocumentParser {
     }
 
     private String extractPageInfo(String text) {
-        Matcher slash = Pattern.compile("Page\\s+(\\d+\\s*/\\s*\\d+)", Pattern.CASE_INSENSITIVE).matcher(text);
+        Matcher slash = RegexConstants.PreShipment.PAGE_SLASH.matcher(text);
         if (slash.find()) {
-            return slash.group(1).replaceAll("\\s+", "");
+            return slash.group(1).replaceAll(RegexConstants.Text.WHITESPACE, "");
         }
-        Matcher matcher = Pattern.compile("Page\\s+(\\d+\\s+of\\s+\\d+)", Pattern.CASE_INSENSITIVE).matcher(text);
+        Matcher matcher = RegexConstants.PreShipment.PAGE_OF.matcher(text);
         if (matcher.find()) {
             return matcher.group(1);
         }
@@ -426,12 +646,7 @@ public class PreShipmentParser implements DocumentParser {
 
     private String extractNumbered(String text, int number, String... labels) {
         for (String label : labels) {
-            Pattern pattern = Pattern.compile(
-                    "(?:^|\\n)\\s*(?:\\(\\s*" + number + "\\s*\\)|"
-                            + number + "(?![0-9])(?:\\.|\\s+|\\t+))\\s*"
-                            + Pattern.quote(label) + "\\s*(?:\\([^)]*\\))?\\s*[:\\.]?\\s*([^\\n]+)",
-                    Pattern.CASE_INSENSITIVE
-            );
+            Pattern pattern = RegexConstants.PreShipment.numberedFieldValue(number, label);
             Matcher matcher = pattern.matcher(text);
             if (matcher.find()) {
                 return stripLeadingParenthetical(cleanValue(matcher.group(1)));
@@ -444,20 +659,12 @@ public class PreShipmentParser implements DocumentParser {
         if (text == null || text.trim().isEmpty()) {
             return null;
         }
-        Pattern pattern = Pattern.compile(
-                "\\(\\s*" + number + "\\s*\\)\\s*"
-                        + Pattern.quote(label) + "\\s*(?:\\([^)]*\\))?\\s*:\\s*([^\\n]+)",
-                Pattern.CASE_INSENSITIVE
-        );
+        Pattern pattern = RegexConstants.PreShipment.parenthesizedNumberFieldValue(number, label);
         Matcher matcher = pattern.matcher(text);
         if (matcher.find()) {
             return stripLeadingParenthetical(cleanValue(matcher.group(1)));
         }
-        Pattern splitLabel = Pattern.compile(
-                "\\(\\s*" + number + "\\s*\\)\\s*"
-                        + Pattern.quote(label) + "\\s*(?:\\([^)]*\\))?\\s*:\\s*$",
-                Pattern.CASE_INSENSITIVE | Pattern.MULTILINE
-        );
+        Pattern splitLabel = RegexConstants.PreShipment.parenthesizedNumberLabelAlone(number, label);
         Matcher labelMatcher = splitLabel.matcher(text);
         if (labelMatcher.find()) {
             return extractLabelValueNextLine(text.substring(labelMatcher.start()), number, label);
@@ -508,20 +715,14 @@ public class PreShipmentParser implements DocumentParser {
             }
         }
         section = section.substring(0, end);
-        section = section.replaceFirst(
-                "(?is)^\\s*(?:3\\.\\s*)?(?:Particulars of Second[- ]Hand Motor Vehicle|PARTICULARS OF SECOND[- ]HAND MOTOR VEHICLE)\\s*",
-                ""
-        );
-        section = section.replaceFirst(
-                "(?im)^\\s*(?:No\\.?\\s*)?(?:Exact\\s+Attribute|Attribute)\\s+Value\\s*\\n?",
-                ""
-        );
+        section = section.replaceFirst(RegexConstants.PreShipment.VEHICLE_SECTION_HEAD, "");
+        section = section.replaceFirst(RegexConstants.PreShipment.ATTRIBUTE_HEADER, "");
         return section.trim();
     }
 
     private String extractVehicleField(String vehicleSection, String fullText, int number, String... labels) {
         for (String label : labels) {
-            String value = firstNonNull(
+            String value = CustomsDocumentParserUtils.firstNonNull(
                     extractFromScopedText(vehicleSection, number, label),
                     extractFromScopedText(fullText, number, label)
             );
@@ -536,7 +737,7 @@ public class PreShipmentParser implements DocumentParser {
         if (text == null || text.trim().isEmpty()) {
             return null;
         }
-        return firstNonNull(
+        return CustomsDocumentParserUtils.firstNonNull(
                 extractBvNumberedField(text, number, label),
                 extractNumbered(text, number, label),
                 extractVehicleTableRow(text, number, label),
@@ -546,11 +747,7 @@ public class PreShipmentParser implements DocumentParser {
     }
 
     private String extractVehicleTableRow(String text, int number, String label) {
-        Pattern pattern = Pattern.compile(
-                "(?:^|\\n)\\s*" + number + "(?![0-9])[\\t\\s]+"
-                        + Pattern.quote(label) + "(?:\\([^)]*\\))?\\.?[\\t\\s]+(.+?)\\s*(?:\\n|$)",
-                Pattern.CASE_INSENSITIVE
-        );
+        Pattern pattern = RegexConstants.PreShipment.numberedTableCellValue(number, label);
         Matcher matcher = pattern.matcher(text);
         if (matcher.find()) {
             return stripLeadingParenthetical(cleanValue(matcher.group(1)));
@@ -560,13 +757,9 @@ public class PreShipmentParser implements DocumentParser {
 
     private String extractAttributeValueRow(String text, int number, String label) {
         String numberPrefix = number >= 1 && number <= 16
-                ? "(?:" + number + "(?![0-9])[\\t\\s]+)?"
+                ? RegexConstants.PreShipment.optionalLeadingRowNumber(number)
                 : "";
-        Pattern inline = Pattern.compile(
-                "(?:^|\\n)\\s*" + numberPrefix
-                        + Pattern.quote(label) + "\\s*(?:\\([^)]*\\))?\\.?\\s+[\\t:]*\\s*(.+?)\\s*(?:\\n|$)",
-                Pattern.CASE_INSENSITIVE
-        );
+        Pattern inline = RegexConstants.PreShipment.attributeRowValue(numberPrefix, label);
         Matcher matcher = inline.matcher(text);
         if (matcher.find()) {
             return stripLeadingParenthetical(cleanValue(matcher.group(1)));
@@ -575,19 +768,14 @@ public class PreShipmentParser implements DocumentParser {
     }
 
     private String extractLabelValueNextLine(String text, int number, String label) {
-        Pattern labelOnly = Pattern.compile(
-                "(?:^|\\n)\\s*(?:"
-                        + number + "(?![0-9])[\\t\\s\\.]+)?"
-                        + Pattern.quote(label) + "\\s*(?:\\([^)]*\\))?\\s*[:\\.]?\\s*$",
-                Pattern.CASE_INSENSITIVE | Pattern.MULTILINE
-        );
+        Pattern labelOnly = RegexConstants.PreShipment.numberedLabelAlone(number, label);
         Matcher labelMatcher = labelOnly.matcher(text);
         if (!labelMatcher.find()) {
             return null;
         }
 
         String tail = text.substring(labelMatcher.end());
-        String[] lines = tail.split("\n");
+        String[] lines = tail.split(RegexConstants.Text.LF);
         for (String s : lines) {
             String line = cleanValue(s);
             if (line.isEmpty()) {
@@ -605,10 +793,7 @@ public class PreShipmentParser implements DocumentParser {
         if (line == null || line.trim().isEmpty()) {
             return false;
         }
-        return Pattern.compile(
-                "^(?:\\d{1,2}(?![0-9])[\\t\\s\\.]+)?(?:Type of vehicle|Make|Model|Commonly called|Manufacture Grade|Auction Grade|Body colou?r|Fuel type|Year/month of first registration|Inspection mileage|Engine capacity|Chassis No|Engine No|Driving system|Marks of accident|Condition of chassis|Full Model No|Year of Manufacture)\\b",
-                Pattern.CASE_INSENSITIVE
-        ).matcher(line.trim()).find();
+        return RegexConstants.PreShipment.VEHICLE_FIELD_LABEL.matcher(line.trim()).find();
     }
 
     private boolean isVehicleSectionBoundary(String line) {
@@ -622,10 +807,7 @@ public class PreShipmentParser implements DocumentParser {
     }
 
     private String extractLabelValue(String text, String label) {
-        Pattern pattern = Pattern.compile(
-                Pattern.quote(label) + "\\.?\\s*[:\\.]?[\\t\\s]+([^\\n]+)",
-                Pattern.CASE_INSENSITIVE
-        );
+        Pattern pattern = RegexConstants.Labeled.tabSeparatedValueAfterQuotedLabel(label);
         Matcher matcher = pattern.matcher(text);
         if (matcher.find()) {
             return cleanValue(matcher.group(1));
@@ -690,10 +872,7 @@ public class PreShipmentParser implements DocumentParser {
             return null;
         }
 
-        Pattern labelOnly = Pattern.compile(
-                "\\(\\s*" + "b" + "\\s*\\)\\s*" + "Address" + "\\s*[:\\.]?\\s*$",
-                Pattern.CASE_INSENSITIVE | Pattern.MULTILINE
-        );
+        Pattern labelOnly = RegexConstants.PreShipment.ADDRESS_LABEL_ONLY;
         Matcher labelMatcher = labelOnly.matcher(section);
         if (labelMatcher.find()) {
             String value = collectLinesUntilContact(section.substring(labelMatcher.end()));
@@ -702,10 +881,7 @@ public class PreShipmentParser implements DocumentParser {
             }
         }
 
-        Pattern marker = Pattern.compile(
-                "\\(\\s*" + "b" + "\\s*\\)\\s*" + "Address" + "\\s*[:\\.]?\\s*(.*)",
-                Pattern.CASE_INSENSITIVE | Pattern.DOTALL
-        );
+        Pattern marker = RegexConstants.PreShipment.ADDRESS_MARKER;
         Matcher matcher = marker.matcher(section);
         if (!matcher.find()) {
             return null;
@@ -735,7 +911,7 @@ public class PreShipmentParser implements DocumentParser {
         if (tail == null) {
             return null;
         }
-        String[] lines = tail.split("\n");
+        String[] lines = tail.split(RegexConstants.Text.LF);
         StringBuilder builder = new StringBuilder();
         for (String s : lines) {
             String line = cleanValue(s);
@@ -777,7 +953,7 @@ public class PreShipmentParser implements DocumentParser {
         if (line == null) {
             return null;
         }
-        Matcher lettered = Pattern.compile("\\s*\\([c-z]\\)\\s*.*$", Pattern.CASE_INSENSITIVE).matcher(line);
+        Matcher lettered = RegexConstants.PreShipment.LETTERED_TAIL.matcher(line);
         if (lettered.find()) {
             line = line.substring(0, lettered.start());
         }
@@ -788,10 +964,7 @@ public class PreShipmentParser implements DocumentParser {
         if (line == null) {
             return null;
         }
-        Matcher matcher = Pattern.compile(
-                "\\s+(?:Tel\\.?\\s*No\\.?|Tel|Fax\\.?\\s*No\\.?|Fax|Email|No\\.)\\b.*$",
-                Pattern.CASE_INSENSITIVE
-        ).matcher(line);
+        Matcher matcher = RegexConstants.PreShipment.CONTACT_SUFFIX.matcher(line);
         if (matcher.find()) {
             line = line.substring(0, matcher.start());
         }
@@ -806,10 +979,7 @@ public class PreShipmentParser implements DocumentParser {
             return null;
         }
 
-        Pattern inline = Pattern.compile(
-                "\\(\\s*" + "a" + "\\s*\\)\\s*" + Pattern.quote(label) + "\\s*[:\\.]?\\s*(.+?)(?=\\s*\\([a-z]\\)\\s*\\w|\\s*(?:Tel|Fax|Email|No\\.)\\b|$)",
-                Pattern.CASE_INSENSITIVE | Pattern.DOTALL
-        );
+        Pattern inline = RegexConstants.PreShipment.letterAValueUntilNextMarker(label);
         Matcher inlineMatcher = inline.matcher(section.replace('\n', ' '));
         if (inlineMatcher.find()) {
             String value = cleanValue(inlineMatcher.group(1));
@@ -818,10 +988,7 @@ public class PreShipmentParser implements DocumentParser {
             }
         }
 
-        Pattern sameLine = Pattern.compile(
-                "\\(\\s*" + "a" + "\\s*\\)\\s*" + Pattern.quote(label) + "\\s*[:\\.]?\\s*([^\\n]+)",
-                Pattern.CASE_INSENSITIVE
-        );
+        Pattern sameLine = RegexConstants.PreShipment.letterAValueOnSameLine(label);
         Matcher sameLineMatcher = sameLine.matcher(section);
         if (sameLineMatcher.find()) {
             String value = cleanValue(sameLineMatcher.group(1));
@@ -830,10 +997,7 @@ public class PreShipmentParser implements DocumentParser {
             }
         }
 
-        Pattern inlineShort = Pattern.compile(
-                "\\(\\s*" + "a" + "\\s*\\)\\s*Name\\b\\s*[:\\.]?\\s*(.+?)(?=\\s*\\([a-z]\\)\\s*\\w|\\s*(?:Tel|Fax|Email|No\\.)\\b|$)",
-                Pattern.CASE_INSENSITIVE | Pattern.DOTALL
-        );
+        Pattern inlineShort = RegexConstants.PreShipment.NAME_INLINE;
         if ("Name".equalsIgnoreCase(label)) {
             inlineMatcher = inlineShort.matcher(section.replace('\n', ' '));
             if (inlineMatcher.find()) {
@@ -844,14 +1008,11 @@ public class PreShipmentParser implements DocumentParser {
             }
         }
 
-        Pattern labelOnly = Pattern.compile(
-                "\\(\\s*" + "a" + "\\s*\\)\\s*" + Pattern.quote(label) + "\\s*[:\\.]?\\s*$",
-                Pattern.CASE_INSENSITIVE | Pattern.MULTILINE
-        );
+        Pattern labelOnly = RegexConstants.PreShipment.letterALabelAlone(label);
         Matcher labelMatcher = labelOnly.matcher(section);
         if (labelMatcher.find()) {
             String tail = section.substring(labelMatcher.end());
-            String[] lines = tail.split("\n");
+            String[] lines = tail.split(RegexConstants.Text.LF);
             for (String s : lines) {
                 String line = cleanValue(s);
                 if (line.isEmpty()) {
@@ -869,14 +1030,14 @@ public class PreShipmentParser implements DocumentParser {
 
     private boolean isSubFieldLabel(String line) {
         String trimmed = line.trim();
-        if (Pattern.compile("^\\([a-z]\\)\\s*(Name|Address)\\b", Pattern.CASE_INSENSITIVE).matcher(trimmed).find()) {
+        if (RegexConstants.PreShipment.SUBFIELD_NAME_ADDRESS.matcher(trimmed).find()) {
             return true;
         }
         return isLetteredContinuationLabel(trimmed);
     }
 
     private boolean isLetteredContinuationLabel(String line) {
-        return Pattern.compile("^\\([c-z]\\)\\b", Pattern.CASE_INSENSITIVE).matcher(line.trim()).find();
+        return RegexConstants.PreShipment.LETTERED_CONTINUATION.matcher(line.trim()).find();
     }
 
     private boolean isInspectionBoundaryLine(String line) {
@@ -890,7 +1051,7 @@ public class PreShipmentParser implements DocumentParser {
             return "BUREAU VERITAS";
         }
         String tail = text.substring(index + "Name of Inspection Organisation".length()).trim();
-        String[] lines = tail.split("\n");
+        String[] lines = tail.split(RegexConstants.Text.LF);
         for (String s : lines) {
             String line = cleanValue(s);
             if (line.isEmpty()) {
@@ -940,26 +1101,17 @@ public class PreShipmentParser implements DocumentParser {
     }
 
     private String extractTelFromSection(String section) {
-        String value = matchFirst(section,
-                "(?:Tel\\.?\\s*No\\.?|Tel)\\s*[:\\.]?\\s*(\\+?[0-9][0-9\\s\\-]{6,}?)(?=\\s+(?:Fax|Email)\\b|\\s*$)",
-                "(?<![A-Za-z])No\\.\\s*(\\+?[0-9][0-9\\s\\-]{6,}?)(?=\\s+Fax\\s+No\\.?\\b|\\s+Fax\\b|\\s+Email\\b|\\s*$)"
-        );
+        String value = matchFirst(section, RegexConstants.PreShipment.TEL, RegexConstants.PreShipment.TEL_NO);
         return cleanPhone(value);
     }
 
     private String extractFaxFromSection(String section) {
-        String value = matchFirst(section,
-                "Fax\\.?\\s*No\\.?\\s*[:\\.]?\\s*(\\+?[0-9][0-9\\s\\-]{6,}?)(?=\\s+Email\\b|\\s*$)",
-                "Fax\\s*[:\\.]?\\s*(\\+?[0-9][0-9\\s\\-]{6,}?)(?=\\s+Email\\b|\\s*$)"
-        );
+        String value = matchFirst(section, RegexConstants.PreShipment.FAX_NO, RegexConstants.PreShipment.FAX);
         return cleanPhone(value);
     }
 
     private String extractEmailFromSection(String section) {
-        Matcher matcher = Pattern.compile(
-                "Email\\s*[:\\.]?\\s*([A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,})",
-                Pattern.CASE_INSENSITIVE
-        ).matcher(section);
+        Matcher matcher = RegexConstants.PreShipment.EMAIL.matcher(section);
         if (matcher.find()) {
             return cleanValue(matcher.group(1));
         }
@@ -968,7 +1120,7 @@ public class PreShipmentParser implements DocumentParser {
 
     private String matchFirst(String section, String... patterns) {
         for (String pattern : patterns) {
-            Matcher matcher = Pattern.compile(pattern, Pattern.CASE_INSENSITIVE).matcher(section);
+            Matcher matcher = RegexConstants.compileIgnoreCase(pattern).matcher(section);
             if (matcher.find()) {
                 return matcher.group(1);
             }
@@ -982,14 +1134,14 @@ public class PreShipmentParser implements DocumentParser {
                 || lower.contains("fax")
                 || lower.contains("email")
                 || lower.contains("@")
-                || Pattern.compile("No\\.\\s*\\+?[0-9]").matcher(line).find();
+                || RegexConstants.PreShipment.PHONE_NO.matcher(line).find();
     }
 
     private String cleanPhone(String value) {
         if (value == null) {
             return null;
         }
-        String cleaned = value.trim().replaceAll("\\s{2,}", " ");
+        String cleaned = value.trim().replaceAll(RegexConstants.Text.WHITESPACE_RUN, " ");
         int faxIndex = indexOfIgnoreCase(cleaned, " fax");
         if (faxIndex > 0) {
             cleaned = cleaned.substring(0, faxIndex).trim();
@@ -1005,18 +1157,15 @@ public class PreShipmentParser implements DocumentParser {
         if (value == null) {
             return null;
         }
-        return value.replaceAll("^\\([^)]*\\)\\s*", "").trim();
+        return value.replaceAll(RegexConstants.Text.LEADING_PARENTHESES, "").trim();
     }
 
     private String cleanValue(String value) {
         if (value == null) {
             return null;
         }
-        String cleaned = value.trim().replaceAll("\\s{2,}", " ");
-        cleaned = cleaned.replaceAll("^[.:]+", "").trim();
-        if (cleaned.isEmpty() || "not applicable".equalsIgnoreCase(cleaned)) {
-            return cleaned;
-        }
+        String cleaned = value.trim().replaceAll(RegexConstants.Text.WHITESPACE_RUN, " ");
+        cleaned = cleaned.replaceAll(RegexConstants.Text.LEADING_COLON, "").trim();
         return cleaned;
     }
 }

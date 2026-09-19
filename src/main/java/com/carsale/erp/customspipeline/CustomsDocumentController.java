@@ -20,7 +20,7 @@ import com.carsale.erp.shared.pipeline.PipelineStageService;
 
 /**
  * Legacy routes for customs documents and old edit URLs.
- * Stage edit/save/upload lives on declaration / assessment / worksheet controllers.
+ * Stage edit/save/upload lives on bl / declaration / assessment / worksheet controllers.
  */
 @Controller
 public class CustomsDocumentController {
@@ -47,11 +47,13 @@ public class CustomsDocumentController {
             @PathVariable String chassisNo,
             @RequestParam(value = "tab", required = false) Integer tab
     ) {
+        String stageKey = FlowStage.BILL_OF_LADING.getStageKey();
         if (tab != null && tab == 1) {
             return "redirect:/jevic/" + encodeChassis(chassisNo);
         }
-        String stageKey = FlowStage.DECLARATION.getStageKey();
-        if (tab != null && tab == 3) {
+        if (tab != null && tab == 2) {
+            stageKey = FlowStage.DECLARATION.getStageKey();
+        } else if (tab != null && tab == 3) {
             stageKey = FlowStage.ASSESSMENT.getStageKey();
         } else if (tab != null && tab == 4) {
             stageKey = FlowStage.WORKSHEET.getStageKey();

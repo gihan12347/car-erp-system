@@ -9,18 +9,62 @@
         <main class="page-content">
             <div class="page-intro">
                 <div>
-                    <p class="eyebrow">Administration</p>
+                    <p class="eyebrow">Account</p>
                     <h1>Settings</h1>
+                    <p class="form-lead">Update your profile details. Admins can also review access and OCR options.</p>
                 </div>
             </div>
             <p th:if="${successMessage}" class="alert alert-ok" th:text="${successMessage}"></p>
             <p th:if="${notice}" class="alert alert-warn" th:text="${notice}"></p>
             <p th:if="${errorMessage}" class="alert alert-error" th:text="${errorMessage}"></p>
 
-            <section class="split-grid">
+            <article class="panel" id="profile">
+                <div class="panel-head"><h2>Your profile</h2></div>
+                <div class="profile-hero">
+                    <img class="avatar-img lg" th:src="@{/images/avatar-default.svg}" alt="Profile photo" width="64" height="64">
+                    <div>
+                        <h2 sec:authentication="principal.fullName">Gihan</h2>
+                        <p sec:authentication="principal.username">gihan</p>
+                    </div>
+                </div>
+                <form th:action="@{/settings/profile}" method="post" class="vehicle-form">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                    <div class="field-grid">
+                        <label>Username
+                            <input type="text" th:value="${#authentication.principal.username}" readonly class="readonly-field">
+                        </label>
+                        <label>Full name
+                            <input type="text" name="fullName" required
+                                   th:value="${#authentication.principal.fullName}">
+                        </label>
+                        <label class="span-2">Email
+                            <input type="email" name="email" required
+                                   th:value="${#authentication.principal.user.email}">
+                        </label>
+                    </div>
+                    <div class="panel-head profile-password-head"><h2>Password</h2></div>
+                    <p class="muted">Leave blank to keep your current password.</p>
+                    <div class="field-grid">
+                        <label>Current password
+                            <input type="password" name="currentPassword" autocomplete="current-password">
+                        </label>
+                        <label>New password
+                            <input type="password" name="newPassword" autocomplete="new-password" minlength="8">
+                        </label>
+                        <label>Confirm new password
+                            <input type="password" name="confirmPassword" autocomplete="new-password" minlength="8">
+                        </label>
+                    </div>
+                    <div class="import-view-actions">
+                        <button type="submit" class="panel-btn import-form-submit">Save profile</button>
+                    </div>
+                </form>
+            </article>
+
+            <section class="split-grid settings-access" sec:authorize="hasAnyRole('ADMIN','SUPER_ADMIN')">
                 <article class="panel">
                     <div class="panel-head"><h2>Access</h2></div>
-                    <p class="muted">Settings is limited to Admin and Super Admin. A user can hold more than one role.</p>
+                    <p class="muted">A user can hold more than one role.</p>
                     <ul class="role-list">
                         <li><strong>User</strong> — daily operations across the pipeline</li>
                         <li><strong>Admin</strong> — finance, reports, and workspace settings</li>

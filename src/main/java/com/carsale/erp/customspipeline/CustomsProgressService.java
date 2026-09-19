@@ -38,16 +38,17 @@ public class CustomsProgressService {
 
     public CustomsProgress progressFor(Vehicle vehicle) {
         if (vehicle == null) {
-            return new CustomsProgress(false, false, false);
+            return new CustomsProgress(false, false, false, false);
         }
         return progressFor(vehicle.getChassisNo());
     }
 
     public CustomsProgress progressFor(String chassisNo) {
         if (chassisNo == null || chassisNo.trim().isEmpty()) {
-            return new CustomsProgress(false, false, false);
+            return new CustomsProgress(false, false, false, false);
         }
         return new CustomsProgress(
+                customsDocumentService.hasBillOfLading(chassisNo),
                 customsDocumentService.hasDeclaration(chassisNo),
                 customsDocumentService.hasAssessment(chassisNo),
                 customsDocumentService.hasWorksheet(chassisNo)
@@ -110,14 +111,20 @@ public class CustomsProgressService {
     }
 
     public static final class CustomsProgress implements PipelineProgress {
+        private final boolean blReady;
         private final boolean declarationReady;
         private final boolean assessmentReady;
         private final boolean worksheetReady;
 
-        public CustomsProgress(boolean declarationReady, boolean assessmentReady, boolean worksheetReady) {
+        public CustomsProgress(boolean blReady, boolean declarationReady, boolean assessmentReady, boolean worksheetReady) {
+            this.blReady = blReady;
             this.declarationReady = declarationReady;
             this.assessmentReady = assessmentReady;
             this.worksheetReady = worksheetReady;
+        }
+
+        public boolean isBlReady() {
+            return blReady;
         }
 
         public boolean isDeclarationReady() {
@@ -134,18 +141,21 @@ public class CustomsProgressService {
 
         @Override
         public boolean hasAnyCompletedStage() {
-            return declarationReady || assessmentReady || worksheetReady;
+            return blReady || declarationReady || assessmentReady || worksheetReady;
         }
 
         public int completedCount() {
-            return (declarationReady ? 1 : 0) + (assessmentReady ? 1 : 0) + (worksheetReady ? 1 : 0);
+            return (blReady ? 1 : 0) + (declarationReady ? 1 : 0) + (assessmentReady ? 1 : 0) + (worksheetReady ? 1 : 0);
         }
 
         public boolean isClearanceComplete() {
-            return declarationReady && assessmentReady && worksheetReady;
+            return blReady && declarationReady && assessmentReady && worksheetReady;
         }
 
         public boolean isStageComplete(String stageKey) {
+            if (FlowStage.BILL_OF_LADING.getStageKey().equals(stageKey)) {
+                return blReady;
+            }
             if (FlowStage.ASSESSMENT.getStageKey().equals(stageKey)) {
                 return assessmentReady;
             }
@@ -157,7 +167,7 @@ public class CustomsProgressService {
 
         @Override
         public boolean isPipelineCompleted() {
-            return assessmentReady && worksheetReady && declarationReady;
+            return blReady && assessmentReady && worksheetReady && declarationReady;
         }
 
         public String firstIncompleteStageKey(List<String> keys) {

@@ -3,7 +3,7 @@ package com.carsale.erp.importpipeline.equipment;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.carsale.erp.customspipeline.document.EquipmentInspectionParser;
+import com.carsale.erp.shared.document.document.EquipmentInspectionParser;
 import org.junit.jupiter.api.Test;
 
 import com.carsale.erp.importpipeline.auction.AuctionParseResult;

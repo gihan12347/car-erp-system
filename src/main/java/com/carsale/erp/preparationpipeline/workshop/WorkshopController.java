@@ -85,6 +85,7 @@ public class WorkshopController {
         model.addAttribute("workshopReady", status.isWorkshopReady());
         model.addAttribute("yardReady", status.isYardReady());
         model.addAttribute("inspectionReady", status.isInspectionReady());
+        model.addAttribute("saleReady", status.isSaleReady());
         model.addAttribute("canEnterYard", status.isCanEnterYard());
         model.addAttribute("prepComplete", status.isPipelineCompleted());
         model.addAttribute("stageNav", PreparationStageUrls.editLinks(
@@ -108,10 +109,8 @@ public class WorkshopController {
             workshopService.save(record);
             preparationProgressService.syncVehicleStage(chassisNo);
             redirectAttributes.addFlashAttribute("successMessage", "Workshop job saved.");
-            PreparationProgress status = preparationProgressService.progressFor(chassisNo);
             return "redirect:" + PreparationStageUrls.redirectAfterWorkshopSave(
                     chassisNo,
-                    status,
                     pipelineStageService.keys(PipelineStageService.FLOW_PREP)
             );
         } catch (IllegalArgumentException ex) {

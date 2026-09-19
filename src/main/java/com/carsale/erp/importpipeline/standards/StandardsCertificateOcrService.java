@@ -1,6 +1,6 @@
 package com.carsale.erp.importpipeline.standards;
 
-import com.carsale.erp.customspipeline.document.StandardsCertificateDoc;
+import com.carsale.erp.shared.document.document.StandardsCertificateDoc;
 import com.carsale.erp.shared.ocr.OcrClient;
 import com.carsale.erp.shared.ocr.OcrImagePreparer;
 import java.io.File;

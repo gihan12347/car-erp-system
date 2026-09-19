@@ -10,6 +10,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
 import com.carsale.erp.shared.pipeline.FlowPipeline;
+import com.carsale.erp.shared.regex.RegexConstants;
 
 /**
  * Hibernate ddl-auto does not always add or widen columns on existing tables.
@@ -32,6 +33,7 @@ public class DatabaseSchemaUpdater implements CommandLineRunner {
         createClearanceAssessmentTable();
         createClearanceJevicInspectionsTable();
         createClearanceWorkingSheetsTable();
+        createClearanceBillsOfLadingTable();
         createPipelineFlowsTable();
         seedPipelineFlows();
         createPipelineStagesTable();
@@ -43,6 +45,12 @@ public class DatabaseSchemaUpdater implements CommandLineRunner {
         createExportCertificatesTable();
         createVehiclePhotosTable();
         createInspectionItemsTable();
+        createYardBaysTable();
+        addYardBayConfigColumns();
+        createSaleLocationsTable();
+        addSaleListingSaleColumns();
+        addSaleListingAssignmentCompleteColumn();
+        createVehicleRegistrationsTable();
         createVehicleInspectionsTable();
         createVehicleInspectionLinesTable();
         addWorkshopJobInspectionItemKey();
@@ -79,6 +87,154 @@ public class DatabaseSchemaUpdater implements CommandLineRunner {
             log.info("Verified table inspection_items");
         } catch (Exception ex) {
             log.warn("Could not create inspection_items: {}", ex.getMessage());
+        }
+    }
+
+    private void createYardBaysTable() {
+        try {
+            jdbcTemplate.execute(
+                    "CREATE TABLE IF NOT EXISTS yard_bays ("
+                            + "id BIGINT NOT NULL AUTO_INCREMENT, "
+                            + "bay_code VARCHAR(40) NOT NULL, "
+                            + "yard_name VARCHAR(80) NOT NULL, "
+                            + "capacity INT NOT NULL DEFAULT 1, "
+                            + "section VARCHAR(80) NOT NULL, "
+                            + "notes VARCHAR(160), "
+                            + "sort_order INT NOT NULL, "
+                            + "active TINYINT(1) NOT NULL DEFAULT 1, "
+                            + "PRIMARY KEY (id), "
+                            + "UNIQUE KEY uk_yard_bays_code (bay_code)"
+                            + ")"
+            );
+            log.info("Verified table yard_bays");
+        } catch (Exception ex) {
+            log.warn("Could not create yard_bays: {}", ex.getMessage());
+        }
+    }
+
+    private void addYardBayConfigColumns() {
+        addYardBayColumn(
+                "yard_name",
+                "ALTER TABLE yard_bays ADD COLUMN yard_name VARCHAR(80) NOT NULL DEFAULT ''"
+        );
+        addYardBayColumn(
+                "capacity",
+                "ALTER TABLE yard_bays ADD COLUMN capacity INT NOT NULL DEFAULT 1"
+        );
+        try {
+            jdbcTemplate.update(
+                    "UPDATE yard_bays SET yard_name = section "
+                            + "WHERE (yard_name IS NULL OR TRIM(yard_name) = '') "
+                            + "AND section IS NOT NULL AND TRIM(section) <> ''"
+            );
+            jdbcTemplate.update(
+                    "UPDATE yard_bays SET yard_name = bay_code "
+                            + "WHERE yard_name IS NULL OR TRIM(yard_name) = ''"
+            );
+            jdbcTemplate.update("UPDATE yard_bays SET capacity = 1 WHERE capacity IS NULL OR capacity < 1");
+        } catch (Exception ex) {
+            log.warn("Could not backfill yard_bays name/capacity: {}", ex.getMessage());
+        }
+    }
+
+    private void addYardBayColumn(String column, String sql) {
+        if (hasTableColumn("yard_bays", column)) {
+            return;
+        }
+        try {
+            jdbcTemplate.execute(sql);
+            log.info("Added yard_bays.{}", column);
+        } catch (Exception ex) {
+            log.warn("Could not add yard_bays.{}: {}", column, ex.getMessage());
+        }
+    }
+
+    private void createSaleLocationsTable() {
+        try {
+            jdbcTemplate.execute(
+                    "CREATE TABLE IF NOT EXISTS sale_locations ("
+                            + "id BIGINT NOT NULL AUTO_INCREMENT, "
+                            + "sale_code VARCHAR(40) NOT NULL, "
+                            + "sale_name VARCHAR(80), "
+                            + "capacity INT NOT NULL DEFAULT 1, "
+                            + "location_name VARCHAR(80) NOT NULL, "
+                            + "sort_order INT NOT NULL, "
+                            + "active TINYINT(1) NOT NULL DEFAULT 1, "
+                            + "PRIMARY KEY (id), "
+                            + "UNIQUE KEY uk_sale_locations_code (sale_code)"
+                            + ")"
+            );
+            log.info("Verified table sale_locations");
+        } catch (Exception ex) {
+            log.warn("Could not create sale_locations: {}", ex.getMessage());
+        }
+    }
+
+    private void addSaleListingSaleColumns() {
+        addSaleListingColumn(
+                "sale_code",
+                "ALTER TABLE sale_listings ADD COLUMN sale_code VARCHAR(40) NULL"
+        );
+        addSaleListingColumn(
+                "sale_location",
+                "ALTER TABLE sale_listings ADD COLUMN sale_location VARCHAR(80) NULL"
+        );
+        addSaleListingColumn(
+                "sold",
+                "ALTER TABLE sale_listings ADD COLUMN sold TINYINT(1) NOT NULL DEFAULT 0"
+        );
+    }
+
+    private void addSaleListingAssignmentCompleteColumn() {
+        addSaleListingColumn(
+                "assignment_complete",
+                "ALTER TABLE sale_listings ADD COLUMN assignment_complete TINYINT(1) NOT NULL DEFAULT 0"
+        );
+        try {
+            jdbcTemplate.execute(
+                    "UPDATE sale_listings SET assignment_complete = 1 "
+                            + "WHERE assignment_complete = 0 AND sale_code IS NOT NULL AND TRIM(sale_code) <> ''"
+            );
+        } catch (Exception ex) {
+            log.warn("Could not backfill sale_listings.assignment_complete: {}", ex.getMessage());
+        }
+    }
+
+    private void addSaleListingColumn(String column, String sql) {
+        if (hasTableColumn("sale_listings", column)) {
+            return;
+        }
+        try {
+            jdbcTemplate.execute(sql);
+            log.info("Added sale_listings.{}", column);
+        } catch (Exception ex) {
+            log.warn("Could not add sale_listings.{}: {}", column, ex.getMessage());
+        }
+    }
+
+    private void createVehicleRegistrationsTable() {
+        try {
+            jdbcTemplate.execute(
+                    "CREATE TABLE IF NOT EXISTS vehicle_registrations ("
+                            + "chassis_no VARCHAR(40) NOT NULL, "
+                            + "registration_no VARCHAR(40), "
+                            + "registered_owner VARCHAR(120), "
+                            + "registered_date VARCHAR(40), "
+                            + "rmv_office VARCHAR(80), "
+                            + "file_no VARCHAR(40), "
+                            + "revenue_license_no VARCHAR(40), "
+                            + "revenue_license_expiry VARCHAR(40), "
+                            + "insurance_company VARCHAR(80), "
+                            + "insurance_policy_no VARCHAR(40), "
+                            + "insurance_expiry VARCHAR(40), "
+                            + "notes TEXT, "
+                            + "completed TINYINT(1) NOT NULL DEFAULT 0, "
+                            + "PRIMARY KEY (chassis_no)"
+                            + ")"
+            );
+            log.info("Verified table vehicle_registrations");
+        } catch (Exception ex) {
+            log.warn("Could not create vehicle_registrations: {}", ex.getMessage());
         }
     }
 
@@ -426,6 +582,29 @@ public class DatabaseSchemaUpdater implements CommandLineRunner {
         }
     }
 
+    private void createClearanceBillsOfLadingTable() {
+        try {
+            jdbcTemplate.execute(
+                    "CREATE TABLE IF NOT EXISTS clearance_bills_of_lading ("
+                            + "chassis_no VARCHAR(40) NOT NULL, "
+                            + "bl_no TEXT, "
+                            + "date_of_bl_issue TEXT, "
+                            + "landing_cost_usd TEXT, "
+                            + "bl_exchange_rate TEXT, "
+                            + "landing_cost_lkr TEXT, "
+                            + "page5_original_name TEXT, "
+                            + "page5_stored_name TEXT, "
+                            + "page5_content_type TEXT, "
+                            + "ocr_text_page5 TEXT, "
+                            + "PRIMARY KEY (chassis_no)"
+                            + ") ENGINE=InnoDB ROW_FORMAT=DYNAMIC"
+            );
+            log.info("Verified table clearance_bills_of_lading");
+        } catch (Exception ex) {
+            log.warn("Could not create clearance_bills_of_lading: {}", ex.getMessage());
+        }
+    }
+
     private void createClearanceJevicInspectionsTable() {
         try {
             jdbcTemplate.execute(
@@ -631,7 +810,7 @@ public class DatabaseSchemaUpdater implements CommandLineRunner {
                     String.class
             );
             for (String column : columns) {
-                if (column == null || !column.matches("[A-Za-z0-9_]+")) {
+                if (column == null || !column.matches(RegexConstants.Text.SQL_IDENT)) {
                     continue;
                 }
                 jdbcTemplate.execute(

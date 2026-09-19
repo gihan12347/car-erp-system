@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import com.carsale.erp.shared.document.DocumentParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -37,10 +38,8 @@ public class DocumentAiClient {
     private static final int READ_TIMEOUT_MS = 180_000;
 
     private final GoogleServiceAccountAuth googleAuth;
-    private final boolean enabled;
     private final String configuredProjectId;
     private final String location;
-    private final String processorId;
     private final String processorVersion;
     private final long maxUploadBytes;
     private final RestTemplate restTemplate;
@@ -48,18 +47,14 @@ public class DocumentAiClient {
 
     public DocumentAiClient(
             GoogleServiceAccountAuth googleAuth,
-            @Value("${app.ocr.documentAi.enabled:false}") boolean enabled,
             @Value("${app.ocr.documentAi.projectId:}") String projectId,
             @Value("${app.ocr.documentAi.location:us}") String location,
-            @Value("${app.ocr.documentAi.processorId:}") String processorId,
             @Value("${app.ocr.documentAi.processorVersion:}") String processorVersion,
             @Value("${app.ocr.documentAi.maxUploadBytes:20000000}") long maxUploadBytes
     ) {
         this.googleAuth = googleAuth;
-        this.enabled = enabled;
         this.configuredProjectId = projectId == null ? "" : projectId.trim();
         this.location = location == null || location.trim().isEmpty() ? "us" : location.trim();
-        this.processorId = processorId == null ? "" : processorId.trim();
         this.processorVersion = processorVersion == null ? "" : processorVersion.trim();
         this.maxUploadBytes = maxUploadBytes > 0 ? maxUploadBytes : 20_000_000L;
         this.objectMapper = new ObjectMapper();
@@ -69,16 +64,13 @@ public class DocumentAiClient {
         this.restTemplate = new RestTemplate(factory);
     }
 
-    public boolean isEnabled() {
-        return enabled && googleAuth.isConfigured() && StringUtils.hasText(processorId);
-    }
-
     public DocumentAiResult process(
             File file,
-            String originalName
-    ) throws IOException {
-        if (!isEnabled()) {
-            throw new IOException("Document AI is not enabled or not configured.");
+            String originalName,
+            DocumentParser parser) throws IOException {
+        String processId = parser != null ? parser.getProcessorId() : null;
+        if (!googleAuth.isConfigured() || !StringUtils.hasText(processId)) {
+            return null;
         }
         if (file == null || !file.isFile()) {
             throw new IOException("Document AI input file is missing.");
@@ -104,13 +96,13 @@ public class DocumentAiClient {
         Map<String, Object> body = new LinkedHashMap<>();
         body.put("rawDocument", rawDocument);
 
-        String url = processUrl(projectId, location, processorId, processorVersion);
+        String url = processUrl(projectId, location, processId, processorVersion);
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.setBearerAuth(token);
 
         log.info("Sending {} ({} bytes, {}) to Document AI processor {} ({})",
-                originalName != null ? originalName : file.getName(), size, mimeType, processorId, location);
+                originalName != null ? originalName : file.getName(), size, mimeType, processId, location);
 
         try {
             String json = objectMapper.writeValueAsString(body);
