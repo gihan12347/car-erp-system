@@ -25,7 +25,20 @@
         </article>
 
         <article class="panel inspection-checklist-panel">
-            <div class="panel-head"><h2>Checklist</h2></div>
+            <div class="panel-head inspection-checklist-head">
+                <div>
+                    <h2>Checklist</h2>
+                    <p class="muted inspection-checklist-lead">Mark each item OK, No, or N/A. No creates a workshop job.</p>
+                </div>
+            </div>
+            <div class="inspection-check-header" aria-hidden="true">
+                <span class="inspection-check-header-item">Item</span>
+                <div class="inspection-check-header-choices">
+                    <span>OK</span>
+                    <span>No</span>
+                    <span>N/A</span>
+                </div>
+            </div>
             <div id="inspectionItemList" class="inspection-checklist is-editable">
                 <div class="inspection-check-row"
                      th:each="line, stat : *{lines}"
@@ -67,65 +80,22 @@
                             <input type="radio"
                                    th:field="*{lines[__${stat.index}__].result}"
                                    th:value="${opt}">
-                            <span class="inspection-check">
+                            <span class="inspection-check" th:title="${T(com.carsale.erp.preparationpipeline.inspection.InspectionResults).display(opt)}">
                                 <i class="fa-solid fa-check" th:if="${optKey == 'OK'}" aria-hidden="true"></i>
                                 <i class="fa-solid fa-xmark" th:if="${optKey == 'NO'}" aria-hidden="true"></i>
                                 <i class="fa-solid fa-minus" th:if="${optKey == 'NA'}" aria-hidden="true"></i>
                             </span>
+                            <span class="visually-hidden" th:text="${T(com.carsale.erp.preparationpipeline.inspection.InspectionResults).display(opt)}">OK</span>
                         </label>
                     </div>
                 </div>
             </div>
         </article>
 
-        <button type="button" class="panel-btn ghost workshop-add-job" id="addInspectionItem">
-            <i class="fa-solid fa-plus"></i>
-            Add inspection item
-        </button>
-
         <div class="import-view-actions">
             <th:block th:replace="preparation-pipeline/fragments/form-actions :: prepFormActions('Save & continue', 'saveInspectionBtn')"></th:block>
         </div>
     </form>
-
-    <template id="inspectionItemTemplate">
-        <div class="inspection-check-row is-custom" data-index="__idx__">
-            <input type="hidden" name="lines[__idx__].itemKey" value="">
-            <input type="hidden" name="lines[__idx__].catalogItem" value="false">
-            <input type="hidden" name="lines[__idx__].sortOrder" value="__idx__">
-
-            <div class="inspection-check-body">
-                <div class="inspection-check-title-row">
-                    <label class="inspection-custom-title">
-                        <span class="visually-hidden">Item</span>
-                        <input type="text" class="inspection-item-title-input" name="lines[__idx__].itemTitle"
-                               placeholder="e.g. Windscreen chip">
-                    </label>
-                    <button type="button" class="panel-btn ghost workshop-job-remove inspection-item-remove">Remove</button>
-                </div>
-                <p class="inspection-job-note muted" hidden></p>
-                <label class="inspection-item-notes" hidden>
-                    <span>Notes</span>
-                    <textarea name="lines[__idx__].notes" rows="2" placeholder="Required work if No..."></textarea>
-                </label>
-            </div>
-
-            <div class="inspection-check-choices" role="radiogroup" aria-label="Inspection result">
-                <label class="inspection-check-choice result-OK">
-                    <input type="radio" name="lines[__idx__].result" value="OK">
-                    <span class="inspection-check"><i class="fa-solid fa-check" aria-hidden="true"></i></span>
-                </label>
-                <label class="inspection-check-choice result-NO">
-                    <input type="radio" name="lines[__idx__].result" value="NO">
-                    <span class="inspection-check"><i class="fa-solid fa-xmark" aria-hidden="true"></i></span>
-                </label>
-                <label class="inspection-check-choice result-NA">
-                    <input type="radio" name="lines[__idx__].result" value="N/A">
-                    <span class="inspection-check"><i class="fa-solid fa-minus" aria-hidden="true"></i></span>
-                </label>
-            </div>
-        </div>
-    </template>
 </th:block>
 
 </body>

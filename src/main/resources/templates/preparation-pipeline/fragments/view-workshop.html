@@ -3,10 +3,10 @@
 <body>
 
 <section th:fragment="workshopView(vehicle, workshop, workshopReady)" class="import-view-stage">
-    <div class="panel import-view-empty" th:if="${workshop == null}">
+    <div class="panel import-view-empty" th:if="${workshop == null or workshop.lines == null or workshop.lines.isEmpty()}">
         <i class="fa-solid fa-wrench"></i>
-        <strong>No workshop job yet</strong>
-        <p>Record repairs, parts, and mark the job complete when the vehicle is ready for the yard.</p>
+        <strong>No workshop jobs</strong>
+        <p>Inspection did not mark any item as No, so workshop is complete. Continue to yard.</p>
         <div class="import-view-actions">
             <a th:if="${stageNav != null and stageNav.prevUrl != null}"
                th:href="${stageNav.prevUrl}"
@@ -14,17 +14,11 @@
                 <i class="fa-solid fa-chevron-left"></i>
                 Previous
             </a>
-            <a th:href="@{/workshop/{c}(c=${vehicle.chassisNo}, hub=1)}" class="panel-btn import-form-submit">Start workshop job</a>
-            <a th:if="${stageNav != null and stageNav.nextUrl != null}"
-               th:href="${stageNav.nextUrl}"
-               class="panel-btn ghost import-form-submit">
-                <span th:text="${stageNav.nextLabel}">Next · Yard</span>
-                <i class="fa-solid fa-chevron-right"></i>
-            </a>
+            <a th:href="@{/yard/{c}(c=${vehicle.chassisNo}, hub=1)}" class="panel-btn import-form-submit">Continue to yard</a>
         </div>
     </div>
 
-    <div th:unless="${workshop == null}">
+    <div th:if="${workshop != null and workshop.lines != null and !workshop.lines.isEmpty()}">
         <article class="panel workshop-job-card" th:each="line, stat : ${workshop.lines}">
             <div class="panel-head">
                 <h2>
@@ -59,10 +53,6 @@
                     <textarea th:text="${line.notes}" readonly class="readonly-field" rows="2"></textarea>
                 </label>
             </div>
-        </article>
-        <article class="panel" th:if="${workshop.lines == null or workshop.lines.isEmpty()}">
-            <div class="panel-head"><h2>Job details</h2></div>
-            <p class="muted">No job lines yet. Edit workshop to add repair jobs.</p>
         </article>
         <div class="import-view-actions">
             <a th:if="${stageNav != null and stageNav.prevUrl != null}"

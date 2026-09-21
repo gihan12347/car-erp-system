@@ -96,7 +96,7 @@ class PipelineStageServiceTest {
     @Test
     void prepPipelineStartsWithInspectionThenWorkshopAndYard() {
         assertThat(pipelineStageService.keys("PREP"))
-                .containsExactly("inspection", "workshop", "yard", "sale");
+                .containsExactly("inspection", "workshop", "yard");
     }
 
     @Test

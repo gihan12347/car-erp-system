@@ -32,6 +32,9 @@ public class PipelineStageUtils {
             if (currentFlowPipeline == null) {
                 return viewBase(basePath, encoded);
             }
+            if (currentFlowPipeline == FlowPipeline.PREP) {
+                return "/yards";
+            }
             FlowPipeline nextFlowPipeline = FlowPipeline.findPipelineBySortOrder(currentFlowPipeline.getSortOrder() + 1);
             if (nextFlowPipeline == null) {
                 return viewUrl(viewBase(basePath, encoded), currentKey);

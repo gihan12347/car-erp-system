@@ -188,6 +188,11 @@ public class AssessmentNotice implements DocumentParser {
         return this.processorId;
     }
 
+    @Override
+    public String getDocumentName() {
+        return "assessment notice";
+    }
+
     private static String fixBrokenCommas(String text) {
         if (text == null) {
             return null;

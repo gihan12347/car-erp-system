@@ -165,4 +165,35 @@ public class CustomsDocumentParserUtils {
                 || "none".equals(token)
                 || ".".equals(token);
     }
+
+    public static String suffix(String name) {
+        if (name == null || name.lastIndexOf('.') < 0) {
+            return ".img";
+        }
+        return name.substring(name.lastIndexOf('.'));
+    }
+
+    public static String toSlug(String text) {
+        if (text == null || text.trim().isEmpty()) {
+            return "";
+        }
+        return text.trim()
+                .toLowerCase()
+                .replaceAll("\\s+", "-");
+    }
+
+    public static String getNormalizedValue(String compact) {
+        switch (compact) {
+            case "YES":
+            case "Y":
+                return "YES";
+            case "NO":
+            case "N":
+                return "NO";
+            case "OK":
+                return "OK";
+            default:
+                return "N/A";
+        }
+    }
 }

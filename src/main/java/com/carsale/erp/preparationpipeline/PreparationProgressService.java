@@ -65,7 +65,7 @@ public class PreparationProgressService {
                 yardService.isComplete(chassisNo),
                 vehicleInspectionService.isComplete(chassisNo),
                 workshopService.canEnterYard(chassisNo),
-                saleListingService.isAssignmentComplete(chassisNo)
+                false
         );
     }
 
@@ -105,13 +105,11 @@ public class PreparationProgressService {
         if (vehicle == null) {
             return false;
         }
-        if (progressFor(vehicle).isPipelineCompleted()) {
+        if (saleListingService.isAssignedToSale(vehicle.getChassisNo())) {
             return true;
         }
         VehicleStage stage = vehicle.getStage();
-        return stage == VehicleStage.READY
-                || stage == VehicleStage.RESERVED
-                || stage == VehicleStage.SOLD;
+        return stage == VehicleStage.RESERVED || stage == VehicleStage.SOLD;
     }
 
     public List<Vehicle> listEligible(String query) {
@@ -204,16 +202,16 @@ public class PreparationProgressService {
 
         @Override
         public boolean hasAnyCompletedStage() {
-            return workshopReady || yardReady || inspectionReady || saleReady;
+            return workshopReady || yardReady || inspectionReady;
         }
 
         @Override
         public int completedCount() {
-            return (workshopReady ? 1 : 0) + (yardReady ? 1 : 0) + (inspectionReady ? 1 : 0) + (saleReady ? 1 : 0);
+            return (workshopReady ? 1 : 0) + (yardReady ? 1 : 0) + (inspectionReady ? 1 : 0);
         }
 
         public boolean isPipelineCompleted() {
-            return workshopReady && yardReady && inspectionReady && saleReady;
+            return workshopReady && yardReady && inspectionReady;
         }
 
         public boolean isStageComplete(String stageKey) {

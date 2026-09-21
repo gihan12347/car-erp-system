@@ -1,21 +1,11 @@
 (function () {
     var list = document.getElementById("workshopJobList");
-    var addBtn = document.getElementById("addWorkshopJob");
-    var template = document.getElementById("workshopJobTemplate");
-    var emptyHint = document.getElementById("workshopEmptyHint");
-    if (!list || !addBtn || !template) {
+    if (!list) {
         return;
     }
 
     function cards() {
         return list.querySelectorAll(".workshop-job-card");
-    }
-
-    function syncEmptyHint() {
-        if (!emptyHint) {
-            return;
-        }
-        emptyHint.hidden = cards().length > 0;
     }
 
     function reindex() {
@@ -35,23 +25,7 @@
                 }
             });
         });
-        syncEmptyHint();
     }
-
-    function addJob() {
-        var html = template.innerHTML
-            .replace(/__idx__/g, String(cards().length))
-            .replace(/__num__/g, String(cards().length + 1));
-        var wrap = document.createElement("div");
-        wrap.innerHTML = html.trim();
-        list.appendChild(wrap.firstChild);
-        reindex();
-    }
-
-    addBtn.addEventListener("click", function (event) {
-        event.preventDefault();
-        addJob();
-    });
 
     list.addEventListener("click", function (event) {
         var button = event.target.closest(".workshop-job-remove");

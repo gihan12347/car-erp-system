@@ -34,14 +34,40 @@ public final class ReadyStageUrls {
         return requested;
     }
 
-    public static String redirectAfterListingSave(String chassisNo, List<String> keys) {
-        return PipelineStageUtils.redirectAfterStageSave(
-                chassisNo, FlowPipeline.READY.getCurrentBase(), keys, FlowStage.LISTING.getStageKey());
+    public static String redirectAfterListingSave(String saleCode, String chassisNo, boolean sold) {
+        if (sold) {
+            return saleVehicles(saleCode, ReadyForSaleController.TAB_SOLD);
+        }
+        return saleVehicle(saleCode, chassisNo);
     }
 
-    public static String redirectAfterRegistrationSave(String chassisNo, List<String> keys) {
-        return PipelineStageUtils.redirectAfterStageSave(
-                chassisNo, FlowPipeline.READY.getCurrentBase(), keys, FlowStage.REGISTRATION.getStageKey());
+    public static String redirectAfterRegistrationSave(String saleCode, String chassisNo, boolean complete) {
+        if (complete) {
+            return saleVehicles(saleCode, ReadyForSaleController.TAB_REGISTERED);
+        }
+        return saleVehicle(saleCode, chassisNo);
+    }
+
+    public static String saleLocation(String saleCode) {
+        if (saleCode == null || saleCode.trim().isEmpty()) {
+            return "/ready-for-sale";
+        }
+        return "/ready-for-sale/" + PipelineStageUtils.encode(saleCode.trim());
+    }
+
+    public static String saleVehicles(String saleCode, String tab) {
+        return saleLocation(saleCode) + "?tab=" + ReadyForSaleController.normalizeTab(tab);
+    }
+
+    public static String saleVehicle(String saleCode, String chassisNo) {
+        if (saleCode == null || saleCode.trim().isEmpty()) {
+            return "/ready-for-sale/" + PipelineStageUtils.encode(chassisNo);
+        }
+        return saleLocation(saleCode) + "/" + PipelineStageUtils.encode(chassisNo);
+    }
+
+    public static String saleHub(String tab) {
+        return "/ready-for-sale";
     }
 
     public static NavLinks editLinks(String chassisNo, int stageIndex, SaleProgress status, List<PipelineStage> keys) {

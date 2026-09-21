@@ -90,6 +90,11 @@ public class BillOfLading implements DocumentParser {
         return this.processorId;
     }
 
+    @Override
+    public String getDocumentName() {
+        return "bill of landing";
+    }
+
     static String mapType(String type) {
         if (type == null || type.trim().isEmpty()) {
             return null;

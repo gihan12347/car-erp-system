@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" fill="none">
+  <style>
+    .cloud { animation: drift 4.5s ease-in-out infinite; }
+    .cloud-b { animation-delay: -1.8s; animation-duration: 5.4s; }
+    .car { transform-origin: 50px 72px; animation: roll 3.2s ease-in-out infinite; }
+    .door { transform-origin: 48px 58px; animation: door 3.6s ease-in-out infinite; }
+    @keyframes drift { 50% { transform: translateX(4px); } }
+    @keyframes roll { 0%,100% { transform: translateX(0); } 50% { transform: translateX(5px); } }
+    @keyframes door { 0%,60%,100% { transform: scaleY(1); } 70% { transform: scaleY(0.86); } }
+  </style>
+  <rect width="96" height="96" rx="24" fill="#ECFDF5"/>
+  <ellipse class="cloud" cx="24" cy="22" rx="10" ry="5" fill="#A7F3D0" opacity="0.7"/>
+  <ellipse class="cloud cloud-b" cx="74" cy="18" rx="8" ry="4" fill="#A7F3D0" opacity="0.55"/>
+  <rect x="14" y="70" width="68" height="8" rx="3" fill="#99F6E4"/>
+  <path d="M20 70V42l28-16 28 16v28H20z" fill="#0F766E"/>
+  <path d="M30 70V48h36v22" fill="#ECFDF5"/>
+  <rect class="door" x="42" y="52" width="12" height="18" rx="2" fill="#115E59"/>
+  <rect x="34" y="52" width="8" height="8" rx="1.5" fill="#5EEAD4"/>
+  <rect x="54" y="52" width="8" height="8" rx="1.5" fill="#5EEAD4"/>
+  <g class="car">
+    <path d="M28 72c1-3 4-5 8-6h16c3 1 5 3 6 6H28z" fill="#C2410C"/>
+    <rect x="34" y="64" width="12" height="5" rx="1" fill="#FED7AA"/>
+    <circle cx="34" cy="73" r="3" fill="#1C1917"/>
+    <circle cx="50" cy="73" r="3" fill="#1C1917"/>
+  </g>
+</svg>

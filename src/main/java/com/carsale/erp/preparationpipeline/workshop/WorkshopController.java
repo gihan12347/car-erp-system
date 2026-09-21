@@ -53,6 +53,7 @@ public class WorkshopController {
         return "redirect:/workshop-yard";
     }
 
+    //TODO :: need to check this
     @InitBinder
     public void initBinder(WebDataBinder binder) {
         binder.registerCustomEditor(Long.class, new CustomNumberEditor(Long.class, true));
@@ -73,6 +74,12 @@ public class WorkshopController {
             redirectAttributes.addFlashAttribute("notice",
                     preparationProgressService.ineligibleNotice(vehicle));
             return "redirect:" + preparationProgressService.redirectWhenNotEligible(vehicle);
+        }
+        if (!workshopService.hasJobs(chassisNo)) {
+            preparationProgressService.syncVehicleStage(chassisNo);
+            redirectAttributes.addFlashAttribute("successMessage",
+                    "No workshop jobs. Workshop is complete. Continue with yard.");
+            return "redirect:/yard/" + encodeChassis(chassisNo) + (hub ? "?hub=1" : "");
         }
         WorkshopJob record = workshopService.prepareForm(chassisNo);
         PreparationProgress status = preparationProgressService.progressFor(vehicle);

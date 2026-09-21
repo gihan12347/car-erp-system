@@ -131,6 +131,11 @@ public class CustomsDeclaration implements DocumentParser {
         return this.processorId;
     }
 
+    @Override
+    public String getDocumentName() {
+        return "customs declaration";
+    }
+
     private static String invoiceSection(String text) {
         Matcher matcher = RegexConstants.Declaration.INVOICE_SECTION.matcher(text);
         String last = null;

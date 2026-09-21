@@ -46,7 +46,7 @@ public class WorkshopService {
             record = new WorkshopJob();
             record.setChassisNo(chassisNo);
             record.setJobStatus("PENDING");
-            // No blank job card — jobs come from inspection "No" items (or Add job).
+            // Jobs come from inspection items marked No. Empty jobs means workshop is complete.
             return record;
         }
         migrateLegacyLine(record);
@@ -56,7 +56,39 @@ public class WorkshopService {
 
     public boolean isComplete(String chassisNo) {
         WorkshopJob record = findByChassisNo(chassisNo);
-        return record != null && allJobsComplete(record);
+        if (record == null) {
+            return true;
+        }
+        return allJobsComplete(record);
+    }
+
+    public boolean hasJobs(String chassisNo) {
+        WorkshopJob record = findByChassisNo(chassisNo);
+        if (record == null || record.getLines() == null) {
+            return false;
+        }
+        for (WorkshopJobLine line : record.getLines()) {
+            if (line != null && !line.isEmpty()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public boolean hasOpenJobs(String chassisNo) {
+        WorkshopJob record = findByChassisNo(chassisNo);
+        if (record == null || record.getLines() == null || record.getLines().isEmpty()) {
+            return false;
+        }
+        for (WorkshopJobLine line : record.getLines()) {
+            if (line == null || line.isEmpty()) {
+                continue;
+            }
+            if (!"COMPLETE".equals(line.getJobStatus())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public boolean canEnterYard(String chassisNo) {
@@ -68,17 +100,15 @@ public class WorkshopService {
         if (lines == null || lines.isEmpty()) {
             return true;
         }
-        boolean any = false;
         for (WorkshopJobLine line : lines) {
             if (line == null || line.isEmpty()) {
                 continue;
             }
-            any = true;
             if (!"COMPLETE".equals(line.getJobStatus())) {
                 return false;
             }
         }
-        return any || record.isCompleted();
+        return true;
     }
 
     @Transactional

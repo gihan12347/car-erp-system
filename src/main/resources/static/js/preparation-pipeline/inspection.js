@@ -1,8 +1,6 @@
 (function () {
     var form = document.getElementById("inspectionForm");
     var list = document.getElementById("inspectionItemList");
-    var addBtn = document.getElementById("addInspectionItem");
-    var template = document.getElementById("inspectionItemTemplate");
     var saveBtn = document.getElementById("saveInspectionBtn");
     var completed = document.getElementById("inspectionCompleted");
     var statusEl = document.getElementById("inspectionJobStatus");
@@ -128,20 +126,6 @@
         refreshSave();
     }
 
-    function addItem() {
-        if (!template) {
-            return;
-        }
-        var html = template.innerHTML
-            .replace(/__idx__/g, String(cards().length))
-            .replace(/__num__/g, String(cards().length + 1));
-        var wrap = document.createElement("div");
-        wrap.innerHTML = html.trim();
-        list.appendChild(wrap.firstChild);
-        reindex();
-        syncAllNotes();
-    }
-
     function createWorkshopJob(card, radio) {
         var title = cardTitle(card);
         if (!title) {
@@ -229,13 +213,6 @@
             .catch(function () {
                 /* Keep the radio selection; workshop sync also runs on Save. */
             });
-    }
-
-    if (addBtn) {
-        addBtn.addEventListener("click", function (event) {
-            event.preventDefault();
-            addItem();
-        });
     }
 
     list.addEventListener("click", function (event) {

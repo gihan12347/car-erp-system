@@ -26,7 +26,7 @@ import org.springframework.web.util.UriUtils;
 import com.carsale.erp.importpipeline.auction.AuctionParseResult;
 import com.carsale.erp.shared.document.SheetUploadResult;
 import com.carsale.erp.shared.vehicle.Vehicle;
-import com.carsale.erp.customspipeline.CustomsDocumentOcrService;
+import com.carsale.erp.shared.ocr.OcrImagePreparer;
 import com.carsale.erp.customspipeline.CustomsProgressService;
 import com.carsale.erp.importpipeline.ImportProgressService;
 import com.carsale.erp.importpipeline.ImportProgressService.ImportProgress;
@@ -41,7 +41,7 @@ public class CertificateOfInspectionController {
 
     private final CertificateOfInspectionService certificateService;
     private final VehicleService vehicleService;
-    private final CustomsDocumentOcrService ocrService;
+    private final OcrImagePreparer ocrService;
     private final SheetDocumentStorageService documentStorageService;
     private final ImportProgressService importProgressService;
     private final CustomsProgressService customsProgressService;
@@ -51,7 +51,7 @@ public class CertificateOfInspectionController {
     public CertificateOfInspectionController(
             CertificateOfInspectionService certificateService,
             VehicleService vehicleService,
-            CustomsDocumentOcrService ocrService,
+            OcrImagePreparer ocrService,
             SheetDocumentStorageService documentStorageService,
             ImportProgressService importProgressService,
             CustomsProgressService customsProgressService,

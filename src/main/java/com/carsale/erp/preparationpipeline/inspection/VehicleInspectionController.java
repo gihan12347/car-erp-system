@@ -25,6 +25,7 @@ import com.carsale.erp.shared.pipeline.PipelineStageService;
 import com.carsale.erp.shared.pipeline.FlowStage;
 import com.carsale.erp.preparationpipeline.PreparationProgressService;
 import com.carsale.erp.preparationpipeline.PreparationProgressService.PreparationProgress;
+import com.carsale.erp.preparationpipeline.workshop.WorkshopService;
 import com.carsale.erp.shared.vehicle.VehicleService;
 
 @Controller
@@ -35,17 +36,20 @@ public class VehicleInspectionController {
     private final VehicleService vehicleService;
     private final PreparationProgressService preparationProgressService;
     private final PipelineStageService pipelineStageService;
+    private final WorkshopService workshopService;
 
     public VehicleInspectionController(
             VehicleInspectionService vehicleInspectionService,
             VehicleService vehicleService,
             PreparationProgressService preparationProgressService,
-            PipelineStageService pipelineStageService
+            PipelineStageService pipelineStageService,
+            WorkshopService workshopService
     ) {
         this.vehicleInspectionService = vehicleInspectionService;
         this.vehicleService = vehicleService;
         this.preparationProgressService = preparationProgressService;
         this.pipelineStageService = pipelineStageService;
+        this.workshopService = workshopService;
     }
 
     @GetMapping
@@ -101,6 +105,11 @@ public class VehicleInspectionController {
         try {
             vehicleInspectionService.save(record);
             preparationProgressService.syncVehicleStage(chassisNo);
+            if (!workshopService.hasJobs(chassisNo)) {
+                redirectAttributes.addFlashAttribute("successMessage",
+                        "Inspection saved. No workshop jobs — workshop is complete. Continue with yard.");
+                return "redirect:/yard/" + encodeChassis(chassisNo) + (hub ? "?hub=1" : "");
+            }
             redirectAttributes.addFlashAttribute("successMessage", "Inspection saved.");
             return "redirect:" + PreparationStageUrls.redirectAfterInspectionSave(
                     chassisNo,

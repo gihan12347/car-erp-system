@@ -27,7 +27,7 @@ import com.carsale.erp.importpipeline.auction.AuctionParseResult;
 import com.carsale.erp.shared.document.SheetUploadResult;
 import com.carsale.erp.customspipeline.CustomsDocument;
 import com.carsale.erp.shared.vehicle.Vehicle;
-import com.carsale.erp.customspipeline.CustomsDocumentOcrService;
+import com.carsale.erp.shared.ocr.OcrImagePreparer;
 import com.carsale.erp.customspipeline.CustomsProgressService;
 import com.carsale.erp.customspipeline.CustomsDocumentService;
 import com.carsale.erp.importpipeline.ImportProgressService;
@@ -43,7 +43,7 @@ public class OdometerCertificateController {
 
     private final CustomsDocumentService customsDocumentService;
     private final VehicleService vehicleService;
-    private final CustomsDocumentOcrService ocrService;
+    private final OcrImagePreparer ocrService;
     private final SheetDocumentStorageService documentStorageService;
     private final ImportProgressService importProgressService;
     private final CustomsProgressService customsProgressService;
@@ -53,7 +53,7 @@ public class OdometerCertificateController {
     public OdometerCertificateController(
             CustomsDocumentService customsDocumentService,
             VehicleService vehicleService,
-            CustomsDocumentOcrService ocrService,
+            OcrImagePreparer ocrService,
             SheetDocumentStorageService documentStorageService,
             ImportProgressService importProgressService,
             CustomsProgressService customsProgressService,

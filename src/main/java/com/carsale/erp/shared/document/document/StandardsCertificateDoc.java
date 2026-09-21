@@ -75,6 +75,11 @@ public class StandardsCertificateDoc implements DocumentParser {
         return "";
     }
 
+    @Override
+    public String getDocumentName() {
+        return "standards certificate doc";
+    }
+
     private static String extractSchedule(String text) {
         if (scheduleMarked(text, "V") && !scheduleMarked(text, "III")) {
             return "V";

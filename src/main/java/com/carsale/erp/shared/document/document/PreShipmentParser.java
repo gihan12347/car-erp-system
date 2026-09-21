@@ -253,6 +253,11 @@ public class PreShipmentParser implements DocumentParser {
         return this.processorId;
     }
 
+    @Override
+    public String getDocumentName() {
+        return "pre shipment";
+    }
+
     static String mapType(String type) {
         if (type == null || type.trim().isEmpty()) {
             return null;

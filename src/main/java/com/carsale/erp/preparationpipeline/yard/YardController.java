@@ -107,10 +107,14 @@ public class YardController {
             PreparationProgress status = preparationProgressService.progressFor(chassisNo);
             if (status.isPipelineCompleted()) {
                 redirectAttributes.addFlashAttribute("successMessage",
-                        "Preparation pipeline is complete. Continue in the sale pipeline.");
-            } else {
-                redirectAttributes.addFlashAttribute("successMessage", "Yard record saved.");
+                        "Preparation pipeline is complete. Open the yard to move the vehicle to sale.");
+                YardRecord saved = yardService.findByChassisNo(chassisNo);
+                if (saved != null && saved.getBayNo() != null && !saved.getBayNo().trim().isEmpty()) {
+                    return "redirect:/yards/" + encodeChassis(saved.getBayNo());
+                }
+                return "redirect:/yards";
             }
+            redirectAttributes.addFlashAttribute("successMessage", "Yard record saved.");
             return "redirect:" + PreparationStageUrls.redirectAfterYardSave(
                     chassisNo,
                     pipelineStageService.keys(PipelineStageService.FLOW_PREP)

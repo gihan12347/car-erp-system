@@ -9,22 +9,15 @@
         <main class="page-content">
             <div class="dash-head">
                 <div>
-                    <h1 th:text="${'Step ' + @pipelineStageService.displayNumber('READY', 'listing') + ' · ' + @pipelineStageService.title('READY', 'listing')}">Step 1 · Listing</h1>
-                    <p class="form-lead">Set the date and an available sale, then price and list the vehicle. Saving a sale uses one space until the vehicle is sold.</p>
+                    <a th:href="@{/ready-for-sale/{s}/{c}(s=${record.saleCode}, c=${vehicle.chassisNo})}"
+                       class="config-crumb">
+                        <i class="fa-solid fa-tags" aria-hidden="true"></i>
+                        Sale
+                    </a>
+                    <h1>Sell</h1>
+                    <p class="form-lead">Set the date and sale location, then price the vehicle. Mark it listed or sold. Selling frees one space at the sale location.</p>
                 </div>
-                <div th:replace="shared/pipeline-delete :: pipelineDeleteBtn(
-                        @{/ready-for-sale/{c}/delete(c=${vehicle.chassisNo})},
-                        'Delete this sale listing?')"></div>
             </div>
-
-            <div th:replace="ready-for-sale/fragments/pipeline :: salePipelineSteps(
-                    'listing',
-                    ${vehicle.chassisNo},
-                    ${listingReady},
-                    ${vehicle.model},
-                    false,
-                    ${detailsReady},
-                    ${registrationReady})"></div>
 
             <p th:if="${successMessage}" class="alert alert-ok" th:text="${successMessage}"></p>
             <p th:if="${errorMessage}" class="alert alert-error" th:text="${errorMessage}"></p>
@@ -115,7 +108,9 @@
                 </article>
 
                 <div class="import-view-actions">
-                    <th:block th:replace="preparation-pipeline/fragments/form-actions :: prepFormActions('Save listing', null)"></th:block>
+                    <a th:href="@{/ready-for-sale/{s}/{c}(s=${record.saleCode}, c=${vehicle.chassisNo})}"
+                       class="panel-btn ghost import-form-submit">Back</a>
+                    <button type="submit" class="panel-btn import-form-submit">Save</button>
                 </div>
             </form>
         </main>

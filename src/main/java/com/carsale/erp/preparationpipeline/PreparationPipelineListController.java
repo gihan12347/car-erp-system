@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.web.util.UriUtils;
 
 import com.carsale.erp.shared.vehicle.Vehicle;
 import com.carsale.erp.preparationpipeline.PreparationProgressService.PreparationProgress;
@@ -108,6 +109,13 @@ public class PreparationPipelineListController {
         String stageKey = PipelineStageService.keyAt(prepKeys, stageIndex);
         if (stageKey == null) {
             return "redirect:/workshop-yard";
+        }
+        if (FlowStage.WORKSHOP.getStageKey().equals(stageKey) && !workshopService.hasJobs(chassisNo)) {
+            preparationProgressService.syncVehicleStage(chassisNo);
+            redirectAttributes.addFlashAttribute("successMessage",
+                    "No workshop jobs. Workshop is complete. Continue with yard.");
+            return "redirect:/yard/" + UriUtils.encodePathSegment(chassisNo, java.nio.charset.StandardCharsets.UTF_8)
+                    + "?hub=1";
         }
 
         List<PipelineStage> prepStages = pipelineStageService.list(PipelineStageService.FLOW_PREP);

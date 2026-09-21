@@ -14,6 +14,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.carsale.erp.readypipeline.SaleListingRepository;
 import com.carsale.erp.shared.regex.RegexConstants;
 
 @Service
@@ -32,10 +33,16 @@ public class YardBayService implements CommandLineRunner {
 
     private final YardBayRepository yardBayRepository;
     private final YardRecordRepository yardRecordRepository;
+    private final SaleListingRepository saleListingRepository;
 
-    public YardBayService(YardBayRepository yardBayRepository, YardRecordRepository yardRecordRepository) {
+    public YardBayService(
+            YardBayRepository yardBayRepository,
+            YardRecordRepository yardRecordRepository,
+            SaleListingRepository saleListingRepository
+    ) {
         this.yardBayRepository = yardBayRepository;
         this.yardRecordRepository = yardRecordRepository;
+        this.saleListingRepository = saleListingRepository;
     }
 
     @Override
@@ -163,7 +170,10 @@ public class YardBayService implements CommandLineRunner {
         if (isBlank(yardCode)) {
             return null;
         }
-        return yardBayRepository.findByBayCodeIgnoreCase(yardCode.trim()).orElse(null);
+        return yardBayRepository.findByBayCodeIgnoreCase(yardCode.trim()).map(yard -> {
+            attachOccupancy(yard);
+            return yard;
+        }).orElse(null);
     }
 
     public YardBay requireAssignable(String yardCode, String chassisNo) {
@@ -225,7 +235,7 @@ public class YardBayService implements CommandLineRunner {
     public void delete(Long id) {
         YardBay bay = yardBayRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Yard not found."));
-        if (yardRecordRepository.countByBayNoIgnoreCase(bay.getBayCode()) > 0) {
+        if (!listPresentInYard(bay.getBayCode()).isEmpty()) {
             throw new IllegalArgumentException("Cannot remove a yard that still has vehicles.");
         }
         yardBayRepository.deleteById(id);
@@ -268,6 +278,9 @@ public class YardBayService implements CommandLineRunner {
     private Map<String, Integer> occupancyByCode() {
         Map<String, Integer> occupied = new HashMap<>();
         for (YardRecord record : yardRecordRepository.findAll()) {
+            if (movedToSale(record.getChassisNo())) {
+                continue;
+            }
             String key = normalizeCode(record.getBayNo());
             if (key.isEmpty()) {
                 continue;
@@ -275,6 +288,29 @@ public class YardBayService implements CommandLineRunner {
             occupied.compute(key, (k, current) -> current == null ? 1 : current + 1);
         }
         return occupied;
+    }
+
+    public List<YardRecord> listPresentInYard(String yardCode) {
+        List<YardRecord> present = new ArrayList<>();
+        if (isBlank(yardCode)) {
+            return present;
+        }
+        for (YardRecord record : yardRecordRepository.findByBayNoIgnoreCase(yardCode.trim())) {
+            if (record == null || movedToSale(record.getChassisNo())) {
+                continue;
+            }
+            present.add(record);
+        }
+        return present;
+    }
+
+    private boolean movedToSale(String chassisNo) {
+        if (isBlank(chassisNo)) {
+            return false;
+        }
+        return saleListingRepository.findById(chassisNo.trim())
+                .map(listing -> listing.getSaleCode() != null && !listing.getSaleCode().trim().isEmpty())
+                .orElse(false);
     }
 
     private static String requireBayCode(String bayCode) {

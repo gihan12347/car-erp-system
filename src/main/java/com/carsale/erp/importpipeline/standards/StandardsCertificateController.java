@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 
+import com.carsale.erp.shared.document.document.StandardsCertificateDoc;
+import com.carsale.erp.shared.ocr.OcrImagePreparer;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -39,28 +41,29 @@ public class StandardsCertificateController {
 
     private final StandardsCertificateService certificateService;
     private final VehicleService vehicleService;
-    private final StandardsCertificateOcrService ocrService;
     private final SheetDocumentStorageService documentStorageService;
     private final ImportProgressService importProgressService;
     private final CustomsProgressService customsProgressService;
     private final PipelineStageService pipelineStageService;
+    private final StandardsCertificateDoc parser;
+    private final OcrImagePreparer imagePreparer;
 
     public StandardsCertificateController(
             StandardsCertificateService certificateService,
             VehicleService vehicleService,
-            StandardsCertificateOcrService ocrService,
             SheetDocumentStorageService documentStorageService,
             ImportProgressService importProgressService,
             CustomsProgressService customsProgressService,
-            PipelineStageService pipelineStageService
+            PipelineStageService pipelineStageService, StandardsCertificateDoc parser, OcrImagePreparer imagePreparer
     ) {
         this.certificateService = certificateService;
         this.vehicleService = vehicleService;
-        this.ocrService = ocrService;
         this.documentStorageService = documentStorageService;
         this.importProgressService = importProgressService;
         this.customsProgressService = customsProgressService;
         this.pipelineStageService = pipelineStageService;
+        this.parser = parser;
+        this.imagePreparer = imagePreparer;
     }
 
     @GetMapping
@@ -177,7 +180,7 @@ public class StandardsCertificateController {
             @RequestParam("file") MultipartFile file,
             @RequestParam(value = "provider", required = false) String provider
     ) {
-        return ocrService.parseDocument(file, provider);
+        return imagePreparer.parsePage(file, parser, provider);
     }
 
     @PostMapping("/{chassisNo}")

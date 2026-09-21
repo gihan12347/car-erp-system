@@ -7,6 +7,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 
+import com.carsale.erp.shared.document.document.WorkingSheet;
+import com.carsale.erp.shared.ocr.OcrImagePreparer;
 import com.carsale.erp.shared.pipeline.*;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.core.io.Resource;
@@ -30,7 +32,6 @@ import com.carsale.erp.shared.vehicle.ChassisCheckResult;
 import com.carsale.erp.shared.document.SheetUploadResult;
 import com.carsale.erp.customspipeline.CustomsDocument;
 import com.carsale.erp.importpipeline.equipment.EquipmentInspection;
-import com.carsale.erp.importpipeline.coi.InspectionCertificate;
 import com.carsale.erp.importpipeline.exportcert.ExportCertificate;
 import com.carsale.erp.importpipeline.standards.StandardsCertificate;
 import com.carsale.erp.importpipeline.preshipment.PreShipmentInspection;
@@ -57,7 +58,6 @@ import static com.carsale.erp.shared.pipeline.PipelineStageService.viewLinks;
 public class AuctionLotController {
 
     private final VehicleService vehicleService;
-    private final AuctionSheetOcrService ocrService;
     private final SheetDocumentStorageService documentStorageService;
     private final PreShipmentService preShipmentService;
     private final EquipmentInspectionService equipmentInspectionService;
@@ -69,10 +69,11 @@ public class AuctionLotController {
     private final ExportCertificateService exportCertificateService;
     private final VehiclePhotoService vehiclePhotoService;
     private final PipelineStageService pipelineStageService;
+    private final WorkingSheet.AuctionSheetParser parser;
+    private final OcrImagePreparer imagePreparer;
 
     public AuctionLotController(
             VehicleService vehicleService,
-            AuctionSheetOcrService ocrService,
             SheetDocumentStorageService documentStorageService,
             PreShipmentService preShipmentService,
             EquipmentInspectionService equipmentInspectionService,
@@ -83,10 +84,9 @@ public class AuctionLotController {
             StandardsCertificateService standardsCertificateService,
             ExportCertificateService exportCertificateService,
             VehiclePhotoService vehiclePhotoService,
-            PipelineStageService pipelineStageService
+            PipelineStageService pipelineStageService, WorkingSheet.AuctionSheetParser parser, OcrImagePreparer imagePreparer
     ) {
         this.vehicleService = vehicleService;
-        this.ocrService = ocrService;
         this.documentStorageService = documentStorageService;
         this.preShipmentService = preShipmentService;
         this.equipmentInspectionService = equipmentInspectionService;
@@ -98,6 +98,8 @@ public class AuctionLotController {
         this.exportCertificateService = exportCertificateService;
         this.vehiclePhotoService = vehiclePhotoService;
         this.pipelineStageService = pipelineStageService;
+        this.parser = parser;
+        this.imagePreparer = imagePreparer;
     }
 
     @GetMapping
@@ -291,7 +293,7 @@ public class AuctionLotController {
             @RequestParam("file") MultipartFile file,
             @RequestParam(value = "provider", required = false) String provider
     ) {
-        return ocrService.parseSheet(file, provider);
+        return imagePreparer.parsePage(file, parser, provider);
     }
 
     @PostMapping

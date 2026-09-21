@@ -50,6 +50,11 @@ public class SaleListingService {
         return record;
     }
 
+    public boolean isAssignedToSale(String chassisNo) {
+        SaleListing record = findByChassisNo(chassisNo);
+        return record != null && !isBlank(record.getSaleCode());
+    }
+
     public boolean isListed(String chassisNo) {
         SaleListing record = findByChassisNo(chassisNo);
         return record != null && record.isListed() && !record.isSold();

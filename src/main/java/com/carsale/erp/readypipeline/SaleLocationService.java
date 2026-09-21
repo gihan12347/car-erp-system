@@ -143,7 +143,9 @@ public class SaleLocationService implements CommandLineRunner {
         if (isBlank(saleCode)) {
             return null;
         }
-        return saleLocationRepository.findBySaleCodeIgnoreCase(saleCode.trim()).orElse(null);
+        SaleLocation sale = saleLocationRepository.findBySaleCodeIgnoreCase(saleCode.trim()).orElse(null);
+        attachOccupancy(sale);
+        return sale;
     }
 
     public SaleLocation requireAssignable(String saleCode, String chassisNo) {
@@ -256,14 +258,10 @@ public class SaleLocationService implements CommandLineRunner {
     private Map<String, Integer> occupancyByCode() {
         Map<String, Integer> occupied = new HashMap<>();
         for (SaleListing listing : saleListingRepository.findAll()) {
-            if (listing.isSold()) {
-                continue;
+            if (!listing.isSold()) {
+                String key = listing.getSaleCode();
+                occupied.compute(key, (k, current) -> current == null ? 1 : current + 1);
             }
-            String key = normalizeCode(listing.getSaleCode());
-            if (key.isEmpty()) {
-                continue;
-            }
-            occupied.compute(key, (k, current) -> current == null ? 1 : current + 1);
         }
         return occupied;
     }
@@ -333,7 +331,7 @@ public class SaleLocationService implements CommandLineRunner {
         if (isBlank(value)) {
             return "";
         }
-        return value.trim().toUpperCase(Locale.ROOT);
+        return value.trim().toUpperCase();
     }
 
     private static String blankToEmpty(String value) {

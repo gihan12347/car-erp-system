@@ -74,6 +74,11 @@ public class EquipmentInspectionParser implements DocumentParser {
         return "";
     }
 
+    @Override
+    public String getDocumentName() {
+        return "equipment inspection";
+    }
+
     private String scopedText(FieldDef field, String exteriorText, String bodyKitText, String truckText, String fullText) {
         if (EquipmentInspectionFields.GROUP_BODY_KIT.equals(field.getGroup())) {
             return firstNonEmpty(bodyKitText, exteriorText, fullText);
@@ -143,22 +148,7 @@ public class EquipmentInspectionParser implements DocumentParser {
             return null;
         }
         String trimmed = value.trim().replaceAll(RegexConstants.Text.WHITESPACE, " ");
-        return getNormalizedValue(trimmed.toUpperCase(Locale.ROOT).replace(" ", ""));
-    }
-
-    private String getNormalizedValue(String compact) {
-        switch (compact) {
-            case "YES":
-            case "Y":
-                return "YES";
-            case "NO":
-            case "N":
-                return "NO";
-            case "OK":
-                return "OK";
-            default:
-                return "N/A";
-        }
+        return CustomsDocumentParserUtils.getNormalizedValue(trimmed.toUpperCase().replace(" ", ""));
     }
 
     private static String firstNonEmpty(String... values) {

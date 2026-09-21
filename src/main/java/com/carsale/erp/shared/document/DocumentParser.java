@@ -7,4 +7,9 @@ public interface DocumentParser {
     AuctionParseResult parsePage(String text);
     AuctionParseResult parsePage(DocumentAiClient.DocumentAiResult documentAi);
     String getProcessorId();
+    String getDocumentName();
+
+    default String getOcrLanguage() {
+        return null;
+    }
 }

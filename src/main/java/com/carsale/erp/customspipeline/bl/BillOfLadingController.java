@@ -23,7 +23,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.util.UriUtils;
 
 import com.carsale.erp.customspipeline.CustomsDocument;
-import com.carsale.erp.customspipeline.CustomsDocumentOcrService;
+import com.carsale.erp.shared.ocr.OcrImagePreparer;
 import com.carsale.erp.customspipeline.CustomsDocumentService;
 import com.carsale.erp.customspipeline.CustomsProgressService;
 import com.carsale.erp.customspipeline.CustomsProgressService.CustomsProgress;
@@ -42,7 +42,7 @@ public class BillOfLadingController {
 
     private final CustomsDocumentService customsDocumentService;
     private final VehicleService vehicleService;
-    private final CustomsDocumentOcrService ocrService;
+    private final OcrImagePreparer ocrService;
     private final SheetDocumentStorageService documentStorageService;
     private final CustomsProgressService customsProgressService;
     private final PipelineStageService pipelineStageService;
@@ -51,7 +51,7 @@ public class BillOfLadingController {
     public BillOfLadingController(
             CustomsDocumentService customsDocumentService,
             VehicleService vehicleService,
-            CustomsDocumentOcrService ocrService,
+            OcrImagePreparer ocrService,
             SheetDocumentStorageService documentStorageService,
             CustomsProgressService customsProgressService,
             PipelineStageService pipelineStageService,

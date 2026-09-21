@@ -7,6 +7,7 @@ import com.carsale.erp.shared.utils.CustomsDocumentParserUtils;
 import com.carsale.erp.shared.regex.RegexConstants;
 import com.carsale.erp.importpipeline.auction.AuctionParseResult;
 import com.carsale.erp.shared.document.DocumentParser;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
@@ -100,6 +101,11 @@ public class WorkingSheet implements DocumentParser {
     @Override
     public String getProcessorId() {
         return "";
+    }
+
+    @Override
+    public String getDocumentName() {
+        return "working sheet";
     }
 
     private static String extractWorksheetRef(String text) {
@@ -415,6 +421,9 @@ public class WorkingSheet implements DocumentParser {
 
         private final JapaneseTextTranslator translator;
 
+        @Value("${app.ocr.ocrspace.language:jpn}")
+        private String language;
+
         public AuctionSheetParser(JapaneseTextTranslator translator) {
             this.translator = translator;
         }
@@ -441,12 +450,12 @@ public class WorkingSheet implements DocumentParser {
             putCode("A201A", "Raize", "Toyota");
             putCode("A202S", "Rocky", "Daihatsu");
             putCode("A200S", "Rocky", "Daihatsu");
-            putSpec("A202A", "5AA-A202A", "Raize", "Toyota", "Hybrid Z", "Hybrid", "1200", "5-door", "5", "CVT");
-            putSpec("A210A", "5BA-A210A", "Raize", "Toyota", null, "Gasoline", "1000", "5-door", "5", "CVT");
-            putSpec("A200A", "5BA-A200A", "Raize", "Toyota", null, "Gasoline", "1000", "5-door", "5", "CVT");
-            putSpec("A201A", "5BA-A201A", "Raize", "Toyota", null, "Gasoline", "1000", "5-door", "5", "CVT");
-            putSpec("A202S", "5AA-A202S", "Rocky", "Daihatsu", "Hybrid Z", "Hybrid", "1200", "5-door", "5", "CVT");
-            putSpec("A200S", "5BA-A200S", "Rocky", "Daihatsu", null, "Gasoline", "1000", "5-door", "5", "CVT");
+            putSpec("A202A", "5AA-A202A", "Raize", "Toyota", "Hybrid Z", "Hybrid", "1200");
+            putSpec("A210A", "5BA-A210A", "Raize", "Toyota", null, "Gasoline", "1000");
+            putSpec("A200A", "5BA-A200A", "Raize", "Toyota", null, "Gasoline", "1000");
+            putSpec("A201A", "5BA-A201A", "Raize", "Toyota", null, "Gasoline", "1000");
+            putSpec("A202S", "5AA-A202S", "Rocky", "Daihatsu", "Hybrid Z", "Hybrid", "1200");
+            putSpec("A200S", "5BA-A200S", "Rocky", "Daihatsu", null, "Gasoline", "1000");
         }
 
         private static void putCode(String code, String model, String make) {
@@ -455,9 +464,9 @@ public class WorkingSheet implements DocumentParser {
         }
 
         private static void putSpec(String chassisPrefix, String modelCode, String model, String make,
-                String grade, String fuel, String engineCc, String body, String seats, String transmission) {
+                String grade, String fuel, String engineCc) {
             MODEL_SPECS.put(chassisPrefix, new String[] {
-                    modelCode, model, make, grade, fuel, engineCc, body, seats, transmission
+                    modelCode, model, make, grade, fuel, engineCc, "5-door", "5", "CVT"
             });
         }
 
@@ -531,6 +540,16 @@ public class WorkingSheet implements DocumentParser {
         @Override
         public String getProcessorId() {
             return "";
+        }
+
+        @Override
+        public String getDocumentName() {
+            return "auction sheet";
+        }
+
+        @Override
+        public String getOcrLanguage() {
+            return language == null || language.trim().isEmpty() ? "jpn" : language.trim();
         }
 
         private String repairOcrNoise(String text) {

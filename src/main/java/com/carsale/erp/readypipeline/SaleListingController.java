@@ -14,9 +14,6 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.util.UriUtils;
 
 import com.carsale.erp.preparationpipeline.PreparationProgressService;
-import com.carsale.erp.readypipeline.SaleListingService.SaleProgress;
-import com.carsale.erp.shared.pipeline.FlowStage;
-import com.carsale.erp.shared.pipeline.PipelineStageService;
 import com.carsale.erp.shared.vehicle.Vehicle;
 import com.carsale.erp.shared.vehicle.VehicleService;
 
@@ -28,20 +25,17 @@ public class SaleListingController {
     private final PreparationProgressService preparationProgressService;
     private final SaleListingService saleListingService;
     private final SaleLocationService saleLocationService;
-    private final PipelineStageService pipelineStageService;
 
     public SaleListingController(
             VehicleService vehicleService,
             PreparationProgressService preparationProgressService,
             SaleListingService saleListingService,
-            SaleLocationService saleLocationService,
-            PipelineStageService pipelineStageService
+            SaleLocationService saleLocationService
     ) {
         this.vehicleService = vehicleService;
         this.preparationProgressService = preparationProgressService;
         this.saleListingService = saleListingService;
         this.saleLocationService = saleLocationService;
-        this.pipelineStageService = pipelineStageService;
     }
 
     @GetMapping("/{chassisNo}")
@@ -57,29 +51,16 @@ public class SaleListingController {
         }
         if (!preparationProgressService.isEligibleForSale(vehicle)) {
             redirectAttributes.addFlashAttribute("notice",
-                    "Complete the preparation pipeline before listing this vehicle for sale.");
-            return "redirect:/workshop-yard/" + encodeChassis(chassisNo);
+                    "Move this vehicle from the yard to an available sale first.");
+            return "redirect:/yards";
         }
         SaleListing record = saleListingService.prepareForm(chassisNo);
-        SaleProgress status = saleListingService.progressFor(chassisNo);
-        model.addAttribute("pageTitle", pipelineStageService.title(
-                PipelineStageService.FLOW_READY, FlowStage.LISTING.getStageKey()));
+        model.addAttribute("pageTitle", "Sell");
         model.addAttribute("activeMenu", "ready-for-sale");
         model.addAttribute("hubMode", hub);
         model.addAttribute("vehicle", vehicle);
         model.addAttribute("record", record);
         model.addAttribute("saleLocations", saleLocationService.listActive());
-        model.addAttribute("listingReady", status.isListingReady());
-        model.addAttribute("detailsReady", status.isDetailsReady());
-        model.addAttribute("registrationReady", status.isRegistrationReady());
-        model.addAttribute("saleSold", status.isSold());
-        model.addAttribute("saleComplete", status.isPipelineCompleted());
-        model.addAttribute("stageNav", ReadyStageUrls.editLinks(
-                chassisNo,
-                pipelineStageService.indexOf(PipelineStageService.FLOW_READY, FlowStage.LISTING.getStageKey()),
-                status,
-                pipelineStageService.list(PipelineStageService.FLOW_READY)
-        ));
         return "ready-for-sale/form";
     }
 
@@ -103,9 +84,7 @@ public class SaleListingController {
                 redirectAttributes.addFlashAttribute("successMessage", "Sale listing saved.");
             }
             return "redirect:" + ReadyStageUrls.redirectAfterListingSave(
-                    chassisNo,
-                    pipelineStageService.keys(PipelineStageService.FLOW_READY)
-            );
+                    record.getSaleCode(), chassisNo, record.isSold());
         } catch (IllegalArgumentException ex) {
             redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
             return "redirect:/listing/" + encodeChassis(chassisNo) + (hub ? "?hub=1" : "");

@@ -10,7 +10,7 @@
             <div class="dash-head">
                 <div>
                     <h1 th:text="${'Step ' + @pipelineStageService.displayNumber('PREP', 'workshop') + ' · ' + @pipelineStageService.title('PREP', 'workshop')}">Step 2 · Workshop</h1>
-                    <p class="form-lead">Workshop jobs come from inspection items marked <strong>No</strong>. Add extra repair jobs here if needed.</p>
+                    <p class="form-lead">Workshop jobs come from inspection items marked <strong>No</strong>.</p>
                 </div>
             </div>
 
@@ -37,7 +37,7 @@
                     <p class="form-lead" id="workshopEmptyHint"
                        th:if="${#lists.isEmpty(record.lines)}"
                        style="margin-bottom: 1rem;">
-                        No workshop jobs yet. Mark items as <strong>No</strong> on the inspection step, or add a job below.
+                        No workshop jobs. Inspection did not mark any item as No.
                     </p>
                     <article class="panel workshop-job-card" th:each="line, stat : *{lines}" th:data-index="${stat.index}">
                         <div class="panel-head workshop-job-head">
@@ -98,10 +98,6 @@
                         </div>
                     </article>
                 </div>
-                <button type="button" class="panel-btn ghost workshop-add-job" id="addWorkshopJob">
-                    <i class="fa-solid fa-plus"></i>
-                    Add workshop job
-                </button>
                 <div class="import-view-actions">
                     <th:block th:replace="preparation-pipeline/fragments/form-actions :: prepFormActions('Save & continue', null)"></th:block>
                 </div>
@@ -110,60 +106,7 @@
     </div>
 </div>
 
-<template id="workshopJobTemplate">
-    <article class="panel workshop-job-card" data-index="__idx__">
-        <div class="panel-head workshop-job-head">
-            <h2>Job <span class="workshop-job-num">__num__</span></h2>
-            <button type="button" class="panel-btn ghost workshop-job-remove">Remove</button>
-        </div>
-        <div class="field-grid">
-            <label>Status
-                <select name="lines[__idx__].jobStatus">
-                    <option value="PENDING">Not started</option>
-                    <option value="IN_PROGRESS">In progress</option>
-                    <option value="COMPLETE">Complete</option>
-                </select>
-            </label>
-            <label>Technician
-                <input type="text" name="lines[__idx__].technician" placeholder="Name">
-            </label>
-            <label class="span-2">Job summary
-                <input type="text" name="lines[__idx__].jobSummary" placeholder="e.g. Polish, minor dent, service">
-            </label>
-            <label>Started on
-                <input type="date" name="lines[__idx__].startedOn">
-            </label>
-            <label>Completed on
-                <input type="date" name="lines[__idx__].completedOn">
-            </label>
-            <label>Labour hours
-                <input type="text" name="lines[__idx__].laborHours">
-            </label>
-            <label>Estimated cost
-                <span class="money-field">
-                    <input type="text" name="lines[__idx__].estimatedCost"
-                           inputmode="decimal" autocomplete="off" placeholder="0.00">
-                    <span class="money-currency" aria-hidden="true">LKR</span>
-                </span>
-            </label>
-            <label>Actual cost
-                <span class="money-field">
-                    <input type="text" name="lines[__idx__].actualCost"
-                           inputmode="decimal" autocomplete="off" placeholder="0.00">
-                    <span class="money-currency" aria-hidden="true">LKR</span>
-                </span>
-            </label>
-            <label class="span-2">Parts used
-                <textarea name="lines[__idx__].partsUsed" rows="2" placeholder="Filters, pads, bulbs..."></textarea>
-            </label>
-            <label class="span-2">Notes
-                <textarea name="lines[__idx__].notes" rows="2"></textarea>
-            </label>
-        </div>
-    </article>
-</template>
-
 <script th:src="@{/js/shared/app.js(v=20260905k)}"></script>
-<script th:src="@{/js/preparation-pipeline/workshop.js(v=20260918a)}"></script>
+<script th:src="@{/js/preparation-pipeline/workshop.js(v=20260920a)}"></script>
 </body>
 </html>

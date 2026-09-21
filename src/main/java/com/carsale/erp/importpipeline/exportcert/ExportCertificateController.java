@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 
+import com.carsale.erp.shared.document.document.ExportCertificateParser;
+import com.carsale.erp.shared.ocr.OcrImagePreparer;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -24,11 +26,8 @@ import org.springframework.web.util.UriUtils;
 
 import com.carsale.erp.importpipeline.auction.AuctionParseResult;
 import com.carsale.erp.shared.document.SheetUploadResult;
-import com.carsale.erp.importpipeline.exportcert.ExportCertificate;
 import com.carsale.erp.shared.vehicle.Vehicle;
 import com.carsale.erp.customspipeline.CustomsProgressService;
-import com.carsale.erp.importpipeline.exportcert.ExportCertificateOcrService;
-import com.carsale.erp.importpipeline.exportcert.ExportCertificateService;
 import com.carsale.erp.importpipeline.ImportProgressService;
 import com.carsale.erp.importpipeline.ImportProgressService.ImportProgress;
 import com.carsale.erp.shared.pipeline.PipelineStageService;
@@ -42,28 +41,29 @@ public class ExportCertificateController {
 
     private final ExportCertificateService certificateService;
     private final VehicleService vehicleService;
-    private final ExportCertificateOcrService ocrService;
     private final SheetDocumentStorageService documentStorageService;
     private final ImportProgressService importProgressService;
     private final CustomsProgressService customsProgressService;
     private final PipelineStageService pipelineStageService;
+    private final ExportCertificateParser parser;
+    private final OcrImagePreparer imagePreparer;
 
     public ExportCertificateController(
             ExportCertificateService certificateService,
             VehicleService vehicleService,
-            ExportCertificateOcrService ocrService,
             SheetDocumentStorageService documentStorageService,
             ImportProgressService importProgressService,
             CustomsProgressService customsProgressService,
-            PipelineStageService pipelineStageService
+            PipelineStageService pipelineStageService, ExportCertificateParser parser, OcrImagePreparer imagePreparer
     ) {
         this.certificateService = certificateService;
         this.vehicleService = vehicleService;
-        this.ocrService = ocrService;
         this.documentStorageService = documentStorageService;
         this.importProgressService = importProgressService;
         this.customsProgressService = customsProgressService;
         this.pipelineStageService = pipelineStageService;
+        this.parser = parser;
+        this.imagePreparer = imagePreparer;
     }
 
     @GetMapping
@@ -180,7 +180,7 @@ public class ExportCertificateController {
             @RequestParam("file") MultipartFile file,
             @RequestParam(value = "provider", required = false) String provider
     ) {
-        return ocrService.parseDocument(file, provider);
+        return imagePreparer.parseDocument(file, parser, provider);
     }
 
     @PostMapping("/{chassisNo}")

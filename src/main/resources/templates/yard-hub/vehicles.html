@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="shared/head :: head(${pageTitle})"></head>
+<body>
+<div class="app-shell">
+    <aside th:replace="shared/sidebar :: sidebar(${activeMenu})"></aside>
+    <div class="app-main">
+        <header th:replace="shared/topbar :: topbar"></header>
+        <main class="page-content yard-hub-page">
+            <div class="dash-head">
+                <div>
+                    <a th:href="@{/yards}" class="config-crumb">
+                        <i class="fa-solid fa-warehouse" aria-hidden="true"></i>
+                        Yards
+                    </a>
+                    <h1 th:text="${yard.yardName != null and !#strings.isEmpty(yard.yardName) ? yard.yardName : yard.bayCode}">Main yard</h1>
+                    <p class="form-lead" th:if="${yard.location != null and !#strings.isEmpty(yard.location)}">
+                        <i class="fa-solid fa-location-dot" aria-hidden="true"></i>
+                        <span th:text="${yard.location}">Front lot</span>
+                    </p>
+                </div>
+                <div class="sale-hub-capacity" th:classappend="${yard.fillState}">
+                    <p class="sale-hub-capacity-label"
+                       th:text="|${yard.remaining} of ${yard.capacity} spaces left|">12 of 40 spaces left</p>
+                    <div class="yard-bay-meter">
+                        <span class="yard-bay-meter-track">
+                            <span class="yard-bay-meter-fill" th:style="|width: ${yard.fillPercent}%|"></span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <p th:if="${notice}" class="alert alert-ok" th:text="${notice}"></p>
+            <p th:if="${error}" class="alert alert-error" th:text="${error}"></p>
+
+            <form method="get" th:action="@{/yards/{code}(code=${yard.bayCode})}" class="auction-search">
+                <div class="auction-search-field">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="search" name="q" th:value="${searchQuery}"
+                           placeholder="Search chassis, model, lot, stock...">
+                </div>
+                <label class="period-select">
+                    <select name="period" aria-label="Filter by period" onchange="this.form.submit()">
+                        <option value="all" th:selected="${period == 'all'}">All time</option>
+                        <option value="today" th:selected="${period == 'today'}">Today</option>
+                        <option value="week" th:selected="${period == 'week'}">This week</option>
+                        <option value="month" th:selected="${period == 'month'}">This month</option>
+                        <option value="quarter" th:selected="${period == 'quarter'}">This quarter</option>
+                        <option value="year" th:selected="${period == 'year'}">This year</option>
+                    </select>
+                </label>
+                <button type="submit" class="panel-btn auction-search-btn">Search</button>
+            </form>
+
+            <section class="yard-vehicle-grid" th:if="${cards != null and !cards.isEmpty()}">
+                <a class="yard-vehicle-card"
+                   th:each="card, stat : ${cards}"
+                   th:style="|--i: ${stat.index}|"
+                   th:href="@{/yards/{y}/{c}(y=${yard.bayCode}, c=${card.vehicle.chassisNo})}">
+                    <span class="yard-vehicle-photo">
+                        <img th:if="${card.photo != null}"
+                             th:src="@{/photos/documents/{name}(name=${card.photo.storedName})}"
+                             th:alt="${card.vehicle.model}">
+                        <img th:unless="${card.photo != null}"
+                             th:src="@{/images/dashboard/illu-car.svg}"
+                             alt="">
+                        <span class="yard-vehicle-open" aria-hidden="true">
+                            <i class="fa-solid fa-arrow-right"></i>
+                        </span>
+                    </span>
+                    <span class="yard-vehicle-copy">
+                        <strong th:text="${card.vehicle.model != null and !#strings.isEmpty(card.vehicle.model) ? card.vehicle.model : 'Vehicle'}">Toyota Aqua</strong>
+                        <small th:text="${card.vehicle.chassisNo}">NHP10-884211</small>
+                        <span class="yard-vehicle-meta">
+                            <em th:if="${card.vehicle.year != null and !#strings.isEmpty(card.vehicle.year)}"
+                                th:text="${card.vehicle.year}">2025</em>
+                            <em th:if="${card.vehicle.color != null and !#strings.isEmpty(card.vehicle.color)}"
+                                th:text="${card.vehicle.color}">White</em>
+                            <em th:if="${card.vehicle.mileage != null and !#strings.isEmpty(card.vehicle.mileage)}"
+                                th:text="${card.vehicle.mileage}">16,137 km</em>
+                            <em th:if="${card.vehicle.lotNo != null and !#strings.isEmpty(card.vehicle.lotNo)}"
+                                th:text="${'Lot ' + card.vehicle.lotNo}">Lot 36497</em>
+                        </span>
+                    </span>
+                </a>
+            </section>
+            <article class="panel" th:if="${cards == null or cards.isEmpty()}">
+                <p class="muted"
+                   th:if="${(searchQuery != null and !#strings.isEmpty(searchQuery)) or (period != null and period != 'all')}">
+                    No vehicles match this search or period.
+                </p>
+                <p class="muted"
+                   th:unless="${(searchQuery != null and !#strings.isEmpty(searchQuery)) or (period != null and period != 'all')}">
+                    No vehicles are in this yard right now.
+                </p>
+            </article>
+        </main>
+    </div>
+</div>
+<script th:src="@{/js/shared/app.js(v=20260905k)}"></script>
+</body>
+</html>

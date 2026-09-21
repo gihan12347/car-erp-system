@@ -41,6 +41,7 @@ public class PipelineStageService implements CommandLineRunner {
         seedIfMissing(FLOW_READY, defaultReady());
         refreshImportDocumentCopy();
         refreshSalePipelineCopy();
+        removePrepSaleStage();
         placePrepInspectionFirst();
         placeBillOfLadingFirst();
         placeSaleDetailsFirst();
@@ -109,7 +110,9 @@ public class PipelineStageService implements CommandLineRunner {
         if (prep == null) {
             return;
         }
-        if (blankOrOneOf(prep.getDescription(), "Workshop jobs and yard allocation")) {
+        if (blankOrOneOf(prep.getDescription(),
+                "Workshop jobs and yard allocation",
+                "Inspection, workshop, yard, and sale assignment")) {
             prep.setDescription(FlowPipeline.PREP.getDescription());
             pipelineFlowRepository.save(prep);
         }
@@ -120,6 +123,23 @@ public class PipelineStageService implements CommandLineRunner {
             yard.setSubtitle("Date and available yard");
             pipelineStageRepository.save(yard);
         }
+    }
+
+    @Transactional
+    public void removePrepSaleStage() {
+        PipelineFlow prep = pipelineFlowRepository.findByFlowKey(FLOW_PREP).orElse(null);
+        if (prep == null) {
+            return;
+        }
+        PipelineStage sale = pipelineStageRepository
+                .findByFlowIdAndStageKey(prep.getId(), FlowStage.SALE.getStageKey())
+                .orElse(null);
+        if (sale == null) {
+            return;
+        }
+        pipelineStageRepository.delete(sale);
+        pipelineStageRepository.flush();
+        reindex(prep.getId());
     }
 
     private void refreshImportDocumentCopy() {
@@ -478,8 +498,7 @@ public class PipelineStageService implements CommandLineRunner {
         return Arrays.asList(
                 new DefaultStage(FlowStage.INSPECTION.getStageKey(), "Inspection", "Checklist items and results"),
                 new DefaultStage(FlowStage.WORKSHOP.getStageKey(), "Workshop", "Repairs, parts, completion"),
-                new DefaultStage(FlowStage.YARD.getStageKey(), "Yard", "Date and available yard"),
-                new DefaultStage(FlowStage.SALE.getStageKey(), "Sale", "Date and available sale")
+                new DefaultStage(FlowStage.YARD.getStageKey(), "Yard", "Date and available yard")
         );
     }
 
@@ -524,6 +543,9 @@ public class PipelineStageService implements CommandLineRunner {
                         ? labeled("Continue ", lower(titleFor(nextKey)), "Continue")
                         : "Next";
             }
+        } else if (flowPipeline == FlowPipeline.PREP && status.isPipelineCompleted()) {
+            nextUrl = "/yards";
+            nextLabel = "Yard";
         } else if (pipeline != null && status.isPipelineCompleted()) {
             nextUrl = pipeline.getCurrentBase() + encoded;
             nextLabel = pipeline.getTitle();

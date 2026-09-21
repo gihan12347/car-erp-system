@@ -114,6 +114,8 @@ class VehicleInspectionServiceTest {
         vehicleInspectionService.save(form);
         assertThat(vehicleInspectionService.isComplete("TEST-INS-OK")).isTrue();
         assertThat(workshopService.findByChassisNo("TEST-INS-OK")).isNull();
+        assertThat(workshopService.isComplete("TEST-INS-OK")).isTrue();
+        assertThat(workshopService.canEnterYard("TEST-INS-OK")).isTrue();
     }
 
     private void saveVehicle(String chassisNo) {

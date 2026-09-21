@@ -1,13 +1,12 @@
 package com.carsale.erp.importpipeline.equipment;
 
-import com.carsale.erp.importpipeline.equipment.EquipmentInspectionFields.FieldDef;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Locale;
 
 import com.carsale.erp.shared.regex.RegexConstants;
+import com.carsale.erp.shared.utils.CustomsDocumentParserUtils;
 
 /**
  * Interior, exterior, and safety fields on the vehicle equipment condition sheet.
@@ -114,7 +113,7 @@ public final class EquipmentInspectionFields {
     }
 
     public static List<FieldDef> ungrouped(List<FieldDef> fields) {
-        List<FieldDef> result = new ArrayList<FieldDef>();
+        List<FieldDef> result = new ArrayList<>();
         for (FieldDef field : fields) {
             if (field.getGroup() == null) {
                 result.add(field);
@@ -124,7 +123,7 @@ public final class EquipmentInspectionFields {
     }
 
     public static List<FieldDef> group(List<FieldDef> fields, String group) {
-        List<FieldDef> result = new ArrayList<FieldDef>();
+        List<FieldDef> result = new ArrayList<>();
         for (FieldDef field : fields) {
             if (group.equals(field.getGroup())) {
                 result.add(field);
@@ -134,7 +133,7 @@ public final class EquipmentInspectionFields {
     }
 
     public static List<FieldDef> all() {
-        List<FieldDef> result = new ArrayList<FieldDef>();
+        List<FieldDef> result = new ArrayList<>();
         result.addAll(INTERIOR);
         result.addAll(EXTERIOR);
         result.addAll(SAFETY);
@@ -142,7 +141,7 @@ public final class EquipmentInspectionFields {
     }
 
     public static List<String> allKeys() {
-        List<String> keys = new ArrayList<String>();
+        List<String> keys = new ArrayList<>();
         for (FieldDef field : all()) {
             keys.add(field.getKey());
         }
@@ -183,26 +182,11 @@ public final class EquipmentInspectionFields {
         if (trimmed.isEmpty()) {
             return "";
         }
-        String compact = trimmed.toUpperCase(Locale.ROOT).replace(" ", "");
-        if ("YES".equals(compact) || "Y".equals(compact)) {
-            return "YES";
-        }
-        if ("NO".equals(compact) || "N".equals(compact)) {
-            return "NO";
-        }
-        if ("OK".equals(compact)) {
-            return "OK";
-        }
-        if ("NA".equals(compact) || "N/A".equals(compact) || "N.A.".equals(compact)
-                || "N.A".equals(compact) || "NIL".equals(compact) || "NONE".equals(compact)
-                || "NOTAPPLICABLE".equals(compact)) {
-            return "N/A";
-        }
-        return trimmed.toUpperCase(Locale.ROOT);
+        return CustomsDocumentParserUtils.getNormalizedValue(trimmed.toUpperCase().replace(" ", ""));
     }
 
     private static List<FieldDef> list(FieldDef... fields) {
-        List<FieldDef> result = new ArrayList<FieldDef>();
+        List<FieldDef> result = new ArrayList<>();
         Collections.addAll(result, fields);
         return Collections.unmodifiableList(result);
     }

@@ -7,43 +7,33 @@
     <div class="app-main">
         <header th:replace="shared/topbar :: topbar"></header>
         <main class="page-content">
-            <p th:if="${successMessage}" class="alert alert-ok" th:text="${successMessage}"></p>
-            <p th:if="${errorMessage}" class="alert alert-error" th:text="${errorMessage}"></p>
-
             <div class="dash-head">
                 <div>
-                    <h1 th:if="${stageKey == 'details'}"
-                        th:text="${@pipelineStageService.title('READY', 'details')}">Details</h1>
-                    <h1 th:if="${stageKey == 'listing'}"
-                        th:text="${@pipelineStageService.title('READY', 'listing')}">Listing</h1>
-                    <h1 th:if="${stageKey == 'registration'}"
-                        th:text="${@pipelineStageService.title('READY', 'registration')}">Registration</h1>
-                    <p class="form-lead" th:if="${stageKey == 'details'}">Vehicle profile with photos and essential specifications. This step is complete when the vehicle enters the sale pipeline.</p>
-                    <p class="form-lead" th:if="${stageKey == 'listing'}">Review the sale date, location, pricing, and listing status.</p>
-                    <p class="form-lead" th:if="${stageKey == 'registration'}">Local plate number, owner, RMV date, and license details.</p>
+                    <a th:href="@{/ready-for-sale/{s}(s=${saleCode}, tab=${tab})}" class="config-crumb">
+                        <i class="fa-solid fa-tags" aria-hidden="true"></i>
+                        Sale
+                    </a>
+                    <h1>Vehicle details</h1>
+                    <p class="form-lead" th:if="${canRegister}">Register this vehicle, or sell it from this screen.</p>
+                    <p class="form-lead" th:if="${canSell and !canRegister}">This vehicle is registered. Sell when the buyer is ready.</p>
+                    <p class="form-lead" th:if="${sold}">This vehicle is sold.</p>
                 </div>
-                <div th:replace="shared/pipeline-delete :: pipelineDeleteBtn(
-                        @{/ready-for-sale/{c}/delete(c=${vehicle.chassisNo})},
-                        'Delete this sale listing?')"></div>
             </div>
 
-            <div th:replace="ready-for-sale/fragments/pipeline :: salePipelineSteps(
-                    ${stageKey},
-                    ${vehicle.chassisNo},
-                    ${listingReady},
-                    ${vehicle.model},
-                    true,
-                    ${detailsReady},
-                    ${registrationReady})"></div>
+            <p th:if="${notice}" class="alert alert-ok" th:text="${notice}"></p>
+            <p th:if="${successMessage}" class="alert alert-ok" th:text="${successMessage}"></p>
+            <p th:if="${error}" class="alert alert-error" th:text="${error}"></p>
 
-            <div class="vehicle-form" th:if="${stageKey == 'details'}">
-                <div th:replace="ready-for-sale/fragments/view-details :: detailsView(${vehicle}, ${photos})"></div>
-            </div>
-            <div class="vehicle-form" th:if="${stageKey == 'listing'}">
-                <div th:replace="ready-for-sale/fragments/view-listing :: listingView(${vehicle}, ${listing}, ${listingReady})"></div>
-            </div>
-            <div class="vehicle-form" th:if="${stageKey == 'registration'}">
-                <div th:replace="ready-for-sale/fragments/view-registration :: registrationView(${vehicle}, ${registration}, ${registrationReady})"></div>
+            <div th:replace="ready-for-sale/fragments/view-details :: detailsView(${vehicle}, ${photos})"></div>
+
+            <div class="import-view-actions">
+                <a th:href="@{/ready-for-sale/{s}(s=${saleCode}, tab=${tab})}" class="panel-btn ghost import-form-submit">Back to sale</a>
+                <a th:if="${canRegister}"
+                   th:href="@{/registration/{c}(c=${vehicle.chassisNo})}"
+                   class="panel-btn ghost import-form-submit">Register</a>
+                <a th:if="${canSell}"
+                   th:href="@{/listing/{c}(c=${vehicle.chassisNo})}"
+                   class="panel-btn import-form-submit">Sell</a>
             </div>
         </main>
     </div>

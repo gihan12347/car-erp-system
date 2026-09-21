@@ -14,9 +14,6 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.util.UriUtils;
 
 import com.carsale.erp.preparationpipeline.PreparationProgressService;
-import com.carsale.erp.readypipeline.SaleListingService.SaleProgress;
-import com.carsale.erp.shared.pipeline.FlowStage;
-import com.carsale.erp.shared.pipeline.PipelineStageService;
 import com.carsale.erp.shared.vehicle.Vehicle;
 import com.carsale.erp.shared.vehicle.VehicleService;
 
@@ -26,22 +23,19 @@ public class VehicleRegistrationController {
 
     private final VehicleService vehicleService;
     private final PreparationProgressService preparationProgressService;
-    private final SaleListingService saleListingService;
     private final VehicleRegistrationService vehicleRegistrationService;
-    private final PipelineStageService pipelineStageService;
+    private final SaleListingService saleListingService;
 
     public VehicleRegistrationController(
             VehicleService vehicleService,
             PreparationProgressService preparationProgressService,
-            SaleListingService saleListingService,
             VehicleRegistrationService vehicleRegistrationService,
-            PipelineStageService pipelineStageService
+            SaleListingService saleListingService
     ) {
         this.vehicleService = vehicleService;
         this.preparationProgressService = preparationProgressService;
-        this.saleListingService = saleListingService;
         this.vehicleRegistrationService = vehicleRegistrationService;
-        this.pipelineStageService = pipelineStageService;
+        this.saleListingService = saleListingService;
     }
 
     @GetMapping("/{chassisNo}")
@@ -57,18 +51,17 @@ public class VehicleRegistrationController {
         }
         if (!preparationProgressService.isEligibleForSale(vehicle)) {
             redirectAttributes.addFlashAttribute("notice",
-                    "Complete the preparation pipeline before registering this vehicle.");
-            return "redirect:/workshop-yard/" + encodeChassis(chassisNo);
+                    "Move this vehicle from the yard to an available sale first.");
+            return "redirect:/yards";
         }
         VehicleRegistration record = vehicleRegistrationService.prepareForm(chassisNo);
-        SaleProgress status = saleListingService.progressFor(chassisNo);
-        model.addAttribute("pageTitle", pipelineStageService.title(
-                PipelineStageService.FLOW_READY, FlowStage.REGISTRATION.getStageKey()));
+        SaleListing listing = saleListingService.findByChassisNo(chassisNo);
+        model.addAttribute("pageTitle", "Register");
         model.addAttribute("activeMenu", "ready-for-sale");
         model.addAttribute("hubMode", hub);
         model.addAttribute("vehicle", vehicle);
         model.addAttribute("record", record);
-        addSaleStatus(model, chassisNo, status);
+        model.addAttribute("saleCode", listing == null ? null : listing.getSaleCode());
         return "ready-for-sale/registration";
     }
 
@@ -88,28 +81,17 @@ public class VehicleRegistrationController {
                 redirectAttributes.addFlashAttribute("successMessage",
                         "Registration draft saved. Add the plate number and date to complete this step.");
             }
+            SaleListing listing = saleListingService.findByChassisNo(chassisNo);
+            String saleCode = listing == null ? null : listing.getSaleCode();
             return "redirect:" + ReadyStageUrls.redirectAfterRegistrationSave(
+                    saleCode,
                     chassisNo,
-                    pipelineStageService.keys(PipelineStageService.FLOW_READY)
+                    VehicleRegistrationService.isComplete(saved)
             );
         } catch (IllegalArgumentException ex) {
             redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
             return "redirect:/registration/" + encodeChassis(chassisNo) + (hub ? "?hub=1" : "");
         }
-    }
-
-    private void addSaleStatus(Model model, String chassisNo, SaleProgress status) {
-        model.addAttribute("listingReady", status.isListingReady());
-        model.addAttribute("detailsReady", status.isDetailsReady());
-        model.addAttribute("registrationReady", status.isRegistrationReady());
-        model.addAttribute("saleSold", status.isSold());
-        model.addAttribute("saleComplete", status.isPipelineCompleted());
-        model.addAttribute("stageNav", ReadyStageUrls.editLinks(
-                chassisNo,
-                pipelineStageService.indexOf(PipelineStageService.FLOW_READY, FlowStage.REGISTRATION.getStageKey()),
-                status,
-                pipelineStageService.list(PipelineStageService.FLOW_READY)
-        ));
     }
 
     private String encodeChassis(String chassisNo) {

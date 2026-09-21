@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 
+import com.carsale.erp.shared.document.document.EquipmentInspectionParser;
+import com.carsale.erp.shared.ocr.OcrImagePreparer;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -24,12 +26,8 @@ import org.springframework.web.util.UriUtils;
 
 import com.carsale.erp.importpipeline.auction.AuctionParseResult;
 import com.carsale.erp.shared.document.SheetUploadResult;
-import com.carsale.erp.importpipeline.equipment.EquipmentInspection;
 import com.carsale.erp.shared.vehicle.Vehicle;
 import com.carsale.erp.customspipeline.CustomsProgressService;
-import com.carsale.erp.importpipeline.equipment.EquipmentInspectionFields;
-import com.carsale.erp.importpipeline.equipment.EquipmentInspectionOcrService;
-import com.carsale.erp.importpipeline.equipment.EquipmentInspectionService;
 import com.carsale.erp.importpipeline.ImportProgressService;
 import com.carsale.erp.importpipeline.ImportProgressService.ImportProgress;
 import com.carsale.erp.shared.pipeline.PipelineStageService;
@@ -43,28 +41,29 @@ public class EquipmentConditionController {
 
     private final EquipmentInspectionService equipmentInspectionService;
     private final VehicleService vehicleService;
-    private final EquipmentInspectionOcrService ocrService;
     private final SheetDocumentStorageService documentStorageService;
     private final ImportProgressService importProgressService;
     private final CustomsProgressService customsProgressService;
     private final PipelineStageService pipelineStageService;
+    private final EquipmentInspectionParser parser;
+    private final OcrImagePreparer imagePreparer;
 
     public EquipmentConditionController(
             EquipmentInspectionService equipmentInspectionService,
             VehicleService vehicleService,
-            EquipmentInspectionOcrService ocrService,
             SheetDocumentStorageService documentStorageService,
             ImportProgressService importProgressService,
             CustomsProgressService customsProgressService,
-            PipelineStageService pipelineStageService
+            PipelineStageService pipelineStageService, EquipmentInspectionParser parser, OcrImagePreparer imagePreparer
     ) {
         this.equipmentInspectionService = equipmentInspectionService;
         this.vehicleService = vehicleService;
-        this.ocrService = ocrService;
         this.documentStorageService = documentStorageService;
         this.importProgressService = importProgressService;
         this.customsProgressService = customsProgressService;
         this.pipelineStageService = pipelineStageService;
+        this.parser = parser;
+        this.imagePreparer = imagePreparer;
     }
 
     @GetMapping
@@ -188,7 +187,7 @@ public class EquipmentConditionController {
             @RequestParam("file") MultipartFile file,
             @RequestParam(value = "provider", required = false) String provider
     ) {
-        return ocrService.parseDocument(file, provider);
+        return imagePreparer.parsePage(file, parser, provider);
     }
 
     @PostMapping("/{chassisNo}")

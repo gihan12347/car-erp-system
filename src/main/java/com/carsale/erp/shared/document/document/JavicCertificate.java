@@ -72,6 +72,11 @@ public class JavicCertificate implements DocumentParser {
         return "";
     }
 
+    @Override
+    public String getDocumentName() {
+        return "javic certificate";
+    }
+
     private static String extractJevicCertificateNo(String text) {
         Matcher matcher = RegexConstants.Javic.CERT_NO_LABELED.matcher(text);
         if (matcher.find()) {

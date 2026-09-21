@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Locale;
 
 import com.carsale.erp.shared.regex.RegexConstants;
+import com.carsale.erp.shared.utils.CustomsDocumentParserUtils;
 
 /**
  * Workshop inspection checklist choices: OK, No, N/A.
@@ -54,18 +55,7 @@ public final class InspectionResults {
         if (trimmed.isEmpty()) {
             return "";
         }
-        String compact = trimmed.toUpperCase(Locale.ROOT).replace(" ", "");
-        if ("OK".equals(compact)) {
-            return OK;
-        }
-        if ("NO".equals(compact) || "N".equals(compact)) {
-            return NO;
-        }
-        if ("NA".equals(compact) || "N/A".equals(compact) || "N.A.".equals(compact)
-                || "N.A".equals(compact) || "NOTAPPLICABLE".equals(compact)) {
-            return NA;
-        }
-        return trimmed.toUpperCase(Locale.ROOT);
+        return CustomsDocumentParserUtils.getNormalizedValue(trimmed.toUpperCase().replace(" ", ""));
     }
 
     public static String choiceDomId(String prefix, int index, String option) {

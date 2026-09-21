@@ -5,6 +5,7 @@ import java.util.regex.Matcher;
 import com.carsale.erp.shared.document.DocumentParser;
 import com.carsale.erp.shared.ocr.DocumentAiClient;
 import com.carsale.erp.shared.utils.CustomsDocumentParserUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import com.carsale.erp.importpipeline.auction.AuctionParseResult;
@@ -12,6 +13,9 @@ import com.carsale.erp.shared.regex.RegexConstants;
 
 @Service
 public class ExportCertificateParser implements DocumentParser {
+
+    @Value("${app.ocr.export.language:jpn}")
+    private String language;
 
     public AuctionParseResult parsePage(String text) {
         AuctionParseResult result = new AuctionParseResult();
@@ -194,6 +198,16 @@ public class ExportCertificateParser implements DocumentParser {
     @Override
     public String getProcessorId() {
         return "";
+    }
+
+    @Override
+    public String getDocumentName() {
+        return "export certificate";
+    }
+
+    @Override
+    public String getOcrLanguage() {
+        return language == null || language.trim().isEmpty() ? "jpn" : language.trim();
     }
 
     public boolean looksJapanese(String text) {

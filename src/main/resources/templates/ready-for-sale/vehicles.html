@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="shared/head :: head(${pageTitle})"></head>
+<body>
+<div class="app-shell">
+    <aside th:replace="shared/sidebar :: sidebar(${activeMenu})"></aside>
+    <div class="app-main">
+        <header th:replace="shared/topbar :: topbar"></header>
+        <main class="page-content sale-hub">
+            <div class="dash-head">
+                <div>
+                    <a th:href="@{/ready-for-sale}" class="config-crumb">
+                        <i class="fa-solid fa-tags" aria-hidden="true"></i>
+                        Sale
+                    </a>
+                    <h1 th:text="${saleTitle}">Showroom</h1>
+                    <p class="form-lead" th:if="${sale != null and sale.location != null and !#strings.isEmpty(sale.location)}">
+                        <i class="fa-solid fa-location-dot" aria-hidden="true"></i>
+                        <span th:text="${sale.location}">Front showroom</span>
+                    </p>
+                    <p class="form-lead" th:if="${sale == null}">
+                        <i class="fa-solid fa-location-dot" aria-hidden="true"></i>
+                        Unassigned
+                    </p>
+                </div>
+                <div class="sale-hub-capacity" th:if="${sale != null}" th:classappend="${sale.fillState}">
+                    <p class="sale-hub-capacity-label"
+                       th:text="|${sale.remaining} of ${sale.capacity} spaces left|">14 of 15 spaces left</p>
+                    <div class="yard-bay-meter">
+                        <span class="yard-bay-meter-track">
+                            <span class="yard-bay-meter-fill" th:style="|width: ${sale.fillPercent}%|"></span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <p th:if="${notice}" class="alert alert-ok" th:text="${notice}"></p>
+            <p th:if="${successMessage}" class="alert alert-ok" th:text="${successMessage}"></p>
+            <p th:if="${error}" class="alert alert-error" th:text="${error}"></p>
+
+            <form method="get" th:action="@{/ready-for-sale/{code}(code=${saleCode})}" class="auction-search">
+                <input type="hidden" name="tab" th:value="${tab}">
+                <div class="auction-search-field">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="search" name="q" th:value="${searchQuery}"
+                           placeholder="Search chassis, model, lot, stock...">
+                </div>
+                <label class="period-select">
+                    <select name="period" aria-label="Filter by period" onchange="this.form.submit()">
+                        <option value="all" th:selected="${period == 'all'}">All time</option>
+                        <option value="today" th:selected="${period == 'today'}">Today</option>
+                        <option value="week" th:selected="${period == 'week'}">This week</option>
+                        <option value="month" th:selected="${period == 'month'}">This month</option>
+                        <option value="quarter" th:selected="${period == 'quarter'}">This quarter</option>
+                        <option value="year" th:selected="${period == 'year'}">This year</option>
+                    </select>
+                </label>
+                <button type="submit" class="panel-btn auction-search-btn">Search</button>
+            </form>
+
+            <nav class="sale-status-tabs" aria-label="Sale vehicle status">
+                <a class="sale-status-tab"
+                   th:href="@{/ready-for-sale/{code}(code=${saleCode}, tab='unregistered', q=${searchQuery}, period=${period})}"
+                   th:classappend="${tab == 'unregistered'} ? ' is-active'">
+                    Unregistered
+                    <span class="sale-status-count" th:text="${unregisteredCount}">0</span>
+                </a>
+                <a class="sale-status-tab"
+                   th:href="@{/ready-for-sale/{code}(code=${saleCode}, tab='registered', q=${searchQuery}, period=${period})}"
+                   th:classappend="${tab == 'registered'} ? ' is-active'">
+                    Registered
+                    <span class="sale-status-count" th:text="${registeredCount}">0</span>
+                </a>
+                <a class="sale-status-tab"
+                   th:href="@{/ready-for-sale/{code}(code=${saleCode}, tab='sold', q=${searchQuery}, period=${period})}"
+                   th:classappend="${tab == 'sold'} ? ' is-active'">
+                    Sold
+                    <span class="sale-status-count" th:text="${soldCount}">0</span>
+                </a>
+            </nav>
+
+            <section class="yard-vehicle-grid" th:if="${cards != null and !cards.isEmpty()}">
+                <article class="yard-vehicle-card" th:each="card, stat : ${cards}" th:style="|--i: ${stat.index}|">
+                    <a class="yard-vehicle-card-link"
+                       th:href="@{/ready-for-sale/{s}/{c}(s=${saleCode}, c=${card.vehicle.chassisNo})}">
+                        <span class="yard-vehicle-photo">
+                            <img th:if="${card.photo != null}"
+                                 th:src="@{/photos/documents/{name}(name=${card.photo.storedName})}"
+                                 th:alt="${card.vehicle.model}">
+                            <img th:unless="${card.photo != null}"
+                                 th:src="@{/images/dashboard/illu-car.svg}"
+                                 alt="">
+                            <span class="yard-vehicle-open" aria-hidden="true">
+                                <i class="fa-solid fa-arrow-right"></i>
+                            </span>
+                        </span>
+                        <span class="yard-vehicle-copy">
+                            <strong th:text="${card.vehicle.model != null and !#strings.isEmpty(card.vehicle.model) ? card.vehicle.model : 'Vehicle'}">Toyota Aqua</strong>
+                            <small th:text="${card.vehicle.chassisNo}">NHP10-884211</small>
+                            <span class="yard-vehicle-meta">
+                                <em th:if="${card.vehicle.year != null and !#strings.isEmpty(card.vehicle.year)}"
+                                    th:text="${card.vehicle.year}">2025</em>
+                                <em th:if="${card.vehicle.color != null and !#strings.isEmpty(card.vehicle.color)}"
+                                    th:text="${card.vehicle.color}">White</em>
+                                <em th:if="${card.listing != null and card.listing.listedOn != null and !#strings.isEmpty(card.listing.listedOn)}"
+                                    th:text="${card.listing.listedOn}">2026-09-20</em>
+                            </span>
+                        </span>
+                    </a>
+                    <span class="yard-vehicle-actions" th:if="${tab != 'sold'}">
+                        <a th:if="${tab == 'unregistered'}"
+                           th:href="@{/registration/{c}(c=${card.vehicle.chassisNo})}"
+                           class="panel-btn ghost">Register</a>
+                        <a th:href="@{/listing/{c}(c=${card.vehicle.chassisNo})}"
+                           class="panel-btn">Sell</a>
+                    </span>
+                </article>
+            </section>
+            <p class="muted sale-hub-empty" th:if="${cards == null or cards.isEmpty()}">
+                <span th:if="${tab == 'unregistered'}">No unregistered vehicles for this period.</span>
+                <span th:if="${tab == 'registered'}">No registered vehicles for this period.</span>
+                <span th:if="${tab == 'sold'}">No sold vehicles for this period.</span>
+            </p>
+        </main>
+    </div>
+</div>
+<script th:src="@{/js/shared/app.js(v=20260905k)}"></script>
+</body>
+</html>

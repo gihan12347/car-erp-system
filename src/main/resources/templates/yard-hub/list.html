@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="shared/head :: head(${pageTitle})"></head>
+<body>
+<div class="app-shell">
+    <aside th:replace="shared/sidebar :: sidebar(${activeMenu})"></aside>
+    <div class="app-main">
+        <header th:replace="shared/topbar :: topbar"></header>
+        <main class="page-content">
+            <div class="dash-head">
+                <div>
+                    <h1>Yard</h1>
+                    <p class="form-lead">Open a yard to see vehicles still stored there. Move a vehicle to an available sale when it is ready.</p>
+                </div>
+            </div>
+
+            <p th:if="${notice}" class="alert alert-ok" th:text="${notice}"></p>
+            <p th:if="${error}" class="alert alert-error" th:text="${error}"></p>
+
+            <section class="yard-bay-grid sale-group-hub" th:if="${yards != null and !yards.isEmpty()}">
+                <a class="yard-bay-card sale-group-card"
+                   th:each="yard, stat : ${yards}"
+                   th:href="@{/yards/{code}(code=${yard.bayCode})}"
+                   th:style="|--i: ${stat.index}|"
+                   th:classappend="${yard.fillState}">
+                    <span class="sale-group-art is-yard-art" aria-hidden="true">
+                        <th:block th:replace="shared/hub-art :: yardCardArt"></th:block>
+                    </span>
+                    <span class="sale-group-body">
+                    <span class="sale-group-card-top">
+                        <span class="yard-bay-chip" th:text="${yard.bayCode}">YD-01</span>
+                        <span class="sale-group-count" th:text="${yard.occupied}">12</span>
+                    </span>
+                    <h2 th:text="${yard.yardName != null and !#strings.isEmpty(yard.yardName) ? yard.yardName : yard.bayCode}">Main yard</h2>
+                    <p class="muted" th:text="${yard.location != null and !#strings.isEmpty(yard.location) ? yard.location : '—'}">Front lot</p>
+                    <div class="yard-bay-meter">
+                        <span class="yard-bay-meter-fill" th:style="|width: ${yard.fillPercent}%|"></span>
+                    </div>
+                    <div class="sale-group-meta">
+                        <span th:text="|${yard.remaining} of ${yard.capacity} spaces left|">12 of 40 spaces left</span>
+                        <span th:if="${yard.occupied == 0}">No vehicles yet</span>
+                    </div>
+                    </span>
+                    <span class="config-tile-go" aria-hidden="true">
+                        <i class="fa-solid fa-arrow-right"></i>
+                    </span>
+                </a>
+            </section>
+            <article class="panel" th:if="${yards == null or yards.isEmpty()}">
+                <p class="muted">No yards yet. Add yards in Configuration, then assign vehicles during preparation.</p>
+            </article>
+        </main>
+    </div>
+</div>
+<script th:src="@{/js/shared/app.js(v=20260905k)}"></script>
+</body>
+</html>

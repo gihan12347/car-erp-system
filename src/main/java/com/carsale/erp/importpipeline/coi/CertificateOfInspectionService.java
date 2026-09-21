@@ -7,9 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.carsale.erp.importpipeline.auction.AuctionParseResult;
-import com.carsale.erp.importpipeline.coi.InspectionCertificate;
 import com.carsale.erp.shared.vehicle.Vehicle;
-import com.carsale.erp.importpipeline.coi.InspectionCertificateRepository;
 import com.carsale.erp.shared.vehicle.VehicleRepository;
 
 @Service

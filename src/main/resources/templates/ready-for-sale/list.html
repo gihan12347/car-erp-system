@@ -9,8 +9,17 @@
         <main class="page-content">
             <div class="dash-head">
                 <div>
-                    <h1>Sale pipeline</h1>
-                    <p class="form-lead">Vehicles that finished preparation. Details, listing, then registration.</p>
+                    <a th:href="@{/ready-for-sale}" class="config-crumb">
+                        <i class="fa-solid fa-tags" aria-hidden="true"></i>
+                        Sale groups
+                    </a>
+                    <h1 th:text="${saleGroup != null ? saleGroup.title : 'Sale pipeline'}">Sale pipeline</h1>
+                    <p class="form-lead" th:if="${saleGroup != null and !saleGroup.unassigned}">
+                        Details, listing, then registration for vehicles in this sale group.
+                    </p>
+                    <p class="form-lead" th:if="${saleGroup != null and saleGroup.unassigned}">
+                        Vehicles in the sale pipeline that do not have a sale assigned yet.
+                    </p>
                 </div>
             </div>
 
@@ -18,7 +27,8 @@
             <p th:if="${successMessage}" class="alert alert-ok" th:text="${successMessage}"></p>
             <p th:if="${error}" class="alert alert-error" th:text="${error}"></p>
 
-            <form method="get" th:action="@{/ready-for-sale}" class="auction-search">
+            <form method="get" th:action="@{/ready-for-sale/pipeline}" class="auction-search">
+                <input type="hidden" name="sale" th:value="${saleFilter}">
                 <div class="auction-search-field">
                     <i class="fa-solid fa-magnifying-glass"></i>
                     <input type="search" name="q" th:value="${searchQuery}"
@@ -26,7 +36,8 @@
                 </div>
                 <button type="submit" class="panel-btn auction-search-btn">Search</button>
                 <a th:if="${searchQuery != null and !#strings.isEmpty(searchQuery)}"
-                   th:href="@{/ready-for-sale}" class="panel-btn ghost auction-search-btn">Clear</a>
+                   th:href="@{/ready-for-sale/pipeline(sale=${saleFilter})}"
+                   class="panel-btn ghost auction-search-btn">Clear</a>
             </form>
 
             <article class="panel">
@@ -110,7 +121,7 @@
                     </table>
                 </div>
                 <p class="muted" th:if="${rows.isEmpty()}">
-                    No vehicles are in the sale pipeline yet. Complete the preparation pipeline first.
+                    No vehicles are in this sale group yet. Assign vehicles during preparation, then return here.
                 </p>
             </article>
         </main>

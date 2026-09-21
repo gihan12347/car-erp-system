@@ -113,10 +113,6 @@ public class CustomsDocumentService {
         if (incoming == null || incoming.getChassisNo() == null || incoming.getChassisNo().trim().isEmpty()) {
             throw new IllegalArgumentException("Chassis number is required.");
         }
-
-        Vehicle vehicle = vehicleRepository.findById(incoming.getChassisNo().trim())
-                .orElseThrow(() -> new IllegalArgumentException("Vehicle not found for chassis " + incoming.getChassisNo()));
-
         CustomsDocument existing = customsDocumentRepository.findById(incoming.getChassisNo().trim()).orElse(null);
         if (existing != null) {
             keepStoredDocuments(incoming, existing);
@@ -154,39 +150,39 @@ public class CustomsDocumentService {
     }
 
     @Transactional
-    public CustomsDocument saveBillOfLading(CustomsDocument incoming) {
+    public void saveBillOfLading(CustomsDocument incoming) {
         CustomsDocument existing = prepareStageSave(incoming);
         deleteReplacedPage(existing.getPage5StoredName(), incoming.getPage5StoredName());
         copyFields(incoming, existing, BILL_OF_LADING_FIELDS);
         existing.setChassisNo(incoming.getChassisNo().trim());
-        return customsDocumentRepository.save(existing);
+        customsDocumentRepository.save(existing);
     }
 
     @Transactional
-    public CustomsDocument saveDeclaration(CustomsDocument incoming) {
+    public void saveDeclaration(CustomsDocument incoming) {
         CustomsDocument existing = prepareStageSave(incoming);
         deleteReplacedPage(existing.getPage2StoredName(), incoming.getPage2StoredName());
         copyFields(incoming, existing, DECLARATION_FIELDS);
         existing.setChassisNo(incoming.getChassisNo().trim());
-        return customsDocumentRepository.save(existing);
+        customsDocumentRepository.save(existing);
     }
 
     @Transactional
-    public CustomsDocument saveAssessment(CustomsDocument incoming) {
+    public void saveAssessment(CustomsDocument incoming) {
         CustomsDocument existing = prepareStageSave(incoming);
         deleteReplacedPage(existing.getPage3StoredName(), incoming.getPage3StoredName());
         copyFields(incoming, existing, ASSESSMENT_FIELDS);
         existing.setChassisNo(incoming.getChassisNo().trim());
-        return customsDocumentRepository.save(existing);
+        customsDocumentRepository.save(existing);
     }
 
     @Transactional
-    public CustomsDocument saveWorksheet(CustomsDocument incoming) {
+    public void saveWorksheet(CustomsDocument incoming) {
         CustomsDocument existing = prepareStageSave(incoming);
         deleteReplacedPage(existing.getPage4StoredName(), incoming.getPage4StoredName());
         copyFields(incoming, existing, WORKSHEET_FIELDS);
         existing.setChassisNo(incoming.getChassisNo().trim());
-        return customsDocumentRepository.save(existing);
+        customsDocumentRepository.save(existing);
     }
 
     private CustomsDocument prepareStageSave(CustomsDocument incoming) {
