@@ -45,6 +45,8 @@ import com.carsale.erp.importpipeline.ImportProgressService;
 import com.carsale.erp.importpipeline.ImportProgressService.ImportProgress;
 import com.carsale.erp.importpipeline.coi.CertificateOfInspectionService;
 import com.carsale.erp.importpipeline.exportcert.ExportCertificateService;
+import com.carsale.erp.importpipeline.gradesearch.GradeSearch;
+import com.carsale.erp.importpipeline.gradesearch.GradeSearchService;
 import com.carsale.erp.importpipeline.photos.VehiclePhotoService;
 import com.carsale.erp.importpipeline.standards.StandardsCertificateService;
 import com.carsale.erp.importpipeline.preshipment.PreShipmentService;
@@ -67,6 +69,7 @@ public class AuctionLotController {
     private final CertificateOfInspectionService certificateOfInspectionService;
     private final StandardsCertificateService standardsCertificateService;
     private final ExportCertificateService exportCertificateService;
+    private final GradeSearchService gradeSearchService;
     private final VehiclePhotoService vehiclePhotoService;
     private final PipelineStageService pipelineStageService;
     private final WorkingSheet.AuctionSheetParser parser;
@@ -83,6 +86,7 @@ public class AuctionLotController {
             CertificateOfInspectionService certificateOfInspectionService,
             StandardsCertificateService standardsCertificateService,
             ExportCertificateService exportCertificateService,
+            GradeSearchService gradeSearchService,
             VehiclePhotoService vehiclePhotoService,
             PipelineStageService pipelineStageService, WorkingSheet.AuctionSheetParser parser, OcrImagePreparer imagePreparer
     ) {
@@ -96,6 +100,7 @@ public class AuctionLotController {
         this.certificateOfInspectionService = certificateOfInspectionService;
         this.standardsCertificateService = standardsCertificateService;
         this.exportCertificateService = exportCertificateService;
+        this.gradeSearchService = gradeSearchService;
         this.vehiclePhotoService = vehiclePhotoService;
         this.pipelineStageService = pipelineStageService;
         this.parser = parser;
@@ -135,6 +140,7 @@ public class AuctionLotController {
         model.addAttribute("coiReady", false);
         model.addAttribute("standardsReady", false);
         model.addAttribute("exportReady", false);
+        model.addAttribute("gradeReady", false);
         model.addAttribute("photosReady", false);
         model.addAttribute("StageKeys", StageKeys);
         prepareStartStageForm(model, startStage);
@@ -210,11 +216,13 @@ public class AuctionLotController {
         model.addAttribute("coiReady", importStatus.isCoiReady());
         model.addAttribute("standardsReady", importStatus.isStandardsReady());
         model.addAttribute("exportReady", importStatus.isExportReady());
+        model.addAttribute("gradeReady", importStatus.isGradeReady());
         model.addAttribute("photosReady", importStatus.isPhotosReady());
         model.addAttribute("clearance", customsDocumentService.findByChassisNo(chassisNo));
         model.addAttribute("inspectionCertificate", certificateOfInspectionService.findByChassisNo(chassisNo));
         model.addAttribute("standardsCertificate", standardsCertificateService.findByChassisNo(chassisNo));
         model.addAttribute("exportCertificate", exportCertificateService.findByChassisNo(chassisNo));
+        model.addAttribute("gradeSearch", gradeSearchService.findByChassisNo(chassisNo));
         model.addAttribute("vehiclePhotos", vehiclePhotoService.list(chassisNo));
         model.addAttribute("interiorFields", EquipmentInspectionFields.interior());
         model.addAttribute("exteriorFields", EquipmentInspectionFields.ungrouped(EquipmentInspectionFields.exterior()));
@@ -262,6 +270,7 @@ public class AuctionLotController {
         model.addAttribute("coiReady", importStatus.isCoiReady());
         model.addAttribute("standardsReady", importStatus.isStandardsReady());
         model.addAttribute("exportReady", importStatus.isExportReady());
+        model.addAttribute("gradeReady", importStatus.isGradeReady());
         model.addAttribute("photosReady", importStatus.isPhotosReady());
         model.addAttribute("StageKeys", ImportStageUrls.getStageKeyBySortOrder(
                 pipelineStageService.list(PipelineStageService.FLOW_IMPORT)));
@@ -396,6 +405,14 @@ public class AuctionLotController {
             }
             model.addAttribute("pageTitle", pipelineStageService.title(
                     PipelineStageService.FLOW_IMPORT, FlowStage.EXPORT.getStageKey()));
+            return;
+        }
+        if (FlowStage.GRADE.getStageKey().equals(startStage)) {
+            if (!model.containsAttribute("record")) {
+                model.addAttribute("record", new GradeSearch());
+            }
+            model.addAttribute("pageTitle", pipelineStageService.title(
+                    PipelineStageService.FLOW_IMPORT, FlowStage.GRADE.getStageKey()));
             return;
         }
         if (FlowStage.PHOTOS.getStageKey().equals(startStage)) {

@@ -520,7 +520,7 @@ public class AssessmentNotice implements DocumentParser {
         return new String[] { id, name, address };
     }
 
-    static String mapType(String type) {
+    public static String mapType(String type) {
         if (type == null || type.trim().isEmpty()) {
             return null;
         }
@@ -536,7 +536,7 @@ public class AssessmentNotice implements DocumentParser {
         return null;
     }
 
-    static String cleanMoney(String raw) {
+    public static String cleanMoney(String raw) {
         if (raw == null) {
             return null;
         }
@@ -565,7 +565,7 @@ public class AssessmentNotice implements DocumentParser {
         return formatted + "." + decPart;
     }
 
-    static String extractTaxCode(String raw) {
+    public static String extractTaxCode(String raw) {
         if (raw == null || raw.trim().isEmpty()) {
             return null;
         }

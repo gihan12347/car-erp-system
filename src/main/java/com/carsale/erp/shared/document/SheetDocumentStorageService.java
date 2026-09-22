@@ -25,6 +25,7 @@ public class SheetDocumentStorageService {
     private final Path coiRoot;
     private final Path standardsRoot;
     private final Path exportRoot;
+    private final Path gradeSearchRoot;
     private final Path photoRoot;
 
     public SheetDocumentStorageService(
@@ -35,6 +36,7 @@ public class SheetDocumentStorageService {
             @Value("${app.documents.coiUploadDir:uploads/coi-docs}") String coiUploadDir,
             @Value("${app.documents.standardsUploadDir:uploads/standards-docs}") String standardsUploadDir,
             @Value("${app.documents.exportUploadDir:uploads/export-docs}") String exportUploadDir,
+            @Value("${app.documents.gradeSearchUploadDir:uploads/grade-search-docs}") String gradeSearchUploadDir,
             @Value("${app.documents.photoUploadDir:uploads/vehicle-photos}") String photoUploadDir
     ) throws IOException {
         this.auctionRoot = Paths.get(uploadDir).toAbsolutePath().normalize();
@@ -44,6 +46,7 @@ public class SheetDocumentStorageService {
         this.coiRoot = Paths.get(coiUploadDir).toAbsolutePath().normalize();
         this.standardsRoot = Paths.get(standardsUploadDir).toAbsolutePath().normalize();
         this.exportRoot = Paths.get(exportUploadDir).toAbsolutePath().normalize();
+        this.gradeSearchRoot = Paths.get(gradeSearchUploadDir).toAbsolutePath().normalize();
         this.photoRoot = Paths.get(photoUploadDir).toAbsolutePath().normalize();
         Files.createDirectories(this.auctionRoot);
         Files.createDirectories(this.reshipRoot);
@@ -52,6 +55,7 @@ public class SheetDocumentStorageService {
         Files.createDirectories(this.coiRoot);
         Files.createDirectories(this.standardsRoot);
         Files.createDirectories(this.exportRoot);
+        Files.createDirectories(this.gradeSearchRoot);
         Files.createDirectories(this.photoRoot);
     }
 
@@ -81,6 +85,10 @@ public class SheetDocumentStorageService {
 
     public SheetUploadResult storeExport(MultipartFile file) throws IOException {
         return store(file, exportRoot, "/export/documents/", "export certificate");
+    }
+
+    public SheetUploadResult storeGradeSearch(MultipartFile file) throws IOException {
+        return store(file, gradeSearchRoot, "/grade/documents/", "grade search document");
     }
 
     public SheetUploadResult storePhoto(MultipartFile file) throws IOException {
@@ -172,6 +180,10 @@ public class SheetDocumentStorageService {
         return loadAsResource(storedName, exportRoot);
     }
 
+    public Resource loadGradeSearchAsResource(String storedName) throws IOException {
+        return loadAsResource(storedName, gradeSearchRoot);
+    }
+
     public Resource loadPhotoAsResource(String storedName) throws IOException {
         return loadAsResource(storedName, photoRoot);
     }
@@ -224,6 +236,10 @@ public class SheetDocumentStorageService {
 
     public void deleteExportIfExists(String storedName) {
         deleteIfExists(storedName, exportRoot);
+    }
+
+    public void deleteGradeSearchIfExists(String storedName) {
+        deleteIfExists(storedName, gradeSearchRoot);
     }
 
     public void deletePhotoIfExists(String storedName) {

@@ -181,7 +181,14 @@ public class DocumentAiClient {
         String normalized = null;
         Object normalizedValue = entity.get("normalizedValue");
         if (normalizedValue instanceof Map) {
-            normalized = stringValue(((Map<?, ?>) normalizedValue).get("text"));
+            Map<?, ?> normalizedMap = (Map<?, ?>) normalizedValue;
+            normalized = firstNonBlank(
+                    formatTemporal(normalizedMap.get("datetimeValue")),
+                    formatTemporal(normalizedMap.get("dateValue")),
+                    stringValue(normalizedMap.get("text"))
+            );
+        } else if (normalizedValue != null) {
+            normalized = stringValue(normalizedValue);
         }
         String value = firstNonBlank(normalized, mention);
         Double confidence = null;
@@ -224,6 +231,41 @@ public class DocumentAiClient {
             return "image/tiff";
         }
         return "image/jpeg";
+    }
+
+    private static String formatTemporal(Object value) {
+        if (!(value instanceof Map)) {
+            return null;
+        }
+        Map<?, ?> parts = (Map<?, ?>) value;
+        Integer year = asInt(parts.get("year"));
+        Integer month = asInt(parts.get("month"));
+        Integer day = asInt(parts.get("day"));
+        if (year == null || month == null || month < 1) {
+            return null;
+        }
+        if (day == null || day < 1) {
+            return String.format(Locale.ROOT, "%04d-%02d", year, month);
+        }
+        return String.format(Locale.ROOT, "%04d-%02d-%02d", year, month, day);
+    }
+
+    private static Integer asInt(Object value) {
+        if (value instanceof Number) {
+            return ((Number) value).intValue();
+        }
+        if (value == null) {
+            return null;
+        }
+        String text = String.valueOf(value).trim();
+        if (text.isEmpty()) {
+            return null;
+        }
+        try {
+            return Integer.valueOf(text);
+        } catch (NumberFormatException ex) {
+            return null;
+        }
     }
 
     private static String firstNonBlank(String... values) {

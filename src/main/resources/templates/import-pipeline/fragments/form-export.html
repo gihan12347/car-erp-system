@@ -27,7 +27,7 @@
                          th:hidden="${hasDoc}">
                         <i class="fa-solid fa-file-circle-plus"></i>
                         <strong>No preview yet</strong>
-                        <span>Use <strong>Choose file</strong> below to upload the English or Japanese export certificate.</span>
+                        <span>Use <strong>Choose file</strong> below to upload the export certificate.</span>
                     </div>
                     <img id="sheetPreviewImage"
                          alt="Export certificate preview"
@@ -44,8 +44,8 @@
                     'Export certificate',
                     '',
                     ${record.documentOriginalName},
-                    'Choose a JPG, PNG, or PDF English or Japanese export certificate to upload and preview.',
-                    'ocrspace')"></div>
+                    'Choose a JPG, PNG, or PDF export certificate to upload and preview.',
+                    'google')"></div>
             </div>
 
             <div class="sheet-fields preship-fields">
@@ -90,7 +90,7 @@
 
     <script th:src="@{/js/shared/app.js(v=20260905k)}"></script>
     <script th:src="@{/js/shared/document-viewer.js(v=20260826d)}"></script>
-    <script th:src="@{/js/import-pipeline/export.js(v=20260905a)}"></script>
+    <script th:src="@{/js/import-pipeline/export.js(v=20260921a)}"></script>
     <script th:src="@{/js/shared/chassis-check.js(v=20260827a)}"></script>
 </th:block>
 

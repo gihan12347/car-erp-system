@@ -1,11 +1,30 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" fill="none">
-  <rect width="96" height="96" rx="24" fill="#D1FAE5"/>
-  <path d="M18 58c0-3 2-6 6-8l18-8 22 6c8 2 12 8 12 14v8H26c-5 0-8-5-8-12z" fill="#047857"/>
-  <path d="M28 50l16-18h18l10 12" stroke="#065F46" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-  <circle cx="36" cy="70" r="7" fill="#064E3B"/>
-  <circle cx="36" cy="70" r="3" fill="#A7F3D0"/>
-  <circle cx="66" cy="70" r="7" fill="#064E3B"/>
-  <circle cx="66" cy="70" r="3" fill="#A7F3D0"/>
-  <path d="M62 24l18 10-10 16-18-10 10-16z" fill="#10B981"/>
-  <circle cx="74" cy="34" r="3" fill="#ECFDF5"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" fill="none" role="img" aria-label="Sale">
+  <rect width="96" height="96" rx="22" fill="#D1FAE5"/>
+  <rect x="6" y="6" width="84" height="84" rx="16" fill="none" stroke="rgba(255,255,255,0.7)" stroke-width="1.4"/>
+  <g class="hub-art-bills" fill="none" stroke="#16A34A" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="54" y="20" width="16.5" height="22" rx="2.2" transform="rotate(26 62.25 31)"/>
+    <rect x="50" y="18" width="16.5" height="23" rx="2.2" transform="rotate(10 58.25 29.5)"/>
+    <g transform="rotate(-7 53 29)">
+      <rect x="44" y="15.5" width="18" height="25.5" rx="2.4"/>
+      <path d="M50.6 23.4c1.7-1.15 4.3-.65 4.5 1.35.2 1.85-1.7 2.35-3.5 2.65-1.75.3-3.55.95-3.35 2.8.2 1.9 2.75 2.55 4.6 1.4"/>
+      <path d="M52.2 20.4v13.2"/>
+      <path d="M46.2 18.6c-2.1.35-3.45 1.5-3.85 3.15"/>
+      <path d="M44.7 17.2c-.15 2.25-1.15 3.85-3.05 4.65"/>
+    </g>
+  </g>
+  <g fill="#1D4ED8">
+    <rect x="26" y="40" width="44" height="20" rx="12"/>
+    <rect x="15" y="53.5" width="66" height="24.5" rx="11"/>
+    <circle cx="13" cy="58" r="6"/>
+    <circle cx="83" cy="58" r="6"/>
+    <rect x="16.2" y="74" width="12.2" height="8" rx="6"/>
+    <circle cx="22.3" cy="84.2" r="6.7"/>
+    <rect x="67.6" y="74" width="12.2" height="8" rx="6"/>
+    <circle cx="73.7" cy="84.2" r="6.7"/>
+  </g>
+  <circle cx="29.4" cy="65.8" r="3.35" fill="#ECFDF5"/>
+  <circle cx="66.6" cy="65.8" r="3.35" fill="#ECFDF5"/>
+  <rect x="40" y="61.2" width="16" height="2.35" rx="1.15" fill="#ECFDF5"/>
+  <rect x="41.4" y="65.4" width="13.2" height="2.35" rx="1.15" fill="#ECFDF5"/>
+  <rect x="40" y="69.6" width="16" height="2.35" rx="1.15" fill="#ECFDF5"/>
 </svg>

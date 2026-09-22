@@ -1,7 +1,7 @@
 package com.carsale.erp.shared.pipeline;
 
 public enum FlowPipeline {
-    IMPORT("IMPORT", "Import pipeline", "Auction, pre-shipment, equipment, JEVIC, inspection, standards, export, and photos", "fa-route", 0, "/auction/"),
+    IMPORT("IMPORT", "Import pipeline", "Auction, pre-shipment, equipment, JEVIC, inspection, standards, export, grade, and photos", "fa-route", 0, "/auction/"),
     CUSTOMS("CUSTOMS", "Customs clearance pipeline", "Bill of lading, CUSDEC, assessment notice, and working sheet", "fa-passport", 1, "/customs/"),
     PREP("PREP", "Preparation pipeline", "Inspection, workshop, and yard", "fa-wrench", 2, "/workshop-yard/"),
     READY("READY", "Sale", "Unregistered, registered, and sold vehicles", "fa-tags", 3, "/ready-for-sale/");

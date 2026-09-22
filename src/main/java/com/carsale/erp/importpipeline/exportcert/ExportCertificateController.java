@@ -180,7 +180,7 @@ public class ExportCertificateController {
             @RequestParam("file") MultipartFile file,
             @RequestParam(value = "provider", required = false) String provider
     ) {
-        return imagePreparer.parseDocument(file, parser, provider);
+        return imagePreparer.parsePage(file, parser, provider);
     }
 
     @PostMapping("/{chassisNo}")
@@ -214,6 +214,7 @@ public class ExportCertificateController {
         model.addAttribute("coiReady", status.isCoiReady());
         model.addAttribute("standardsReady", status.isStandardsReady());
         model.addAttribute("exportReady", status.isExportReady());
+        model.addAttribute("gradeReady", status.isGradeReady());
         model.addAttribute("photosReady", status.isPhotosReady());
     }
 

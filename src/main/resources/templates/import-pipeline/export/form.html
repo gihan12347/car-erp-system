@@ -10,11 +10,11 @@
             <div class="dash-head">
                 <div>
                     <h1 th:text="${'Step ' + @pipelineStageService.displayNumber('IMPORT', 'export') + ' · ' + @pipelineStageService.title('IMPORT', 'export')}">Step 7 · Export certificate</h1>
-                    <p class="form-lead">Upload the English or Japanese export certificate. Auto-fill reads either document type; save when you are ready.</p>
+                    <p class="form-lead">Upload the export certificate. Auto-fill reads the document with Document AI; save when you are ready.</p>
                 </div>
             </div>
 
-            <div th:replace="import-pipeline/fragments/pipeline :: importPipelineSteps('export', ${vehicle.chassisNo}, ${auctionDocReady}, ${preshipReady}, ${equipmentReady}, ${jevicReady}, ${coiReady}, ${standardsReady}, ${exportReady}, ${photosReady}, ${vehicle.model}, false, false)"></div>
+            <div th:replace="import-pipeline/fragments/pipeline :: importPipelineSteps('export', ${vehicle.chassisNo}, ${auctionDocReady}, ${preshipReady}, ${equipmentReady}, ${jevicReady}, ${coiReady}, ${standardsReady}, ${exportReady}, ${gradeReady}, ${photosReady}, ${vehicle.model}, false, false)"></div>
 
             <p th:if="${successMessage}" class="alert alert-ok" th:text="${successMessage}"></p>
             <p th:if="${errorMessage}" class="alert alert-error" th:text="${errorMessage}"></p>
@@ -44,7 +44,7 @@
                                  th:hidden="${hasDoc}">
                                 <i class="fa-solid fa-file-circle-plus"></i>
                                 <strong>No preview yet</strong>
-                                <span>Use <strong>Choose file</strong> below to upload the English or Japanese export certificate.</span>
+                                <span>Use <strong>Choose file</strong> below to upload the export certificate.</span>
                             </div>
                             <img id="sheetPreviewImage"
                                  alt="Export certificate preview"
@@ -61,8 +61,8 @@
                             'Export certificate',
                             '',
                             ${record.documentOriginalName},
-                            'Choose a JPG, PNG, or PDF English or Japanese export certificate to upload and preview.',
-                            'ocrspace')"></div>
+                            'Choose a JPG, PNG, or PDF export certificate to upload and preview.',
+                            'google')"></div>
                     </div>
 
                     <div class="sheet-fields preship-fields">
@@ -96,6 +96,6 @@
 
 <script th:src="@{/js/shared/app.js(v=20260905k)}"></script>
 <script th:src="@{/js/shared/document-viewer.js(v=20260826d)}"></script>
-<script th:src="@{/js/import-pipeline/export.js(v=20260905a)}"></script>
+<script th:src="@{/js/import-pipeline/export.js(v=20260921a)}"></script>
 </body>
 </html>

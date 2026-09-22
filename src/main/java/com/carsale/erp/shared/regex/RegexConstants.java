@@ -96,6 +96,7 @@ public final class RegexConstants {
         public static final String NUMERIC_DATE =
                 "(\\d{1,2}[./-]\\d{1,2}[./-]\\d{2,4}|\\d{4}[./-]\\d{1,2}[./-]\\d{1,2})";
         public static final String ISO_DATE = "\\d{4}-\\d{2}-\\d{2}";
+        public static final String ISO_DATE_TIME = "^(" + ISO_DATE + ")(?:[T\\s].*)?$";
         public static final String CONTAINS_YEAR = ".*\\d{4}.*";
         public static final String YEAR_CAPTURE = "(\\d{4})";
         public static final String YEAR_WORD = "\\b(19|20)\\d{2}\\b";
@@ -115,6 +116,8 @@ public final class RegexConstants {
         public static final String ERA_YEAR_MONTH = "(令和|平成|昭和)\\s*(\\d{1,2}|元)\\s*年\\s*(\\d{1,2})\\s*月";
         public static final String JP_YEAR_MONTH = "(\\d{1,2})\\s*年\\s*(\\d{1,2})\\s*月";
         public static final String YEAR_MONTH_LOOSE = "((?:19|20)\\d{2})\\s*[/.\\-]\\s*([1-9]|1[0-2])";
+        public static final Pattern ISO_DATE_PATTERN = compile(ISO_DATE);
+        public static final Pattern ISO_DATE_TIME_PATTERN = compile(ISO_DATE_TIME);
         public static final Pattern YEAR_MONTH_ISO_PATTERN = compile(YEAR_MONTH_ISO);
         public static final Pattern MONTH_YEAR_NUMERIC_PATTERN = compile(MONTH_YEAR_NUMERIC);
         public static final Pattern YEAR_MONTH_NUMERIC_PATTERN = compile(YEAR_MONTH_NUMERIC);

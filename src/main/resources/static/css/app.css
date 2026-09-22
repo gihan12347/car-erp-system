@@ -3031,6 +3031,14 @@ body.sheet-page .clearance-form .sheet-document.has-file .sheet-preview-frame {
     height: 84px;
     flex-shrink: 0;
     display: block;
+    object-fit: contain;
+}
+
+.config-tile--sale .config-tile-art {
+    padding: 8px;
+    background: #fff;
+    border-radius: 20px;
+    box-sizing: border-box;
 }
 
 .config-tile-kicker {
@@ -6269,11 +6277,13 @@ body.yard-modal-open {
 }
 
 .yard-bay-card.is-low {
-    border-color: #f3d5a3;
+    border-color: #facc15;
+    background: linear-gradient(180deg, #fefce8 0%, #fef9c3 100%);
 }
 
 .yard-bay-card.is-full {
-    border-color: #f0c4c0;
+    border-color: #f87171;
+    background: linear-gradient(180deg, #fef2f2 0%, #fee2e2 100%);
 }
 
 .yard-bay-card-top {
@@ -6289,8 +6299,8 @@ body.yard-modal-open {
     max-width: 100%;
     padding: 4px 9px;
     border-radius: 999px;
-    background: #ecfdf5;
-    color: #0f766e;
+    background: #dcfce7;
+    color: #15803d;
     font-size: 11px;
     font-weight: 700;
     letter-spacing: 0.02em;
@@ -6397,15 +6407,25 @@ body.yard-modal-open {
     display: block;
     height: 100%;
     border-radius: inherit;
-    background: #0f766e;
+    background: linear-gradient(90deg, #4ade80, #16a34a);
+}
+
+.yard-bay-card.is-low .yard-bay-chip {
+    background: #fef9c3;
+    color: #a16207;
 }
 
 .yard-bay-card.is-low .yard-bay-meter-fill {
-    background: #d97706;
+    background: linear-gradient(90deg, #fde047, #eab308);
+}
+
+.yard-bay-card.is-full .yard-bay-chip {
+    background: #fee2e2;
+    color: #b91c1c;
 }
 
 .yard-bay-card.is-full .yard-bay-meter-fill {
-    background: #b91c1c;
+    background: linear-gradient(90deg, #f87171, #dc2626);
 }
 
 .yard-bay-meter-label {
@@ -7004,7 +7024,7 @@ a.sale-group-card {
     flex-direction: column;
     gap: 0;
     min-height: 0;
-    padding: 0 0 44px;
+    padding: 0 0 16px;
     overflow: hidden;
     color: inherit;
     text-decoration: none;
@@ -7020,23 +7040,73 @@ a.sale-group-card {
     place-items: center;
     height: 96px;
     margin: 0;
-    background: linear-gradient(180deg, #fff7ed 0%, #ffedd5 100%);
+    background: linear-gradient(180deg, #f0fdf4 0%, #bbf7d0 100%);
     pointer-events: none;
 }
 
-.sale-group-card.is-unassigned .sale-group-art {
-    background: linear-gradient(180deg, #fffbeb 0%, #fef3c7 100%);
+.sale-group-card.is-unassigned .sale-group-art,
+.sale-group-card.is-low .sale-group-art {
+    background: linear-gradient(180deg, #fefce8 0%, #fde047 100%);
+}
+
+.sale-group-card.is-full .sale-group-art {
+    background: linear-gradient(180deg, #fef2f2 0%, #fca5a5 100%);
 }
 
 .hub-card-svg {
     width: 84px;
     height: 84px;
     display: block;
+    object-fit: contain;
     transition: transform 0.25s ease;
 }
 
+.sale-group-art:not(.is-yard-art) .hub-card-svg {
+    width: 88px;
+    height: 88px;
+    padding: 8px;
+    background: #fff;
+    border-radius: 20px;
+    box-sizing: border-box;
+}
+
 .sale-group-art.is-yard-art {
-    background: linear-gradient(180deg, #ecfdf5 0%, #ccfbf1 100%);
+    height: 118px;
+    background: linear-gradient(180deg, #f0fdf4 0%, #86efac 100%);
+}
+
+.sale-group-card.is-low .sale-group-art.is-yard-art {
+    background: linear-gradient(180deg, #fefce8 0%, #facc15 100%);
+}
+
+.sale-group-card.is-full .sale-group-art.is-yard-art {
+    background: linear-gradient(180deg, #fef2f2 0%, #f87171 100%);
+}
+
+.sale-group-art.is-yard-art .hub-card-svg {
+    width: 150px;
+    height: 94px;
+}
+
+.config-tile--yard .config-tile-art {
+    width: 118px;
+    height: 74px;
+}
+
+.is-yard-art .hub-art-fleet {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: yard-float 5.2s ease-in-out infinite;
+}
+
+.is-yard-art .hub-art-fleet-van { animation-delay: 0.35s; }
+.is-yard-art .hub-art-fleet-sedan { animation-delay: 0.7s; }
+.is-yard-art .hub-art-fleet-hatch { animation-delay: 1.05s; }
+
+.is-yard-art .hub-art-fleet-scooter {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: yard-bob 2.4s ease-in-out infinite;
 }
 
 .sale-group-body {
@@ -7110,6 +7180,12 @@ a.sale-group-card {
     animation: hub-door 3.6s ease-in-out infinite;
 }
 
+.hub-art-bills {
+    transform-box: fill-box;
+    transform-origin: center bottom;
+    animation: sale-bills 2.8s ease-in-out infinite;
+}
+
 @keyframes sale-card-in {
     from {
         opacity: 0;
@@ -7148,6 +7224,21 @@ a.sale-group-card {
     75% { transform: scaleY(0.84); }
 }
 
+@keyframes yard-float {
+    0%, 100% { transform: translate(0, 0); }
+    50% { transform: translate(0.4px, -0.7px); }
+}
+
+@keyframes yard-bob {
+    0%, 100% { transform: translate(0, 0); }
+    50% { transform: translate(0, -1.3px); }
+}
+
+@keyframes sale-bills {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-2px); }
+}
+
 @media (prefers-reduced-motion: reduce) {
     a.sale-group-card,
     .hub-card-svg,
@@ -7156,11 +7247,30 @@ a.sale-group-card {
     .hub-art-shine,
     .hub-art-cloud,
     .hub-art-car,
+    .hub-art-fleet,
+    .hub-art-fleet-scooter,
+    .hub-art-bills,
     .hub-art-door,
     .sale-group-card .yard-bay-meter-fill,
-    .sale-group-card .config-tile-go {
+    .sale-group-card .config-tile-go,
+    .hub-location,
+    .hub-location i,
+    .hub-location i::after,
+    .hub-capacity-left strong,
+    .hub-capacity-fill,
+    .hub-capacity-fill::after,
+    .hub-full-chip,
+    .hub-capacity.is-vacant .hub-capacity-track {
         animation: none;
         transition: none;
+    }
+
+    .hub-capacity-fill {
+        transform: scaleX(1);
+    }
+
+    .hub-location i::after {
+        display: none;
     }
 }
 
@@ -7179,15 +7289,31 @@ a.sale-group-card {
     display: inline-grid;
     place-items: center;
     border-radius: 999px;
-    background: #ecfdf5;
-    color: var(--sea);
+    background: #dcfce7;
+    color: #15803d;
     font-size: 13px;
     font-weight: 800;
 }
 
-.sale-group-card.is-unassigned .sale-group-count {
-    background: #fff7ed;
-    color: var(--gold);
+.sale-group-card.is-unassigned .sale-group-count,
+.sale-group-card.is-low .sale-group-count {
+    background: #fef9c3;
+    color: #a16207;
+}
+
+.sale-group-card.is-full .sale-group-count {
+    background: #fee2e2;
+    color: #b91c1c;
+}
+
+.sale-group-card.is-low .yard-bay-chip {
+    background: #fef9c3;
+    color: #a16207;
+}
+
+.sale-group-card.is-full .yard-bay-chip {
+    background: #fee2e2;
+    color: #b91c1c;
 }
 
 .sale-group-card h2 {
@@ -7202,6 +7328,264 @@ a.sale-group-card {
     min-height: 1.4em;
 }
 
+.hub-location {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    width: fit-content;
+    max-width: 100%;
+    min-width: 0;
+    margin: 2px 0 2px;
+    padding: 5px 10px 5px 8px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #fef9c3 0%, #fde047 50%, #facc15 100%);
+    background-size: 180% 100%;
+    color: #854d0e;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.25;
+    animation: hub-loc-shift 5s ease-in-out infinite;
+}
+
+.hub-location i {
+    position: relative;
+    flex-shrink: 0;
+    color: #dc2626;
+    font-size: 12px;
+    animation: hub-pin-bob 1.6s ease-in-out infinite;
+}
+
+.hub-location i::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 14px;
+    height: 14px;
+    margin: -7px 0 0 -7px;
+    border: 1.5px solid rgba(220, 38, 38, 0.45);
+    border-radius: 50%;
+    animation: hub-pin-ping 1.8s ease-out infinite;
+}
+
+.hub-location span {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.hub-capacity {
+    display: grid;
+    gap: 8px;
+    margin-top: 4px;
+    padding: 10px 12px;
+    border-radius: 14px;
+    background: linear-gradient(180deg, #f0fdf4 0%, #dcfce7 100%);
+    box-shadow: inset 0 0 0 1px rgba(22, 163, 74, 0.16);
+}
+
+.hub-capacity-meta {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 8px;
+    min-width: 0;
+}
+
+.hub-capacity-left {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1px;
+    min-width: 0;
+    color: #15803d;
+}
+
+.hub-capacity-left strong {
+    font-size: 22px;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1;
+    animation: hub-count-pop 0.55s cubic-bezier(.2,.9,.3,1) both;
+    animation-delay: calc(var(--i, 0) * 70ms + 160ms);
+}
+
+.hub-capacity-left em {
+    font-style: normal;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    opacity: 0.82;
+}
+
+.hub-capacity-right {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+    flex-shrink: 0;
+}
+
+.hub-capacity-total {
+    color: #15803d;
+    font-size: 12px;
+    font-weight: 600;
+    opacity: 0.78;
+}
+
+.hub-capacity-total b {
+    font-weight: 800;
+}
+
+.hub-empty-chip,
+.hub-full-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 7px;
+    border-radius: 999px;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.hub-empty-chip {
+    background: #fef9c3;
+    color: #a16207;
+}
+
+.hub-full-chip {
+    background: #fee2e2;
+    color: #b91c1c;
+    animation: hub-full-pulse 1.6s ease-in-out infinite;
+}
+
+.hub-capacity-track {
+    position: relative;
+    height: 10px;
+    overflow: hidden;
+    border-radius: 999px;
+    background: rgba(22, 163, 74, 0.16);
+}
+
+.hub-capacity-fill {
+    position: relative;
+    display: block;
+    height: 100%;
+    width: var(--fill, 0%);
+    border-radius: inherit;
+    background: linear-gradient(90deg, #4ade80 0%, #16a34a 55%, #22c55e 100%);
+    background-size: 200% 100%;
+    transform: scaleX(0);
+    transform-origin: left center;
+    animation:
+        hub-fill-grow 0.9s cubic-bezier(.22,.9,.3,1) forwards,
+        hub-fill-flow 2.8s ease-in-out infinite;
+    animation-delay: calc(var(--i, 0) * 70ms + 120ms), calc(var(--i, 0) * 70ms + 1s);
+}
+
+.hub-capacity-fill::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.55), transparent);
+    animation: hub-fill-sheen 2.2s ease-in-out infinite;
+}
+
+.hub-capacity.is-vacant .hub-capacity-track {
+    background-image: repeating-linear-gradient(
+        90deg,
+        rgba(22, 163, 74, 0.1) 0 10px,
+        rgba(22, 163, 74, 0.22) 10px 20px
+    );
+    background-size: 28px 100%;
+    animation: hub-vacant-slide 1.6s linear infinite;
+}
+
+@keyframes hub-vacant-slide {
+    to { background-position: 28px 0; }
+}
+
+.sale-group-card.is-low .hub-capacity {
+    background: linear-gradient(180deg, #fefce8 0%, #fef08a 100%);
+    box-shadow: inset 0 0 0 1px rgba(202, 138, 4, 0.22);
+}
+
+.sale-group-card.is-low .hub-capacity-left,
+.sale-group-card.is-low .hub-capacity-total {
+    color: #a16207;
+}
+
+.sale-group-card.is-low .hub-capacity-track {
+    background: rgba(202, 138, 4, 0.2);
+}
+
+.sale-group-card.is-low .hub-capacity-fill {
+    background: linear-gradient(90deg, #fde047 0%, #eab308 55%, #facc15 100%);
+    background-size: 200% 100%;
+}
+
+.sale-group-card.is-full .hub-capacity {
+    background: linear-gradient(180deg, #fef2f2 0%, #fecaca 100%);
+    box-shadow: inset 0 0 0 1px rgba(220, 38, 38, 0.2);
+}
+
+.sale-group-card.is-full .hub-capacity-left,
+.sale-group-card.is-full .hub-capacity-total {
+    color: #b91c1c;
+}
+
+.sale-group-card.is-full .hub-capacity-track {
+    background: rgba(220, 38, 38, 0.16);
+}
+
+.sale-group-card.is-full .hub-capacity-fill {
+    background: linear-gradient(90deg, #f87171 0%, #dc2626 55%, #ef4444 100%);
+    background-size: 200% 100%;
+}
+
+@keyframes hub-loc-shift {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+}
+
+@keyframes hub-pin-bob {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-2px); }
+}
+
+@keyframes hub-pin-ping {
+    0% { transform: scale(0.7); opacity: 0.7; }
+    100% { transform: scale(1.9); opacity: 0; }
+}
+
+@keyframes hub-count-pop {
+    from { opacity: 0; transform: translateY(4px) scale(0.92); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes hub-fill-grow {
+    from { transform: scaleX(0); }
+    to { transform: scaleX(1); }
+}
+
+@keyframes hub-fill-flow {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+}
+
+@keyframes hub-fill-sheen {
+    0% { transform: translateX(-120%); }
+    100% { transform: translateX(120%); }
+}
+
+@keyframes hub-full-pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
 .sale-group-meta {
     display: flex;
     flex-wrap: wrap;
@@ -7213,8 +7597,13 @@ a.sale-group-card {
 
 .sale-group-card .config-tile-go {
     position: absolute;
-    right: 16px;
-    bottom: 16px;
+    top: 10px;
+    right: 10px;
+    bottom: auto;
+    width: 32px;
+    height: 32px;
+    background: rgba(255, 255, 255, 0.92);
+    box-shadow: 0 6px 16px rgba(28, 25, 23, 0.08);
     transition: transform 0.2s ease, background 0.2s ease, color 0.2s ease;
 }
 
@@ -7384,9 +7773,15 @@ a.yard-vehicle-card-link {
     gap: 6px;
 }
 
+.sale-hub .form-lead .hub-location,
+.yard-hub-page .form-lead .hub-location {
+    margin: 0;
+    font-size: 13px;
+}
+
 .sale-hub .form-lead .fa-location-dot,
 .yard-hub-page .form-lead .fa-location-dot {
-    color: #0f766e;
+    color: #dc2626;
 }
 
 .sale-hub .dash-head,
@@ -7401,7 +7796,7 @@ a.yard-vehicle-card-link {
 
 .sale-hub-capacity-label {
     margin: 0 0 6px;
-    color: var(--muted);
+    color: #15803d;
     font-size: 13px;
     font-weight: 600;
     text-align: right;
@@ -7411,12 +7806,24 @@ a.yard-vehicle-card-link {
     margin: 0;
 }
 
+.sale-hub-capacity .yard-bay-meter-fill {
+    background: linear-gradient(90deg, #4ade80, #16a34a);
+}
+
+.sale-hub-capacity.is-low .sale-hub-capacity-label {
+    color: #a16207;
+}
+
 .sale-hub-capacity.is-low .yard-bay-meter-fill {
-    background: #d97706;
+    background: linear-gradient(90deg, #fde047, #eab308);
+}
+
+.sale-hub-capacity.is-full .sale-hub-capacity-label {
+    color: #b91c1c;
 }
 
 .sale-hub-capacity.is-full .yard-bay-meter-fill {
-    background: #b91c1c;
+    background: linear-gradient(90deg, #f87171, #dc2626);
 }
 
 .sale-status-tabs {

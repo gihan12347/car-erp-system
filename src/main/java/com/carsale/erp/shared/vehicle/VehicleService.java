@@ -11,6 +11,7 @@ import com.carsale.erp.customspipeline.CustomsDocumentRepository;
 import com.carsale.erp.importpipeline.equipment.EquipmentInspectionRepository;
 import com.carsale.erp.importpipeline.coi.InspectionCertificateRepository;
 import com.carsale.erp.importpipeline.exportcert.ExportCertificateRepository;
+import com.carsale.erp.importpipeline.gradesearch.GradeSearchRepository;
 import com.carsale.erp.importpipeline.standards.StandardsCertificateRepository;
 import com.carsale.erp.importpipeline.preshipment.PreShipmentInspectionRepository;
 import com.carsale.erp.readypipeline.SaleListingRepository;
@@ -29,6 +30,7 @@ public class VehicleService {
     private final InspectionCertificateRepository inspectionCertificateRepository;
     private final StandardsCertificateRepository standardsCertificateRepository;
     private final ExportCertificateRepository exportCertificateRepository;
+    private final GradeSearchRepository gradeSearchRepository;
     private final VehiclePhotoService vehiclePhotoService;
     private final WorkshopJobRepository workshopJobRepository;
     private final YardRecordRepository yardRecordRepository;
@@ -45,6 +47,7 @@ public class VehicleService {
             InspectionCertificateRepository inspectionCertificateRepository,
             StandardsCertificateRepository standardsCertificateRepository,
             ExportCertificateRepository exportCertificateRepository,
+            GradeSearchRepository gradeSearchRepository,
             VehiclePhotoService vehiclePhotoService,
             WorkshopJobRepository workshopJobRepository,
             YardRecordRepository yardRecordRepository,
@@ -60,6 +63,7 @@ public class VehicleService {
         this.inspectionCertificateRepository = inspectionCertificateRepository;
         this.standardsCertificateRepository = standardsCertificateRepository;
         this.exportCertificateRepository = exportCertificateRepository;
+        this.gradeSearchRepository = gradeSearchRepository;
         this.vehiclePhotoService = vehiclePhotoService;
         this.workshopJobRepository = workshopJobRepository;
         this.yardRecordRepository = yardRecordRepository;
@@ -262,6 +266,10 @@ public class VehicleService {
         exportCertificateRepository.findById(chassisNo).ifPresent(record -> {
             documentStorageService.deleteExportIfExists(record.getDocumentStoredName());
             exportCertificateRepository.delete(record);
+        });
+        gradeSearchRepository.findById(chassisNo).ifPresent(record -> {
+            documentStorageService.deleteGradeSearchIfExists(record.getDocumentStoredName());
+            gradeSearchRepository.delete(record);
         });
         vehiclePhotoService.deleteAll(chassisNo);
     }

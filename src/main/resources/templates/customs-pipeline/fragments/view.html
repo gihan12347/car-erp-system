@@ -9,8 +9,8 @@
 
     <div class="panel import-view-empty" th:if="${clearance == null or !hasPage1}">
         <i class="fa-solid fa-passport"></i>
-        <strong>JEVIC certificate not uploaded yet</strong>
-        <p>Upload the JEVIC odometer certificate to view the odometer details.</p>
+        <strong>Odometer certificate not uploaded yet</strong>
+        <p>Upload the odometer certificate to view the extracted details.</p>
         <div class="import-view-actions">
             <a th:if="${stageNav != null and stageNav.prevUrl != null}"
                th:href="${stageNav.prevUrl}"
@@ -18,7 +18,7 @@
                 <i class="fa-solid fa-chevron-left"></i>
                 Previous
             </a>
-            <a th:href="@{/jevic/{c}(c=${vehicle.chassisNo})}" class="panel-btn import-form-submit">Upload JEVIC certificate</a>
+            <a th:href="@{/jevic/{c}(c=${vehicle.chassisNo})}" class="panel-btn import-form-submit">Upload odometer certificate</a>
             <a th:if="${stageNav != null and stageNav.nextUrl != null}"
                th:href="${stageNav.nextUrl}"
                class="panel-btn ghost import-form-submit">
@@ -36,15 +36,15 @@
                 <div class="sheet-preview-frame">
                     <img th:if="${!(clearance.page1ContentType != null and #strings.contains(clearance.page1ContentType, 'pdf')) and !(clearance.page1StoredName != null and #strings.endsWith(clearance.page1StoredName, '.pdf'))}"
                          th:src="@{/customs/documents/{name}(name=${clearance.page1StoredName})}"
-                         alt="JEVIC certificate preview">
+                         alt="Odometer certificate preview">
                     <iframe th:if="${(clearance.page1ContentType != null and #strings.contains(clearance.page1ContentType, 'pdf')) or (clearance.page1StoredName != null and #strings.endsWith(clearance.page1StoredName, '.pdf'))}"
                             th:src="@{/customs/documents/{name}(name=${clearance.page1StoredName})}"
-                            title="JEVIC certificate PDF"></iframe>
+                            title="Odometer certificate PDF"></iframe>
                 </div>
             </aside>
 
             <div th:replace="shared/document-view-toolbar :: documentViewToolbar(
-                    'JEVIC certificate',
+                    'Odometer certificate',
                     ${clearance.page1OriginalName},
                     ${page1Url},
                     ${stageNav != null ? stageNav.editUrl : null})"></div>
@@ -52,19 +52,16 @@
 
             <div class="sheet-fields preship-fields">
                 <article class="panel">
-                    <div class="panel-head"><h2>JEVIC odometer certificate</h2></div>
+                    <div class="panel-head"><h2>Odometer certificate</h2></div>
                     <div class="field-grid">
+                        <label>Certificate no. <input type="text" th:value="${clearance.jevicCertificateNo}" readonly class="readonly-field"></label>
                         <label>Chassis / VIN <input type="text" th:value="${clearance.jevicChassisVin}" readonly class="readonly-field"></label>
                         <label>Make <input type="text" th:value="${clearance.jevicMake}" readonly class="readonly-field"></label>
                         <label>Model <input type="text" th:value="${clearance.jevicModel}" readonly class="readonly-field"></label>
-                        <label>Date of inspection <input type="text" th:value="${clearance.jevicInspectionDate}" readonly class="readonly-field"></label>
+                        <label>Date of inspection <input type="date" th:value="${clearance.jevicInspectionDate}" readonly class="readonly-field"></label>
+                        <label>Date of issue <input type="date" th:value="${clearance.jevicIssueDate}" readonly class="readonly-field"></label>
                         <label>Location <input type="text" th:value="${clearance.jevicLocation}" readonly class="readonly-field"></label>
-                        <label>Certificate no. <input type="text" th:value="${clearance.jevicCertificateNo}" readonly class="readonly-field"></label>
-                        <label>Date of issue <input type="text" th:value="${clearance.jevicIssueDate}" readonly class="readonly-field"></label>
                         <label>Current odometer reading <input type="text" th:value="${clearance.jevicCurrentOdometer}" readonly class="readonly-field"></label>
-                        <label>Auction reading / date <input type="text" th:value="${clearance.jevicAuctionReadingDate}" readonly class="readonly-field"></label>
-                        <label>Dealer reading / date <input type="text" th:value="${clearance.jevicDealerReadingDate}" readonly class="readonly-field"></label>
-                        <label>De-registration reading / date <input type="text" th:value="${clearance.jevicDeregistrationReadingDate}" readonly class="readonly-field"></label>
                     </div>
                 </article>
             </div>
@@ -76,7 +73,7 @@
                 <i class="fa-solid fa-chevron-left"></i>
                 Previous
             </a>
-            <a th:href="@{/jevic/{c}(c=${vehicle.chassisNo})}" class="panel-btn ghost import-form-submit">Edit JEVIC</a>
+            <a th:href="@{/jevic/{c}(c=${vehicle.chassisNo})}" class="panel-btn ghost import-form-submit">Edit certificate</a>
             <a th:if="${stageNav != null and stageNav.nextUrl != null}"
                th:href="${stageNav.nextUrl}"
                class="panel-btn import-form-submit">

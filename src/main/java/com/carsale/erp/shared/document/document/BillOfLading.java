@@ -95,7 +95,7 @@ public class BillOfLading implements DocumentParser {
         return "bill of landing";
     }
 
-    static String mapType(String type) {
+    public static String mapType(String type) {
         if (type == null || type.trim().isEmpty()) {
             return null;
         }
@@ -111,7 +111,7 @@ public class BillOfLading implements DocumentParser {
         return null;
     }
 
-    static String cleanValue(String field, String raw) {
+    public static String cleanValue(String field, String raw) {
         if (raw == null) {
             return null;
         }

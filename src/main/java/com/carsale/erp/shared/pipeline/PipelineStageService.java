@@ -153,6 +153,35 @@ public class PipelineStageService implements CommandLineRunner {
         refreshCoiCopy(pipelineStageRepository
                 .findByFlowIdAndStageKey(importFlow.getId(), FlowStage.COI.getStageKey())
                 .orElse(null));
+        refreshExportCopy(pipelineStageRepository
+                .findByFlowIdAndStageKey(importFlow.getId(), FlowStage.EXPORT.getStageKey())
+                .orElse(null));
+        refreshGradeCopy(pipelineStageRepository
+                .findByFlowIdAndStageKey(importFlow.getId(), FlowStage.GRADE.getStageKey())
+                .orElse(null));
+    }
+
+    private void refreshExportCopy(PipelineStage export) {
+        if (export == null) {
+            return;
+        }
+        if (blankOrOneOf(export.getSubtitle(), "English or Japanese")) {
+            export.setSubtitle("Document AI");
+            pipelineStageRepository.save(export);
+        }
+    }
+
+    private void refreshGradeCopy(PipelineStage grade) {
+        if (grade == null) {
+            return;
+        }
+        if (blankOrOneOf(grade.getTitle(), "Grade", "Vehicle grade")) {
+            grade.setTitle("Grade search");
+        }
+        if (blankOrOneOf(grade.getSubtitle(), "Grade", "Trim")) {
+            grade.setSubtitle("Document AI");
+        }
+        pipelineStageRepository.save(grade);
     }
 
     private void refreshJevicCopy(PipelineStage jevic) {
@@ -162,8 +191,8 @@ public class PipelineStageService implements CommandLineRunner {
         if (blankOrOneOf(jevic.getTitle(), "JEVIC certificate", "Certificate of inspection")) {
             jevic.setTitle("Odometer certificate");
         }
-        if (blankOrOneOf(jevic.getSubtitle(), "Odometer certificate", "Certificate of inspection")) {
-            jevic.setSubtitle("JEVIC");
+        if (blankOrOneOf(jevic.getSubtitle(), "Odometer certificate", "Certificate of inspection", "JEVIC")) {
+            jevic.setSubtitle("Document AI");
         }
         pipelineStageRepository.save(jevic);
     }
@@ -477,10 +506,11 @@ public class PipelineStageService implements CommandLineRunner {
                 new DefaultStage(FlowStage.AUCTION.getStageKey(), "Auction lot", "Japanese auction sheet"),
                 new DefaultStage(FlowStage.PRESHIP.getStageKey(), "Pre-shipment", "BV inspection certificate"),
                 new DefaultStage(FlowStage.EQUIPMENT.getStageKey(), "Equipment condition", "Interior, exterior, and safety"),
-                new DefaultStage(FlowStage.JEVIC.getStageKey(), "Odometer certificate", "JEVIC"),
+                new DefaultStage(FlowStage.JEVIC.getStageKey(), "Odometer certificate", "Document AI"),
                 new DefaultStage(FlowStage.COI.getStageKey(), "Certificate of inspection", "JEVIC"),
                 new DefaultStage(FlowStage.STANDARDS.getStageKey(), "Standards certificate", "Emission and safety"),
-                new DefaultStage(FlowStage.EXPORT.getStageKey(), "Export certificate", "English or Japanese"),
+                new DefaultStage(FlowStage.EXPORT.getStageKey(), "Export certificate", "Document AI"),
+                new DefaultStage(FlowStage.GRADE.getStageKey(), "Grade search", "Document AI"),
                 new DefaultStage(FlowStage.PHOTOS.getStageKey(), "Vehicle images", "Up to 5 photos")
         );
     }

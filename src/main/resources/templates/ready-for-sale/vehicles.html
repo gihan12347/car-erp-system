@@ -15,12 +15,16 @@
                     </a>
                     <h1 th:text="${saleTitle}">Showroom</h1>
                     <p class="form-lead" th:if="${sale != null and sale.location != null and !#strings.isEmpty(sale.location)}">
-                        <i class="fa-solid fa-location-dot" aria-hidden="true"></i>
-                        <span th:text="${sale.location}">Front showroom</span>
+                        <span class="hub-location">
+                            <i class="fa-solid fa-location-dot" aria-hidden="true"></i>
+                            <span th:text="${sale.location}">Front showroom</span>
+                        </span>
                     </p>
                     <p class="form-lead" th:if="${sale == null}">
-                        <i class="fa-solid fa-location-dot" aria-hidden="true"></i>
-                        Unassigned
+                        <span class="hub-location">
+                            <i class="fa-solid fa-location-dot" aria-hidden="true"></i>
+                            Unassigned
+                        </span>
                     </p>
                 </div>
                 <div class="sale-hub-capacity" th:if="${sale != null}" th:classappend="${sale.fillState}">

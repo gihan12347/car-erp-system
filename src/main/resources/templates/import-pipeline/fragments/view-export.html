@@ -10,7 +10,7 @@
     <div class="panel import-view-empty" th:if="${certificate == null or !hasDoc}">
         <i class="fa-solid fa-file-export"></i>
         <strong>Export certificate not uploaded yet</strong>
-        <p>Upload the English or Japanese export certificate to view the extracted details.</p>
+        <p>Upload the export certificate to view the extracted details.</p>
         <div class="import-view-actions">
             <a th:if="${stageNav != null and stageNav.prevUrl != null}"
                th:href="${stageNav.prevUrl}"
@@ -54,20 +54,20 @@
                 <article class="panel">
                     <div class="panel-head"><h2>Certificate</h2></div>
                     <div class="field-grid">
-                        <label>Document type <input type="text" th:value="${certificate.documentType}" readonly class="readonly-field"></label>
-                        <label>Certificate no. <input type="text" th:value="${certificate.certificateNo}" readonly class="readonly-field"></label>
-                        <label>Arrangement no. <input type="text" th:value="${certificate.arrangementNo}" readonly class="readonly-field"></label>
-                        <label>Issue date <input type="text" th:value="${certificate.issueDate}" readonly class="readonly-field"></label>
-                        <label>Export scheduled day <input type="text" th:value="${certificate.exportScheduledDate}" readonly class="readonly-field"></label>
+                        <label>Date of certificate <input type="date" th:value="${certificate.issueDate}" readonly class="readonly-field"></label>
+                        <label>Export scheduled day <input type="date" th:value="${certificate.exportScheduledDate}" readonly class="readonly-field"></label>
+                        <label class="span-2">Director General Land Transport Branch <input type="text" th:value="${certificate.directorGeneralLandTransportBranch}" readonly class="readonly-field"></label>
                     </div>
                 </article>
 
                 <article class="panel">
                     <div class="panel-head"><h2>Registration</h2></div>
                     <div class="field-grid">
-                        <label>Registration no. <input type="text" th:value="${certificate.registrationNo}" readonly class="readonly-field"></label>
-                        <label>Date of registration <input type="text" th:value="${certificate.registrationDate}" readonly class="readonly-field"></label>
-                        <label>First registration <input type="text" th:value="${certificate.firstRegDate}" readonly class="readonly-field"></label>
+                        <label class="span-2">Motor vehicle registration no. <input type="text" th:value="${certificate.registrationNo}" readonly class="readonly-field"></label>
+                        <label>Registration date <input type="date" th:value="${certificate.registrationDate}" readonly class="readonly-field"></label>
+                        <label>First registration date <input type="month" th:value="${certificate.firstRegDate}" readonly class="readonly-field"></label>
+                        <label>Specification no. <input type="text" th:value="${certificate.specificationNo}" readonly class="readonly-field"></label>
+                        <label>Classified no. <input type="text" th:value="${certificate.classificationNo}" readonly class="readonly-field"></label>
                     </div>
                 </article>
 
@@ -75,13 +75,12 @@
                     <div class="panel-head"><h2>Vehicle</h2></div>
                     <div class="field-grid">
                         <label>Chassis number <input type="text" th:value="${certificate.chassisVin}" readonly class="readonly-field"></label>
-                        <label>Make <input type="text" th:value="${certificate.make}" readonly class="readonly-field"></label>
-                        <label>Model <input type="text" th:value="${certificate.model}" readonly class="readonly-field"></label>
-                        <label>Engine model <input type="text" th:value="${certificate.engineModel}" readonly class="readonly-field"></label>
-                        <label>Classification <input type="text" th:value="${certificate.vehicleClassification}" readonly class="readonly-field"></label>
-                        <label>Use <input type="text" th:value="${certificate.useType}" readonly class="readonly-field"></label>
-                        <label>Purpose <input type="text" th:value="${certificate.purpose}" readonly class="readonly-field"></label>
-                        <label>Type of body <input type="text" th:value="${certificate.bodyType}" readonly class="readonly-field"></label>
+                        <label>Type of vehicle <input type="text" th:value="${certificate.vehicleClassification}" readonly class="readonly-field"></label>
+                        <label>Form of vehicle <input type="text" th:value="${certificate.bodyType}" readonly class="readonly-field"></label>
+                        <label>Usage <input type="text" th:value="${certificate.useType}" readonly class="readonly-field"></label>
+                        <label>Private or commercial <input type="text" th:value="${certificate.purpose}" readonly class="readonly-field"></label>
+                        <label>Type of fuel <input type="text" th:value="${certificate.fuelType}" readonly class="readonly-field"></label>
+                        <label>Displacement <input type="text" th:value="${certificate.engineCapacity}" readonly class="readonly-field"></label>
                     </div>
                 </article>
 
@@ -89,30 +88,27 @@
                     <div class="panel-head"><h2>Specifications</h2></div>
                     <div class="field-grid">
                         <label>Seating capacity <input type="text" th:value="${certificate.seatingCapacity}" readonly class="readonly-field"></label>
-                        <label>Maximum carry <input type="text" th:value="${certificate.maxCarry}" readonly class="readonly-field"></label>
-                        <label>Weight (kg) <input type="text" th:value="${certificate.weightKg}" readonly class="readonly-field"></label>
-                        <label>Gross weight (kg) <input type="text" th:value="${certificate.grossWeightKg}" readonly class="readonly-field"></label>
-                        <label>Length (cm) <input type="text" th:value="${certificate.lengthCm}" readonly class="readonly-field"></label>
-                        <label>Width (cm) <input type="text" th:value="${certificate.widthCm}" readonly class="readonly-field"></label>
-                        <label>Height (cm) <input type="text" th:value="${certificate.heightCm}" readonly class="readonly-field"></label>
-                        <label>Engine capacity <input type="text" th:value="${certificate.engineCapacity}" readonly class="readonly-field"></label>
-                        <label>Fuel <input type="text" th:value="${certificate.fuelType}" readonly class="readonly-field"></label>
-                        <label>Specification no. <input type="text" th:value="${certificate.specificationNo}" readonly class="readonly-field"></label>
-                        <label>Classification no. <input type="text" th:value="${certificate.classificationNo}" readonly class="readonly-field"></label>
-                        <label>Front axle weight <input type="text" th:value="${certificate.frontAxleWeight}" readonly class="readonly-field"></label>
-                        <label>Rear axle weight <input type="text" th:value="${certificate.rearAxleWeight}" readonly class="readonly-field"></label>
+                        <label>Maximum carrying capacity <input type="text" th:value="${certificate.maxCarry}" readonly class="readonly-field"></label>
+                        <label>Weight of vehicle <input type="text" th:value="${certificate.weightKg}" readonly class="readonly-field"></label>
+                        <label>Gross weight of vehicle <input type="text" th:value="${certificate.grossWeightKg}" readonly class="readonly-field"></label>
+                        <label>Length <input type="text" th:value="${certificate.lengthCm}" readonly class="readonly-field"></label>
+                        <label>Width <input type="text" th:value="${certificate.widthCm}" readonly class="readonly-field"></label>
+                        <label>Height <input type="text" th:value="${certificate.heightCm}" readonly class="readonly-field"></label>
+                        <label>Weight of front front axel <input type="text" th:value="${certificate.frontAxleWeight}" readonly class="readonly-field"></label>
+                        <label>Weight of front rear axel <input type="text" th:value="${certificate.frWeight}" readonly class="readonly-field"></label>
+                        <label>Weight of rear front axel <input type="text" th:value="${certificate.rfWeight}" readonly class="readonly-field"></label>
+                        <label>Weight of rear rear axel <input type="text" th:value="${certificate.rearAxleWeight}" readonly class="readonly-field"></label>
                     </div>
                 </article>
 
                 <article class="panel">
                     <div class="panel-head"><h2>User and owner</h2></div>
                     <div class="field-grid">
-                        <label class="span-2">Name of user <input type="text" th:value="${certificate.userName}" readonly class="readonly-field"></label>
-                        <label class="span-2">Address of user <input type="text" th:value="${certificate.userAddress}" readonly class="readonly-field"></label>
                         <label class="span-2">Name of owner <input type="text" th:value="${certificate.ownerName}" readonly class="readonly-field"></label>
                         <label class="span-2">Address of owner <input type="text" th:value="${certificate.ownerAddress}" readonly class="readonly-field"></label>
-                        <label class="span-2">Locality of use <input type="text" th:value="${certificate.localityOfUse}" readonly class="readonly-field"></label>
-                        <label class="span-2">Remarks <input type="text" th:value="${certificate.remarks}" readonly class="readonly-field"></label>
+                        <label class="span-2">Name of user <input type="text" th:value="${certificate.userName}" readonly class="readonly-field"></label>
+                        <label class="span-2">Address of user <input type="text" th:value="${certificate.userAddress}" readonly class="readonly-field"></label>
+                        <label class="span-2">Parking place <input type="text" th:value="${certificate.localityOfUse}" readonly class="readonly-field"></label>
                     </div>
                 </article>
             </div>

@@ -51,6 +51,9 @@ app:
       cusdecProcessorId: ${DOCUMENT_AI_CUSDEC_PROCESSOR_ID:cd742e4a10abd3c9}
       billOfLandingProcessorId: ${DOCUMENT_AI_BILL_OF_LANDING_PROCESSOR_ID:d0ad3dd16d4dd283}
       preShipmentProcessorId: ${DOCUMENT_AI_PRE_SHIPMENT_PROCESSOR_ID:3fb83da8bb489dec}
+      exportCertificateProcessorId: ${DOCUMENT_AI_EXPORT_CERTIFICATE_PROCESSOR_ID:322628bd2494c32d}
+      odometerCertificateProcessorId: ${DOCUMENT_AI_ODOMETER_CERTIFICATE_PROCESSOR_ID:f15abb638c6327b7}
+      gradeSearchProcessorId: ${DOCUMENT_AI_GRADE_SEARCH_PROCESSOR_ID:c86ec486ccb7e7d7}
       processorVersion: ${DOCUMENT_AI_PROCESSOR_VERSION:}
       assessmentProcessorId: ${DOCUMENT_AI_ASSESSMENT_PROCESSOR_ID:}
       assessmentProcessorVersion: ${DOCUMENT_AI_ASSESSMENT_PROCESSOR_VERSION:}
@@ -63,7 +66,7 @@ app:
     equipment:
       language: eng
     export:
-      language: jpn
+      language: eng
 
   translate:
     # auto uses Google Cloud Translation when the Vision credentials file exists, otherwise MyMemory.
@@ -82,6 +85,7 @@ app:
     coiUploadDir: ${APP_COI_DOCUMENTS_DIR:uploads/coi-docs}
     standardsUploadDir: ${APP_STANDARDS_DOCUMENTS_DIR:uploads/standards-docs}
     exportUploadDir: ${APP_EXPORT_DOCUMENTS_DIR:uploads/export-docs}
+    gradeSearchUploadDir: ${APP_GRADE_SEARCH_DOCUMENTS_DIR:uploads/grade-search-docs}
     photoUploadDir: ${APP_PHOTO_DOCUMENTS_DIR:uploads/vehicle-photos}
 
 resilience4j:

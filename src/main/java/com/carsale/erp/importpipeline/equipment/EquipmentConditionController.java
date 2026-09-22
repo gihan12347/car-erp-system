@@ -158,6 +158,7 @@ public class EquipmentConditionController {
         model.addAttribute("coiReady", status.isCoiReady());
         model.addAttribute("standardsReady", status.isStandardsReady());
         model.addAttribute("exportReady", status.isExportReady());
+        model.addAttribute("gradeReady", status.isGradeReady());
         model.addAttribute("photosReady", status.isPhotosReady());
         model.addAttribute("stageNav", ImportStageUrls.editLinks(
                 chassisNo,

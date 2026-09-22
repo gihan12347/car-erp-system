@@ -14,7 +14,7 @@
                 </div>
             </div>
 
-            <div th:replace="import-pipeline/fragments/pipeline :: importPipelineSteps('standards', ${vehicle.chassisNo}, ${auctionDocReady}, ${preshipReady}, ${equipmentReady}, ${jevicReady}, ${coiReady}, ${standardsReady}, ${exportReady}, ${photosReady}, ${vehicle.model}, false, false)"></div>
+            <div th:replace="import-pipeline/fragments/pipeline :: importPipelineSteps('standards', ${vehicle.chassisNo}, ${auctionDocReady}, ${preshipReady}, ${equipmentReady}, ${jevicReady}, ${coiReady}, ${standardsReady}, ${exportReady}, ${gradeReady}, ${photosReady}, ${vehicle.model}, false, false)"></div>
 
             <p th:if="${successMessage}" class="alert alert-ok" th:text="${successMessage}"></p>
             <p th:if="${errorMessage}" class="alert alert-error" th:text="${errorMessage}"></p>

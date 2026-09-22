@@ -13,6 +13,7 @@
             + (!editMode and currentStage == 'coi' ? ' jevic-page' : '')
             + (!editMode and currentStage == 'standards' ? ' jevic-page' : '')
             + (!editMode and currentStage == 'export' ? ' jevic-page' : '')
+            + (!editMode and currentStage == 'grade' ? ' jevic-page' : '')
             + (!editMode and currentStage == 'photos' ? ' photos-page' : '')}">
 <div class="app-shell">
     <aside th:replace="shared/sidebar :: sidebar(${activeMenu})"></aside>
@@ -38,7 +39,7 @@
                         Upload the Bureau Veritas certificate. Auto-fill reads the document; save when you are ready.
                     </p>
                     <p class="form-lead" th:if="${!editMode and currentStage == 'jevic'}">
-                        Upload the JEVIC odometer certificate. Auto-fill reads the document; save when you are ready.
+                        Upload the odometer certificate. Auto-fill reads the document with Document AI; save when you are ready.
                     </p>
                     <p class="form-lead" th:if="${!editMode and currentStage == 'coi'}">
                         Upload the JEVIC certificate of inspection. Auto-fill reads the document; save when you are ready.
@@ -47,7 +48,10 @@
                         Upload the emission and safety standards certificate. Auto-fill reads the document; save when you are ready.
                     </p>
                     <p class="form-lead" th:if="${!editMode and currentStage == 'export'}">
-                        Upload the English or Japanese export certificate. Auto-fill reads either document type; save when you are ready.
+                        Upload the export certificate. Auto-fill reads the document with Document AI; save when you are ready.
+                    </p>
+                    <p class="form-lead" th:if="${!editMode and currentStage == 'grade'}">
+                        Upload the grade search document. Auto-fill reads the document with Document AI; save when you are ready.
                     </p>
                     <p class="form-lead" th:if="${!editMode and currentStage == 'photos'}">
                         Add up to five vehicle photos. The first image is enough to complete this step.
@@ -65,6 +69,7 @@
                     ${coiReady},
                     ${standardsReady},
                     ${exportReady},
+                    ${gradeReady},
                     ${photosReady},
                     ${editMode and vehicle.model != null ? vehicle.model : ''},
                     ${editMode == false},
@@ -208,6 +213,10 @@
 
             <th:block th:if="${!editMode and currentStage == 'export'}">
                 <div th:replace="import-pipeline/fragments/form-export :: importFormExport(${record}, ${continueTarget}, ${hubMode})"></div>
+            </th:block>
+
+            <th:block th:if="${!editMode and currentStage == 'grade'}">
+                <div th:replace="import-pipeline/fragments/form-grade :: importFormGrade(${record}, ${continueTarget}, ${hubMode})"></div>
             </th:block>
 
             <th:block th:if="${!editMode and currentStage == 'photos'}">

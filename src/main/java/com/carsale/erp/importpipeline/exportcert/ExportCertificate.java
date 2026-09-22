@@ -159,6 +159,10 @@ public class ExportCertificate {
 
     @Lob
     @Column(columnDefinition = "TEXT")
+    private String directorGeneralLandTransportBranch;
+
+    @Lob
+    @Column(columnDefinition = "TEXT")
     private String remarks;
 
     @Column(length = 255)
@@ -468,6 +472,14 @@ public class ExportCertificate {
 
     public void setExportScheduledDate(String exportScheduledDate) {
         this.exportScheduledDate = exportScheduledDate;
+    }
+
+    public String getDirectorGeneralLandTransportBranch() {
+        return directorGeneralLandTransportBranch;
+    }
+
+    public void setDirectorGeneralLandTransportBranch(String directorGeneralLandTransportBranch) {
+        this.directorGeneralLandTransportBranch = directorGeneralLandTransportBranch;
     }
 
     public String getRemarks() {

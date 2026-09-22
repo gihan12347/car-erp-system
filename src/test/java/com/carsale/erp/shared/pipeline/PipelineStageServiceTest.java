@@ -84,7 +84,7 @@ class PipelineStageServiceTest {
     @Test
     void importPipelineHasAuctionPreshipmentEquipmentJevicCoiStandardsExportAndPhotosStages() {
         assertThat(pipelineStageService.keys("IMPORT"))
-                .containsExactlyInAnyOrder("auction", "preshipment", "equipment", "jevic", "coi", "standards", "export", "photos");
+                .containsExactlyInAnyOrder("auction", "preshipment", "equipment", "jevic", "coi", "standards", "export", "grade", "photos");
     }
 
     @Test
@@ -154,6 +154,23 @@ class PipelineStageServiceTest {
         pipelineStageService.ensureDefaults();
 
         assertThat(pipelineStageService.keys("IMPORT")).contains("export");
+    }
+
+    @Test
+    @Transactional
+    void ensureDefaultsAddsMissingGradeStage() {
+        PipelineFlow importFlow = pipelineFlowRepository.findByFlowKey("IMPORT")
+                .orElseThrow(IllegalStateException::new);
+        PipelineFlow joined = pipelineFlowRepository.findByIdWithStages(importFlow.getId())
+                .orElseThrow(IllegalStateException::new);
+        joined.getStages().removeIf(stage -> "grade".equals(stage.getStageKey()));
+        pipelineFlowRepository.saveAndFlush(joined);
+
+        assertThat(pipelineStageService.keys("IMPORT")).doesNotContain("grade");
+
+        pipelineStageService.ensureDefaults();
+
+        assertThat(pipelineStageService.keys("IMPORT")).contains("grade");
     }
 
     @Test

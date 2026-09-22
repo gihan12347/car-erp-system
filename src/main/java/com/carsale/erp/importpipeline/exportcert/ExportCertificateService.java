@@ -97,17 +97,11 @@ public class ExportCertificateService {
     }
 
     private void copyFields(ExportCertificate source, ExportCertificate target) {
-        target.setDocumentType(source.getDocumentType());
-        target.setCertificateNo(source.getCertificateNo());
-        target.setArrangementNo(source.getArrangementNo());
         target.setIssueDate(source.getIssueDate());
         target.setRegistrationNo(source.getRegistrationNo());
         target.setRegistrationDate(source.getRegistrationDate());
         target.setFirstRegDate(source.getFirstRegDate());
         target.setChassisVin(source.getChassisVin());
-        target.setMake(source.getMake());
-        target.setModel(source.getModel());
-        target.setEngineModel(source.getEngineModel());
         target.setVehicleClassification(source.getVehicleClassification());
         target.setUseType(source.getUseType());
         target.setPurpose(source.getPurpose());
@@ -133,7 +127,7 @@ public class ExportCertificateService {
         target.setOwnerAddress(source.getOwnerAddress());
         target.setLocalityOfUse(source.getLocalityOfUse());
         target.setExportScheduledDate(source.getExportScheduledDate());
-        target.setRemarks(source.getRemarks());
+        target.setDirectorGeneralLandTransportBranch(source.getDirectorGeneralLandTransportBranch());
         target.setOcrText(source.getOcrText());
         target.setDocumentOriginalName(source.getDocumentOriginalName());
         target.setDocumentStoredName(source.getDocumentStoredName());

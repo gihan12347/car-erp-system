@@ -33,15 +33,30 @@
                             <span class="sale-group-count" th:text="${group.vehicleCount}">12</span>
                         </span>
                         <h2 th:text="${group.title}">Showroom</h2>
-                        <p class="muted" th:text="${group.location != null and !#strings.isEmpty(group.location) ? group.location : '—'}">Front showroom</p>
-                        <div class="yard-bay-meter" th:if="${group.capacity != null}">
-                            <span class="yard-bay-meter-fill" th:style="|width: ${group.fillPercent}%|"></span>
+                        <span class="hub-location">
+                            <i class="fa-solid fa-location-dot" aria-hidden="true"></i>
+                            <span th:text="${group.location != null and !#strings.isEmpty(group.location) ? group.location : '—'}">Front showroom</span>
+                        </span>
+                        <div class="hub-capacity" th:if="${group.capacity != null}"
+                             th:classappend="${group.vehicleCount == 0} ? ' is-vacant'"
+                             th:style="|--fill: ${group.capacity > 0 ? (group.remaining * 100.0 / group.capacity) : 0}%;|">
+                            <div class="hub-capacity-meta">
+                                <span class="hub-capacity-left">
+                                    <strong th:text="${group.remaining}">14</strong>
+                                    <em>spaces left</em>
+                                </span>
+                                <span class="hub-capacity-right">
+                                    <span class="hub-empty-chip" th:if="${group.vehicleCount == 0}">Empty</span>
+                                    <span class="hub-full-chip" th:if="${group.remaining != null and group.remaining <= 0}">Full</span>
+                                    <span class="hub-capacity-total">of <b th:text="${group.capacity}">15</b></span>
+                                </span>
+                            </div>
+                            <div class="hub-capacity-track" role="progressbar"
+                                 th:attr="aria-valuenow=${group.fillPercent}, aria-valuemin=0, aria-valuemax=100, aria-label=|${group.remaining} of ${group.capacity} spaces left|">
+                                <span class="hub-capacity-fill"></span>
+                            </div>
                         </div>
-                        <div class="sale-group-meta">
-                            <span th:if="${group.capacity != null}"
-                                  th:text="|${group.remaining} of ${group.capacity} spaces left|">12 of 15 spaces left</span>
-                            <span th:if="${group.vehicleCount == 0}">No vehicles yet</span>
-                        </div>
+                        <span class="hub-empty-chip" th:if="${group.capacity == null and group.vehicleCount == 0}">No vehicles yet</span>
                     </span>
                     <span class="config-tile-go" aria-hidden="true">
                         <i class="fa-solid fa-arrow-right"></i>

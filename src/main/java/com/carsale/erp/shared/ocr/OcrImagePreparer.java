@@ -19,7 +19,6 @@ import javax.imageio.stream.ImageOutputStream;
 
 import com.carsale.erp.importpipeline.auction.AuctionParseResult;
 import com.carsale.erp.shared.document.DocumentParser;
-import com.carsale.erp.shared.document.document.ExportCertificateParser;
 import com.carsale.erp.shared.utils.CustomsDocumentParserUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,22 +47,6 @@ public class OcrImagePreparer {
         //this.pdfRenderDpi = pdfRenderDpi > 0 ? pdfRenderDpi : 220;
         this.language = language == null || language.trim().isEmpty() ? "eng" : language.trim();
         this.documentAiClient = documentAiClient;
-    }
-
-    public AuctionParseResult parseDocument(MultipartFile file, ExportCertificateParser documentParser, String provider) {
-        AuctionParseResult parsed = parsePage(file, documentParser, provider);
-        String rawText = parsed.getRawText();
-        if (rawText != null
-                && !rawText.trim().isEmpty()
-                && !documentParser.looksJapanese(rawText)
-                && !"eng".equalsIgnoreCase(documentParser.getOcrLanguage())) {
-            AuctionParseResult englishParsed = parsePage(file, documentParser, provider, "eng");
-            if (englishParsed.getFields().size() > parsed.getFields().size()) {
-                log.info("Export certificate English OCR mapped more fields: {}", englishParsed.getFields());
-                return englishParsed;
-            }
-        }
-        return parsed;
     }
 
     public AuctionParseResult parsePage(MultipartFile file, DocumentParser documentParser, String provider) {
@@ -123,44 +106,48 @@ public class OcrImagePreparer {
     }
 
     public AuctionParseResult readDocumentText(File file, String originalName, String language, String provider, DocumentParser parser) throws Exception {
-        OcrClient client = ocrClients.clientFor(provider);
-        AuctionParseResult result = null;
-        //TODO :: disabled this feature ---- if needed need to enable it with considering Google Document AI
-//        String name = originalName == null ? "" : originalName.toLowerCase();
-//        if (name.endsWith(".pdf")) {
-//            log.info("Cloud OCR ({}) for PDF document: {}", client.displayName(), originalName);
-//            StringBuilder text = new StringBuilder();
-//            try (PDDocument document = PDDocument.load(file)) {
-//                PDFRenderer renderer = new PDFRenderer(document);
-//                int pages = document.getNumberOfPages();
-//                for (int i = 0; i < pages; i++) {
-//                    BufferedImage image = prepare(renderer.renderImageWithDPI(i, pdfRenderDpi));
-//                    File imageTemp = writeUploadImage(image, "doc-page-", client);
-//                    try {
-//                        text.append(client.recognize(imageTemp, language)).append('\n');
-//                    } finally {
-//                        tryDelete(imageTemp);
-//                    }
-//                }
-//            }
-//            return parser.parsePage(text.toString());
-//        }
+        AuctionParseResult documentAiResult = tryDocumentAi(file, originalName, parser);
+        if (documentAiResult != null && documentAiResult.isSuccess()) {
+            return documentAiResult;
+        }
 
+        OcrClient client = ocrClients.clientFor(provider);
         BufferedImage image = ImageIO.read(file);
         if (image == null) {
+            if (documentAiResult != null) {
+                return documentAiResult;
+            }
             throw new IOException("Unsupported image format.");
         }
         File imageTemp = writeUploadImage(prepare(image), client);
         try {
-            if (client instanceof GoogleVisionOcrClient) {
-                result = parser.parsePage(documentAiClient.process(file, originalName, parser));
+            AuctionParseResult ocrResult = parser.parsePage(client.recognize(imageTemp, language));
+            if (ocrResult != null && ocrResult.isSuccess()) {
+                return ocrResult;
             }
-            if (result != null) {
-                return result;
-            }
-            return parser.parsePage(client.recognize(imageTemp, language));
+            return documentAiResult != null ? documentAiResult : ocrResult;
         } finally {
             tryDelete(imageTemp);
+        }
+    }
+
+    private AuctionParseResult tryDocumentAi(File file, String originalName, DocumentParser parser) {
+        if (parser == null) {
+            return null;
+        }
+        String processorId = parser.getProcessorId();
+        if (processorId == null || processorId.trim().isEmpty()) {
+            return null;
+        }
+        try {
+            DocumentAiClient.DocumentAiResult documentAi = documentAiClient.process(file, originalName, parser);
+            if (documentAi == null) {
+                return null;
+            }
+            return parser.parsePage(documentAi);
+        } catch (Exception ex) {
+            log.warn("Document AI failed for {}: {}", parser.getDocumentName(), ex.getMessage());
+            return null;
         }
     }
 

@@ -1,6 +1,6 @@
 package com.carsale.erp.importpipeline.odometer;
 
-import com.carsale.erp.shared.document.document.JavicCertificate;
+import com.carsale.erp.shared.document.document.OdometerCertificateParser;
 import com.carsale.erp.importpipeline.ImportStageUrls;
 import java.io.IOException;
 import java.net.URLEncoder;
@@ -48,7 +48,7 @@ public class OdometerCertificateController {
     private final ImportProgressService importProgressService;
     private final CustomsProgressService customsProgressService;
     private final PipelineStageService pipelineStageService;
-    private final JavicCertificate javicCertificate;
+    private final OdometerCertificateParser odometerCertificateParser;
 
     public OdometerCertificateController(
             CustomsDocumentService customsDocumentService,
@@ -57,7 +57,8 @@ public class OdometerCertificateController {
             SheetDocumentStorageService documentStorageService,
             ImportProgressService importProgressService,
             CustomsProgressService customsProgressService,
-            PipelineStageService pipelineStageService, JavicCertificate javicCertificate
+            PipelineStageService pipelineStageService,
+            OdometerCertificateParser odometerCertificateParser
     ) {
         this.customsDocumentService = customsDocumentService;
         this.vehicleService = vehicleService;
@@ -66,7 +67,7 @@ public class OdometerCertificateController {
         this.importProgressService = importProgressService;
         this.customsProgressService = customsProgressService;
         this.pipelineStageService = pipelineStageService;
-        this.javicCertificate = javicCertificate;
+        this.odometerCertificateParser = odometerCertificateParser;
     }
 
     @GetMapping
@@ -124,7 +125,7 @@ public class OdometerCertificateController {
             customsDocumentService.saveOdometerCertificate(record);
             importProgressService.syncVehicleStage(chassisNo);
             customsProgressService.syncVehicleStage(chassisNo);
-            redirectAttributes.addFlashAttribute("successMessage", "JEVIC certificate saved.");
+            redirectAttributes.addFlashAttribute("successMessage", "Odometer certificate saved.");
             return "redirect:" + ImportStageUrls.redirectAfterOdometerSave(
                     chassisNo,
                     pipelineStageService.keys(PipelineStageService.FLOW_IMPORT)
@@ -161,6 +162,7 @@ public class OdometerCertificateController {
         model.addAttribute("coiReady", status.isCoiReady());
         model.addAttribute("standardsReady", status.isStandardsReady());
         model.addAttribute("exportReady", status.isExportReady());
+        model.addAttribute("gradeReady", status.isGradeReady());
         model.addAttribute("photosReady", status.isPhotosReady());
         model.addAttribute("stageNav", ImportStageUrls.editLinks(
                 chassisNo,
@@ -190,7 +192,7 @@ public class OdometerCertificateController {
             @RequestParam("file") MultipartFile file,
             @RequestParam(value = "provider", required = false) String provider
     ) {
-        return ocrService.parsePage(file, this.javicCertificate, provider);
+        return ocrService.parsePage(file, this.odometerCertificateParser, provider);
     }
 
     @PostMapping("/{chassisNo}")
@@ -205,7 +207,7 @@ public class OdometerCertificateController {
             customsDocumentService.saveOdometerCertificate(record);
             importProgressService.syncVehicleStage(chassisNo);
             customsProgressService.syncVehicleStage(chassisNo);
-            redirectAttributes.addFlashAttribute("successMessage", "JEVIC certificate saved.");
+            redirectAttributes.addFlashAttribute("successMessage", "Odometer certificate saved.");
             return "redirect:" + ImportStageUrls.redirectAfterOdometerSave(
                     chassisNo,
                     pipelineStageService.keys(PipelineStageService.FLOW_IMPORT)

@@ -6,12 +6,13 @@
     : (stageKey == 'coi' ? 'coi'
     : (stageKey == 'standards' ? 'standards'
     : (stageKey == 'export' ? 'export'
-    : (stageKey == 'photos' ? 'photos' : 'auction'))))))}">
+    : (stageKey == 'grade' ? 'grade'
+    : (stageKey == 'photos' ? 'photos' : 'auction')))))))}">
 <head th:replace="shared/head :: head(${pageTitle})"></head>
 <body class="sheet-page import-form-page import-view-page"
       th:classappend="${(stageKey == 'preshipment' ? ' preship-page' : '')
             + (stageKey == 'equipment' ? ' equipment-page' : '')
-            + (stageKey == 'jevic' or stageKey == 'coi' or stageKey == 'standards' or stageKey == 'export' ? ' jevic-page' : '')
+            + (stageKey == 'jevic' or stageKey == 'coi' or stageKey == 'standards' or stageKey == 'export' or stageKey == 'grade' ? ' jevic-page' : '')
             + (stageKey == 'photos' ? ' photos-page' : '')}">
 <div class="app-shell">
     <aside th:replace="shared/sidebar :: sidebar(${activeMenu})"></aside>
@@ -55,6 +56,11 @@
                         Export certificate
                     </h1>
 
+                    <h1 th:if="${stageKey == 'grade'}"
+                        th:text="${@pipelineStageService.title('IMPORT', 'grade')}">
+                        Grade search
+                    </h1>
+
                     <h1 th:if="${stageKey == 'photos'}"
                         th:text="${@pipelineStageService.title('IMPORT', 'photos')}">
                         Vehicle images
@@ -77,7 +83,7 @@
 
                     <p class="form-lead"
                        th:if="${stageKey == 'jevic'}">
-                        Review the JEVIC odometer certificate for this vehicle.
+                        Review the odometer certificate for this vehicle.
                     </p>
 
                     <p class="form-lead"
@@ -92,7 +98,12 @@
 
                     <p class="form-lead"
                        th:if="${stageKey == 'export'}">
-                        Review the English or Japanese export certificate for this vehicle.
+                        Review the export certificate for this vehicle.
+                    </p>
+
+                    <p class="form-lead"
+                       th:if="${stageKey == 'grade'}">
+                        Review the grade search document for this vehicle.
                     </p>
 
                     <p class="form-lead"
@@ -117,6 +128,7 @@
                     ${coiReady},
                     ${standardsReady},
                     ${exportReady},
+                    ${gradeReady},
                     ${photosReady},
                     ${vehicle.model},
                     false,
@@ -182,6 +194,15 @@
                         ${vehicle},
                         ${exportCertificate},
                         ${exportReady})">
+                </div>
+            </div>
+
+            <div class="vehicle-form clearance-form"
+                 th:if="${stageKey == 'grade'}">
+                <div th:replace="import-pipeline/fragments/view-grade :: gradeView(
+                        ${vehicle},
+                        ${gradeSearch},
+                        ${gradeReady})">
                 </div>
             </div>
 

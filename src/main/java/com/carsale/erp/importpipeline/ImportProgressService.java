@@ -3,6 +3,7 @@ package com.carsale.erp.importpipeline;
 import com.carsale.erp.importpipeline.coi.CertificateOfInspectionService;
 import com.carsale.erp.importpipeline.equipment.EquipmentInspectionService;
 import com.carsale.erp.importpipeline.exportcert.ExportCertificateService;
+import com.carsale.erp.importpipeline.gradesearch.GradeSearchService;
 import com.carsale.erp.importpipeline.photos.VehiclePhotoService;
 import com.carsale.erp.importpipeline.preshipment.PreShipmentService;
 import com.carsale.erp.importpipeline.standards.StandardsCertificateService;
@@ -28,6 +29,7 @@ public class ImportProgressService {
     private final CertificateOfInspectionService certificateOfInspectionService;
     private final StandardsCertificateService standardsCertificateService;
     private final ExportCertificateService exportCertificateService;
+    private final GradeSearchService gradeSearchService;
     private final VehiclePhotoService vehiclePhotoService;
 
     public ImportProgressService(
@@ -38,6 +40,7 @@ public class ImportProgressService {
             CertificateOfInspectionService certificateOfInspectionService,
             StandardsCertificateService standardsCertificateService,
             ExportCertificateService exportCertificateService,
+            GradeSearchService gradeSearchService,
             VehiclePhotoService vehiclePhotoService
     ) {
         this.vehicleRepository = vehicleRepository;
@@ -47,12 +50,13 @@ public class ImportProgressService {
         this.certificateOfInspectionService = certificateOfInspectionService;
         this.standardsCertificateService = standardsCertificateService;
         this.exportCertificateService = exportCertificateService;
+        this.gradeSearchService = gradeSearchService;
         this.vehiclePhotoService = vehiclePhotoService;
     }
 
     public ImportProgress progressFor(Vehicle vehicle) {
         if (vehicle == null) {
-            return new ImportProgress(false, false, false, false, false, false, false, false);
+            return new ImportProgress(false, false, false, false, false, false, false, false, false);
         }
         String chassisNo = vehicle.getChassisNo();
         return new ImportProgress(
@@ -63,12 +67,13 @@ public class ImportProgressService {
                 certificateOfInspectionService.hasCertificate(chassisNo),
                 standardsCertificateService.hasCertificate(chassisNo),
                 exportCertificateService.hasCertificate(chassisNo),
-                vehiclePhotoService.hasPhotos(chassisNo));
+                vehiclePhotoService.hasPhotos(chassisNo),
+                gradeSearchService.hasDocument(chassisNo));
     }
 
     public ImportProgress progressFor(String chassisNo) {
         if (chassisNo == null || chassisNo.trim().isEmpty()) {
-            return new ImportProgress(false, false, false, false, false, false, false, false);
+            return new ImportProgress(false, false, false, false, false, false, false, false, false);
         }
         Vehicle vehicle = vehicleRepository.findById(chassisNo.trim()).orElse(null);
         return progressFor(vehicle);
@@ -111,6 +116,7 @@ public class ImportProgressService {
         private final boolean standardsReady;
         private final boolean exportReady;
         private final boolean photosReady;
+        private final boolean gradeReady;
 
         public ImportProgress(
                 boolean auctionReady,
@@ -120,7 +126,8 @@ public class ImportProgressService {
                 boolean coiReady,
                 boolean standardsReady,
                 boolean exportReady,
-                boolean photosReady
+                boolean photosReady,
+                boolean gradeReady
         ) {
             this.auctionReady = auctionReady;
             this.preshipReady = preshipReady;
@@ -130,6 +137,7 @@ public class ImportProgressService {
             this.standardsReady = standardsReady;
             this.exportReady = exportReady;
             this.photosReady = photosReady;
+            this.gradeReady = gradeReady;
         }
 
         public boolean isAuctionReady() {
@@ -164,23 +172,27 @@ public class ImportProgressService {
             return photosReady;
         }
 
+        public boolean isGradeReady() {
+            return gradeReady;
+        }
+
         @Override
         public boolean hasAnyCompletedStage() {
             return auctionReady || preshipReady || equipmentReady || jevicReady || coiReady
-                    || standardsReady || exportReady || photosReady;
+                    || standardsReady || exportReady || photosReady || gradeReady;
         }
 
         @Override
         public int completedCount() {
             return (auctionReady ? 1 : 0) + (preshipReady ? 1 : 0) + (equipmentReady ? 1 : 0)
                     + (jevicReady ? 1 : 0) + (coiReady ? 1 : 0) + (standardsReady ? 1 : 0)
-                    + (exportReady ? 1 : 0) + (photosReady ? 1 : 0);
+                    + (exportReady ? 1 : 0) + (photosReady ? 1 : 0) + (gradeReady ? 1 : 0);
         }
 
         @Override
         public boolean isPipelineCompleted() {
             return auctionReady && preshipReady && equipmentReady && jevicReady && coiReady
-                    && standardsReady && exportReady && photosReady;
+                    && standardsReady && exportReady && photosReady && gradeReady;
         }
 
         public boolean isImportComplete() {
@@ -206,6 +218,9 @@ public class ImportProgressService {
             }
             if (FlowStage.EXPORT.getStageKey().equals(stageKey)) {
                 return exportReady;
+            }
+            if (FlowStage.GRADE.getStageKey().equals(stageKey)) {
+                return gradeReady;
             }
             if (FlowStage.PHOTOS.getStageKey().equals(stageKey)) {
                 return photosReady;

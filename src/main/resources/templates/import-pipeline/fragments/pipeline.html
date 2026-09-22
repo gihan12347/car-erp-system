@@ -2,9 +2,9 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <body>
 
-<nav th:fragment="importPipelineSteps(currentStep, chassisNo, auctionReady, preshipReady, equipmentReady, jevicReady, coiReady, standardsReady, exportReady, photosReady, vehicleLabel, compact, viewMode)"
+<nav th:fragment="importPipelineSteps(currentStep, chassisNo, auctionReady, preshipReady, equipmentReady, jevicReady, coiReady, standardsReady, exportReady, gradeReady, photosReady, vehicleLabel, compact, viewMode)"
      class="import-pipeline panel"
-     th:with="isView=${viewMode != null and viewMode}, isCompact=${compact != null and compact}, equipmentDone=${equipmentReady != null and equipmentReady}, jevicDone=${jevicReady != null and jevicReady}, coiDone=${coiReady != null and coiReady}, standardsDone=${standardsReady != null and standardsReady}, exportDone=${exportReady != null and exportReady}, photosDone=${photosReady != null and photosReady}, importComplete=${auctionReady and preshipReady and equipmentDone and jevicDone and coiDone and standardsDone and exportDone and photosDone}, orderedStages=${@pipelineStageService.list('IMPORT')}"
+     th:with="isView=${viewMode != null and viewMode}, isCompact=${compact != null and compact}, equipmentDone=${equipmentReady != null and equipmentReady}, jevicDone=${jevicReady != null and jevicReady}, coiDone=${coiReady != null and coiReady}, standardsDone=${standardsReady != null and standardsReady}, exportDone=${exportReady != null and exportReady}, gradeDone=${gradeReady != null and gradeReady}, photosDone=${photosReady != null and photosReady}, importComplete=${auctionReady and preshipReady and equipmentDone and jevicDone and coiDone and standardsDone and exportDone and gradeDone and photosDone}, orderedStages=${@pipelineStageService.list('IMPORT')}"
      th:classappend="${(isCompact ? ' is-compact' : '') + (importComplete ? ' is-import-complete' : '')}"
      aria-label="Import pipeline">
     <div class="import-pipeline-head" th:unless="${isCompact}">
@@ -15,7 +15,7 @@
                 · <span class="import-pipeline-chassis" th:text="${chassisNo}">TRJ250-0025161</span>
             </p>
             <p class="import-pipeline-lead" th:unless="${chassisNo != null and !#strings.isEmpty(chassisNo)}">
-                Save the auction lot first, then continue with pre-shipment, equipment condition, JEVIC, the certificate of inspection, the standards certificate, the export certificate, and vehicle images.
+                Save the auction lot first, then continue with pre-shipment, equipment condition, JEVIC, the certificate of inspection, the standards certificate, the export certificate, grade search, and vehicle images.
             </p>
         </div>
         <a th:if="${chassisNo != null and !#strings.isEmpty(chassisNo) and !isView}"
@@ -168,7 +168,7 @@
                     </span>
                     <span class="import-pipeline-step-copy">
                         <strong th:text="${stage.title}">Odometer certificate</strong>
-                        <small th:text="${stage.subtitle}">JEVIC</small>
+                        <small th:text="${stage.subtitle}">Document AI</small>
                         <em class="pipeline-step-status" th:classappend="${jevicDone} ? ' done' : ' pending'"
                             th:text="${jevicDone} ? 'Complete' : 'Pending'">Pending</em>
                     </span>
@@ -182,7 +182,7 @@
                     </span>
                     <span class="import-pipeline-step-copy">
                         <strong th:text="${stage.title}">Odometer certificate</strong>
-                        <small th:text="${stage.subtitle}">JEVIC</small>
+                        <small th:text="${stage.subtitle}">Document AI</small>
                         <em class="pipeline-step-status" th:classappend="${jevicDone} ? ' done' : ' pending'"
                             th:text="${jevicDone} ? 'Complete' : 'Pending'">Pending</em>
                     </span>
@@ -192,7 +192,7 @@
                     <span class="import-pipeline-step-icon"><span th:text="${iter.count}">4</span></span>
                     <span class="import-pipeline-step-copy">
                         <strong th:text="${stage.title}">Odometer certificate</strong>
-                        <small th:text="${stage.subtitle}">JEVIC</small>
+                        <small th:text="${stage.subtitle}">Document AI</small>
                         <em class="pipeline-step-status" th:classappend="${jevicDone} ? ' done' : ' pending'"
                             th:text="${jevicDone} ? 'Complete' : 'Pending'">Pending</em>
                     </span>
@@ -291,7 +291,7 @@
                     </span>
                     <span class="import-pipeline-step-copy">
                         <strong th:text="${stage.title}">Export certificate</strong>
-                        <small th:text="${stage.subtitle}">English or Japanese</small>
+                        <small th:text="${stage.subtitle}">Document AI</small>
                         <em class="pipeline-step-status" th:classappend="${exportDone} ? ' done' : ' pending'"
                             th:text="${exportDone} ? 'Complete' : 'Pending'">Pending</em>
                     </span>
@@ -305,7 +305,7 @@
                     </span>
                     <span class="import-pipeline-step-copy">
                         <strong th:text="${stage.title}">Export certificate</strong>
-                        <small th:text="${stage.subtitle}">English or Japanese</small>
+                        <small th:text="${stage.subtitle}">Document AI</small>
                         <em class="pipeline-step-status" th:classappend="${exportDone} ? ' done' : ' pending'"
                             th:text="${exportDone} ? 'Complete' : 'Pending'">Pending</em>
                     </span>
@@ -315,9 +315,50 @@
                     <span class="import-pipeline-step-icon"><span th:text="${iter.count}">7</span></span>
                     <span class="import-pipeline-step-copy">
                         <strong th:text="${stage.title}">Export certificate</strong>
-                        <small th:text="${stage.subtitle}">English or Japanese</small>
+                        <small th:text="${stage.subtitle}">Document AI</small>
                         <em class="pipeline-step-status" th:classappend="${exportDone} ? ' done' : ' pending'"
                             th:text="${exportDone} ? 'Complete' : 'Pending'">Pending</em>
+                    </span>
+                </span>
+            </li>
+            <li th:if="${stage.stageKey == 'grade'}"
+                th:classappend="${(currentStep == 'grade' ? ' is-current' : '') + (gradeDone ? ' is-done' : ' is-pending')}">
+                <a th:if="${chassisNo != null and !#strings.isEmpty(chassisNo) and isView}"
+                   th:href="@{/auction/{chassisNo}(chassisNo=${chassisNo}, stage=${stage.stageKey})}"
+                   class="import-pipeline-step">
+                    <span class="import-pipeline-step-icon">
+                        <i th:if="${gradeDone}" class="fa-solid fa-check"></i>
+                        <span th:unless="${gradeDone}" th:text="${iter.count}">8</span>
+                    </span>
+                    <span class="import-pipeline-step-copy">
+                        <strong th:text="${stage.title}">Grade search</strong>
+                        <small th:text="${stage.subtitle}">Document AI</small>
+                        <em class="pipeline-step-status" th:classappend="${gradeDone} ? ' done' : ' pending'"
+                            th:text="${gradeDone} ? 'Complete' : 'Pending'">Pending</em>
+                    </span>
+                </a>
+                <a th:if="${chassisNo != null and !#strings.isEmpty(chassisNo) and !isView}"
+                   th:href="@{/grade/{chassisNo}(chassisNo=${chassisNo})}"
+                   class="import-pipeline-step">
+                    <span class="import-pipeline-step-icon">
+                        <i th:if="${gradeDone}" class="fa-solid fa-check"></i>
+                        <span th:unless="${gradeDone}" th:text="${iter.count}">8</span>
+                    </span>
+                    <span class="import-pipeline-step-copy">
+                        <strong th:text="${stage.title}">Grade search</strong>
+                        <small th:text="${stage.subtitle}">Document AI</small>
+                        <em class="pipeline-step-status" th:classappend="${gradeDone} ? ' done' : ' pending'"
+                            th:text="${gradeDone} ? 'Complete' : 'Pending'">Pending</em>
+                    </span>
+                </a>
+                <span th:unless="${chassisNo != null and !#strings.isEmpty(chassisNo)}"
+                      class="import-pipeline-step is-disabled" title="Save auction lot first">
+                    <span class="import-pipeline-step-icon"><span th:text="${iter.count}">8</span></span>
+                    <span class="import-pipeline-step-copy">
+                        <strong th:text="${stage.title}">Grade search</strong>
+                        <small th:text="${stage.subtitle}">Document AI</small>
+                        <em class="pipeline-step-status" th:classappend="${gradeDone} ? ' done' : ' pending'"
+                            th:text="${gradeDone} ? 'Complete' : 'Pending'">Pending</em>
                     </span>
                 </span>
             </li>
@@ -328,7 +369,7 @@
                    class="import-pipeline-step">
                     <span class="import-pipeline-step-icon">
                         <i th:if="${photosDone}" class="fa-solid fa-check"></i>
-                        <span th:unless="${photosDone}" th:text="${iter.count}">8</span>
+                        <span th:unless="${photosDone}" th:text="${iter.count}">9</span>
                     </span>
                     <span class="import-pipeline-step-copy">
                         <strong th:text="${stage.title}">Vehicle images</strong>
@@ -342,7 +383,7 @@
                    class="import-pipeline-step">
                     <span class="import-pipeline-step-icon">
                         <i th:if="${photosDone}" class="fa-solid fa-check"></i>
-                        <span th:unless="${photosDone}" th:text="${iter.count}">8</span>
+                        <span th:unless="${photosDone}" th:text="${iter.count}">9</span>
                     </span>
                     <span class="import-pipeline-step-copy">
                         <strong th:text="${stage.title}">Vehicle images</strong>
@@ -353,7 +394,7 @@
                 </a>
                 <span th:unless="${chassisNo != null and !#strings.isEmpty(chassisNo)}"
                       class="import-pipeline-step is-disabled" title="Save auction lot first">
-                    <span class="import-pipeline-step-icon"><span th:text="${iter.count}">8</span></span>
+                    <span class="import-pipeline-step-icon"><span th:text="${iter.count}">9</span></span>
                     <span class="import-pipeline-step-copy">
                         <strong th:text="${stage.title}">Vehicle images</strong>
                         <small th:text="${stage.subtitle}">Up to 5 photos</small>

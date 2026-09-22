@@ -23,15 +23,13 @@
     var previewName = "";
     var objectUrl = null;
     var FIELD_ORDER = [
-        "documentType", "certificateNo", "arrangementNo", "issueDate", "exportScheduledDate",
-        "registrationNo", "registrationDate", "firstRegDate",
-        "chassisVin", "make", "model", "engineModel",
-        "vehicleClassification", "useType", "purpose", "bodyType",
+        "issueDate", "exportScheduledDate", "directorGeneralLandTransportBranch",
+        "registrationNo", "registrationDate", "firstRegDate", "specificationNo", "classificationNo",
+        "chassisVin", "vehicleClassification", "bodyType", "useType", "purpose", "fuelType", "engineCapacity",
         "seatingCapacity", "maxCarry", "weightKg", "grossWeightKg",
-        "lengthCm", "widthCm", "heightCm", "engineCapacity", "fuelType",
-        "specificationNo", "classificationNo", "frontAxleWeight", "rearAxleWeight",
-        "frWeight", "rfWeight",
-        "userName", "userAddress", "ownerName", "ownerAddress", "localityOfUse", "remarks"
+        "lengthCm", "widthCm", "heightCm",
+        "frontAxleWeight", "frWeight", "rfWeight", "rearAxleWeight",
+        "ownerName", "ownerAddress", "userName", "userAddress", "localityOfUse"
     ];
     var currentFieldIndex = 0;
 
@@ -264,7 +262,7 @@
             if (previewFrame) {
                 previewFrame.scrollIntoView({ behavior: "smooth", block: "nearest" });
             }
-            setStatus("Document saved. Click Auto fill to read fields from the English or Japanese export certificate.", true);
+            setStatus("Document saved. Click Auto fill to read fields from the export certificate.", true);
         }, function (message) {
             selectedFile = null;
             updateActionButtons();
@@ -290,9 +288,60 @@
         updateActionButtons();
     }
 
+    function toDateInputValue(value) {
+        if (!value) {
+            return "";
+        }
+        var s = String(value).trim();
+        if (/^\d{4}-\d{2}-\d{2}$/.test(s)) {
+            return s;
+        }
+        var iso = s.match(/^(\d{4}-\d{2}-\d{2})(?:[T\s].*)?$/);
+        if (iso) {
+            return iso[1];
+        }
+        var m = s.match(/^(\d{4})[\/.\-](\d{1,2})[\/.\-](\d{1,2})/);
+        if (m) {
+            return m[1] + "-" + ("0" + m[2]).slice(-2) + "-" + ("0" + m[3]).slice(-2);
+        }
+        m = s.match(/^(\d{1,2})[\/.\-](\d{1,2})[\/.\-](\d{4})/);
+        if (m) {
+            return m[3] + "-" + ("0" + m[2]).slice(-2) + "-" + ("0" + m[1]).slice(-2);
+        }
+        return "";
+    }
+
+    function toMonthInputValue(value) {
+        if (!value) {
+            return "";
+        }
+        var text = String(value).trim();
+        var isoDate = text.match(/^(\d{4}-\d{2})(?:-\d{2})?(?:[T\s].*)?$/);
+        if (isoDate) {
+            return isoDate[1];
+        }
+        var yearMonth = text.match(/^(\d{4})[/. -](\d{1,2})$/);
+        if (yearMonth) {
+            return yearMonth[1] + "-" + ("0" + yearMonth[2]).slice(-2);
+        }
+        var monthYear = text.match(/^(\d{1,2})[/. -](\d{4})$/);
+        if (monthYear) {
+            return monthYear[2] + "-" + ("0" + monthYear[1]).slice(-2);
+        }
+        return text;
+    }
+
     function applyValue(el, value) {
         if (!el) {
             return false;
+        }
+        if (el.type === "date") {
+            el.value = toDateInputValue(value);
+            return !!el.value;
+        }
+        if (el.type === "month") {
+            el.value = toMonthInputValue(value);
+            return !!el.value;
         }
         el.value = value;
         return true;

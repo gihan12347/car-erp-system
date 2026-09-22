@@ -32,13 +32,27 @@
                         <span class="sale-group-count" th:text="${yard.occupied}">12</span>
                     </span>
                     <h2 th:text="${yard.yardName != null and !#strings.isEmpty(yard.yardName) ? yard.yardName : yard.bayCode}">Main yard</h2>
-                    <p class="muted" th:text="${yard.location != null and !#strings.isEmpty(yard.location) ? yard.location : '—'}">Front lot</p>
-                    <div class="yard-bay-meter">
-                        <span class="yard-bay-meter-fill" th:style="|width: ${yard.fillPercent}%|"></span>
-                    </div>
-                    <div class="sale-group-meta">
-                        <span th:text="|${yard.remaining} of ${yard.capacity} spaces left|">12 of 40 spaces left</span>
-                        <span th:if="${yard.occupied == 0}">No vehicles yet</span>
+                    <span class="hub-location">
+                        <i class="fa-solid fa-location-dot" aria-hidden="true"></i>
+                        <span th:text="${yard.location != null and !#strings.isEmpty(yard.location) ? yard.location : '—'}">Front lot</span>
+                    </span>
+                    <div class="hub-capacity" th:classappend="${yard.occupied == 0} ? ' is-vacant'"
+                         th:style="|--fill: ${yard.capacity > 0 ? (yard.remaining * 100.0 / yard.capacity) : 0}%;|">
+                        <div class="hub-capacity-meta">
+                            <span class="hub-capacity-left">
+                                <strong th:text="${yard.remaining}">12</strong>
+                                <em>spaces left</em>
+                            </span>
+                            <span class="hub-capacity-right">
+                                <span class="hub-empty-chip" th:if="${yard.occupied == 0}">Empty</span>
+                                <span class="hub-full-chip" th:if="${yard.remaining != null and yard.remaining <= 0}">Full</span>
+                                <span class="hub-capacity-total">of <b th:text="${yard.capacity}">40</b></span>
+                            </span>
+                        </div>
+                        <div class="hub-capacity-track" role="progressbar"
+                             th:attr="aria-valuenow=${yard.fillPercent}, aria-valuemin=0, aria-valuemax=100, aria-label=|${yard.remaining} of ${yard.capacity} spaces left|">
+                            <span class="hub-capacity-fill"></span>
+                        </div>
                     </div>
                     </span>
                     <span class="config-tile-go" aria-hidden="true">

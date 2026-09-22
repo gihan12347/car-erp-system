@@ -9,43 +9,52 @@ import com.carsale.erp.importpipeline.ImportProgressService.ImportProgress;
 class ImportProgressServiceTest {
 
     @Test
-    void importIsCompleteWhenAllEightStagesAreDone() {
-        ImportProgress pending = new ImportProgress(false, false, false, false, false, false, false, false);
-        ImportProgress auctionOnly = new ImportProgress(true, false, false, false, false, false, false, false);
-        ImportProgress twoOfEight = new ImportProgress(true, true, false, false, false, false, false, false);
-        ImportProgress threeOfEight = new ImportProgress(true, true, true, false, false, false, false, false);
-        ImportProgress fourOfEight = new ImportProgress(true, true, true, true, false, false, false, false);
-        ImportProgress fiveOfEight = new ImportProgress(true, true, true, true, true, false, false, false);
-        ImportProgress sixOfEight = new ImportProgress(true, true, true, true, true, true, false, false);
-        ImportProgress sevenOfEight = new ImportProgress(true, true, true, true, true, true, true, false);
-        ImportProgress complete = new ImportProgress(true, true, true, true, true, true, true, true);
+    void importIsCompleteWhenAllNineStagesAreDone() {
+        ImportProgress pending = new ImportProgress(false, false, false, false, false, false, false, false, false);
+        ImportProgress auctionOnly = new ImportProgress(true, false, false, false, false, false, false, false, false);
+        ImportProgress twoOfNine = new ImportProgress(true, true, false, false, false, false, false, false, false);
+        ImportProgress threeOfNine = new ImportProgress(true, true, true, false, false, false, false, false, false);
+        ImportProgress fourOfNine = new ImportProgress(true, true, true, true, false, false, false, false, false);
+        ImportProgress fiveOfNine = new ImportProgress(true, true, true, true, true, false, false, false, false);
+        ImportProgress sixOfNine = new ImportProgress(true, true, true, true, true, true, false, false, false);
+        ImportProgress sevenOfNine = new ImportProgress(true, true, true, true, true, true, true, false, false);
+        ImportProgress eightOfNine = new ImportProgress(true, true, true, true, true, true, true, true, false);
+        ImportProgress complete = new ImportProgress(true, true, true, true, true, true, true, true, true);
 
         assertThat(pending.completedCount()).isEqualTo(0);
         assertThat(pending.isPipelineCompleted()).isFalse();
         assertThat(auctionOnly.completedCount()).isEqualTo(1);
         assertThat(auctionOnly.isPipelineCompleted()).isFalse();
-        assertThat(twoOfEight.completedCount()).isEqualTo(2);
-        assertThat(twoOfEight.isPipelineCompleted()).isFalse();
-        assertThat(threeOfEight.completedCount()).isEqualTo(3);
-        assertThat(threeOfEight.isPipelineCompleted()).isFalse();
-        assertThat(fourOfEight.completedCount()).isEqualTo(4);
-        assertThat(fourOfEight.isPipelineCompleted()).isFalse();
-        assertThat(fiveOfEight.completedCount()).isEqualTo(5);
-        assertThat(fiveOfEight.isPipelineCompleted()).isFalse();
-        assertThat(sixOfEight.completedCount()).isEqualTo(6);
-        assertThat(sixOfEight.isPipelineCompleted()).isFalse();
-        assertThat(sevenOfEight.completedCount()).isEqualTo(7);
-        assertThat(sevenOfEight.isPipelineCompleted()).isFalse();
-        assertThat(complete.completedCount()).isEqualTo(8);
+        assertThat(twoOfNine.completedCount()).isEqualTo(2);
+        assertThat(twoOfNine.isPipelineCompleted()).isFalse();
+        assertThat(threeOfNine.completedCount()).isEqualTo(3);
+        assertThat(threeOfNine.isPipelineCompleted()).isFalse();
+        assertThat(fourOfNine.completedCount()).isEqualTo(4);
+        assertThat(fourOfNine.isPipelineCompleted()).isFalse();
+        assertThat(fiveOfNine.completedCount()).isEqualTo(5);
+        assertThat(fiveOfNine.isPipelineCompleted()).isFalse();
+        assertThat(sixOfNine.completedCount()).isEqualTo(6);
+        assertThat(sixOfNine.isPipelineCompleted()).isFalse();
+        assertThat(sevenOfNine.completedCount()).isEqualTo(7);
+        assertThat(sevenOfNine.isPipelineCompleted()).isFalse();
+        assertThat(eightOfNine.completedCount()).isEqualTo(8);
+        assertThat(eightOfNine.isPipelineCompleted()).isFalse();
+        assertThat(complete.completedCount()).isEqualTo(9);
         assertThat(complete.isPipelineCompleted()).isTrue();
         assertThat(complete.hasAnyCompletedStage()).isTrue();
-        assertThat(sevenOfEight.isStageComplete("auction")).isTrue();
-        assertThat(sevenOfEight.isStageComplete("photos")).isFalse();
-        assertThat(sevenOfEight.firstIncompleteStageKey(java.util.Arrays.asList(
-                "auction", "preshipment", "equipment", "jevic", "coi", "standards", "export", "photos"
-        ))).isEqualTo("photos");
+        assertThat(sevenOfNine.isStageComplete("auction")).isTrue();
+        assertThat(sevenOfNine.isStageComplete("grade")).isFalse();
+        assertThat(sevenOfNine.isStageComplete("photos")).isFalse();
+        assertThat(eightOfNine.isStageComplete("photos")).isTrue();
+        assertThat(eightOfNine.isStageComplete("grade")).isFalse();
+        assertThat(sevenOfNine.firstIncompleteStageKey(java.util.Arrays.asList(
+                "auction", "preshipment", "equipment", "jevic", "coi", "standards", "export", "grade", "photos"
+        ))).isEqualTo("grade");
+        assertThat(eightOfNine.firstIncompleteStageKey(java.util.Arrays.asList(
+                "auction", "preshipment", "equipment", "jevic", "coi", "standards", "export", "grade", "photos"
+        ))).isEqualTo("grade");
         assertThat(complete.firstIncompleteStageKey(java.util.Arrays.asList(
-                "auction", "preshipment", "equipment", "jevic", "coi", "standards", "export", "photos"
+                "auction", "preshipment", "equipment", "jevic", "coi", "standards", "export", "grade", "photos"
         ))).isNull();
     }
 }

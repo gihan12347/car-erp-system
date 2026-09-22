@@ -15,8 +15,10 @@
                     </a>
                     <h1 th:text="${yard.yardName != null and !#strings.isEmpty(yard.yardName) ? yard.yardName : yard.bayCode}">Main yard</h1>
                     <p class="form-lead" th:if="${yard.location != null and !#strings.isEmpty(yard.location)}">
-                        <i class="fa-solid fa-location-dot" aria-hidden="true"></i>
-                        <span th:text="${yard.location}">Front lot</span>
+                        <span class="hub-location">
+                            <i class="fa-solid fa-location-dot" aria-hidden="true"></i>
+                            <span th:text="${yard.location}">Front lot</span>
+                        </span>
                     </p>
                 </div>
                 <div class="sale-hub-capacity" th:classappend="${yard.fillState}">

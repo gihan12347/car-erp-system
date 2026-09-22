@@ -115,6 +115,10 @@ public final class ImportStageUrls {
         return PipelineStageUtils.redirectAfterStageSave(chassisNo, FlowPipeline.IMPORT.getCurrentBase(), keys, FlowStage.EXPORT.getStageKey());
     }
 
+    public static String redirectAfterGradeSave(String chassisNo, List<String> keys) {
+        return PipelineStageUtils.redirectAfterStageSave(chassisNo, FlowPipeline.IMPORT.getCurrentBase(), keys, FlowStage.GRADE.getStageKey());
+    }
+
     public static String redirectAfterPhotosSave(String chassisNo, List<String> keys) {
         return PipelineStageUtils.redirectAfterStageSave(chassisNo, FlowPipeline.IMPORT.getCurrentBase(), keys, FlowStage.PHOTOS.getStageKey());
     }
@@ -138,6 +142,7 @@ public final class ImportStageUrls {
                     FlowStage.COI.getStageKey(),
                     FlowStage.STANDARDS.getStageKey(),
                     FlowStage.EXPORT.getStageKey(),
+                    FlowStage.GRADE.getStageKey(),
                     FlowStage.PHOTOS.getStageKey()
             );
         }

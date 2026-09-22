@@ -23,9 +23,8 @@
     var previewName = "";
     var objectUrl = null;
     var FIELD_ORDER = [
-        "jevicChassisVin", "jevicMake", "jevicModel", "jevicInspectionDate",
-        "jevicLocation", "jevicCertificateNo", "jevicIssueDate", "jevicCurrentOdometer",
-        "jevicAuctionReadingDate", "jevicDealerReadingDate", "jevicDeregistrationReadingDate"
+        "jevicCertificateNo", "jevicChassisVin", "jevicMake", "jevicModel",
+        "jevicInspectionDate", "jevicIssueDate", "jevicLocation", "jevicCurrentOdometer"
     ];
     var currentFieldIndex = 0;
 
@@ -129,14 +128,14 @@
         if (!preview) {
             return;
         }
-        markDocumentReady(name || "JEVIC certificate");
+        markDocumentReady(name || "Odometer certificate");
         if (previewEmpty) {
             previewEmpty.hidden = true;
         }
         hideSavedPreviewElements();
         previewIsPdf = isPdfType(contentType, name);
         previewUrl = url;
-        previewName = name || "JEVIC certificate";
+        previewName = name || "Odometer certificate";
         if (previewIsPdf) {
             if (previewImage) {
                 previewImage.hidden = true;
@@ -186,13 +185,13 @@
             );
         }
         if (!previewUrl) {
-            setStatus("Upload a JEVIC certificate first to preview it.", false);
+            setStatus("Upload an odometer certificate first to preview it.", false);
             return;
         }
         if (window.DocumentViewer) {
             DocumentViewer.open({
                 url: previewUrl,
-                title: previewName || "JEVIC certificate",
+                title: previewName || "Odometer certificate",
                 isPdf: previewIsPdf
             });
         }
@@ -284,6 +283,41 @@
         updateActionButtons();
     }
 
+    function toDateInputValue(value) {
+        if (!value) {
+            return "";
+        }
+        var s = String(value).trim();
+        if (/^\d{4}-\d{2}-\d{2}$/.test(s)) {
+            return s;
+        }
+        var iso = s.match(/^(\d{4}-\d{2}-\d{2})(?:[T\s].*)?$/);
+        if (iso) {
+            return iso[1];
+        }
+        var m = s.match(/^(\d{4})[\/.\-](\d{1,2})[\/.\-](\d{1,2})/);
+        if (m) {
+            return m[1] + "-" + ("0" + m[2]).slice(-2) + "-" + ("0" + m[3]).slice(-2);
+        }
+        m = s.match(/^(\d{1,2})[\/.\-](\d{1,2})[\/.\-](\d{4})/);
+        if (m) {
+            return m[3] + "-" + ("0" + m[2]).slice(-2) + "-" + ("0" + m[1]).slice(-2);
+        }
+        return "";
+    }
+
+    function applyValue(el, value) {
+        if (!el) {
+            return false;
+        }
+        if (el.type === "date") {
+            el.value = toDateInputValue(value);
+            return !!el.value;
+        }
+        el.value = value;
+        return true;
+    }
+
     function fillForm(result) {
         var fields = result.fields || {};
         var filled = 0;
@@ -300,9 +334,7 @@
             if (!value) {
                 return;
             }
-            var el = document.getElementById(key);
-            if (el) {
-                el.value = value;
+            if (applyValue(document.getElementById(key), value)) {
                 filled++;
             }
         });
@@ -315,9 +347,7 @@
             if (!value) {
                 return;
             }
-            var el = document.getElementById(key);
-            if (el) {
-                el.value = value;
+            if (applyValue(document.getElementById(key), value)) {
                 filled++;
             }
         });
@@ -335,13 +365,13 @@
             return;
         }
         if (!hasSavedDocument()) {
-            onError("Upload a JEVIC certificate first.");
+            onError("Upload an odometer certificate first.");
             return;
         }
         var url = buildDocumentUrl(documentStoredNameInput.value);
         var name = documentOriginalNameInput && documentOriginalNameInput.value
             ? documentOriginalNameInput.value
-            : "jevic-certificate";
+            : "odometer-certificate";
         fetch(url)
             .then(function (response) {
                 if (!response.ok) {
@@ -359,11 +389,11 @@
 
     function autoFill() {
         if (!canAutoFill()) {
-            setStatus("Upload a JEVIC certificate first.", false);
+            setStatus("Upload an odometer certificate first.", false);
             return;
         }
         showLoader(true);
-        setStatus("Reading JEVIC certificate...", true);
+        setStatus("Reading odometer certificate...", true);
         withParseFile(function (file) {
             var data = new FormData();
             data.append("file", file);

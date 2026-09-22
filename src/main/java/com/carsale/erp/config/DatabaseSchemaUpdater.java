@@ -43,6 +43,8 @@ public class DatabaseSchemaUpdater implements CommandLineRunner {
         createInspectionCertificatesTable();
         createStandardsCertificatesTable();
         createExportCertificatesTable();
+        addExportCertificateColumns();
+        createGradeSearchesTable();
         createVehiclePhotosTable();
         createInspectionItemsTable();
         createYardBaysTable();
@@ -412,6 +414,7 @@ public class DatabaseSchemaUpdater implements CommandLineRunner {
                             + "owner_address TEXT, "
                             + "locality_of_use TEXT, "
                             + "export_scheduled_date TEXT, "
+                            + "director_general_land_transport_branch TEXT, "
                             + "remarks TEXT, "
                             + "document_original_name VARCHAR(255), "
                             + "document_stored_name VARCHAR(120), "
@@ -423,6 +426,45 @@ public class DatabaseSchemaUpdater implements CommandLineRunner {
             log.info("Verified table export_certificates");
         } catch (Exception ex) {
             log.warn("Could not create export_certificates: {}", ex.getMessage());
+        }
+    }
+
+    private void addExportCertificateColumns() {
+        addExportCertificateColumn(
+                "director_general_land_transport_branch",
+                "ALTER TABLE export_certificates ADD COLUMN director_general_land_transport_branch TEXT NULL"
+        );
+    }
+
+    private void addExportCertificateColumn(String column, String sql) {
+        if (hasTableColumn("export_certificates", column)) {
+            return;
+        }
+        try {
+            jdbcTemplate.execute(sql);
+            log.info("Added export_certificates.{}", column);
+        } catch (Exception ex) {
+            log.warn("Could not add export_certificates.{}: {}", column, ex.getMessage());
+        }
+    }
+
+    private void createGradeSearchesTable() {
+        try {
+            jdbcTemplate.execute(
+                    "CREATE TABLE IF NOT EXISTS grade_searches ("
+                            + "chassis_no VARCHAR(40) NOT NULL, "
+                            + "chassis_number TEXT, "
+                            + "grade TEXT, "
+                            + "document_original_name VARCHAR(255), "
+                            + "document_stored_name VARCHAR(120), "
+                            + "document_content_type VARCHAR(80), "
+                            + "ocr_text TEXT, "
+                            + "PRIMARY KEY (chassis_no)"
+                            + ") ENGINE=InnoDB ROW_FORMAT=DYNAMIC"
+            );
+            log.info("Verified table grade_searches");
+        } catch (Exception ex) {
+            log.warn("Could not create grade_searches: {}", ex.getMessage());
         }
     }
 
