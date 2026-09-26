@@ -44,7 +44,7 @@
                         <tr th:each="row : ${rows}"
                             th:with="stages=${pipelineStages != null ? pipelineStages : @pipelineStageService.list('CUSTOMS')},
                                      pendingKey=${row.status.firstIncompleteStageKey(pipelineKeys)}"
-                            th:classappend="${row.status.clearanceComplete} ? ' pipeline-row-complete' : ''">
+                            th:classappend="${row.status.pipelineCompleted} ? ' pipeline-row-complete' : ''">
                             <td><strong th:text="${row.vehicle.chassisNo}">TRJ250-0025161</strong></td>
                             <td>
                                 <strong th:text="${row.vehicle.model != null ? row.vehicle.model : '—'}">Toyota Aqua</strong>
@@ -53,7 +53,7 @@
                             <td class="list-pipeline-cell">
                                 <div class="list-pipeline"
                                      data-pipeline-flow
-                                     th:classappend="${row.status.clearanceComplete} ? ' is-complete' : ''">
+                                     th:classappend="${row.status.pipelineCompleted} ? ' is-complete' : ''">
                                     <ol class="list-pipeline-flow">
                                         <li th:each="stage, iter : ${stages}"
                                             th:with="ready=${row.status.isStageComplete(stage.stageKey)},
@@ -86,8 +86,8 @@
                                 </div>
                             </td>
                             <td>
-                                <em th:if="${row.status.clearanceComplete}" class="pill sea">Preparation</em>
-                                <em th:unless="${row.status.clearanceComplete}" class="pill muted-pill">In clearance</em>
+                                <em th:if="${row.status.pipelineCompleted}" class="pill sea">Preparation</em>
+                                <em th:unless="${row.status.pipelineCompleted}" class="pill muted-pill">In clearance</em>
                             </td>
                             <td>
                                 <div class="table-row-actions">
