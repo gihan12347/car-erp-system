@@ -6,7 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.carsale.erp.shared.document.document.EquipmentInspectionParser;
 import org.junit.jupiter.api.Test;
 
-import com.carsale.erp.importpipeline.auction.AuctionParseResult;
+import com.carsale.erp.importpipeline.util.AuctionParseResult;
 
 class EquipmentInspectionParserTest {
 

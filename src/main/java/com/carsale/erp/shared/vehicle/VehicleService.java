@@ -1,24 +1,24 @@
 package com.carsale.erp.shared.vehicle;
 
-import com.carsale.erp.importpipeline.photos.VehiclePhotoService;
+import com.carsale.erp.importpipeline.service.VehiclePhotoService;
 import com.carsale.erp.shared.document.SheetDocumentStorageService;
 import com.carsale.erp.shared.pipeline.PipelineStageService;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import com.carsale.erp.customspipeline.CustomsDocumentRepository;
-import com.carsale.erp.importpipeline.equipment.EquipmentInspectionRepository;
-import com.carsale.erp.importpipeline.coi.InspectionCertificateRepository;
-import com.carsale.erp.importpipeline.exportcert.ExportCertificateRepository;
-import com.carsale.erp.importpipeline.gradesearch.GradeSearchRepository;
-import com.carsale.erp.importpipeline.standards.StandardsCertificateRepository;
-import com.carsale.erp.importpipeline.preshipment.PreShipmentInspectionRepository;
-import com.carsale.erp.readypipeline.SaleListingRepository;
-import com.carsale.erp.readypipeline.VehicleRegistrationRepository;
-import com.carsale.erp.preparationpipeline.inspection.VehicleInspectionRepository;
-import com.carsale.erp.preparationpipeline.workshop.WorkshopJobRepository;
-import com.carsale.erp.preparationpipeline.yard.YardRecordRepository;
+import com.carsale.erp.customspipeline.repository.CustomsDocumentRepository;
+import com.carsale.erp.importpipeline.repository.EquipmentInspectionRepository;
+import com.carsale.erp.importpipeline.repository.InspectionCertificateRepository;
+import com.carsale.erp.importpipeline.repository.ExportCertificateRepository;
+import com.carsale.erp.importpipeline.repository.GradeSearchRepository;
+import com.carsale.erp.importpipeline.repository.StandardsCertificateRepository;
+import com.carsale.erp.importpipeline.repository.PreShipmentInspectionRepository;
+import com.carsale.erp.readypipeline.repository.SaleListingRepository;
+import com.carsale.erp.readypipeline.repository.VehicleRegistrationRepository;
+import com.carsale.erp.preparationpipeline.repository.VehicleInspectionRepository;
+import com.carsale.erp.preparationpipeline.repository.WorkshopJobRepository;
+import com.carsale.erp.preparationpipeline.repository.YardRecordRepository;
 
 @Service
 public class VehicleService {

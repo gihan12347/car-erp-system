@@ -2,9 +2,10 @@ package com.carsale.erp.importpipeline.coi;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.carsale.erp.importpipeline.service.CertificateOfInspectionService;
 import org.junit.jupiter.api.Test;
 
-import com.carsale.erp.importpipeline.auction.AuctionParseResult;
+import com.carsale.erp.importpipeline.util.AuctionParseResult;
 
 class CertificateOfInspectionServiceTest {
 

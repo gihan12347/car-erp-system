@@ -15,7 +15,7 @@ import com.carsale.erp.shared.utils.CustomsDocumentParserUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import com.carsale.erp.importpipeline.auction.AuctionParseResult;
+import com.carsale.erp.importpipeline.util.AuctionParseResult;
 
 @Service
 public class ExportCertificateParser implements DocumentParser {

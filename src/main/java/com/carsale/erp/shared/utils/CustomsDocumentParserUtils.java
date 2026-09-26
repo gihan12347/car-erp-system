@@ -3,7 +3,7 @@ package com.carsale.erp.shared.utils;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.Locale;
-import com.carsale.erp.importpipeline.auction.AuctionParseResult;
+import com.carsale.erp.importpipeline.util.AuctionParseResult;
 import com.carsale.erp.shared.regex.RegexConstants;
 
 public class CustomsDocumentParserUtils {

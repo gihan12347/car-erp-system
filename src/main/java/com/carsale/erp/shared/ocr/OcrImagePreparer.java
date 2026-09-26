@@ -17,7 +17,7 @@ import javax.imageio.ImageWriteParam;
 import javax.imageio.ImageWriter;
 import javax.imageio.stream.ImageOutputStream;
 
-import com.carsale.erp.importpipeline.auction.AuctionParseResult;
+import com.carsale.erp.importpipeline.util.AuctionParseResult;
 import com.carsale.erp.shared.document.DocumentParser;
 import com.carsale.erp.shared.utils.CustomsDocumentParserUtils;
 import org.slf4j.Logger;

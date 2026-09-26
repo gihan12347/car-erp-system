@@ -7,7 +7,6 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.util.UriUtils;
 
 @Service
 @Order(3)
@@ -553,7 +552,7 @@ public class PipelineStageService implements CommandLineRunner {
     }
 
     public static NavLinks viewLinks(String chassisNo, int stageIndex, PipelineProgress status, List<PipelineStage> stages, FlowPipeline flowPipeline) {
-        String encoded = encode(chassisNo);
+        String encoded = PipelineStageUtils.encode(chassisNo);
         String viewBase = flowPipeline.getCurrentBase() + encoded;
         FlowPipeline pipeline = FlowPipeline.findPipelineBySortOrder(flowPipeline.getSortOrder() + 1);
         String key = stageKeyAt(stages, stageIndex);
@@ -592,21 +591,9 @@ public class PipelineStageService implements CommandLineRunner {
         );
     }
 
-    private static String encode(String chassisNo) {
-        return UriUtils.encodePathSegment(chassisNo, java.nio.charset.StandardCharsets.UTF_8);
-    }
-
     public static String stageKeyAt(List<PipelineStage> stages, int index) {
-        if (stages == null || stages.isEmpty()) {
-            return FlowStage.AUCTION.getStageKey();
-        }
-        if (index < 0) {
-            return stages.get(0).getStageKey();
-        }
-        if (index >= stages.size()) {
-            return stages.get(stages.size() - 1).getStageKey();
-        }
-        return stages.get(index).getStageKey();
+        String stageKeyAt = PipelineStageUtils.stageKeyAt(stages, index);
+        return stageKeyAt == null ? FlowStage.AUCTION.getStageKey() : stageKeyAt;
     }
 
     public static boolean isStageComplete(String stageKey, PipelineProgress status) {
@@ -651,38 +638,6 @@ public class PipelineStageService implements CommandLineRunner {
             return stage.getShortTitle();
         }
         return null;
-    }
-
-    public static String keyAt(List<String> keys, int index) {
-        if (keys == null || keys.isEmpty()) {
-            return null;
-        }
-        if (index < 0) {
-            return keys.get(0);
-        }
-        if (index >= keys.size()) {
-            return keys.get(keys.size() - 1);
-        }
-        return keys.get(index);
-    }
-
-    public static Integer parseStageIndex(List<String> keys, String requested) {
-        if (requested == null || requested.trim().isEmpty()) {
-            return null;
-        }
-        String value = requested.trim();
-        if (keys != null) {
-            for (int i = 0; i < keys.size(); i++) {
-                if (value.equalsIgnoreCase(keys.get(i))) {
-                    return i;
-                }
-            }
-        }
-        try {
-            return Integer.valueOf(value);
-        } catch (NumberFormatException ex) {
-            return null;
-        }
     }
 
 }

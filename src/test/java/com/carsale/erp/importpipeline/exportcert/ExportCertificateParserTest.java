@@ -9,7 +9,7 @@ import com.carsale.erp.shared.document.document.ExportCertificateParser;
 import com.carsale.erp.shared.ocr.DocumentAiClient;
 import org.junit.jupiter.api.Test;
 
-import com.carsale.erp.importpipeline.auction.AuctionParseResult;
+import com.carsale.erp.importpipeline.util.AuctionParseResult;
 
 class ExportCertificateParserTest {
 

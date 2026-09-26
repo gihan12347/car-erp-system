@@ -1,6 +1,6 @@
 package com.carsale.erp.shared.ocr;
 
-import com.carsale.erp.importpipeline.auction.AuctionSheetEnglish;
+import com.carsale.erp.importpipeline.util.AuctionSheetEnglish;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;

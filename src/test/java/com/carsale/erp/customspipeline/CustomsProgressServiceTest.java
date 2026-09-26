@@ -4,7 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
 
-import com.carsale.erp.customspipeline.CustomsProgressService.CustomsProgress;
+import com.carsale.erp.customspipeline.service.CustomsProgressService.CustomsProgress;
 
 class CustomsProgressServiceTest {
 
@@ -17,15 +17,15 @@ class CustomsProgressServiceTest {
         CustomsProgress complete = new CustomsProgress(true, true, true, true);
 
         assertThat(pending.completedCount()).isEqualTo(0);
-        assertThat(pending.isClearanceComplete()).isFalse();
+        assertThat(pending.isPipelineCompleted()).isFalse();
         assertThat(blOnly.completedCount()).isEqualTo(1);
-        assertThat(blOnly.isClearanceComplete()).isFalse();
+        assertThat(blOnly.isPipelineCompleted()).isFalse();
         assertThat(twoOfFour.completedCount()).isEqualTo(2);
-        assertThat(twoOfFour.isClearanceComplete()).isFalse();
+        assertThat(twoOfFour.isPipelineCompleted()).isFalse();
         assertThat(threeOfFour.completedCount()).isEqualTo(3);
-        assertThat(threeOfFour.isClearanceComplete()).isFalse();
+        assertThat(threeOfFour.isPipelineCompleted()).isFalse();
         assertThat(complete.completedCount()).isEqualTo(4);
-        assertThat(complete.isClearanceComplete()).isTrue();
+        assertThat(complete.isPipelineCompleted()).isTrue();
         assertThat(pending.firstIncompleteStageKey(java.util.Arrays.asList("bl", "declaration", "assessment", "worksheet")))
                 .isEqualTo("bl");
         assertThat(threeOfFour.firstIncompleteStageKey(java.util.Arrays.asList("bl", "declaration", "assessment", "worksheet")))

@@ -2,6 +2,7 @@ package com.carsale.erp.preparationpipeline.inspection;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.carsale.erp.preparationpipeline.dto.InspectionResults;
 import org.junit.jupiter.api.Test;
 
 class InspectionResultsTest {

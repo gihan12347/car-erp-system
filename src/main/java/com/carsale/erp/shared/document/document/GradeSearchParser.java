@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-import com.carsale.erp.importpipeline.auction.AuctionParseResult;
+import com.carsale.erp.importpipeline.util.AuctionParseResult;
 import com.carsale.erp.shared.document.DocumentParser;
 import com.carsale.erp.shared.ocr.DocumentAiClient;
 import com.carsale.erp.shared.regex.RegexConstants;

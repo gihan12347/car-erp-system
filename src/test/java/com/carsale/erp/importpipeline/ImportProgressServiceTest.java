@@ -4,7 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
 
-import com.carsale.erp.importpipeline.ImportProgressService.ImportProgress;
+import com.carsale.erp.importpipeline.service.ImportProgressService.ImportProgress;
 
 class ImportProgressServiceTest {
 

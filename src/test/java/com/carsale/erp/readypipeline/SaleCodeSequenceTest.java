@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.util.Arrays;
 import java.util.Collections;
 
+import com.carsale.erp.readypipeline.service.SaleLocationService;
 import org.junit.jupiter.api.Test;
 
 class SaleCodeSequenceTest {

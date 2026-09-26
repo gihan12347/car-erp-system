@@ -32,8 +32,8 @@
             <ul class="inspection-checklist">
                 <li class="inspection-check-row"
                     th:each="line, stat : ${inspection.lines}"
-                    th:with="resultKey=${T(com.carsale.erp.preparationpipeline.inspection.InspectionResults).cssClass(line.result)},
-                             resultLabel=${T(com.carsale.erp.preparationpipeline.inspection.InspectionResults).display(line.result)}"
+                    th:with="resultKey=${T(com.carsale.erp.preparationpipeline.dto.InspectionResults).cssClass(line.result)},
+                             resultLabel=${T(com.carsale.erp.preparationpipeline.dto.InspectionResults).display(line.result)}"
                     th:classappend="${' is-' + #strings.toLowerCase(resultKey)}">
                     <span class="inspection-check" th:title="${resultLabel}" th:aria-label="${resultLabel}">
                         <i class="fa-solid fa-check" th:if="${resultKey == 'OK'}" aria-hidden="true"></i>

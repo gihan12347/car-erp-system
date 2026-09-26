@@ -8,10 +8,13 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import com.carsale.erp.readypipeline.model.SaleListing;
+import com.carsale.erp.readypipeline.model.SaleLocation;
+import com.carsale.erp.readypipeline.util.SaleGroup;
 import org.junit.jupiter.api.Test;
 
-import com.carsale.erp.readypipeline.ReadyForSaleController.SaleRow;
-import com.carsale.erp.readypipeline.SaleListingService.SaleProgress;
+import com.carsale.erp.readypipeline.controller.ReadyForSaleController.SaleRow;
+import com.carsale.erp.readypipeline.service.SaleListingService.SaleProgress;
 import com.carsale.erp.shared.vehicle.Vehicle;
 
 class SaleGroupTest {

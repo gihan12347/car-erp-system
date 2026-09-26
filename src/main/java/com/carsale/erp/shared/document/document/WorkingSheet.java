@@ -1,11 +1,11 @@
 package com.carsale.erp.shared.document.document;
 
-import com.carsale.erp.importpipeline.auction.AuctionSheetEnglish;
+import com.carsale.erp.importpipeline.util.AuctionSheetEnglish;
 import com.carsale.erp.shared.ocr.DocumentAiClient;
 import com.carsale.erp.shared.ocr.JapaneseTextTranslator;
 import com.carsale.erp.shared.utils.CustomsDocumentParserUtils;
 import com.carsale.erp.shared.regex.RegexConstants;
-import com.carsale.erp.importpipeline.auction.AuctionParseResult;
+import com.carsale.erp.importpipeline.util.AuctionParseResult;
 import com.carsale.erp.shared.document.DocumentParser;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;

@@ -1,14 +1,19 @@
 server:
-  port: 8080
+  # Railway sets PORT. Locally this stays 8080.
+  port: ${PORT:8080}
+  # So login and links stay https behind Railway's proxy.
+  forward-headers-strategy: framework
 
 spring:
   application:
     name: car-sale-erp-system
   datasource:
-    url: jdbc:mysql://localhost:3306/car-sale-erp?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+    # Locally this is localhost. On Railway, set MYSQLHOST, MYSQLPORT,
+    # MYSQLDATABASE, MYSQLUSER, and MYSQLPASSWORD from the MySQL service.
+    url: jdbc:mysql://${MYSQLHOST:localhost}:${MYSQLPORT:3306}/${MYSQLDATABASE:car-sale-erp}?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
     driver-class-name: com.mysql.cj.jdbc.Driver
-    username: root
-    password: ${MYSQL_PASSWORD:}
+    username: ${MYSQLUSER:root}
+    password: ${MYSQLPASSWORD:${MYSQL_PASSWORD:}}
   jpa:
     hibernate:
       ddl-auto: update

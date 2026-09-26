@@ -1,7 +1,7 @@
 package com.carsale.erp.importpipeline.auction;
 
+import com.carsale.erp.importpipeline.util.AuctionSheetEnglish;
 import com.carsale.erp.shared.ocr.JapaneseTextTranslator;
-import com.carsale.erp.shared.vehicle.Vehicle;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;

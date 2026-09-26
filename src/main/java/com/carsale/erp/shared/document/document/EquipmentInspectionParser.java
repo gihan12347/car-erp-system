@@ -2,17 +2,16 @@ package com.carsale.erp.shared.document.document;
 
 import java.util.Arrays;
 import java.util.Comparator;
-import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import com.carsale.erp.importpipeline.equipment.EquipmentInspectionFields;
+import com.carsale.erp.importpipeline.util.EquipmentInspectionFields;
 import com.carsale.erp.shared.document.DocumentParser;
 import com.carsale.erp.shared.ocr.DocumentAiClient;
 import com.carsale.erp.shared.utils.CustomsDocumentParserUtils;
 import org.springframework.stereotype.Service;
 
-import com.carsale.erp.importpipeline.auction.AuctionParseResult;
-import com.carsale.erp.importpipeline.equipment.EquipmentInspectionFields.FieldDef;
+import com.carsale.erp.importpipeline.util.AuctionParseResult;
+import com.carsale.erp.importpipeline.util.EquipmentInspectionFields.FieldDef;
 import com.carsale.erp.shared.regex.RegexConstants;
 
 @Service

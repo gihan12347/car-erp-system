@@ -6,10 +6,13 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.util.Arrays;
 import java.util.List;
 
+import com.carsale.erp.importpipeline.util.ImportStageUrls;
+import com.carsale.erp.shared.pipeline.FlowStage;
+import com.carsale.erp.shared.utils.PipelineStageUtils;
 import org.junit.jupiter.api.Test;
 
 import com.carsale.erp.shared.pipeline.PipelineStage;
-import com.carsale.erp.importpipeline.ImportProgressService.ImportProgress;
+import com.carsale.erp.importpipeline.service.ImportProgressService.ImportProgress;
 
 class ImportStageUrlsTest {
 
@@ -71,9 +74,7 @@ class ImportStageUrlsTest {
                 stage("jevic", 9),
                 stage("preshipment", 1)
         );
-
-        assertEquals(2, ImportStageUrls.resolveStageIndex(stages, "jevic"));
-        assertEquals("jevic", ImportStageUrls.stageKeyAt(stages, 2));
+        assertEquals("jevic", PipelineStageUtils.stageKeyAt(stages, 2));
         assertEquals("jevic", ImportStageUrls.getStageKeyBySortOrder(stages, 2));
     }
 

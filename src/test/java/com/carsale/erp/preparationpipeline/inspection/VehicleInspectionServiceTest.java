@@ -1,6 +1,9 @@
 package com.carsale.erp.preparationpipeline.inspection;
 
-import com.carsale.erp.preparationpipeline.workshop.WorkshopService;
+import com.carsale.erp.preparationpipeline.dto.InspectionFailRequest;
+import com.carsale.erp.preparationpipeline.model.VehicleInspectionLine;
+import com.carsale.erp.preparationpipeline.service.VehicleInspectionService;
+import com.carsale.erp.preparationpipeline.service.WorkshopService;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
@@ -8,12 +11,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.carsale.erp.preparationpipeline.inspection.InspectionFailRequest;
 import com.carsale.erp.shared.vehicle.Vehicle;
-import com.carsale.erp.preparationpipeline.inspection.VehicleInspection;
-import com.carsale.erp.preparationpipeline.inspection.VehicleInspectionLine;
-import com.carsale.erp.preparationpipeline.workshop.WorkshopJob;
-import com.carsale.erp.preparationpipeline.workshop.WorkshopJobLine;
+import com.carsale.erp.preparationpipeline.model.VehicleInspection;
+import com.carsale.erp.preparationpipeline.model.WorkshopJob;
+import com.carsale.erp.preparationpipeline.model.WorkshopJobLine;
 import com.carsale.erp.shared.vehicle.VehicleRepository;
 
 @SpringBootTest

@@ -2,6 +2,7 @@ package com.carsale.erp.importpipeline.auction;
 
 import java.util.Map;
 
+import com.carsale.erp.importpipeline.util.AuctionParseResult;
 import com.carsale.erp.shared.document.document.WorkingSheet;
 import org.junit.jupiter.api.Test;
 

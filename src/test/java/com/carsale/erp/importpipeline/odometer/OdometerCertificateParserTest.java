@@ -5,7 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.carsale.erp.importpipeline.auction.AuctionParseResult;
+import com.carsale.erp.importpipeline.util.AuctionParseResult;
 import com.carsale.erp.shared.document.document.OdometerCertificateParser;
 import com.carsale.erp.shared.ocr.DocumentAiClient;
 import org.junit.jupiter.api.Test;

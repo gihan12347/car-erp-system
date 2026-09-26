@@ -5,7 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.carsale.erp.shared.document.document.StandardsCertificateDoc;
 import org.junit.jupiter.api.Test;
 
-import com.carsale.erp.importpipeline.auction.AuctionParseResult;
+import com.carsale.erp.importpipeline.util.AuctionParseResult;
 
 class StandardsCertificateDocParserTest {
 

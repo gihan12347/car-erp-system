@@ -44,7 +44,7 @@
                      th:each="line, stat : *{lines}"
                      th:data-index="${stat.index}"
                      th:classappend="${(line.catalogItem ? ' is-catalog' : ' is-custom')
-                             + (T(com.carsale.erp.preparationpipeline.inspection.InspectionResults).isNo(line.result) ? ' has-notes' : '')}">
+                             + (T(com.carsale.erp.preparationpipeline.dto.InspectionResults).isNo(line.result) ? ' has-notes' : '')}">
                     <input type="hidden" th:if="${line.id != null}" th:field="*{lines[__${stat.index}__].id}">
                     <input type="hidden" th:field="*{lines[__${stat.index}__].itemKey}">
                     <input type="hidden" th:field="*{lines[__${stat.index}__].catalogItem}">
@@ -65,7 +65,7 @@
                         </div>
                         <p class="inspection-job-note muted" hidden></p>
                         <label class="inspection-item-notes"
-                               th:hidden="${!T(com.carsale.erp.preparationpipeline.inspection.InspectionResults).isNo(line.result)}">
+                               th:hidden="${!T(com.carsale.erp.preparationpipeline.dto.InspectionResults).isNo(line.result)}">
                             <span>Notes</span>
                             <textarea th:field="*{lines[__${stat.index}__].notes}" rows="2"
                                       placeholder="Required work if No..."></textarea>
@@ -75,17 +75,17 @@
                     <div class="inspection-check-choices" role="radiogroup" th:attr="aria-label=${line.itemTitle}">
                         <label class="inspection-check-choice"
                                th:each="opt : ${resultOptions}"
-                               th:with="optKey=${T(com.carsale.erp.preparationpipeline.inspection.InspectionResults).cssClass(opt)}"
+                               th:with="optKey=${T(com.carsale.erp.preparationpipeline.dto.InspectionResults).cssClass(opt)}"
                                th:classappend="${' result-' + optKey}">
                             <input type="radio"
                                    th:field="*{lines[__${stat.index}__].result}"
                                    th:value="${opt}">
-                            <span class="inspection-check" th:title="${T(com.carsale.erp.preparationpipeline.inspection.InspectionResults).display(opt)}">
+                            <span class="inspection-check" th:title="${T(com.carsale.erp.preparationpipeline.dto.InspectionResults).display(opt)}">
                                 <i class="fa-solid fa-check" th:if="${optKey == 'OK'}" aria-hidden="true"></i>
                                 <i class="fa-solid fa-xmark" th:if="${optKey == 'NO'}" aria-hidden="true"></i>
                                 <i class="fa-solid fa-minus" th:if="${optKey == 'NA'}" aria-hidden="true"></i>
                             </span>
-                            <span class="visually-hidden" th:text="${T(com.carsale.erp.preparationpipeline.inspection.InspectionResults).display(opt)}">OK</span>
+                            <span class="visually-hidden" th:text="${T(com.carsale.erp.preparationpipeline.dto.InspectionResults).display(opt)}">OK</span>
                         </label>
                     </div>
                 </div>

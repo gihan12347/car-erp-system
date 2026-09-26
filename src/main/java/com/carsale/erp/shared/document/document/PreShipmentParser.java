@@ -15,7 +15,7 @@ import com.carsale.erp.shared.regex.RegexConstants;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import com.carsale.erp.importpipeline.auction.AuctionParseResult;
+import com.carsale.erp.importpipeline.util.AuctionParseResult;
 
 @Service
 public class PreShipmentParser implements DocumentParser {

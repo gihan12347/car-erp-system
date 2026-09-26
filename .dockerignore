@@ -1,0 +1,10 @@
+.git
+.gradle
+build
+uploads
+.idea
+.vscode
+out
+bin
+*.iml
+config/google-vision-credentials.json
