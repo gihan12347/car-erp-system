@@ -661,7 +661,7 @@ public class CustomsDocument {
     private String worksheetCheckedBy;
 
     @Lob
-    @Column(table = "clearance_working_sheets", columnDefinition = "TEXT")
+    @Column(name = "worksheet_fob_value85_currency", table = "clearance_working_sheets", columnDefinition = "TEXT")
     private String worksheetFobValue85Currency;
 
     @Lob

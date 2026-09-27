@@ -627,12 +627,52 @@ public class DatabaseSchemaUpdater implements CommandLineRunner {
             log.info("Verified table clearance_working_sheets");
             tryExecute("ALTER TABLE clearance_working_sheets ADD COLUMN worksheet_agents_fob_calc TEXT NULL");
             tryExecute("ALTER TABLE clearance_working_sheets ADD COLUMN worksheet_fob_value85_currency TEXT NULL");
+            alignWorksheetFobValue85CurrencyColumn();
             tryExecute("ALTER TABLE clearance_working_sheets ADD COLUMN worksheet_cha_no TEXT NULL");
             tryExecute("ALTER TABLE clearance_working_sheets ADD COLUMN worksheet_fiscal_total_currency TEXT NULL");
             tryExecute("ALTER TABLE clearance_working_sheets ADD COLUMN worksheet_checked_by TEXT NULL");
             tryExecute("ALTER TABLE clearance_working_sheets ADD COLUMN worksheet_appraiser_name TEXT NULL");
         } catch (Exception ex) {
             log.warn("Could not create clearance_working_sheets: {}", ex.getMessage());
+        }
+    }
+
+    /**
+     * Spring's physical naming strategy turns worksheetFobValue85Currency into
+     * worksheet_fob_value85currency (no underscore after the digits). The column
+     * this app creates is worksheet_fob_value85_currency. Copy any value stored
+     * under the old name before Hibernate reads the real column.
+     */
+    private void alignWorksheetFobValue85CurrencyColumn() {
+        boolean legacy = hasTableColumn("clearance_working_sheets", "worksheet_fob_value85currency");
+        boolean current = hasTableColumn("clearance_working_sheets", "worksheet_fob_value85_currency");
+        if (legacy && !current) {
+            try {
+                jdbcTemplate.execute(
+                        "ALTER TABLE clearance_working_sheets "
+                                + "CHANGE COLUMN worksheet_fob_value85currency "
+                                + "worksheet_fob_value85_currency TEXT NULL"
+                );
+                log.info("Renamed clearance_working_sheets.worksheet_fob_value85currency");
+            } catch (Exception ex) {
+                log.warn("Could not rename worksheet_fob_value85currency: {}", ex.getMessage());
+            }
+            return;
+        }
+        if (!legacy || !current) {
+            return;
+        }
+        try {
+            jdbcTemplate.update(
+                    "UPDATE clearance_working_sheets "
+                            + "SET worksheet_fob_value85_currency = worksheet_fob_value85currency "
+                            + "WHERE (worksheet_fob_value85_currency IS NULL "
+                            + "OR TRIM(worksheet_fob_value85_currency) = '') "
+                            + "AND worksheet_fob_value85currency IS NOT NULL "
+                            + "AND TRIM(worksheet_fob_value85currency) <> ''"
+            );
+        } catch (Exception ex) {
+            log.warn("Could not copy worksheet_fob_value85currency: {}", ex.getMessage());
         }
     }
 
