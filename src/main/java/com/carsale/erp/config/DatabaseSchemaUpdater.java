@@ -582,6 +582,7 @@ public class DatabaseSchemaUpdater implements CommandLineRunner {
                             + "worksheet_vessel_name TEXT, "
                             + "worksheet_chassis_no TEXT, "
                             + "worksheet_agents_fob TEXT, "
+                            + "worksheet_agents_fob_calc TEXT, "
                             + "worksheet_invoiced_fob TEXT, "
                             + "worksheet_agents_freight TEXT, "
                             + "worksheet_invoiced_freight TEXT, "
@@ -598,6 +599,7 @@ public class DatabaseSchemaUpdater implements CommandLineRunner {
                             + "worksheet_local_taxes TEXT, "
                             + "worksheet_fifteen_percent TEXT, "
                             + "worksheet_fob_value85 TEXT, "
+                            + "worksheet_fob_value85_currency TEXT, "
                             + "worksheet_lc_no TEXT, "
                             + "worksheet_lc_amount TEXT, "
                             + "worksheet_lc_bank TEXT, "
@@ -606,11 +608,15 @@ public class DatabaseSchemaUpdater implements CommandLineRunner {
                             + "worksheet_lc_expiry_date TEXT, "
                             + "worksheet_lc_amendment_date TEXT, "
                             + "worksheet_clearing_agent TEXT, "
+                            + "worksheet_cha_no TEXT, "
                             + "worksheet_fiscal_fob TEXT, "
                             + "worksheet_fiscal_freight TEXT, "
                             + "worksheet_fiscal_insurance TEXT, "
                             + "worksheet_fiscal_options TEXT, "
                             + "worksheet_fiscal_total TEXT, "
+                            + "worksheet_fiscal_total_currency TEXT, "
+                            + "worksheet_checked_by TEXT, "
+                            + "worksheet_appraiser_name TEXT, "
                             + "page4_original_name TEXT, "
                             + "page4_stored_name TEXT, "
                             + "page4_content_type TEXT, "
@@ -619,6 +625,12 @@ public class DatabaseSchemaUpdater implements CommandLineRunner {
                             + ")"
             );
             log.info("Verified table clearance_working_sheets");
+            tryExecute("ALTER TABLE clearance_working_sheets ADD COLUMN worksheet_agents_fob_calc TEXT NULL");
+            tryExecute("ALTER TABLE clearance_working_sheets ADD COLUMN worksheet_fob_value85_currency TEXT NULL");
+            tryExecute("ALTER TABLE clearance_working_sheets ADD COLUMN worksheet_cha_no TEXT NULL");
+            tryExecute("ALTER TABLE clearance_working_sheets ADD COLUMN worksheet_fiscal_total_currency TEXT NULL");
+            tryExecute("ALTER TABLE clearance_working_sheets ADD COLUMN worksheet_checked_by TEXT NULL");
+            tryExecute("ALTER TABLE clearance_working_sheets ADD COLUMN worksheet_appraiser_name TEXT NULL");
         } catch (Exception ex) {
             log.warn("Could not create clearance_working_sheets: {}", ex.getMessage());
         }

@@ -59,6 +59,7 @@ app:
       exportCertificateProcessorId: ${DOCUMENT_AI_EXPORT_CERTIFICATE_PROCESSOR_ID:322628bd2494c32d}
       odometerCertificateProcessorId: ${DOCUMENT_AI_ODOMETER_CERTIFICATE_PROCESSOR_ID:f15abb638c6327b7}
       gradeSearchProcessorId: ${DOCUMENT_AI_GRADE_SEARCH_PROCESSOR_ID:c86ec486ccb7e7d7}
+      workingSheetProcessorId: ${DOCUMENT_AI_WORKING_SHEET_PROCESSOR_ID:118d57fe35792578}
       processorVersion: ${DOCUMENT_AI_PROCESSOR_VERSION:}
       assessmentProcessorId: ${DOCUMENT_AI_ASSESSMENT_PROCESSOR_ID:}
       assessmentProcessorVersion: ${DOCUMENT_AI_ASSESSMENT_PROCESSOR_VERSION:}

@@ -34,6 +34,7 @@ public class PipelineStageService implements CommandLineRunner {
     @Transactional
     public void ensureDefaults() {
         moveJevicToImport();
+        moveWorksheetToImport();
         seedIfMissing(FLOW_IMPORT, defaultImport());
         seedIfMissing(FLOW_CUSTOMS, defaultCustoms());
         seedIfMissing(FLOW_PREP, defaultPrep());
@@ -78,6 +79,40 @@ public class PipelineStageService implements CommandLineRunner {
         customsJevic.setSortOrder(nextOrder);
         refreshJevicCopy(customsJevic);
         pipelineStageRepository.save(customsJevic);
+        reindex(importFlow.getId());
+        reindex(customsFlow.getId());
+    }
+
+    @Transactional
+    public void moveWorksheetToImport() {
+        PipelineFlow importFlow = pipelineFlowRepository.findByFlowKey(FLOW_IMPORT).orElse(null);
+        PipelineFlow customsFlow = pipelineFlowRepository.findByFlowKey(FLOW_CUSTOMS).orElse(null);
+        if (importFlow == null || customsFlow == null) {
+            return;
+        }
+        PipelineStage customsWorksheet = pipelineStageRepository
+                .findByFlowIdAndStageKey(customsFlow.getId(), FlowStage.WORKSHEET.getStageKey())
+                .orElse(null);
+        if (customsWorksheet == null) {
+            return;
+        }
+        PipelineStage importWorksheet = pipelineStageRepository
+                .findByFlowIdAndStageKey(importFlow.getId(), FlowStage.WORKSHEET.getStageKey())
+                .orElse(null);
+        if (importWorksheet != null) {
+            pipelineStageRepository.delete(customsWorksheet);
+            pipelineStageRepository.flush();
+            reindex(importFlow.getId());
+            reindex(customsFlow.getId());
+            return;
+        }
+        int nextOrder = 0;
+        for (PipelineStage existing : pipelineStageRepository.findByFlowIdOrdered(importFlow.getId())) {
+            nextOrder = Math.max(nextOrder, existing.getSortOrder() + 1);
+        }
+        customsWorksheet.setFlow(importFlow);
+        customsWorksheet.setSortOrder(nextOrder);
+        pipelineStageRepository.save(customsWorksheet);
         reindex(importFlow.getId());
         reindex(customsFlow.getId());
     }
@@ -510,7 +545,8 @@ public class PipelineStageService implements CommandLineRunner {
                 new DefaultStage(FlowStage.STANDARDS.getStageKey(), "Standards certificate", "Emission and safety"),
                 new DefaultStage(FlowStage.EXPORT.getStageKey(), "Export certificate", "Document AI"),
                 new DefaultStage(FlowStage.GRADE.getStageKey(), "Grade search", "Document AI"),
-                new DefaultStage(FlowStage.PHOTOS.getStageKey(), "Vehicle images", "Up to 5 photos")
+                new DefaultStage(FlowStage.PHOTOS.getStageKey(), "Vehicle images", "Up to 5 photos"),
+                new DefaultStage(FlowStage.WORKSHEET.getStageKey(), "Working sheet", "Motor vehicle valuation")
         );
     }
 
@@ -518,8 +554,7 @@ public class PipelineStageService implements CommandLineRunner {
         return Arrays.asList(
                 new DefaultStage(FlowStage.BILL_OF_LADING.getStageKey(), "Bill of lading", "Ocean B/L and landing cost"),
                 new DefaultStage(FlowStage.DECLARATION.getStageKey(), "Customs declaration", "Sri Lanka CUSDEC"),
-                new DefaultStage(FlowStage.ASSESSMENT.getStageKey(), "Assessment notice", "ASYCUDA assessment"),
-                new DefaultStage(FlowStage.WORKSHEET.getStageKey(), "Working sheet", "Motor vehicle valuation")
+                new DefaultStage(FlowStage.ASSESSMENT.getStageKey(), "Assessment notice", "ASYCUDA assessment")
         );
     }
 

@@ -15,11 +15,9 @@
                     <h1 th:if="${stageKey == 'bl'}">Bill of lading</h1>
                     <h1 th:if="${stageKey == 'declaration'}">Customs declaration</h1>
                     <h1 th:if="${stageKey == 'assessment'}">Assessment notice</h1>
-                    <h1 th:if="${stageKey == 'worksheet'}">Working sheet</h1>
                     <p class="form-lead" th:if="${stageKey == 'bl'}">Review the bill of lading number, issue date, and landing cost.</p>
                     <p class="form-lead" th:if="${stageKey == 'declaration'}">Review the Sri Lanka customs declaration data.</p>
                     <p class="form-lead" th:if="${stageKey == 'assessment'}">Review the ASYCUDA assessment notice and tax amounts.</p>
-                    <p class="form-lead" th:if="${stageKey == 'worksheet'}">Review the motor vehicle working sheet and valuation figures.</p>
                 </div>
                 <div th:replace="shared/pipeline-delete :: pipelineDeleteBtn(
                         @{/customs/{c}/delete(c=${vehicle.chassisNo})},
@@ -44,9 +42,6 @@
             </div>
             <div class="vehicle-form clearance-form" th:if="${stageKey == 'assessment'}">
                 <div th:replace="customs-pipeline/fragments/view :: clearanceViewAssessment(${vehicle}, ${clearance}, ${assessmentReady})"></div>
-            </div>
-            <div class="vehicle-form clearance-form" th:if="${stageKey == 'worksheet'}">
-                <div th:replace="customs-pipeline/fragments/view :: clearanceViewWorksheet(${vehicle}, ${clearance}, ${worksheetReady})"></div>
             </div>
 
             <article class="panel import-next-pipeline" th:if="${clearanceComplete}">

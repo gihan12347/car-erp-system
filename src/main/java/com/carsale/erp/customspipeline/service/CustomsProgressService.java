@@ -141,11 +141,11 @@ public class CustomsProgressService {
 
         @Override
         public boolean hasAnyCompletedStage() {
-            return blReady || declarationReady || assessmentReady || worksheetReady;
+            return blReady || declarationReady || assessmentReady;
         }
 
         public int completedCount() {
-            return (blReady ? 1 : 0) + (declarationReady ? 1 : 0) + (assessmentReady ? 1 : 0) + (worksheetReady ? 1 : 0);
+            return (blReady ? 1 : 0) + (declarationReady ? 1 : 0) + (assessmentReady ? 1 : 0);
         }
 
         public boolean isStageComplete(String stageKey) {
@@ -163,7 +163,7 @@ public class CustomsProgressService {
 
         @Override
         public boolean isPipelineCompleted() {
-            return blReady && assessmentReady && worksheetReady && declarationReady;
+            return blReady && assessmentReady && declarationReady;
         }
 
         public String firstIncompleteStageKey(List<String> keys) {

@@ -34,14 +34,16 @@ public class CustomsDocumentService {
 
     private static final String[] WORKSHEET_FIELDS = {
             "worksheetRef", "worksheetHsCode", "worksheetVehicleType", "worksheetReferenceNo", "worksheetVesselName",
-            "worksheetChassisNo", "worksheetAgentsFob", "worksheetInvoicedFob", "worksheetAgentsFreight",
-            "worksheetInvoicedFreight", "worksheetAgentsInsurance", "worksheetInvoicedInsurance", "worksheetOptionsValue",
-            "worksheetBlFreightCalc", "worksheetBlFreightAmount", "worksheetBlDate", "worksheetManufactureDate",
-            "worksheetAgeDifference", "worksheetFirstRegistrationDate", "worksheetWebsiteValue", "worksheetLocalTaxes",
-            "worksheetFifteenPercent", "worksheetFobValue85", "worksheetLcNo", "worksheetLcAmount", "worksheetLcBank",
+            "worksheetChassisNo", "worksheetAgentsFob", "worksheetAgentsFobCalc", "worksheetInvoicedFob",
+            "worksheetAgentsFreight", "worksheetInvoicedFreight", "worksheetAgentsInsurance", "worksheetInvoicedInsurance",
+            "worksheetOptionsValue", "worksheetBlFreightCalc", "worksheetBlFreightAmount", "worksheetBlDate",
+            "worksheetManufactureDate", "worksheetAgeDifference", "worksheetFirstRegistrationDate",
+            "worksheetWebsiteValue", "worksheetLocalTaxes", "worksheetFifteenPercent", "worksheetFobValue85",
+            "worksheetFobValue85Currency", "worksheetLcNo", "worksheetLcAmount", "worksheetLcBank",
             "worksheetLcImporter", "worksheetLcIssueDate", "worksheetLcExpiryDate", "worksheetLcAmendmentDate",
-            "worksheetClearingAgent", "worksheetFiscalFob", "worksheetFiscalFreight", "worksheetFiscalInsurance",
-            "worksheetFiscalOptions", "worksheetFiscalTotal",
+            "worksheetClearingAgent", "worksheetChaNo", "worksheetFiscalFob", "worksheetFiscalFreight",
+            "worksheetFiscalInsurance", "worksheetFiscalOptions", "worksheetFiscalTotal",
+            "worksheetFiscalTotalCurrency", "worksheetCheckedBy", "worksheetAppraiserName",
             "page4OriginalName", "page4StoredName", "page4ContentType", "ocrTextPage4"
     };
 

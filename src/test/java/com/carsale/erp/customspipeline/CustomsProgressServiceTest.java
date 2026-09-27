@@ -9,7 +9,7 @@ import com.carsale.erp.customspipeline.service.CustomsProgressService.CustomsPro
 class CustomsProgressServiceTest {
 
     @Test
-    void clearanceIsCompleteWhenBlDeclarationAssessmentAndWorksheetAreDone() {
+    void clearanceIsCompleteWhenBlDeclarationAndAssessmentAreDone() {
         CustomsProgress pending = new CustomsProgress(false, false, false, false);
         CustomsProgress blOnly = new CustomsProgress(true, false, false, false);
         CustomsProgress twoOfFour = new CustomsProgress(true, true, false, false);
@@ -23,14 +23,14 @@ class CustomsProgressServiceTest {
         assertThat(twoOfFour.completedCount()).isEqualTo(2);
         assertThat(twoOfFour.isPipelineCompleted()).isFalse();
         assertThat(threeOfFour.completedCount()).isEqualTo(3);
-        assertThat(threeOfFour.isPipelineCompleted()).isFalse();
-        assertThat(complete.completedCount()).isEqualTo(4);
+        assertThat(threeOfFour.isPipelineCompleted()).isTrue();
+        assertThat(complete.completedCount()).isEqualTo(3);
         assertThat(complete.isPipelineCompleted()).isTrue();
-        assertThat(pending.firstIncompleteStageKey(java.util.Arrays.asList("bl", "declaration", "assessment", "worksheet")))
+        assertThat(pending.firstIncompleteStageKey(java.util.Arrays.asList("bl", "declaration", "assessment")))
                 .isEqualTo("bl");
-        assertThat(threeOfFour.firstIncompleteStageKey(java.util.Arrays.asList("bl", "declaration", "assessment", "worksheet")))
-                .isEqualTo("worksheet");
-        assertThat(complete.firstIncompleteStageKey(java.util.Arrays.asList("bl", "declaration", "assessment", "worksheet")))
+        assertThat(threeOfFour.firstIncompleteStageKey(java.util.Arrays.asList("bl", "declaration", "assessment")))
+                .isNull();
+        assertThat(complete.firstIncompleteStageKey(java.util.Arrays.asList("bl", "declaration", "assessment")))
                 .isNull();
     }
 }

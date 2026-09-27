@@ -84,13 +84,13 @@ class PipelineStageServiceTest {
     @Test
     void importPipelineHasAuctionPreshipmentEquipmentJevicCoiStandardsExportAndPhotosStages() {
         assertThat(pipelineStageService.keys("IMPORT"))
-                .containsExactlyInAnyOrder("auction", "preshipment", "equipment", "jevic", "coi", "standards", "export", "grade", "photos");
+                .containsExactlyInAnyOrder("auction", "preshipment", "equipment", "jevic", "coi", "standards", "export", "grade", "photos", "worksheet");
     }
 
     @Test
-    void customsPipelineHasBlDeclarationAssessmentAndWorksheetStages() {
+    void customsPipelineHasBlDeclarationAndAssessmentStages() {
         assertThat(pipelineStageService.keys("CUSTOMS"))
-                .containsExactlyInAnyOrder("bl", "declaration", "assessment", "worksheet");
+                .containsExactlyInAnyOrder("bl", "declaration", "assessment");
     }
 
     @Test
@@ -211,18 +211,48 @@ class PipelineStageServiceTest {
     @Test
     @Transactional
     void ensureDefaultsAddsMissingWorksheetStage() {
-        PipelineFlow customsFlow = pipelineFlowRepository.findByFlowKey("CUSTOMS")
+        PipelineFlow importFlow = pipelineFlowRepository.findByFlowKey("IMPORT")
                 .orElseThrow(IllegalStateException::new);
-        PipelineFlow joined = pipelineFlowRepository.findByIdWithStages(customsFlow.getId())
+        PipelineFlow joined = pipelineFlowRepository.findByIdWithStages(importFlow.getId())
                 .orElseThrow(IllegalStateException::new);
         joined.getStages().removeIf(stage -> "worksheet".equals(stage.getStageKey()));
         pipelineFlowRepository.saveAndFlush(joined);
 
-        assertThat(pipelineStageService.keys("CUSTOMS")).doesNotContain("worksheet");
+        assertThat(pipelineStageService.keys("IMPORT")).doesNotContain("worksheet");
 
         pipelineStageService.ensureDefaults();
 
+        assertThat(pipelineStageService.keys("IMPORT")).contains("worksheet");
+        assertThat(pipelineStageService.keys("CUSTOMS")).doesNotContain("worksheet");
+    }
+
+    @Test
+    @Transactional
+    void ensureDefaultsMovesWorksheetFromCustomsToImport() {
+        PipelineFlow importFlow = pipelineFlowRepository.findByFlowKey("IMPORT")
+                .orElseThrow(IllegalStateException::new);
+        PipelineFlow customsFlow = pipelineFlowRepository.findByFlowKey("CUSTOMS")
+                .orElseThrow(IllegalStateException::new);
+        PipelineFlow importJoined = pipelineFlowRepository.findByIdWithStages(importFlow.getId())
+                .orElseThrow(IllegalStateException::new);
+        importJoined.getStages().removeIf(stage -> "worksheet".equals(stage.getStageKey()));
+        pipelineFlowRepository.saveAndFlush(importJoined);
+
+        PipelineStage customsWorksheet = new PipelineStage();
+        customsWorksheet.setStageKey("worksheet");
+        customsWorksheet.setTitle("Working sheet");
+        customsWorksheet.setSubtitle("Motor vehicle valuation");
+        customsWorksheet.setSortOrder(99);
+        customsWorksheet.setFlow(customsFlow);
+        pipelineStageRepository.saveAndFlush(customsWorksheet);
+
+        assertThat(pipelineStageService.keys("IMPORT")).doesNotContain("worksheet");
         assertThat(pipelineStageService.keys("CUSTOMS")).contains("worksheet");
+
+        pipelineStageService.ensureDefaults();
+
+        assertThat(pipelineStageService.keys("IMPORT")).contains("worksheet");
+        assertThat(pipelineStageService.keys("CUSTOMS")).doesNotContain("worksheet");
     }
 
     @Test

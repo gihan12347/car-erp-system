@@ -7,12 +7,13 @@
     : (stageKey == 'standards' ? 'standards'
     : (stageKey == 'export' ? 'export'
     : (stageKey == 'grade' ? 'grade'
-    : (stageKey == 'photos' ? 'photos' : 'auction')))))))}">
+    : (stageKey == 'photos' ? 'photos'
+    : (stageKey == 'worksheet' ? 'worksheet' : 'auction'))))))))}">
 <head th:replace="shared/head :: head(${pageTitle})"></head>
 <body class="sheet-page import-form-page import-view-page"
       th:classappend="${(stageKey == 'preshipment' ? ' preship-page' : '')
             + (stageKey == 'equipment' ? ' equipment-page' : '')
-            + (stageKey == 'jevic' or stageKey == 'coi' or stageKey == 'standards' or stageKey == 'export' or stageKey == 'grade' ? ' jevic-page' : '')
+            + (stageKey == 'jevic' or stageKey == 'coi' or stageKey == 'standards' or stageKey == 'export' or stageKey == 'grade' or stageKey == 'worksheet' ? ' jevic-page' : '')
             + (stageKey == 'photos' ? ' photos-page' : '')}">
 <div class="app-shell">
     <aside th:replace="shared/sidebar :: sidebar(${activeMenu})"></aside>
@@ -66,6 +67,11 @@
                         Vehicle images
                     </h1>
 
+                    <h1 th:if="${stageKey == 'worksheet'}"
+                        th:text="${@pipelineStageService.title('IMPORT', 'worksheet')}">
+                        Working sheet
+                    </h1>
+
                     <p class="form-lead"
                        th:if="${stageKey == 'auction'}">
                         Review saved auction sheet data and vehicle specifications.
@@ -110,6 +116,11 @@
                        th:if="${stageKey == 'photos'}">
                         Review the vehicle photos. Up to five images can be stored.
                     </p>
+
+                    <p class="form-lead"
+                       th:if="${stageKey == 'worksheet'}">
+                        Review the motor vehicle working sheet and valuation figures.
+                    </p>
                 </div>
 
                 <div th:replace="shared/pipeline-delete :: pipelineDeleteBtn(
@@ -130,6 +141,7 @@
                     ${exportReady},
                     ${gradeReady},
                     ${photosReady},
+                    ${worksheetReady},
                     ${vehicle.model},
                     false,
                     true)">
@@ -212,6 +224,15 @@
                         ${vehicle},
                         ${vehiclePhotos},
                         ${photosReady})">
+                </div>
+            </div>
+
+            <div class="vehicle-form clearance-form"
+                 th:if="${stageKey == 'worksheet'}">
+                <div th:replace="customs-pipeline/fragments/view :: clearanceViewWorksheet(
+                        ${vehicle},
+                        ${clearance},
+                        ${worksheetReady})">
                 </div>
             </div>
 

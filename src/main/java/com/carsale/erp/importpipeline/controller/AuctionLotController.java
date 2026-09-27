@@ -142,6 +142,7 @@ public class AuctionLotController {
         model.addAttribute("exportReady", false);
         model.addAttribute("gradeReady", false);
         model.addAttribute("photosReady", false);
+        model.addAttribute("worksheetReady", false);
         model.addAttribute("StageKeys", StageKeys);
         prepareStartStageForm(model, startStage);
         return "import-pipeline/auction/form";
@@ -223,6 +224,7 @@ public class AuctionLotController {
         model.addAttribute("exportReady", importStatus.isExportReady());
         model.addAttribute("gradeReady", importStatus.isGradeReady());
         model.addAttribute("photosReady", importStatus.isPhotosReady());
+        model.addAttribute("worksheetReady", importStatus.isWorksheetReady());
         model.addAttribute("clearance", customsDocumentService.findByChassisNo(chassisNo));
         model.addAttribute("inspectionCertificate", certificateOfInspectionService.findByChassisNo(chassisNo));
         model.addAttribute("standardsCertificate", standardsCertificateService.findByChassisNo(chassisNo));
@@ -277,6 +279,7 @@ public class AuctionLotController {
         model.addAttribute("exportReady", importStatus.isExportReady());
         model.addAttribute("gradeReady", importStatus.isGradeReady());
         model.addAttribute("photosReady", importStatus.isPhotosReady());
+        model.addAttribute("worksheetReady", importStatus.isWorksheetReady());
         model.addAttribute("StageKeys", ImportStageUrls.getStageKeyBySortOrder(
                 pipelineStageService.list(PipelineStageService.FLOW_IMPORT)));
         model.addAttribute("stageNav", ImportStageUrls.editLinks(

@@ -275,6 +275,7 @@ public class VehicleImagesController {
         model.addAttribute("exportReady", status.isExportReady());
         model.addAttribute("gradeReady", status.isGradeReady());
         model.addAttribute("photosReady", status.isPhotosReady());
+        model.addAttribute("worksheetReady", status.isWorksheetReady());
     }
 
     private String encodeChassis(String chassisNo) {

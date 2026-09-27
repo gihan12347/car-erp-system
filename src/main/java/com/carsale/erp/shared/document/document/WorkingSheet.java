@@ -17,6 +17,68 @@ import java.util.regex.Pattern;
 @Component
 public class WorkingSheet implements DocumentParser {
 
+    private static final Map<String, String> TYPE_TO_FIELD = new LinkedHashMap<String, String>();
+    private static final Set<String> DATE_FIELDS = new HashSet<String>();
+
+    static {
+        TYPE_TO_FIELD.put("document_identifier", "worksheetRef");
+        TYPE_TO_FIELD.put("hs_code", "worksheetHsCode");
+        TYPE_TO_FIELD.put("type_of_vehicle", "worksheetVehicleType");
+        TYPE_TO_FIELD.put("reference_no", "worksheetReferenceNo");
+        TYPE_TO_FIELD.put("name_of_vessel", "worksheetVesselName");
+        TYPE_TO_FIELD.put("chassis_nos", "worksheetChassisNo");
+        TYPE_TO_FIELD.put("agents_fob_amount", "worksheetAgentsFob");
+        TYPE_TO_FIELD.put("agents_fob_calculation", "worksheetAgentsFobCalc");
+        TYPE_TO_FIELD.put("agents_freight", "worksheetAgentsFreight");
+        TYPE_TO_FIELD.put("agents_insurance", "worksheetAgentsInsurance");
+        TYPE_TO_FIELD.put("invoiced_fob", "worksheetInvoicedFob");
+        TYPE_TO_FIELD.put("invoiced_freight", "worksheetInvoicedFreight");
+        TYPE_TO_FIELD.put("invoiced_insurance", "worksheetInvoicedInsurance");
+        TYPE_TO_FIELD.put("total_value_of_options", "worksheetOptionsValue");
+        TYPE_TO_FIELD.put("bl_freight_details", "worksheetBlFreightCalc");
+        TYPE_TO_FIELD.put("date_of_bl", "worksheetBlDate");
+        TYPE_TO_FIELD.put("date_of_manufacture", "worksheetManufactureDate");
+        TYPE_TO_FIELD.put("age_difference_for_icl", "worksheetAgeDifference");
+        TYPE_TO_FIELD.put("date_of_1st_registration", "worksheetFirstRegistrationDate");
+        TYPE_TO_FIELD.put("website_value", "worksheetWebsiteValue");
+        TYPE_TO_FIELD.put("local_taxes", "worksheetLocalTaxes");
+        TYPE_TO_FIELD.put("fifteen_percent_of_value", "worksheetFifteenPercent");
+        TYPE_TO_FIELD.put("fob_value_85_percent", "worksheetFobValue85");
+        TYPE_TO_FIELD.put("fob_value_currency", "worksheetFobValue85Currency");
+        TYPE_TO_FIELD.put("lc_no", "worksheetLcNo");
+        TYPE_TO_FIELD.put("lc_amount", "worksheetLcAmount");
+        TYPE_TO_FIELD.put("lc_bank", "worksheetLcBank");
+        TYPE_TO_FIELD.put("importer_name", "worksheetLcImporter");
+        TYPE_TO_FIELD.put("lc_date_of_issue", "worksheetLcIssueDate");
+        TYPE_TO_FIELD.put("lc_date_of_expiry", "worksheetLcExpiryDate");
+        TYPE_TO_FIELD.put("lc_date_of_amendment", "worksheetLcAmendmentDate");
+        TYPE_TO_FIELD.put("declarant_company", "worksheetClearingAgent");
+        TYPE_TO_FIELD.put("cha_no", "worksheetChaNo");
+        TYPE_TO_FIELD.put("fob_for_fiscal_levies", "worksheetFiscalFob");
+        TYPE_TO_FIELD.put("freight_charges_for_fiscal_levies", "worksheetFiscalFreight");
+        TYPE_TO_FIELD.put("insurance_charges_for_fiscal_levies", "worksheetFiscalInsurance");
+        TYPE_TO_FIELD.put("value_of_options_for_fiscal_levies", "worksheetFiscalOptions");
+        TYPE_TO_FIELD.put("total_value_for_fiscal_levies", "worksheetFiscalTotal");
+        TYPE_TO_FIELD.put("total_value_for_fiscal_levies_currency", "worksheetFiscalTotalCurrency");
+        TYPE_TO_FIELD.put("checked_by", "worksheetCheckedBy");
+        TYPE_TO_FIELD.put("name_of_the_appraiser", "worksheetAppraiserName");
+
+        DATE_FIELDS.add("worksheetBlDate");
+        DATE_FIELDS.add("worksheetManufactureDate");
+        DATE_FIELDS.add("worksheetFirstRegistrationDate");
+        DATE_FIELDS.add("worksheetLcIssueDate");
+        DATE_FIELDS.add("worksheetLcExpiryDate");
+        DATE_FIELDS.add("worksheetLcAmendmentDate");
+    }
+
+    private final String processorId;
+
+    public WorkingSheet(
+            @Value("${app.ocr.documentAi.workingSheetProcessorId:}") String processorId
+    ) {
+        this.processorId = processorId == null ? "" : processorId.trim();
+    }
+
     @Override
     public AuctionParseResult parsePage(String text) {
         AuctionParseResult result = new AuctionParseResult();
@@ -95,12 +157,124 @@ public class WorkingSheet implements DocumentParser {
 
     @Override
     public AuctionParseResult parsePage(DocumentAiClient.DocumentAiResult documentAi) {
-        return null;
+        AuctionParseResult result = new AuctionParseResult();
+        if (documentAi == null) {
+            result.setSuccess(false);
+            result.setMessage("Document AI returned no result.");
+            return result;
+        }
+        result.setRawText(documentAi.getText());
+        List<DocumentAiClient.DocumentAiEntity> entities = documentAi.getEntities();
+        if (entities != null) {
+            for (DocumentAiClient.DocumentAiEntity entity : entities) {
+                if (entity == null) {
+                    continue;
+                }
+                String field = mapType(entity.getType());
+                if (field == null || result.getFields().containsKey(field)) {
+                    continue;
+                }
+                String value = cleanDocumentAiValue(field, entity.getValue());
+                if (value == null) {
+                    continue;
+                }
+                result.put(field, value);
+            }
+        }
+        if (!result.getFields().containsKey("worksheetBlFreightAmount")) {
+            String amount = lastAmount(result.getFields().get("worksheetBlFreightCalc"));
+            if (amount != null) {
+                result.put("worksheetBlFreightAmount", amount);
+            }
+        }
+        CustomsDocumentParserUtils.finish(result, "Document AI (working sheet)");
+        return result;
     }
 
     @Override
     public String getProcessorId() {
-        return "";
+        return this.processorId;
+    }
+
+    @Override
+    public String getOcrLanguage() {
+        return "eng";
+    }
+
+    static String mapType(String type) {
+        if (type == null || type.trim().isEmpty()) {
+            return null;
+        }
+        String key = type.trim().toLowerCase(Locale.ROOT).replace(' ', '_').replace('-', '_');
+        String mapped = TYPE_TO_FIELD.get(key);
+        if (mapped != null) {
+            return mapped;
+        }
+        int slash = key.lastIndexOf('/');
+        if (slash >= 0 && slash + 1 < key.length()) {
+            return TYPE_TO_FIELD.get(key.substring(slash + 1));
+        }
+        return null;
+    }
+
+    static String cleanDocumentAiValue(String field, String raw) {
+        if (raw == null) {
+            return null;
+        }
+        String value = raw.trim().replaceAll(RegexConstants.Text.WHITESPACE, " ");
+        value = value.replaceAll(RegexConstants.Text.LEADING_PUNCT, "")
+                .replaceAll(RegexConstants.Text.TRAILING_PUNCT, "")
+                .trim();
+        if (value.isEmpty() || "-".equals(value) || ":".equals(value)) {
+            return null;
+        }
+        if ("worksheetAgeDifference".equals(field)) {
+            return formatAgeDifference(value);
+        }
+        if (DATE_FIELDS.contains(field)) {
+            return toDate(value);
+        }
+        return value;
+    }
+
+    static String formatAgeDifference(String raw) {
+        String lower = raw.toLowerCase(Locale.ROOT);
+        if (lower.contains("year") || lower.contains("month") || lower.contains("day")) {
+            return raw;
+        }
+        Matcher parts = Pattern.compile("(\\d+)").matcher(raw);
+        List<Integer> nums = new ArrayList<Integer>();
+        while (parts.find() && nums.size() < 3) {
+            nums.add(Integer.valueOf(parts.group(1)));
+        }
+        if (nums.size() == 3 && nums.get(0).intValue() < 100) {
+            return nums.get(0) + " years " + nums.get(1) + " months " + nums.get(2) + " days";
+        }
+        return raw;
+    }
+
+    static String toDate(String raw) {
+        Matcher isoDateTime = RegexConstants.Dates.ISO_DATE_TIME_PATTERN.matcher(raw);
+        if (isoDateTime.matches()) {
+            return isoDateTime.group(1);
+        }
+        Matcher iso = RegexConstants.Dates.ISO_DATE_PATTERN.matcher(raw);
+        if (iso.find()) {
+            return iso.group();
+        }
+        return raw;
+    }
+
+    static String lastAmount(String details) {
+        if (details == null || details.trim().isEmpty()) {
+            return null;
+        }
+        Matcher matcher = Pattern.compile("(\\d{1,3}(?:,\\d{3})+(?:\\.\\d+)?|\\d+\\.\\d+)").matcher(details);
+        String last = null;
+        while (matcher.find()) {
+            last = matcher.group(1);
+        }
+        return last;
     }
 
     @Override

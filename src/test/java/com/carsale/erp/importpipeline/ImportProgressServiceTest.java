@@ -9,17 +9,17 @@ import com.carsale.erp.importpipeline.service.ImportProgressService.ImportProgre
 class ImportProgressServiceTest {
 
     @Test
-    void importIsCompleteWhenAllNineStagesAreDone() {
-        ImportProgress pending = new ImportProgress(false, false, false, false, false, false, false, false, false);
-        ImportProgress auctionOnly = new ImportProgress(true, false, false, false, false, false, false, false, false);
-        ImportProgress twoOfNine = new ImportProgress(true, true, false, false, false, false, false, false, false);
-        ImportProgress threeOfNine = new ImportProgress(true, true, true, false, false, false, false, false, false);
-        ImportProgress fourOfNine = new ImportProgress(true, true, true, true, false, false, false, false, false);
-        ImportProgress fiveOfNine = new ImportProgress(true, true, true, true, true, false, false, false, false);
-        ImportProgress sixOfNine = new ImportProgress(true, true, true, true, true, true, false, false, false);
-        ImportProgress sevenOfNine = new ImportProgress(true, true, true, true, true, true, true, false, false);
-        ImportProgress eightOfNine = new ImportProgress(true, true, true, true, true, true, true, true, false);
-        ImportProgress complete = new ImportProgress(true, true, true, true, true, true, true, true, true);
+    void importIsCompleteWhenAllTenStagesAreDone() {
+        ImportProgress pending = new ImportProgress(false, false, false, false, false, false, false, false, false, false);
+        ImportProgress auctionOnly = new ImportProgress(true, false, false, false, false, false, false, false, false, false);
+        ImportProgress twoOfNine = new ImportProgress(true, true, false, false, false, false, false, false, false, false);
+        ImportProgress threeOfNine = new ImportProgress(true, true, true, false, false, false, false, false, false, false);
+        ImportProgress fourOfNine = new ImportProgress(true, true, true, true, false, false, false, false, false, false);
+        ImportProgress fiveOfNine = new ImportProgress(true, true, true, true, true, false, false, false, false, false);
+        ImportProgress sixOfNine = new ImportProgress(true, true, true, true, true, true, false, false, false, false);
+        ImportProgress sevenOfNine = new ImportProgress(true, true, true, true, true, true, true, false, false, false);
+        ImportProgress eightOfNine = new ImportProgress(true, true, true, true, true, true, true, true, false, false);
+        ImportProgress complete = new ImportProgress(true, true, true, true, true, true, true, true, true, true);
 
         assertThat(pending.completedCount()).isEqualTo(0);
         assertThat(pending.isPipelineCompleted()).isFalse();
@@ -39,7 +39,9 @@ class ImportProgressServiceTest {
         assertThat(sevenOfNine.isPipelineCompleted()).isFalse();
         assertThat(eightOfNine.completedCount()).isEqualTo(8);
         assertThat(eightOfNine.isPipelineCompleted()).isFalse();
-        assertThat(complete.completedCount()).isEqualTo(9);
+        assertThat(complete.completedCount()).isEqualTo(10);
+        assertThat(complete.isStageComplete("worksheet")).isTrue();
+        assertThat(eightOfNine.isStageComplete("worksheet")).isFalse();
         assertThat(complete.isPipelineCompleted()).isTrue();
         assertThat(complete.hasAnyCompletedStage()).isTrue();
         assertThat(sevenOfNine.isStageComplete("auction")).isTrue();

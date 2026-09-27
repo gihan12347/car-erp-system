@@ -650,6 +650,30 @@ public class CustomsDocument {
 
     @Lob
     @Column(table = "clearance_working_sheets", columnDefinition = "TEXT")
+    private String worksheetAgentsFobCalc;
+
+    @Lob
+    @Column(table = "clearance_working_sheets", columnDefinition = "TEXT")
+    private String worksheetChaNo;
+
+    @Lob
+    @Column(table = "clearance_working_sheets", columnDefinition = "TEXT")
+    private String worksheetCheckedBy;
+
+    @Lob
+    @Column(table = "clearance_working_sheets", columnDefinition = "TEXT")
+    private String worksheetFobValue85Currency;
+
+    @Lob
+    @Column(table = "clearance_working_sheets", columnDefinition = "TEXT")
+    private String worksheetFiscalTotalCurrency;
+
+    @Lob
+    @Column(table = "clearance_working_sheets", columnDefinition = "TEXT")
+    private String worksheetAppraiserName;
+
+    @Lob
+    @Column(table = "clearance_working_sheets", columnDefinition = "TEXT")
     private String page4OriginalName;
 
     @Lob
@@ -1923,6 +1947,54 @@ public class CustomsDocument {
 
     public void setWorksheetFiscalTotal(String worksheetFiscalTotal) {
         this.worksheetFiscalTotal = worksheetFiscalTotal;
+    }
+
+    public String getWorksheetAgentsFobCalc() {
+        return worksheetAgentsFobCalc;
+    }
+
+    public void setWorksheetAgentsFobCalc(String worksheetAgentsFobCalc) {
+        this.worksheetAgentsFobCalc = worksheetAgentsFobCalc;
+    }
+
+    public String getWorksheetChaNo() {
+        return worksheetChaNo;
+    }
+
+    public void setWorksheetChaNo(String worksheetChaNo) {
+        this.worksheetChaNo = worksheetChaNo;
+    }
+
+    public String getWorksheetCheckedBy() {
+        return worksheetCheckedBy;
+    }
+
+    public void setWorksheetCheckedBy(String worksheetCheckedBy) {
+        this.worksheetCheckedBy = worksheetCheckedBy;
+    }
+
+    public String getWorksheetFobValue85Currency() {
+        return worksheetFobValue85Currency;
+    }
+
+    public void setWorksheetFobValue85Currency(String worksheetFobValue85Currency) {
+        this.worksheetFobValue85Currency = worksheetFobValue85Currency;
+    }
+
+    public String getWorksheetFiscalTotalCurrency() {
+        return worksheetFiscalTotalCurrency;
+    }
+
+    public void setWorksheetFiscalTotalCurrency(String worksheetFiscalTotalCurrency) {
+        this.worksheetFiscalTotalCurrency = worksheetFiscalTotalCurrency;
+    }
+
+    public String getWorksheetAppraiserName() {
+        return worksheetAppraiserName;
+    }
+
+    public void setWorksheetAppraiserName(String worksheetAppraiserName) {
+        this.worksheetAppraiserName = worksheetAppraiserName;
     }
 
     public String getPage4OriginalName() {

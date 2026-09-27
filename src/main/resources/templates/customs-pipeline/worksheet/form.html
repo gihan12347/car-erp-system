@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="en">
 <head th:replace="shared/head :: head(${pageTitle})"></head>
-<body class="sheet-page import-form-page customs-page">
+<body class="sheet-page import-form-page jevic-page">
 <div class="app-shell">
     <aside th:replace="shared/sidebar :: sidebar(${activeMenu})"></aside>
     <div class="app-main">
@@ -9,12 +9,12 @@
         <main class="page-content">
             <div class="dash-head">
                 <div>
-                    <h1 th:text="${'Step ' + @pipelineStageService.displayNumber('CUSTOMS', 'worksheet') + ' · ' + @pipelineStageService.title('CUSTOMS', 'worksheet')}">Step 3 · Working sheet</h1>
-                    <p class="form-lead">Upload the working sheet. Auto-fill reads the document; save when you are ready.</p>
+                    <h1 th:text="${'Step ' + @pipelineStageService.displayNumber('IMPORT', 'worksheet') + ' · ' + @pipelineStageService.title('IMPORT', 'worksheet')}">Step 10 · Working sheet</h1>
+                    <p class="form-lead">Upload the working sheet. Auto-fill reads the document with Document AI; save when you are ready.</p>
                 </div>
             </div>
 
-            <div th:replace="customs-pipeline/fragments/pipeline :: clearancePipelineSteps('worksheet', ${vehicle.chassisNo}, ${blReady}, ${declarationReady}, ${assessmentReady}, ${worksheetReady}, ${vehicle.model}, false)"></div>
+            <div th:replace="import-pipeline/fragments/pipeline :: importPipelineSteps('worksheet', ${vehicle.chassisNo}, ${auctionDocReady}, ${preshipReady}, ${equipmentReady}, ${jevicReady}, ${coiReady}, ${standardsReady}, ${exportReady}, ${gradeReady}, ${photosReady}, ${worksheetReady}, ${vehicle.model}, false, false)"></div>
 
             <p th:if="${successMessage}" class="alert alert-ok" th:text="${successMessage}"></p>
             <p th:if="${errorMessage}" class="alert alert-error" th:text="${errorMessage}"></p>
@@ -62,14 +62,14 @@
                             '',
                             ${record.page4OriginalName},
                             'Choose a JPG, PNG, or PDF working sheet to upload and preview.',
-                            'ocrspace')"></div>
+                            'google')"></div>
                     </div>
 
                     <div class="sheet-fields preship-fields">
                         <article class="panel">
                             <div class="panel-head"><h2>Header</h2></div>
                             <div class="field-grid">
-                                <label>Reference ID <input type="text" th:field="*{worksheetRef}" id="worksheetRef"></label>
+                                <label>Document identifier <input type="text" th:field="*{worksheetRef}" id="worksheetRef"></label>
                                 <label>H.S. code <input type="text" th:field="*{worksheetHsCode}" id="worksheetHsCode"></label>
                                 <label class="span-2">Type of vehicle <input type="text" th:field="*{worksheetVehicleType}" id="worksheetVehicleType"></label>
                                 <label>Reference no. <input type="text" th:field="*{worksheetReferenceNo}" id="worksheetReferenceNo"></label>
@@ -81,15 +81,16 @@
                         <article class="panel">
                             <div class="panel-head"><h2>FOB, freight &amp; insurance</h2></div>
                             <div class="field-grid">
-                                <label>Agents FOB <input type="text" th:field="*{worksheetAgentsFob}" id="worksheetAgentsFob"></label>
-                                <label>Invoiced FOB <input type="text" th:field="*{worksheetInvoicedFob}" id="worksheetInvoicedFob"></label>
+                                <label>Agents FOB amount <input type="text" th:field="*{worksheetAgentsFob}" id="worksheetAgentsFob"></label>
+                                <label class="span-2">Agents FOB calculation <input type="text" th:field="*{worksheetAgentsFobCalc}" id="worksheetAgentsFobCalc"></label>
                                 <label>Agents freight <input type="text" th:field="*{worksheetAgentsFreight}" id="worksheetAgentsFreight"></label>
-                                <label>Invoiced freight <input type="text" th:field="*{worksheetInvoicedFreight}" id="worksheetInvoicedFreight"></label>
                                 <label>Agents insurance <input type="text" th:field="*{worksheetAgentsInsurance}" id="worksheetAgentsInsurance"></label>
+                                <label>Invoiced FOB <input type="text" th:field="*{worksheetInvoicedFob}" id="worksheetInvoicedFob"></label>
+                                <label>Invoiced freight <input type="text" th:field="*{worksheetInvoicedFreight}" id="worksheetInvoicedFreight"></label>
                                 <label>Invoiced insurance <input type="text" th:field="*{worksheetInvoicedInsurance}" id="worksheetInvoicedInsurance"></label>
                                 <label>Total value of options <input type="text" th:field="*{worksheetOptionsValue}" id="worksheetOptionsValue"></label>
                                 <label>B/L freight amount <input type="text" th:field="*{worksheetBlFreightAmount}" id="worksheetBlFreightAmount"></label>
-                                <label class="span-2">B/L freight calculation <input type="text" th:field="*{worksheetBlFreightCalc}" id="worksheetBlFreightCalc"></label>
+                                <label class="span-2">B/L freight details <input type="text" th:field="*{worksheetBlFreightCalc}" id="worksheetBlFreightCalc"></label>
                             </div>
                         </article>
 
@@ -107,9 +108,10 @@
                             <div class="panel-head"><h2>Computation of value</h2></div>
                             <div class="field-grid">
                                 <label>Website value <input type="text" th:field="*{worksheetWebsiteValue}" id="worksheetWebsiteValue"></label>
-                                <label>Less local taxes <input type="text" th:field="*{worksheetLocalTaxes}" id="worksheetLocalTaxes"></label>
+                                <label>Local taxes <input type="text" th:field="*{worksheetLocalTaxes}" id="worksheetLocalTaxes"></label>
                                 <label>15% of value <input type="text" th:field="*{worksheetFifteenPercent}" id="worksheetFifteenPercent"></label>
                                 <label>FOB value (85%) <input type="text" th:field="*{worksheetFobValue85}" id="worksheetFobValue85"></label>
+                                <label>FOB value currency <input type="text" th:field="*{worksheetFobValue85Currency}" id="worksheetFobValue85Currency"></label>
                             </div>
                         </article>
 
@@ -119,11 +121,12 @@
                                 <label>LC no. <input type="text" th:field="*{worksheetLcNo}" id="worksheetLcNo"></label>
                                 <label>LC amount <input type="text" th:field="*{worksheetLcAmount}" id="worksheetLcAmount"></label>
                                 <label>Bank <input type="text" th:field="*{worksheetLcBank}" id="worksheetLcBank"></label>
-                                <label>Importer / company <input type="text" th:field="*{worksheetLcImporter}" id="worksheetLcImporter"></label>
+                                <label>Importer <input type="text" th:field="*{worksheetLcImporter}" id="worksheetLcImporter"></label>
                                 <label>Date of issue <input type="text" th:field="*{worksheetLcIssueDate}" id="worksheetLcIssueDate"></label>
                                 <label>Date of expiry <input type="text" th:field="*{worksheetLcExpiryDate}" id="worksheetLcExpiryDate"></label>
                                 <label>Date of amendment <input type="text" th:field="*{worksheetLcAmendmentDate}" id="worksheetLcAmendmentDate"></label>
-                                <label class="span-2">Clearing agent <input type="text" th:field="*{worksheetClearingAgent}" id="worksheetClearingAgent"></label>
+                                <label class="span-2">Declarant company <input type="text" th:field="*{worksheetClearingAgent}" id="worksheetClearingAgent"></label>
+                                <label>CHA no. <input type="text" th:field="*{worksheetChaNo}" id="worksheetChaNo"></label>
                             </div>
                         </article>
 
@@ -135,6 +138,15 @@
                                 <label>Insurance charges <input type="text" th:field="*{worksheetFiscalInsurance}" id="worksheetFiscalInsurance"></label>
                                 <label>Value of options <input type="text" th:field="*{worksheetFiscalOptions}" id="worksheetFiscalOptions"></label>
                                 <label>Total value for fiscal levies <input type="text" th:field="*{worksheetFiscalTotal}" id="worksheetFiscalTotal"></label>
+                                <label>Total currency <input type="text" th:field="*{worksheetFiscalTotalCurrency}" id="worksheetFiscalTotalCurrency"></label>
+                            </div>
+                        </article>
+
+                        <article class="panel">
+                            <div class="panel-head"><h2>Sign-off</h2></div>
+                            <div class="field-grid">
+                                <label>Checked by <input type="text" th:field="*{worksheetCheckedBy}" id="worksheetCheckedBy"></label>
+                                <label>Name of the appraiser <input type="text" th:field="*{worksheetAppraiserName}" id="worksheetAppraiserName"></label>
                             </div>
                         </article>
 
@@ -168,6 +180,6 @@
 <script th:src="@{/js/shared/app.js(v=20260905k)}"></script>
 <script th:src="@{/js/shared/document-viewer.js(v=20260826d)}"></script>
 <script th:src="@{/js/customs-pipeline/clearance-stage.js(v=20260908a)}"></script>
-<script th:src="@{/js/customs-pipeline/worksheet.js(v=20260908a)}"></script>
+<script th:src="@{/js/customs-pipeline/worksheet.js(v=20260927d)}"></script>
 </body>
 </html>

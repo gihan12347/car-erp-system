@@ -49,7 +49,7 @@ public class ImportProgressService {
 
     public ImportProgress progressFor(Vehicle vehicle) {
         if (vehicle == null) {
-            return new ImportProgress(false, false, false, false, false, false, false, false, false);
+            return new ImportProgress(false, false, false, false, false, false, false, false, false, false);
         }
         String chassisNo = vehicle.getChassisNo();
         return new ImportProgress(
@@ -61,12 +61,13 @@ public class ImportProgressService {
                 standardsCertificateService.hasCertificate(chassisNo),
                 exportCertificateService.hasCertificate(chassisNo),
                 vehiclePhotoService.hasPhotos(chassisNo),
-                gradeSearchService.hasDocument(chassisNo));
+                gradeSearchService.hasDocument(chassisNo),
+                customsDocumentService.hasWorksheet(chassisNo));
     }
 
     public ImportProgress progressFor(String chassisNo) {
         if (chassisNo == null || chassisNo.trim().isEmpty()) {
-            return new ImportProgress(false, false, false, false, false, false, false, false, false);
+            return new ImportProgress(false, false, false, false, false, false, false, false, false, false);
         }
         Vehicle vehicle = vehicleRepository.findById(chassisNo.trim()).orElse(null);
         return progressFor(vehicle);
@@ -110,6 +111,7 @@ public class ImportProgressService {
         private final boolean exportReady;
         private final boolean photosReady;
         private final boolean gradeReady;
+        private final boolean worksheetReady;
 
         public ImportProgress(
                 boolean auctionReady,
@@ -120,7 +122,8 @@ public class ImportProgressService {
                 boolean standardsReady,
                 boolean exportReady,
                 boolean photosReady,
-                boolean gradeReady
+                boolean gradeReady,
+                boolean worksheetReady
         ) {
             this.auctionReady = auctionReady;
             this.preshipReady = preshipReady;
@@ -131,6 +134,7 @@ public class ImportProgressService {
             this.exportReady = exportReady;
             this.photosReady = photosReady;
             this.gradeReady = gradeReady;
+            this.worksheetReady = worksheetReady;
         }
 
         public boolean isAuctionReady() {
@@ -169,23 +173,28 @@ public class ImportProgressService {
             return gradeReady;
         }
 
+        public boolean isWorksheetReady() {
+            return worksheetReady;
+        }
+
         @Override
         public boolean hasAnyCompletedStage() {
             return auctionReady || preshipReady || equipmentReady || jevicReady || coiReady
-                    || standardsReady || exportReady || photosReady || gradeReady;
+                    || standardsReady || exportReady || photosReady || gradeReady || worksheetReady;
         }
 
         @Override
         public int completedCount() {
             return (auctionReady ? 1 : 0) + (preshipReady ? 1 : 0) + (equipmentReady ? 1 : 0)
                     + (jevicReady ? 1 : 0) + (coiReady ? 1 : 0) + (standardsReady ? 1 : 0)
-                    + (exportReady ? 1 : 0) + (photosReady ? 1 : 0) + (gradeReady ? 1 : 0);
+                    + (exportReady ? 1 : 0) + (photosReady ? 1 : 0) + (gradeReady ? 1 : 0)
+                    + (worksheetReady ? 1 : 0);
         }
 
         @Override
         public boolean isPipelineCompleted() {
             return auctionReady && preshipReady && equipmentReady && jevicReady && coiReady
-                    && standardsReady && exportReady && photosReady && gradeReady;
+                    && standardsReady && exportReady && photosReady && gradeReady && worksheetReady;
         }
 
         public boolean isImportComplete() {
@@ -217,6 +226,9 @@ public class ImportProgressService {
             }
             if (FlowStage.PHOTOS.getStageKey().equals(stageKey)) {
                 return photosReady;
+            }
+            if (FlowStage.WORKSHEET.getStageKey().equals(stageKey)) {
+                return worksheetReady;
             }
             return auctionReady;
         }

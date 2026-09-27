@@ -4,7 +4,7 @@
 
 <nav th:fragment="clearancePipelineSteps(currentStep, chassisNo, blReady, declarationReady, assessmentReady, worksheetReady, vehicleLabel, viewMode)"
      class="import-pipeline panel"
-     th:with="isView=${viewMode != null and viewMode}, blDone=${blReady != null and blReady}, worksheetDone=${worksheetReady != null and worksheetReady}, clearanceComplete=${blDone and declarationReady and assessmentReady and worksheetDone}, showPrep=${currentStep == 'prep' or (blDone and declarationReady and assessmentReady and worksheetDone)}, orderedKeys=${@pipelineStageService.keys('CUSTOMS')}"
+     th:with="isView=${viewMode != null and viewMode}, blDone=${blReady != null and blReady}, worksheetDone=${worksheetReady != null and worksheetReady}, clearanceComplete=${blDone and declarationReady and assessmentReady}, showPrep=${currentStep == 'prep' or (blDone and declarationReady and assessmentReady)}, orderedKeys=${@pipelineStageService.keys('CUSTOMS')}"
      th:classappend="${clearanceComplete} ? ' is-import-complete' : ''"
      aria-label="Customs clearance pipeline">
     <div class="import-pipeline-head">

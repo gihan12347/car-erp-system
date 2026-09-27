@@ -2,9 +2,9 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <body>
 
-<nav th:fragment="importPipelineSteps(currentStep, chassisNo, auctionReady, preshipReady, equipmentReady, jevicReady, coiReady, standardsReady, exportReady, gradeReady, photosReady, vehicleLabel, compact, viewMode)"
+<nav th:fragment="importPipelineSteps(currentStep, chassisNo, auctionReady, preshipReady, equipmentReady, jevicReady, coiReady, standardsReady, exportReady, gradeReady, photosReady, worksheetReady, vehicleLabel, compact, viewMode)"
      class="import-pipeline panel"
-     th:with="isView=${viewMode != null and viewMode}, isCompact=${compact != null and compact}, equipmentDone=${equipmentReady != null and equipmentReady}, jevicDone=${jevicReady != null and jevicReady}, coiDone=${coiReady != null and coiReady}, standardsDone=${standardsReady != null and standardsReady}, exportDone=${exportReady != null and exportReady}, gradeDone=${gradeReady != null and gradeReady}, photosDone=${photosReady != null and photosReady}, importComplete=${auctionReady and preshipReady and equipmentDone and jevicDone and coiDone and standardsDone and exportDone and gradeDone and photosDone}, orderedStages=${@pipelineStageService.list('IMPORT')}"
+     th:with="isView=${viewMode != null and viewMode}, isCompact=${compact != null and compact}, equipmentDone=${equipmentReady != null and equipmentReady}, jevicDone=${jevicReady != null and jevicReady}, coiDone=${coiReady != null and coiReady}, standardsDone=${standardsReady != null and standardsReady}, exportDone=${exportReady != null and exportReady}, gradeDone=${gradeReady != null and gradeReady}, photosDone=${photosReady != null and photosReady}, worksheetDone=${worksheetReady != null and worksheetReady}, importComplete=${auctionReady and preshipReady and equipmentDone and jevicDone and coiDone and standardsDone and exportDone and gradeDone and photosDone and worksheetDone}, orderedStages=${@pipelineStageService.list('IMPORT')}"
      th:classappend="${(isCompact ? ' is-compact' : '') + (importComplete ? ' is-import-complete' : '')}"
      aria-label="Import pipeline">
     <div class="import-pipeline-head" th:unless="${isCompact}">
@@ -15,7 +15,7 @@
                 · <span class="import-pipeline-chassis" th:text="${chassisNo}">TRJ250-0025161</span>
             </p>
             <p class="import-pipeline-lead" th:unless="${chassisNo != null and !#strings.isEmpty(chassisNo)}">
-                Save the auction lot first, then continue with pre-shipment, equipment condition, JEVIC, the certificate of inspection, the standards certificate, the export certificate, grade search, and vehicle images.
+                Save the auction lot first, then continue with pre-shipment, equipment condition, JEVIC, the certificate of inspection, the standards certificate, the export certificate, grade search, vehicle images, and the working sheet.
             </p>
         </div>
         <a th:if="${chassisNo != null and !#strings.isEmpty(chassisNo) and !isView}"
@@ -400,6 +400,47 @@
                         <small th:text="${stage.subtitle}">Up to 5 photos</small>
                         <em class="pipeline-step-status" th:classappend="${photosDone} ? ' done' : ' pending'"
                             th:text="${photosDone} ? 'Complete' : 'Pending'">Pending</em>
+                    </span>
+                </span>
+            </li>
+            <li th:if="${stage.stageKey == 'worksheet'}"
+                th:classappend="${(currentStep == 'worksheet' ? ' is-current' : '') + (worksheetDone ? ' is-done' : ' is-pending')}">
+                <a th:if="${chassisNo != null and !#strings.isEmpty(chassisNo) and isView}"
+                   th:href="@{/auction/{chassisNo}(chassisNo=${chassisNo}, stage=${stage.stageKey})}"
+                   class="import-pipeline-step">
+                    <span class="import-pipeline-step-icon">
+                        <i th:if="${worksheetDone}" class="fa-solid fa-check"></i>
+                        <span th:unless="${worksheetDone}" th:text="${iter.count}">10</span>
+                    </span>
+                    <span class="import-pipeline-step-copy">
+                        <strong th:text="${stage.title}">Working sheet</strong>
+                        <small th:text="${stage.subtitle}">Motor vehicle valuation</small>
+                        <em class="pipeline-step-status" th:classappend="${worksheetDone} ? ' done' : ' pending'"
+                            th:text="${worksheetDone} ? 'Complete' : 'Pending'">Pending</em>
+                    </span>
+                </a>
+                <a th:if="${chassisNo != null and !#strings.isEmpty(chassisNo) and !isView}"
+                   th:href="@{/worksheet/{chassisNo}(chassisNo=${chassisNo})}"
+                   class="import-pipeline-step">
+                    <span class="import-pipeline-step-icon">
+                        <i th:if="${worksheetDone}" class="fa-solid fa-check"></i>
+                        <span th:unless="${worksheetDone}" th:text="${iter.count}">10</span>
+                    </span>
+                    <span class="import-pipeline-step-copy">
+                        <strong th:text="${stage.title}">Working sheet</strong>
+                        <small th:text="${stage.subtitle}">Motor vehicle valuation</small>
+                        <em class="pipeline-step-status" th:classappend="${worksheetDone} ? ' done' : ' pending'"
+                            th:text="${worksheetDone} ? 'Complete' : 'Pending'">Pending</em>
+                    </span>
+                </a>
+                <span th:unless="${chassisNo != null and !#strings.isEmpty(chassisNo)}"
+                      class="import-pipeline-step is-disabled" title="Save auction lot first">
+                    <span class="import-pipeline-step-icon"><span th:text="${iter.count}">10</span></span>
+                    <span class="import-pipeline-step-copy">
+                        <strong th:text="${stage.title}">Working sheet</strong>
+                        <small th:text="${stage.subtitle}">Motor vehicle valuation</small>
+                        <em class="pipeline-step-status" th:classappend="${worksheetDone} ? ' done' : ' pending'"
+                            th:text="${worksheetDone} ? 'Complete' : 'Pending'">Pending</em>
                     </span>
                 </span>
             </li>

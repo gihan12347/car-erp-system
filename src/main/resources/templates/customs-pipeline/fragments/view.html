@@ -527,7 +527,7 @@
                 <article class="panel">
                     <div class="panel-head"><h2>Header</h2></div>
                     <div class="field-grid">
-                        <label>Reference ID <input type="text" th:value="${clearance.worksheetRef}" readonly class="readonly-field"></label>
+                        <label>Document identifier <input type="text" th:value="${clearance.worksheetRef}" readonly class="readonly-field"></label>
                         <label>H.S. code <input type="text" th:value="${clearance.worksheetHsCode}" readonly class="readonly-field"></label>
                         <label class="span-2">Type of vehicle <input type="text" th:value="${clearance.worksheetVehicleType}" readonly class="readonly-field"></label>
                         <label>Name of vessel <input type="text" th:value="${clearance.worksheetVesselName}" readonly class="readonly-field"></label>
@@ -537,12 +537,13 @@
                 <article class="panel">
                     <div class="panel-head"><h2>FOB, freight &amp; insurance</h2></div>
                     <div class="field-grid">
-                        <label>Agents FOB <input type="text" th:value="${clearance.worksheetAgentsFob}" readonly class="readonly-field"></label>
+                        <label>Agents FOB amount <input type="text" th:value="${clearance.worksheetAgentsFob}" readonly class="readonly-field"></label>
+                        <label class="span-2">Agents FOB calculation <input type="text" th:value="${clearance.worksheetAgentsFobCalc}" readonly class="readonly-field"></label>
                         <label>Invoiced FOB <input type="text" th:value="${clearance.worksheetInvoicedFob}" readonly class="readonly-field"></label>
                         <label>Invoiced freight <input type="text" th:value="${clearance.worksheetInvoicedFreight}" readonly class="readonly-field"></label>
                         <label>Invoiced insurance <input type="text" th:value="${clearance.worksheetInvoicedInsurance}" readonly class="readonly-field"></label>
                         <label>B/L freight amount <input type="text" th:value="${clearance.worksheetBlFreightAmount}" readonly class="readonly-field"></label>
-                        <label class="span-2">B/L freight calculation <input type="text" th:value="${clearance.worksheetBlFreightCalc}" readonly class="readonly-field"></label>
+                        <label class="span-2">B/L freight details <input type="text" th:value="${clearance.worksheetBlFreightCalc}" readonly class="readonly-field"></label>
                     </div>
                 </article>
                 <article class="panel">
@@ -555,6 +556,7 @@
                         <label>Website value <input type="text" th:value="${clearance.worksheetWebsiteValue}" readonly class="readonly-field"></label>
                         <label>15% of value <input type="text" th:value="${clearance.worksheetFifteenPercent}" readonly class="readonly-field"></label>
                         <label>FOB value (85%) <input type="text" th:value="${clearance.worksheetFobValue85}" readonly class="readonly-field"></label>
+                        <label>FOB value currency <input type="text" th:value="${clearance.worksheetFobValue85Currency}" readonly class="readonly-field"></label>
                     </div>
                 </article>
                 <article class="panel">
@@ -563,11 +565,15 @@
                         <label>LC no. <input type="text" th:value="${clearance.worksheetLcNo}" readonly class="readonly-field"></label>
                         <label>LC amount <input type="text" th:value="${clearance.worksheetLcAmount}" readonly class="readonly-field"></label>
                         <label>Bank <input type="text" th:value="${clearance.worksheetLcBank}" readonly class="readonly-field"></label>
-                        <label>Importer / company <input type="text" th:value="${clearance.worksheetLcImporter}" readonly class="readonly-field"></label>
+                        <label>Importer <input type="text" th:value="${clearance.worksheetLcImporter}" readonly class="readonly-field"></label>
                         <label>Date of issue <input type="text" th:value="${clearance.worksheetLcIssueDate}" readonly class="readonly-field"></label>
-                        <label>Clearing agent <input type="text" th:value="${clearance.worksheetClearingAgent}" readonly class="readonly-field"></label>
+                        <label>Declarant company <input type="text" th:value="${clearance.worksheetClearingAgent}" readonly class="readonly-field"></label>
+                        <label>CHA no. <input type="text" th:value="${clearance.worksheetChaNo}" readonly class="readonly-field"></label>
                         <label>FOB for fiscal levies <input type="text" th:value="${clearance.worksheetFiscalFob}" readonly class="readonly-field"></label>
                         <label>Total value for fiscal levies <input type="text" th:value="${clearance.worksheetFiscalTotal}" readonly class="readonly-field"></label>
+                        <label>Total currency <input type="text" th:value="${clearance.worksheetFiscalTotalCurrency}" readonly class="readonly-field"></label>
+                        <label>Checked by <input type="text" th:value="${clearance.worksheetCheckedBy}" readonly class="readonly-field"></label>
+                        <label>Name of the appraiser <input type="text" th:value="${clearance.worksheetAppraiserName}" readonly class="readonly-field"></label>
                     </div>
                 </article>
             </div>

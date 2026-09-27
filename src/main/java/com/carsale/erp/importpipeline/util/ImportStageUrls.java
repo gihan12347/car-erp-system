@@ -78,6 +78,10 @@ public final class ImportStageUrls {
         return PipelineStageUtils.redirectAfterStageSave(chassisNo, FlowPipeline.IMPORT.getCurrentBase(), keys, FlowStage.JEVIC.getStageKey());
     }
 
+    public static String redirectAfterWorksheetSave(String chassisNo, List<String> keys) {
+        return PipelineStageUtils.redirectAfterStageSave(chassisNo, FlowPipeline.IMPORT.getCurrentBase(), keys, FlowStage.WORKSHEET.getStageKey());
+    }
+
     public static String redirectAfterCoiSave(String chassisNo, List<String> keys) {
         return PipelineStageUtils.redirectAfterStageSave(chassisNo, FlowPipeline.IMPORT.getCurrentBase(), keys, FlowStage.COI.getStageKey());
     }

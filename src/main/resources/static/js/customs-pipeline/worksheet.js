@@ -11,16 +11,17 @@
         fallbackFileName: "working-sheet",
         fieldOrder: [
             "worksheetRef", "worksheetHsCode", "worksheetVehicleType", "worksheetReferenceNo",
-            "worksheetVesselName", "worksheetChassisNo", "worksheetAgentsFob", "worksheetInvoicedFob",
-            "worksheetAgentsFreight", "worksheetInvoicedFreight", "worksheetAgentsInsurance",
-            "worksheetInvoicedInsurance", "worksheetOptionsValue", "worksheetBlFreightCalc",
-            "worksheetBlFreightAmount", "worksheetBlDate", "worksheetManufactureDate",
+            "worksheetVesselName", "worksheetChassisNo", "worksheetAgentsFob", "worksheetAgentsFobCalc",
+            "worksheetAgentsFreight", "worksheetAgentsInsurance", "worksheetInvoicedFob",
+            "worksheetInvoicedFreight", "worksheetInvoicedInsurance", "worksheetOptionsValue",
+            "worksheetBlFreightCalc", "worksheetBlFreightAmount", "worksheetBlDate", "worksheetManufactureDate",
             "worksheetAgeDifference", "worksheetFirstRegistrationDate", "worksheetWebsiteValue",
-            "worksheetLocalTaxes", "worksheetFifteenPercent", "worksheetFobValue85",
+            "worksheetLocalTaxes", "worksheetFifteenPercent", "worksheetFobValue85", "worksheetFobValue85Currency",
             "worksheetLcNo", "worksheetLcAmount", "worksheetLcBank", "worksheetLcImporter",
             "worksheetLcIssueDate", "worksheetLcExpiryDate", "worksheetLcAmendmentDate",
-            "worksheetClearingAgent", "worksheetFiscalFob", "worksheetFiscalFreight",
-            "worksheetFiscalInsurance", "worksheetFiscalOptions", "worksheetFiscalTotal"
+            "worksheetClearingAgent", "worksheetChaNo", "worksheetFiscalFob", "worksheetFiscalFreight",
+            "worksheetFiscalInsurance", "worksheetFiscalOptions", "worksheetFiscalTotal",
+            "worksheetFiscalTotalCurrency", "worksheetCheckedBy", "worksheetAppraiserName"
         ]
     });
 })();

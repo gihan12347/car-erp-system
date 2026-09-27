@@ -163,6 +163,7 @@ public class EquipmentConditionController {
         model.addAttribute("exportReady", status.isExportReady());
         model.addAttribute("gradeReady", status.isGradeReady());
         model.addAttribute("photosReady", status.isPhotosReady());
+        model.addAttribute("worksheetReady", status.isWorksheetReady());
         model.addAttribute("stageNav", ImportStageUrls.editLinks(
                 chassisNo,
                 pipelineStageService.indexOf(PipelineStageService.FLOW_IMPORT, FlowStage.EQUIPMENT.getStageKey()),

@@ -26,9 +26,10 @@ import com.carsale.erp.customspipeline.model.CustomsDocument;
 import com.carsale.erp.shared.ocr.OcrImagePreparer;
 import com.carsale.erp.customspipeline.service.CustomsDocumentService;
 import com.carsale.erp.customspipeline.service.CustomsProgressService;
-import com.carsale.erp.customspipeline.service.CustomsProgressService.CustomsProgress;
-import com.carsale.erp.customspipeline.util.CustomsStageUrls;
+import com.carsale.erp.importpipeline.service.ImportProgressService;
+import com.carsale.erp.importpipeline.service.ImportProgressService.ImportProgress;
 import com.carsale.erp.importpipeline.util.AuctionParseResult;
+import com.carsale.erp.importpipeline.util.ImportStageUrls;
 import com.carsale.erp.shared.document.SheetDocumentStorageService;
 import com.carsale.erp.shared.document.SheetUploadResult;
 import com.carsale.erp.shared.pipeline.FlowStage;
@@ -45,6 +46,7 @@ public class WorksheetController {
     private final OcrImagePreparer ocrService;
     private final SheetDocumentStorageService documentStorageService;
     private final CustomsProgressService customsProgressService;
+    private final ImportProgressService importProgressService;
     private final PipelineStageService pipelineStageService;
     private final WorkingSheet workingSheet;
 
@@ -54,6 +56,7 @@ public class WorksheetController {
             OcrImagePreparer ocrService,
             SheetDocumentStorageService documentStorageService,
             CustomsProgressService customsProgressService,
+            ImportProgressService importProgressService,
             PipelineStageService pipelineStageService, WorkingSheet workingSheet
     ) {
         this.customsDocumentService = customsDocumentService;
@@ -61,6 +64,7 @@ public class WorksheetController {
         this.ocrService = ocrService;
         this.documentStorageService = documentStorageService;
         this.customsProgressService = customsProgressService;
+        this.importProgressService = importProgressService;
         this.pipelineStageService = pipelineStageService;
         this.workingSheet = workingSheet;
     }
@@ -68,9 +72,9 @@ public class WorksheetController {
     @GetMapping
     public String list(@RequestParam(value = "q", required = false) String query) {
         if (query != null && !query.trim().isEmpty()) {
-            return "redirect:/customs?q=" + UriUtils.encodeQueryParam(query.trim(), StandardCharsets.UTF_8);
+            return "redirect:/import?q=" + UriUtils.encodeQueryParam(query.trim(), StandardCharsets.UTF_8);
         }
-        return "redirect:/customs";
+        return "redirect:/import";
     }
 
     @GetMapping("/documents/{storedName:.+}")
@@ -88,35 +92,27 @@ public class WorksheetController {
     public String form(
             @PathVariable String chassisNo,
             @RequestParam(value = "hub", defaultValue = "false") boolean hub,
-            Model model,
-            RedirectAttributes redirectAttributes
+            Model model
     ) {
         Vehicle vehicle = vehicleService.findByChassisNo(chassisNo);
         if (vehicle == null) {
-            return "redirect:/customs";
-        }
-        if (!customsProgressService.isEligible(vehicle)) {
-            redirectAttributes.addFlashAttribute("notice",
-                    "Finish the import pipeline before the customs clearance pipeline.");
-            return "redirect:" + customsProgressService.redirectWhenNotEligible(vehicle);
+            return "redirect:/import";
         }
         CustomsDocument record = customsDocumentService.prepareForm(chassisNo);
-        CustomsProgress status = customsProgressService.progressFor(chassisNo);
+        ImportProgress status = importProgressService.progressFor(vehicle);
         model.addAttribute("pageTitle", pipelineStageService.title(
-                PipelineStageService.FLOW_CUSTOMS, FlowStage.WORKSHEET.getStageKey()));
-        model.addAttribute("activeMenu", "customs");
+                PipelineStageService.FLOW_IMPORT, FlowStage.WORKSHEET.getStageKey()));
+        model.addAttribute("activeMenu", "import");
         model.addAttribute("hubMode", hub);
         model.addAttribute("vehicle", vehicle);
         model.addAttribute("record", record);
         addPipelineFlags(model, status);
-        if (hub) {
-            model.addAttribute("stageNav", CustomsStageUrls.editLinks(
-                    chassisNo,
-                    pipelineStageService.indexOf(PipelineStageService.FLOW_CUSTOMS, FlowStage.WORKSHEET.getStageKey()),
-                    status,
-                    pipelineStageService.list(PipelineStageService.FLOW_CUSTOMS)
-            ));
-        }
+        model.addAttribute("stageNav", ImportStageUrls.editLinks(
+                chassisNo,
+                pipelineStageService.indexOf(PipelineStageService.FLOW_IMPORT, FlowStage.WORKSHEET.getStageKey()),
+                status,
+                pipelineStageService.list(PipelineStageService.FLOW_IMPORT)
+        ));
         return "customs-pipeline/worksheet/form";
     }
 
@@ -152,17 +148,12 @@ public class WorksheetController {
         record.setChassisNo(chassisNo);
         try {
             customsDocumentService.saveWorksheet(record);
+            importProgressService.syncVehicleStage(chassisNo);
             customsProgressService.syncVehicleStage(chassisNo);
-            CustomsProgress status = customsProgressService.progressFor(chassisNo);
-            if (status.isPipelineCompleted()) {
-                redirectAttributes.addFlashAttribute("successMessage",
-                        "Customs clearance is complete. Continue with the preparation pipeline.");
-            } else {
-                redirectAttributes.addFlashAttribute("successMessage", "Working sheet saved.");
-            }
-            return "redirect:" + CustomsStageUrls.redirectAfterWorksheetSave(
+            redirectAttributes.addFlashAttribute("successMessage", "Working sheet saved.");
+            return "redirect:" + ImportStageUrls.redirectAfterWorksheetSave(
                     chassisNo,
-                    pipelineStageService.keys(PipelineStageService.FLOW_CUSTOMS)
+                    pipelineStageService.keys(PipelineStageService.FLOW_IMPORT)
             );
         } catch (IllegalArgumentException ex) {
             redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
@@ -170,10 +161,16 @@ public class WorksheetController {
         }
     }
 
-    private void addPipelineFlags(Model model, CustomsProgress status) {
-        model.addAttribute("blReady", status.isBlReady());
-        model.addAttribute("declarationReady", status.isDeclarationReady());
-        model.addAttribute("assessmentReady", status.isAssessmentReady());
+    private void addPipelineFlags(Model model, ImportProgress status) {
+        model.addAttribute("auctionDocReady", status.isAuctionReady());
+        model.addAttribute("preshipReady", status.isPreshipReady());
+        model.addAttribute("equipmentReady", status.isEquipmentReady());
+        model.addAttribute("jevicReady", status.isOdometerReady());
+        model.addAttribute("coiReady", status.isCoiReady());
+        model.addAttribute("standardsReady", status.isStandardsReady());
+        model.addAttribute("exportReady", status.isExportReady());
+        model.addAttribute("gradeReady", status.isGradeReady());
+        model.addAttribute("photosReady", status.isPhotosReady());
         model.addAttribute("worksheetReady", status.isWorksheetReady());
     }
 

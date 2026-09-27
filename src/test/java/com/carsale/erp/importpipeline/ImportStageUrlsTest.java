@@ -18,7 +18,7 @@ class ImportStageUrlsTest {
 
     @Test
     void newVehicleOpensFirstIncompleteStageInConfiguredOrder() {
-        ImportProgress status = new ImportProgress(true, false, false, false, false, false, false, false, false);
+        ImportProgress status = new ImportProgress(true, false, false, false, false, false, false, false, false, false);
         List<String> keys = Arrays.asList("equipment", "auction", "preshipment");
 
         String url = ImportStageUrls.redirectAfterNewVehicle("ABC123", status, keys);
@@ -28,7 +28,7 @@ class ImportStageUrlsTest {
 
     @Test
     void newVehicleWhenAuctionIsFirstGoesToNextIncompleteStage() {
-        ImportProgress status = new ImportProgress(true, false, false, false, false, false, false, false, false);
+        ImportProgress status = new ImportProgress(true, false, false, false, false, false, false, false, false, false);
         List<String> keys = Arrays.asList("auction", "preshipment", "equipment");
 
         String url = ImportStageUrls.redirectAfterNewVehicle("ABC123", status, keys);
@@ -38,7 +38,7 @@ class ImportStageUrlsTest {
 
     @Test
     void newVehicleWithoutAuctionSheetStaysOnFirstConfiguredStage() {
-        ImportProgress status = new ImportProgress(false, false, false, false, false, false, false, false, false);
+        ImportProgress status = new ImportProgress(false, false, false, false, false, false, false, false, false, false);
         List<String> keys = Arrays.asList("auction", "equipment", "preshipment");
 
         String url = ImportStageUrls.redirectAfterNewVehicle("ABC123", status, keys);
@@ -48,7 +48,7 @@ class ImportStageUrlsTest {
 
     @Test
     void newVehicleWithoutAuctionSheetOpensEquipmentWhenThatStageIsFirst() {
-        ImportProgress status = new ImportProgress(false, false, false, false, false, false, false, false, false);
+        ImportProgress status = new ImportProgress(false, false, false, false, false, false, false, false, false, false);
         List<String> keys = Arrays.asList("equipment", "preshipment", "auction");
 
         String url = ImportStageUrls.redirectAfterNewVehicle("ABC123", status, keys);
@@ -58,7 +58,7 @@ class ImportStageUrlsTest {
 
     @Test
     void jevicStageOpensDedicatedImportForm() {
-        ImportProgress status = new ImportProgress(true, true, true, false, false, false, false, false, false);
+        ImportProgress status = new ImportProgress(true, true, true, false, false, false, false, false, false, false);
         List<String> keys = Arrays.asList("auction", "preshipment", "equipment", "jevic");
 
         String url = ImportStageUrls.redirectAfterNewVehicle("ABC123", status, keys);
@@ -89,7 +89,7 @@ class ImportStageUrlsTest {
 
     @Test
     void coiStageOpensDedicatedImportForm() {
-        ImportProgress status = new ImportProgress(true, true, true, true, false, false, false, false, false);
+        ImportProgress status = new ImportProgress(true, true, true, true, false, false, false, false, false, false);
         List<String> keys = Arrays.asList("auction", "preshipment", "equipment", "jevic", "coi", "standards");
 
         String url = ImportStageUrls.redirectAfterNewVehicle("ABC123", status, keys);
@@ -108,7 +108,7 @@ class ImportStageUrlsTest {
 
     @Test
     void standardsStageOpensDedicatedImportForm() {
-        ImportProgress status = new ImportProgress(true, true, true, true, true, false, false, false, false);
+        ImportProgress status = new ImportProgress(true, true, true, true, true, false, false, false, false, false);
         List<String> keys = Arrays.asList("auction", "preshipment", "equipment", "jevic", "coi", "standards");
 
         String url = ImportStageUrls.redirectAfterNewVehicle("ABC123", status, keys);
@@ -147,7 +147,7 @@ class ImportStageUrlsTest {
 
     @Test
     void exportStageOpensDedicatedImportForm() {
-        ImportProgress status = new ImportProgress(true, true, true, true, true, true, false, false, false);
+        ImportProgress status = new ImportProgress(true, true, true, true, true, true, false, false, false, false);
         List<String> keys = Arrays.asList("auction", "preshipment", "equipment", "jevic", "coi", "standards", "export");
 
         String url = ImportStageUrls.redirectAfterNewVehicle("ABC123", status, keys);
@@ -166,7 +166,7 @@ class ImportStageUrlsTest {
 
     @Test
     void photosStageOpensDedicatedImportForm() {
-        ImportProgress status = new ImportProgress(true, true, true, true, true, true, true, false, false);
+        ImportProgress status = new ImportProgress(true, true, true, true, true, true, true, false, false, false);
         List<String> keys = Arrays.asList("auction", "preshipment", "equipment", "jevic", "coi", "standards", "export", "photos");
 
         String url = ImportStageUrls.redirectAfterNewVehicle("ABC123", status, keys);
@@ -199,7 +199,7 @@ class ImportStageUrlsTest {
 
     @Test
     void gradeStageOpensDedicatedImportForm() {
-        ImportProgress status = new ImportProgress(true, true, true, true, true, true, true, false, false);
+        ImportProgress status = new ImportProgress(true, true, true, true, true, true, true, false, false, false);
         List<String> keys = Arrays.asList("auction", "preshipment", "equipment", "jevic", "coi", "standards", "export", "grade", "photos");
 
         String url = ImportStageUrls.redirectAfterNewVehicle("ABC123", status, keys);
