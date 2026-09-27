@@ -10,10 +10,19 @@ spring:
   datasource:
     # Locally this is localhost. On Railway, set MYSQLHOST, MYSQLPORT,
     # MYSQLDATABASE, MYSQLUSER, and MYSQLPASSWORD from the MySQL service.
-    url: jdbc:mysql://${MYSQLHOST:localhost}:${MYSQLPORT:3306}/${MYSQLDATABASE:car-sale-erp}?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+    url: jdbc:mysql://${MYSQLHOST:localhost}:${MYSQLPORT:3306}/${MYSQLDATABASE:car-sale-erp}?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC&tcpKeepAlive=true&connectTimeout=20000
     driver-class-name: com.mysql.cj.jdbc.Driver
     username: ${MYSQLUSER:root}
     password: ${MYSQLPASSWORD:${MYSQL_PASSWORD:}}
+    hikari:
+      # The host closes idle MySQL sockets. Drop them before that, and ping the ones still in the pool.
+      maximum-pool-size: 5
+      minimum-idle: 1
+      connection-timeout: 20000
+      validation-timeout: 5000
+      idle-timeout: 60000
+      max-lifetime: 180000
+      keepalive-time: 30000
   jpa:
     hibernate:
       ddl-auto: update
