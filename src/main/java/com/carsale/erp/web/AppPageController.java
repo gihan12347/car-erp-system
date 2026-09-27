@@ -5,8 +5,16 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
+import com.carsale.erp.report.DashboardService;
+
 @Controller
 public class AppPageController {
+
+    private final DashboardService dashboardService;
+
+    public AppPageController(DashboardService dashboardService) {
+        this.dashboardService = dashboardService;
+    }
 
     @GetMapping("/")
     public String home() {
@@ -17,6 +25,7 @@ public class AppPageController {
     public String dashboard(Model model) {
         model.addAttribute("pageTitle", "Dashboard");
         model.addAttribute("activeMenu", "dashboard");
+        model.addAttribute("dash", dashboardService.build());
         return "dashboard";
     }
 
@@ -69,12 +78,6 @@ public class AppPageController {
     public String documents(Model model) {
         return module(model, "Documents", "documents", "fa-file-lines",
                 "Export certificates, bills of lading, and sale papers.");
-    }
-
-    @GetMapping("/reports")
-    public String reports(Model model) {
-        return module(model, "Reports", "reports", "fa-chart-column",
-                "Operational and financial reports across the pipeline.");
     }
 
     @GetMapping("/profile")

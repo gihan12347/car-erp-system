@@ -7919,3 +7919,105 @@ a.sale-status-tab.is-active .sale-status-count {
     }
 }
 
+a.report-kpi {
+    text-decoration: none;
+    color: inherit;
+}
+
+a.report-kpi.is-active {
+    border-color: #c2410c;
+    box-shadow: 0 0 0 2px rgba(194, 65, 12, 0.22);
+}
+
+.report-kpis {
+    grid-template-columns: repeat(4, 1fr);
+}
+
+.report-note {
+    margin: 12px 0 0;
+    font-size: 13px;
+}
+
+@media (max-width: 900px) {
+    .report-kpis {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+@media (max-width: 700px) {
+    .page-intro,
+    .next-step-banner,
+    .stage-doc-head,
+    .import-pipeline-head,
+    .panel-head {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+    }
+
+    .dash-head > .panel-btn,
+    .dash-head-actions,
+    .dash-head-actions .panel-btn,
+    .next-step-banner .panel-btn,
+    .page-intro .panel-btn,
+    .stage-empty-action .panel-btn,
+    .vehicle-hero-actions .panel-btn {
+        width: 100%;
+        min-width: 0;
+        margin-left: 0;
+    }
+
+    .dash-head-actions {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .panel:has(> .table-wrap) > .panel-head {
+        padding: 0 2px 8px;
+    }
+
+    .table-wrap > table.report-table tbody tr {
+        grid-template-columns: 1fr;
+    }
+
+    .table-wrap > table.report-table td {
+        grid-column: 1 / -1;
+    }
+
+    .table-wrap > table.report-table td:first-child[data-label]::before {
+        display: none;
+    }
+
+    .finance-list li {
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    .finance-list strong,
+    .record-list strong,
+    .record-list span,
+    .action-list span,
+    .kpi-copy small {
+        min-width: 0;
+        overflow-wrap: anywhere;
+    }
+
+    .finance-list strong {
+        text-align: right;
+    }
+
+    .record-list li,
+    .action-list li {
+        align-items: center;
+    }
+
+    .welcome-block h2 {
+        font-size: 22px;
+        line-height: 1.25;
+    }
+
+    .report-kpis {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
