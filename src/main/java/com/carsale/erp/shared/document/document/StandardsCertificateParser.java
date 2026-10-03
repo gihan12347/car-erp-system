@@ -18,8 +18,8 @@ import org.springframework.stereotype.Service;
 @Service
 public class StandardsCertificateParser implements DocumentParser {
 
-    private static final Map<String, String> TYPE_TO_FIELD = new LinkedHashMap<String, String>();
-    private static final Set<String> CHECKBOX_FIELDS = new HashSet<String>();
+    private static final Map<String, String> TYPE_TO_FIELD = new LinkedHashMap<>();
+    private static final Set<String> CHECKBOX_FIELDS = new HashSet<>();
 
     static {
         TYPE_TO_FIELD.put("abs", "absFitted");
@@ -56,16 +56,7 @@ public class StandardsCertificateParser implements DocumentParser {
 
     @Override
     public AuctionParseResult parsePage(String text) {
-        AuctionParseResult result = new AuctionParseResult();
-        result.setRawText(text);
-        if (text == null || text.trim().isEmpty()) {
-            result.setSuccess(false);
-            result.setMessage("The standards certificate was empty.");
-            return result;
-        }
-        result.setSuccess(true);
-        result.setMessage("");
-        return result;
+        return null;
     }
 
     @Override

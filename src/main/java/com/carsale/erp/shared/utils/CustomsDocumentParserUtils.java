@@ -1,7 +1,6 @@
 package com.carsale.erp.shared.utils;
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.Map;
 import java.util.Locale;
 import com.carsale.erp.importpipeline.util.AuctionParseResult;
 import com.carsale.erp.shared.regex.RegexConstants;
@@ -20,17 +19,6 @@ public class CustomsDocumentParserUtils {
         return null;
     }
 
-    public static String trimBeforeToken(String value, String token) {
-        if (value == null) {
-            return null;
-        }
-        int index = value.toUpperCase(Locale.ROOT).indexOf(token.toUpperCase(Locale.ROOT));
-        if (index > 0) {
-            return value.substring(0, index).trim();
-        }
-        return value.trim();
-    }
-
     public static void finish(AuctionParseResult result, String label) {
         boolean any = !result.getFields().isEmpty();
         result.setSuccess(any);
@@ -43,127 +31,6 @@ public class CustomsDocumentParserUtils {
         return text.replace('\r', '\n')
                 .replaceAll(RegexConstants.Text.HORIZONTAL_SPACE, " ")
                 .replaceAll(RegexConstants.Text.MANY_NEWLINES, "\n\n");
-    }
-
-    public static String extractLabel(String text, String... labels) {
-        for (String label : labels) {
-            Pattern pattern = RegexConstants.Labeled.valueAfterQuotedLabelOrNumber(label);
-            Matcher matcher = pattern.matcher(text);
-            if (matcher.find()) {
-                return clean(matcher.group(1));
-            }
-        }
-        return null;
-    }
-
-    public static String findChassis(String text) {
-        Matcher matcher = RegexConstants.Identifiers.CHASSIS.matcher(text);
-        if (matcher.find()) {
-            return matcher.group(1);
-        }
-        return null;
-    }
-
-    public static String extractHsCode(String text) {
-        Matcher matcher = RegexConstants.Identifiers.HS_CODE.matcher(text);
-        if (matcher.find()) {
-            return matcher.group(1);
-        }
-        return null;
-    }
-
-    public static String extractTaxAmount(String text, String... taxCodes) {
-        for (String taxCode : taxCodes) {
-            String snippet = taxCodeSnippet(text, taxCode);
-            if (snippet == null) {
-                continue;
-            }
-            String amount = amountFromSnippet(snippet);
-            if (amount != null) {
-                return amount;
-            }
-        }
-        return null;
-    }
-
-    private static String taxCodeSnippet(String text, String taxCode) {
-        Matcher matcher = RegexConstants.Assessment.snippetAfterTaxCode(taxCode, RegexConstants.Assessment.TAX_CODE_BOUNDARY)
-                .matcher(text);
-        if (!matcher.find()) {
-            return null;
-        }
-        return matcher.group(1);
-    }
-
-    private static String amountFromSnippet(String snippet) {
-        if (snippet == null || snippet.trim().isEmpty()) {
-            return null;
-        }
-
-        // Prefer the rightmost full amount (tax value column is on the right).
-        Matcher grouped = RegexConstants.Amounts.GROUPED_SPACED_PATTERN.matcher(snippet);
-        String lastGrouped = null;
-        while (grouped.find()) {
-            lastGrouped = grouped.group(1);
-        }
-        if (lastGrouped != null) {
-            return formatThousands(lastGrouped.replaceAll(RegexConstants.Text.NON_DIGIT, ""));
-        }
-
-        Matcher compact = RegexConstants.Amounts.COMPACT_DIGITS_PATTERN.matcher(snippet);
-        String lastCompact = null;
-        while (compact.find()) {
-            lastCompact = compact.group(1);
-        }
-        if (lastCompact != null) {
-            return formatThousands(lastCompact);
-        }
-
-        return null;
-    }
-
-    private static String formatThousands(String digits) {
-        if (digits == null || digits.isEmpty()) {
-            return null;
-        }
-        int length = digits.length();
-        if (length < 4) {
-            return digits;
-        }
-        StringBuilder result = new StringBuilder();
-        int lead = length % 3;
-        if (lead == 0) {
-            lead = 3;
-        }
-        result.append(digits, 0, lead);
-        for (int i = lead; i < length; i += 3) {
-            result.append(',').append(digits, i, i + 3);
-        }
-        return result.toString();
-    }
-
-    public static String clean(String value) {
-        if (value == null) {
-            return null;
-        }
-        String cleaned = value.trim().replaceAll(RegexConstants.Text.WHITESPACE_RUN, " ");
-        cleaned = cleaned.replaceAll(RegexConstants.Text.LEADING_PUNCT, "").replaceAll(RegexConstants.Text.TRAILING_DASH, "").trim();
-        if (cleaned.isEmpty() || isEmptyToken(cleaned)) {
-            return null;
-        }
-        return cleaned;
-    }
-
-    private static boolean isEmptyToken(String value) {
-        String token = value.trim().toLowerCase(Locale.ROOT);
-        return "-".equals(value.trim())
-                || "—".equals(value.trim())
-                || "--".equals(token)
-                || "n/a".equals(token)
-                || "na".equals(token)
-                || "nil".equals(token)
-                || "none".equals(token)
-                || ".".equals(token);
     }
 
     public static String suffix(String name) {
@@ -195,5 +62,53 @@ public class CustomsDocumentParserUtils {
             default:
                 return "N/A";
         }
+    }
+
+    public static String formatThousands(String digits) {
+        int length = digits.length();
+        if (length < 4) {
+            return digits;
+        }
+        StringBuilder result = new StringBuilder();
+        int lead = length % 3;
+        if (lead == 0) {
+            lead = 3;
+        }
+        result.append(digits, 0, lead);
+        for (int i = lead; i < length; i += 3) {
+            result.append(',').append(digits, i, i + 3);
+        }
+        return result.toString();
+    }
+
+    public static String mapType(String type, Map<String, String> typeToFiled) {
+        if (type == null || type.trim().isEmpty()) {
+            return null;
+        }
+        String key = typeKey(type);
+        String mapped = typeToFiled.get(key);
+        if (mapped != null) {
+            return mapped;
+        }
+        int slash = key.lastIndexOf('/');
+        if (slash >= 0 && slash + 1 < key.length()) {
+            return typeToFiled.get(key.substring(slash + 1));
+        }
+        return null;
+    }
+
+    public static String typeKey(String type) {
+        if (type == null || type.trim().isEmpty()) {
+            return "";
+        }
+        return type.trim().toLowerCase(Locale.ROOT).replace(' ', '_');
+    }
+
+    public static String formatDate(int year, int month, int day) {
+        return String.format(Locale.ROOT, "%04d-%02d-%02d", year, month, day);
+    }
+
+    public static String formatMonth(int year, int month) {
+        return String.format(Locale.ROOT, "%04d-%02d", year, month);
     }
 }

@@ -1861,6 +1861,42 @@ body.sheet-page .preship-fields .field-grid textarea.readonly-field {
     color: var(--muted);
 }
 
+.slash-date {
+    position: relative;
+    display: block;
+    width: 100%;
+}
+
+.slash-date > input[type="text"] {
+    padding-right: 2.4rem;
+}
+
+.slash-date > i {
+    position: absolute;
+    right: 12px;
+    bottom: 11px;
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1;
+    pointer-events: none;
+}
+
+.slash-date > input.slash-date-picker {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    width: 2.6rem;
+    height: var(--control-h);
+    margin: 0;
+    padding: 0;
+    min-height: 0;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+    opacity: 0;
+    cursor: pointer;
+}
+
 body.sheet-page .preship-fields .field-grid .slash-date {
     position: relative;
     display: block;
@@ -4809,6 +4845,102 @@ a.import-pipeline-step:hover {
     overflow: visible;
 }
 
+/* Import list only. Chassis sits under the model, and the 10 steps share the pipeline width. */
+.pipeline-table.is-flow.is-import th,
+.pipeline-table.is-flow.is-import td {
+    padding: 8px;
+}
+
+.pipeline-table.is-flow.is-import th.pipeline-vehicle-col,
+.pipeline-table.is-flow.is-import td.pipeline-vehicle-cell {
+    width: 128px;
+    max-width: 128px;
+    overflow: hidden;
+    white-space: normal;
+    text-overflow: unset;
+}
+
+.pipeline-table.is-flow.is-import .pipeline-vehicle-cell strong {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    line-height: 1.25;
+}
+
+.pipeline-table.is-flow.is-import .pipeline-vehicle-cell .chassis-link {
+    display: block;
+    width: fit-content;
+    max-width: 100%;
+    margin-top: 2px;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1.35;
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
+
+.pipeline-table.is-flow.is-import .pipeline-vehicle-cell .muted {
+    margin-top: 1px;
+    font-size: 11px;
+    line-height: 1.3;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.pipeline-table.is-flow.is-import th:nth-child(2) {
+    width: auto;
+    text-align: center;
+}
+
+.pipeline-table.is-flow.is-import th:nth-child(3) {
+    text-align: left;
+}
+
+.pipeline-table.is-flow.is-import th:nth-child(2),
+.pipeline-table.is-flow.is-import td.list-pipeline-cell {
+    width: auto;
+    min-width: 0;
+    overflow: hidden;
+    padding: 8px 4px;
+}
+
+.pipeline-table.is-flow.is-import th.pipeline-status-col,
+.pipeline-table.is-flow.is-import td.pipeline-status-cell {
+    width: 156px;
+    white-space: nowrap;
+    overflow: visible;
+}
+
+.pipeline-table.is-flow.is-import td.pipeline-status-cell .pill {
+    max-width: none;
+    overflow: visible;
+    white-space: nowrap;
+}
+
+.pipeline-table.is-flow.is-import th.pipeline-actions-col,
+.pipeline-table.is-flow.is-import td.pipeline-actions-cell {
+    width: 192px;
+    white-space: nowrap;
+    overflow: visible;
+}
+
+.pipeline-table.is-flow.is-import .list-pipeline-flow {
+    overflow: hidden;
+}
+
+.pipeline-table.is-flow.is-import .list-pipeline-flow li {
+    flex: 1 1 0;
+    min-width: 0;
+    container-type: inline-size;
+}
+
+.pipeline-table.is-flow.is-import .list-pipeline-flow li small {
+    font-size: clamp(8px, 18cqi, 10px);
+    letter-spacing: 0;
+}
+
 .pipeline-table.is-flow.is-short {
     table-layout: auto;
 }
@@ -5073,6 +5205,22 @@ a.import-pipeline-step:hover {
 
     .list-pipeline-flow li small {
         display: none;
+    }
+
+    .pipeline-table.is-flow.is-import th.pipeline-vehicle-col,
+    .pipeline-table.is-flow.is-import td.pipeline-vehicle-cell {
+        width: 136px;
+        max-width: 136px;
+    }
+
+    .pipeline-table.is-flow.is-import th.pipeline-status-col,
+    .pipeline-table.is-flow.is-import td.pipeline-status-cell {
+        width: 132px;
+    }
+
+    .pipeline-table.is-flow.is-import th.pipeline-actions-col,
+    .pipeline-table.is-flow.is-import td.pipeline-actions-cell {
+        width: 104px;
     }
 }
 
@@ -7050,6 +7198,43 @@ body.yard-modal-open {
         grid-area: actions;
     }
 
+    .pipeline-table.is-flow.is-import tbody tr {
+        grid-template-areas:
+            "vehicle status"
+            "pipe pipe"
+            "actions actions";
+    }
+
+    .pipeline-table.is-flow.is-import td.pipeline-vehicle-cell {
+        grid-area: vehicle;
+        align-self: center;
+    }
+
+    .pipeline-table.is-flow.is-import td.pipeline-vehicle-cell strong {
+        font-size: 15px;
+        letter-spacing: -0.02em;
+        white-space: normal;
+        overflow: visible;
+        text-overflow: unset;
+        overflow-wrap: anywhere;
+        word-break: normal;
+    }
+
+    .pipeline-table.is-flow.is-import td.list-pipeline-cell {
+        grid-area: pipe;
+    }
+
+    .pipeline-table.is-flow.is-import td.pipeline-status-cell {
+        grid-area: status;
+        justify-self: end;
+        align-self: start;
+    }
+
+    .pipeline-table.is-flow.is-import td.pipeline-actions-cell {
+        grid-area: actions;
+        justify-self: start;
+    }
+
     .pipeline-table.is-flow .list-pipeline,
     .pipeline-table.is-flow.is-short .list-pipeline {
         width: 100%;
@@ -7067,6 +7252,15 @@ body.yard-modal-open {
         flex: 0 0 58px;
         min-width: 58px;
         text-align: center;
+    }
+
+    .pipeline-table.is-flow.is-import .list-pipeline-flow {
+        overflow: hidden;
+    }
+
+    .pipeline-table.is-flow.is-import .list-pipeline-flow li {
+        flex: 1 1 0;
+        min-width: 0;
     }
 
     .pipeline-table.is-flow.is-short .list-pipeline,
@@ -7272,7 +7466,7 @@ a.sale-group-card {
     place-items: center;
     height: 96px;
     margin: 0;
-    background: linear-gradient(180deg, #f0fdf4 0%, #bbf7d0 100%);
+    background: linear-gradient(180deg, #fff7ed 0%, #fed7aa 100%);
     pointer-events: none;
 }
 
@@ -7304,7 +7498,7 @@ a.sale-group-card {
 
 .sale-group-art.is-yard-art {
     height: 118px;
-    background: linear-gradient(180deg, #f0fdf4 0%, #86efac 100%);
+    background: linear-gradient(180deg, #fff7ed 0%, #fed7aa 100%);
 }
 
 .sale-group-card.is-low .sale-group-art.is-yard-art {
@@ -7363,7 +7557,7 @@ a.sale-group-card {
 
 .sale-group-card:hover .config-tile-go {
     transform: translateX(4px);
-    background: var(--sea);
+    background: var(--brand);
     color: #fff;
 }
 
@@ -7546,6 +7740,33 @@ a.sale-group-card {
 .sale-group-card.is-full .yard-bay-chip {
     background: #fee2e2;
     color: #b91c1c;
+}
+
+a.sale-group-card:not(.is-low):not(.is-full):not(.is-unassigned) .yard-bay-chip,
+a.sale-group-card:not(.is-low):not(.is-full):not(.is-unassigned) .sale-group-count {
+    background: #ffedd5;
+    color: var(--brand);
+}
+
+.sale-group-card .hub-location,
+.yard-hub-page .hub-location,
+.sale-hub .hub-location {
+    background: #fff7ed;
+    color: #9a3412;
+    animation: none;
+    box-shadow: inset 0 0 0 1px rgba(194, 65, 12, 0.16);
+}
+
+.sale-group-card .hub-location i,
+.yard-hub-page .hub-location i,
+.sale-hub .hub-location i {
+    animation: none;
+}
+
+.sale-group-card .hub-location i::after,
+.yard-hub-page .hub-location i::after,
+.sale-hub .hub-location i::after {
+    display: none;
 }
 
 .sale-group-card h2 {
@@ -7960,6 +8181,17 @@ a.yard-vehicle-card:hover .yard-vehicle-open,
     font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
 }
 
+.yard-vehicle-copy small.chassis-link {
+    color: var(--brand);
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.yard-hub-page .yard-vehicle-grid {
+    grid-template-columns: repeat(auto-fill, minmax(240px, 280px));
+}
+
 .yard-vehicle-meta {
     display: flex;
     flex-wrap: wrap;
@@ -7978,6 +8210,12 @@ a.yard-vehicle-card:hover .yard-vehicle-open,
     font-weight: 700;
 }
 
+.yard-hub-page .yard-vehicle-meta em,
+.sale-hub .yard-vehicle-meta em {
+    background: #fff7ed;
+    color: #9a3412;
+}
+
 a.yard-vehicle-card-link {
     display: grid;
     gap: 10px;
@@ -7994,6 +8232,8 @@ a.yard-vehicle-card-link {
 
 .yard-vehicle-actions .panel-btn {
     flex: 1;
+    width: auto;
+    margin-top: 0;
     justify-content: center;
     min-width: 0;
 }
@@ -8133,7 +8373,8 @@ a.sale-status-tab.is-active .sale-status-count {
 }
 
 @media (max-width: 560px) {
-    .yard-vehicle-grid {
+    .yard-vehicle-grid,
+    .yard-hub-page .yard-vehicle-grid {
         grid-template-columns: 1fr;
     }
 
@@ -8592,6 +8833,13 @@ small.chassis-link {
 }
 
 .vehicle-summary-page .page-content {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.summary-body,
+.summary-move {
     display: flex;
     flex-direction: column;
     gap: 16px;

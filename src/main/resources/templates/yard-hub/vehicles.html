@@ -55,40 +55,44 @@
             </form>
 
             <section class="yard-vehicle-grid" th:if="${cards != null and !cards.isEmpty()}">
-                <a class="yard-vehicle-card"
-                   th:each="card, stat : ${cards}"
-                   th:style="|--i: ${stat.index}|"
-                   th:href="@{/yards/{y}/{c}(y=${yard.bayCode}, c=${card.vehicle.chassisNo})}">
-                    <span class="yard-vehicle-photo">
-                        <img th:if="${card.photo != null}"
-                             th:src="@{/photos/documents/{name}(name=${card.photo.storedName})}"
-                             th:alt="${card.vehicle.model}">
-                        <img th:unless="${card.photo != null}"
-                             th:src="@{/images/dashboard/illu-car.svg}"
-                             alt="">
-                        <span class="yard-vehicle-open" aria-hidden="true">
-                            <i class="fa-solid fa-arrow-right"></i>
+                <article class="yard-vehicle-card" th:each="card, stat : ${cards}" th:style="|--i: ${stat.index}|">
+                    <a class="yard-vehicle-card-link"
+                       th:href="@{/yards/{y}/{c}(y=${yard.bayCode}, c=${card.vehicle.chassisNo})}">
+                        <span class="yard-vehicle-photo">
+                            <img th:if="${card.photo != null}"
+                                 th:src="@{/photos/documents/{name}(name=${card.photo.storedName})}"
+                                 th:alt="${card.vehicle.model}">
+                            <img th:unless="${card.photo != null}"
+                                 th:src="@{/images/dashboard/illu-car.svg}"
+                                 alt="">
+                            <span class="yard-vehicle-open" aria-hidden="true">
+                                <i class="fa-solid fa-arrow-right"></i>
+                            </span>
                         </span>
-                    </span>
-                    <span class="yard-vehicle-copy">
-                        <strong th:text="${card.vehicle.model != null and !#strings.isEmpty(card.vehicle.model) ? card.vehicle.model : 'Vehicle'}">Toyota Aqua</strong>
-                        <small class="chassis-link"
-                              role="link"
-                              tabindex="0"
-                              th:attr="data-vehicle-summary=@{/vehicle/{c}(c=${card.vehicle.chassisNo})}"
-                              th:text="${card.vehicle.chassisNo}">NHP10-884211</small>
-                        <span class="yard-vehicle-meta">
-                            <em th:if="${card.vehicle.year != null and !#strings.isEmpty(card.vehicle.year)}"
-                                th:text="${card.vehicle.year}">2025</em>
-                            <em th:if="${card.vehicle.color != null and !#strings.isEmpty(card.vehicle.color)}"
-                                th:text="${card.vehicle.color}">White</em>
-                            <em th:if="${card.vehicle.mileage != null and !#strings.isEmpty(card.vehicle.mileage)}"
-                                th:text="${card.vehicle.mileage}">16,137 km</em>
-                            <em th:if="${card.vehicle.lotNo != null and !#strings.isEmpty(card.vehicle.lotNo)}"
-                                th:text="${'Lot ' + card.vehicle.lotNo}">Lot 36497</em>
+                        <span class="yard-vehicle-copy">
+                            <strong th:text="${card.vehicle.model != null and !#strings.isEmpty(card.vehicle.model) ? card.vehicle.model : 'Vehicle'}">Toyota Raize</strong>
+                            <small class="chassis-link"
+                                  role="link"
+                                  tabindex="0"
+                                  th:attr="data-vehicle-summary=@{/vehicle/{c}(c=${card.vehicle.chassisNo})}"
+                                  th:text="${card.vehicle.chassisNo}">A202A-0082833</small>
+                            <span class="yard-vehicle-meta">
+                                <em th:if="${card.vehicle.year != null and !#strings.isEmpty(card.vehicle.year)}"
+                                    th:text="${card.vehicle.year}">April 2025</em>
+                                <em th:if="${card.vehicle.color != null and !#strings.isEmpty(card.vehicle.color)}"
+                                    th:text="${card.vehicle.color}">White</em>
+                                <em th:if="${card.vehicle.mileage != null and !#strings.isEmpty(card.vehicle.mileage)}"
+                                    th:text="${card.vehicle.mileage}">10 km</em>
+                                <em th:if="${card.vehicle.lotNo != null and !#strings.isEmpty(card.vehicle.lotNo)}"
+                                    th:text="${'Lot ' + card.vehicle.lotNo}">Lot 8313</em>
+                            </span>
                         </span>
+                    </a>
+                    <span class="yard-vehicle-actions">
+                        <a th:href="@{/yards/{y}/{c}(y=${yard.bayCode}, c=${card.vehicle.chassisNo})}"
+                           class="panel-btn">Move to sale</a>
                     </span>
-                </a>
+                </article>
             </section>
             <article class="panel" th:if="${cards == null or cards.isEmpty()}">
                 <p class="muted"

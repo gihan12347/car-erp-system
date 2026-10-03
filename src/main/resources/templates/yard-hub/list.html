@@ -18,7 +18,7 @@
             <p th:if="${error}" class="alert alert-error" th:text="${error}"></p>
 
             <section class="yard-bay-grid sale-group-hub" th:if="${yards != null and !yards.isEmpty()}">
-                <a class="yard-bay-card sale-group-card"
+                <a class="yard-bay-card sale-group-card is-yard-card"
                    th:each="yard, stat : ${yards}"
                    th:href="@{/yards/{code}(code=${yard.bayCode})}"
                    th:style="|--i: ${stat.index}|"

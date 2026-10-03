@@ -73,16 +73,7 @@ public class AssessmentNotice implements DocumentParser {
 
     @Override
     public AuctionParseResult parsePage(String text) {
-        AuctionParseResult result = new AuctionParseResult();
-        result.setRawText(text);
-        if (text == null || text.trim().isEmpty()) {
-            result.setSuccess(false);
-            result.setMessage("The assessment notice was empty.");
-            return result;
-        }
-        result.setSuccess(false);
-        result.setMessage("The document was read, but fields could not be mapped. Please fill them manually.");
-        return result;
+        return null;
     }
 
     @Override
@@ -122,7 +113,7 @@ public class AssessmentNotice implements DocumentParser {
                     pendingValue = taxResult.getPendingValue();
                     continue;
                 }
-                String field = mapType(entity.getType());
+                String field = CustomsDocumentParserUtils.mapType(entity.getType(), TYPE_TO_FIELD);
                 if (field != null) {
                     result.put(
                             field,
@@ -150,37 +141,9 @@ public class AssessmentNotice implements DocumentParser {
         return "assessment notice";
     }
 
-    private static String formatThousands(String digits) {
-        int length = digits.length();
-        if (length < 4) {
-            return digits;
-        }
-        StringBuilder result = new StringBuilder();
-        int lead = length % 3;
-        if (lead == 0) {
-            lead = 3;
-        }
-        result.append(digits, 0, lead);
-        for (int i = lead; i < length; i += 3) {
-            result.append(',').append(digits, i, i + 3);
-        }
-        return result.toString();
-    }
-
-    public static String mapType(String type) {
-        if (type == null || type.trim().isEmpty()) {
-            return null;
-        }
-        String key = typeKey(type);
-        String mapped = TYPE_TO_FIELD.get(key);
-        if (mapped != null) {
-            return mapped;
-        }
-        int slash = key.lastIndexOf('/');
-        if (slash >= 0 && slash + 1 < key.length()) {
-            return TYPE_TO_FIELD.get(key.substring(slash + 1));
-        }
-        return null;
+    @Override
+    public String getOcrLanguage() {
+        return "";
     }
 
     public static String cleanMoney(String raw) {
@@ -205,7 +168,7 @@ public class AssessmentNotice implements DocumentParser {
         if (intPart.isEmpty()) {
             return null;
         }
-        String formatted = formatThousands(intPart);
+        String formatted = CustomsDocumentParserUtils.formatThousands(intPart);
         if (decPart.isEmpty() || decPart.matches(RegexConstants.Amounts.ALL_ZEROS)) {
             return formatted;
         }
@@ -253,19 +216,12 @@ public class AssessmentNotice implements DocumentParser {
     }
 
     private static String leafType(String type) {
-        String key = typeKey(type);
+        String key = CustomsDocumentParserUtils.typeKey(type);
         int slash = key.lastIndexOf('/');
         if (slash >= 0 && slash + 1 < key.length()) {
             return key.substring(slash + 1);
         }
         return key;
-    }
-
-    private static String typeKey(String type) {
-        if (type == null || type.trim().isEmpty()) {
-            return "";
-        }
-        return type.trim().toLowerCase(Locale.ROOT).replace(' ', '_');
     }
 
     private TaxParseResult handleTaxType(

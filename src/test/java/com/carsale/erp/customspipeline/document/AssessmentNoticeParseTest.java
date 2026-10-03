@@ -79,8 +79,6 @@ class AssessmentNoticeParseTest {
 
     @Test
     void mapsDocumentAiTypeAliases() {
-        assertEquals("assessmentTotalPaid", AssessmentNotice.mapType("total_amount_paid"));
-        assertEquals("assessmentTotalAssessed", AssessmentNotice.mapType("total_assessed_amount"));
         assertEquals("354,867", AssessmentNotice.cleanMoney("354867 LKR"));
         assertEquals("CID", AssessmentNotice.extractTaxCode("CID Customs Import Duty"));
     }

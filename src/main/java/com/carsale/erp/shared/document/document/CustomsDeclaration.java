@@ -47,16 +47,7 @@ public class CustomsDeclaration implements DocumentParser {
 
     @Override
     public AuctionParseResult parsePage(String text) {
-        AuctionParseResult result = new AuctionParseResult();
-        result.setRawText(text);
-        if (text == null || text.trim().isEmpty()) {
-            result.setSuccess(false);
-            result.setMessage("The customs declaration was empty.");
-            return result;
-        }
-        result.setSuccess(false);
-        result.setMessage("The document was read, but fields could not be mapped. Please fill them manually.");
-        return result;
+        return null;
     }
 
     @Override
@@ -74,7 +65,7 @@ public class CustomsDeclaration implements DocumentParser {
                 if (entity == null) {
                     continue;
                 }
-                String field = mapType(entity.getType());
+                String field = CustomsDocumentParserUtils.mapType(entity.getType(), TYPE_TO_FIELD);
                 if (field == null) {
                     continue;
                 }
@@ -96,21 +87,9 @@ public class CustomsDeclaration implements DocumentParser {
         return "customs declaration";
     }
 
-    static String mapType(String type) {
-
-        if (type == null || type.trim().isEmpty()) {
-            return null;
-        }
-        String key = type.trim().toLowerCase(Locale.ROOT).replace(' ', '_');
-        String mapped = TYPE_TO_FIELD.get(key);
-        if (mapped != null) {
-            return mapped;
-        }
-        int slash = key.lastIndexOf('/');
-        if (slash >= 0 && slash + 1 < key.length()) {
-            return TYPE_TO_FIELD.get(key.substring(slash + 1));
-        }
-        return null;
+    @Override
+    public String getOcrLanguage() {
+        return "";
     }
 
     static String cleanValue(String field, String raw) {

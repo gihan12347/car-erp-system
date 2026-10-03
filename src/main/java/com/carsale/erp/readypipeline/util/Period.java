@@ -42,7 +42,8 @@ public class Period {
             return null;
         }
         try {
-            return LocalDate.parse(raw.trim().substring(0, Math.min(10, raw.trim().length())));
+            String text = raw.trim().replace('/', '-');
+            return LocalDate.parse(text.substring(0, Math.min(10, text.length())));
         } catch (RuntimeException ignored) {
             return null;
         }

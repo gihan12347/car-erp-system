@@ -20,7 +20,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import com.carsale.erp.importpipeline.service.VehiclePhotoService;
 import com.carsale.erp.readypipeline.controller.ReadyForSaleController;
 import com.carsale.erp.readypipeline.util.ReadyStageUrls;
 import com.carsale.erp.readypipeline.model.SaleListing;
@@ -28,6 +27,8 @@ import com.carsale.erp.readypipeline.service.SaleListingService;
 import com.carsale.erp.readypipeline.service.SaleLocationService;
 import com.carsale.erp.shared.vehicle.Vehicle;
 import com.carsale.erp.shared.vehicle.VehicleService;
+import com.carsale.erp.shared.vehicle.VehicleSummary;
+import com.carsale.erp.shared.vehicle.VehicleSummaryService;
 
 @Controller
 @RequestMapping("/yards")
@@ -36,7 +37,7 @@ public class YardHubController {
     private final YardBayService yardBayService;
     private final YardService yardService;
     private final VehicleService vehicleService;
-    private final VehiclePhotoService vehiclePhotoService;
+    private final VehicleSummaryService vehicleSummaryService;
     private final SaleListingService saleListingService;
     private final SaleLocationService saleLocationService;
 
@@ -44,14 +45,14 @@ public class YardHubController {
             YardBayService yardBayService,
             YardService yardService,
             VehicleService vehicleService,
-            VehiclePhotoService vehiclePhotoService,
+            VehicleSummaryService vehicleSummaryService,
             SaleListingService saleListingService,
             SaleLocationService saleLocationService
     ) {
         this.yardBayService = yardBayService;
         this.yardService = yardService;
         this.vehicleService = vehicleService;
-        this.vehiclePhotoService = vehiclePhotoService;
+        this.vehicleSummaryService = vehicleSummaryService;
         this.saleListingService = saleListingService;
         this.saleLocationService = saleLocationService;
     }
@@ -123,13 +124,18 @@ public class YardHubController {
             String saleCode = assigned == null ? null : assigned.getSaleCode();
             return "redirect:" + ReadyStageUrls.saleVehicle(saleCode, chassisNo);
         }
+        VehicleSummary summary = vehicleSummaryService.build(chassisNo);
+        if (summary == null) {
+            redirectAttributes.addFlashAttribute("error", "Vehicle is not in this yard.");
+            return "redirect:/yards";
+        }
         SaleListing listing = saleListingService.prepareForm(chassisNo);
         model.addAttribute("pageTitle", Yard.vehicleLabel(vehicle));
         model.addAttribute("activeMenu", "yards");
         model.addAttribute("yard", yard);
         model.addAttribute("vehicle", vehicle);
+        model.addAttribute("summary", summary);
         model.addAttribute("record", listing);
-        model.addAttribute("photos", vehiclePhotoService.list(chassisNo));
         model.addAttribute("saleLocations", saleLocationService.listActive());
         return "yard-hub/detail";
     }

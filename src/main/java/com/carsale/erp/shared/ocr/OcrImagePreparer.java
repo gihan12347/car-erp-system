@@ -44,7 +44,6 @@ public class OcrImagePreparer {
     ) {
         this.ocrClients = ocrClients;
         this.maxImageSide = maxImageSide > 0 ? maxImageSide : 2200;
-        //this.pdfRenderDpi = pdfRenderDpi > 0 ? pdfRenderDpi : 220;
         this.language = language == null || language.trim().isEmpty() ? "eng" : language.trim();
         this.documentAiClient = documentAiClient;
     }
@@ -110,7 +109,6 @@ public class OcrImagePreparer {
         if (documentAiResult != null && documentAiResult.isSuccess()) {
             return documentAiResult;
         }
-
         OcrClient client = ocrClients.clientFor(provider);
         BufferedImage image = ImageIO.read(file);
         if (image == null) {

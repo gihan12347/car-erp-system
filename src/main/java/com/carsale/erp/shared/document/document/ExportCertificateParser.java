@@ -3,7 +3,6 @@ package com.carsale.erp.shared.document.document;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -72,16 +71,7 @@ public class ExportCertificateParser implements DocumentParser {
 
     @Override
     public AuctionParseResult parsePage(String text) {
-        AuctionParseResult result = new AuctionParseResult();
-        result.setRawText(text);
-        if (text == null || text.trim().isEmpty()) {
-            result.setSuccess(false);
-            result.setMessage("The export certificate was empty.");
-            return result;
-        }
-        result.setSuccess(false);
-        result.setMessage("The document was read, but fields could not be mapped. Please fill them manually.");
-        return result;
+        return null;
     }
 
     @Override
@@ -99,7 +89,7 @@ public class ExportCertificateParser implements DocumentParser {
                 if (entity == null) {
                     continue;
                 }
-                String field = mapType(entity.getType());
+                String field = CustomsDocumentParserUtils.mapType(entity.getType(), TYPE_TO_FIELD);
                 if (field == null || result.getFields().containsKey(field)) {
                     continue;
                 }
@@ -123,22 +113,6 @@ public class ExportCertificateParser implements DocumentParser {
     @Override
     public String getOcrLanguage() {
         return "eng";
-    }
-
-    static String mapType(String type) {
-        if (type == null || type.trim().isEmpty()) {
-            return null;
-        }
-        String key = type.trim().toLowerCase(Locale.ROOT).replace(' ', '_');
-        String mapped = TYPE_TO_FIELD.get(key);
-        if (mapped != null) {
-            return mapped;
-        }
-        int slash = key.lastIndexOf('/');
-        if (slash >= 0 && slash + 1 < key.length()) {
-            return TYPE_TO_FIELD.get(key.substring(slash + 1));
-        }
-        return null;
     }
 
     static String cleanDocumentAiValue(String field, String raw) {
@@ -176,7 +150,7 @@ public class ExportCertificateParser implements DocumentParser {
         }
         Matcher yearMonthDay = RegexConstants.Dates.YEAR_MONTH_DAY_NUMERIC_PATTERN.matcher(value);
         if (yearMonthDay.matches()) {
-            return formatDate(
+            return CustomsDocumentParserUtils.formatDate(
                     Integer.parseInt(yearMonthDay.group(1)),
                     Integer.parseInt(yearMonthDay.group(2)),
                     Integer.parseInt(yearMonthDay.group(3))
@@ -184,7 +158,7 @@ public class ExportCertificateParser implements DocumentParser {
         }
         Matcher dayMonthYear = RegexConstants.Dates.DAY_MONTH_YEAR_NUMERIC_PATTERN.matcher(value);
         if (dayMonthYear.matches()) {
-            return formatDate(
+            return CustomsDocumentParserUtils.formatDate(
                     Integer.parseInt(dayMonthYear.group(3)),
                     Integer.parseInt(dayMonthYear.group(2)),
                     Integer.parseInt(dayMonthYear.group(1))
@@ -192,7 +166,7 @@ public class ExportCertificateParser implements DocumentParser {
         }
         Matcher yearMonth = RegexConstants.Dates.YEAR_MONTH_ISO_PATTERN.matcher(value);
         if (yearMonth.matches()) {
-            return formatDate(
+            return CustomsDocumentParserUtils.formatDate(
                     Integer.parseInt(yearMonth.group(1)),
                     Integer.parseInt(yearMonth.group(2)),
                     1
@@ -200,7 +174,7 @@ public class ExportCertificateParser implements DocumentParser {
         }
         Matcher yearMonthNumeric = RegexConstants.Dates.YEAR_MONTH_NUMERIC_PATTERN.matcher(value);
         if (yearMonthNumeric.matches()) {
-            return formatDate(
+            return CustomsDocumentParserUtils.formatDate(
                     Integer.parseInt(yearMonthNumeric.group(1)),
                     Integer.parseInt(yearMonthNumeric.group(2)),
                     1
@@ -208,7 +182,7 @@ public class ExportCertificateParser implements DocumentParser {
         }
         Matcher monthYear = RegexConstants.Dates.MONTH_YEAR_NUMERIC_PATTERN.matcher(value);
         if (monthYear.matches()) {
-            return formatDate(
+            return CustomsDocumentParserUtils.formatDate(
                     Integer.parseInt(monthYear.group(2)),
                     Integer.parseInt(monthYear.group(1)),
                     1
@@ -243,47 +217,39 @@ public class ExportCertificateParser implements DocumentParser {
         }
         Matcher yearMonthIso = RegexConstants.Dates.YEAR_MONTH_ISO_PATTERN.matcher(value);
         if (yearMonthIso.matches()) {
-            return formatMonth(
+            return CustomsDocumentParserUtils.formatMonth(
                     Integer.parseInt(yearMonthIso.group(1)),
                     Integer.parseInt(yearMonthIso.group(2))
             );
         }
         Matcher yearMonth = RegexConstants.Dates.YEAR_MONTH_NUMERIC_PATTERN.matcher(value);
         if (yearMonth.matches()) {
-            return formatMonth(
+            return CustomsDocumentParserUtils.formatMonth(
                     Integer.parseInt(yearMonth.group(1)),
                     Integer.parseInt(yearMonth.group(2))
             );
         }
         Matcher monthYear = RegexConstants.Dates.MONTH_YEAR_NUMERIC_PATTERN.matcher(value);
         if (monthYear.matches()) {
-            return formatMonth(
+            return CustomsDocumentParserUtils.formatMonth(
                     Integer.parseInt(monthYear.group(2)),
                     Integer.parseInt(monthYear.group(1))
             );
         }
         Matcher yearMonthDay = RegexConstants.Dates.YEAR_MONTH_DAY_NUMERIC_PATTERN.matcher(value);
         if (yearMonthDay.matches()) {
-            return formatMonth(
+            return CustomsDocumentParserUtils.formatMonth(
                     Integer.parseInt(yearMonthDay.group(1)),
                     Integer.parseInt(yearMonthDay.group(2))
             );
         }
         Matcher dayMonthYear = RegexConstants.Dates.DAY_MONTH_YEAR_NUMERIC_PATTERN.matcher(value);
         if (dayMonthYear.matches()) {
-            return formatMonth(
+            return CustomsDocumentParserUtils.formatMonth(
                     Integer.parseInt(dayMonthYear.group(3)),
                     Integer.parseInt(dayMonthYear.group(2))
             );
         }
         return PreShipmentParser.normalizeYearMonth(value);
-    }
-
-    private static String formatDate(int year, int month, int day) {
-        return String.format(Locale.ROOT, "%04d-%02d-%02d", year, month, day);
-    }
-
-    private static String formatMonth(int year, int month) {
-        return String.format(Locale.ROOT, "%04d-%02d", year, month);
     }
 }

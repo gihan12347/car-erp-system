@@ -78,6 +78,11 @@ public class EquipmentInspectionParser implements DocumentParser {
         return "equipment inspection";
     }
 
+    @Override
+    public String getOcrLanguage() {
+        return "";
+    }
+
     private String scopedText(FieldDef field, String exteriorText, String bodyKitText, String truckText, String fullText) {
         if (EquipmentInspectionFields.GROUP_BODY_KIT.equals(field.getGroup())) {
             return firstNonEmpty(bodyKitText, exteriorText, fullText);

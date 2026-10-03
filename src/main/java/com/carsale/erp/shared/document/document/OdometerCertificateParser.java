@@ -45,16 +45,7 @@ public class OdometerCertificateParser implements DocumentParser {
 
     @Override
     public AuctionParseResult parsePage(String text) {
-        AuctionParseResult result = new AuctionParseResult();
-        result.setRawText(text);
-        if (text == null || text.trim().isEmpty()) {
-            result.setSuccess(false);
-            result.setMessage("The odometer certificate was empty.");
-            return result;
-        }
-        result.setSuccess(false);
-        result.setMessage("The document was read, but fields could not be mapped. Please fill them manually.");
-        return result;
+        return null;
     }
 
     @Override

@@ -2,7 +2,6 @@ package com.carsale.erp.shared.document.document;
 
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 
 import com.carsale.erp.importpipeline.util.AuctionParseResult;
@@ -16,7 +15,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class GradeSearchParser implements DocumentParser {
 
-    private static final Map<String, String> TYPE_TO_FIELD = new LinkedHashMap<String, String>();
+    private static final Map<String, String> TYPE_TO_FIELD = new LinkedHashMap<>();
 
     static {
         TYPE_TO_FIELD.put("chassis_number", "chassisNumber");
@@ -62,7 +61,7 @@ public class GradeSearchParser implements DocumentParser {
                 if (entity == null) {
                     continue;
                 }
-                String field = mapType(entity.getType());
+                String field = CustomsDocumentParserUtils.mapType(entity.getType(), TYPE_TO_FIELD);
                 if (field == null || result.getFields().containsKey(field)) {
                     continue;
                 }
@@ -86,22 +85,6 @@ public class GradeSearchParser implements DocumentParser {
     @Override
     public String getOcrLanguage() {
         return "eng";
-    }
-
-    static String mapType(String type) {
-        if (type == null || type.trim().isEmpty()) {
-            return null;
-        }
-        String key = type.trim().toLowerCase(Locale.ROOT).replace(' ', '_');
-        String mapped = TYPE_TO_FIELD.get(key);
-        if (mapped != null) {
-            return mapped;
-        }
-        int slash = key.lastIndexOf('/');
-        if (slash >= 0 && slash + 1 < key.length()) {
-            return TYPE_TO_FIELD.get(key.substring(slash + 1));
-        }
-        return null;
     }
 
     static String cleanDocumentAiValue(String raw) {

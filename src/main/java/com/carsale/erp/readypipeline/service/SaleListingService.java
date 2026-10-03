@@ -95,11 +95,15 @@ public class SaleListingService {
                 && (isBlank(incoming.getSaleCode()) || isBlank(incoming.getListedOn()))) {
             throw new IllegalArgumentException("Select a date and an available sale to complete this step.");
         }
+        if (incoming.isAssignmentComplete() && isBlank(incoming.getAskingPrice())) {
+            throw new IllegalArgumentException("Enter a selling price.");
+        }
 
         SaleListing existing = saleListingRepository.findById(chassisNo).orElse(null);
         SaleListing target = existing != null ? existing : new SaleListing();
         target.setChassisNo(chassisNo);
         target.setListedOn(incoming.getListedOn());
+        target.setAskingPrice(isBlank(incoming.getAskingPrice()) ? null : incoming.getAskingPrice().trim());
         target.setAssignmentComplete(incoming.isAssignmentComplete());
 
         if (!isBlank(incoming.getSaleCode())) {

@@ -31,6 +31,8 @@ import com.carsale.erp.shared.pipeline.PipelineStageService;
 import com.carsale.erp.shared.vehicle.Vehicle;
 import com.carsale.erp.shared.vehicle.VehicleService;
 import com.carsale.erp.shared.vehicle.VehicleStage;
+import com.carsale.erp.shared.vehicle.VehicleSummary;
+import com.carsale.erp.shared.vehicle.VehicleSummaryService;
 
 @Controller
 @RequestMapping("/ready-for-sale")
@@ -42,6 +44,7 @@ public class ReadyForSaleController {
     private final SaleLocationService saleLocationService;
     private final VehicleRegistrationService vehicleRegistrationService;
     private final VehiclePhotoService vehiclePhotoService;
+    private final VehicleSummaryService vehicleSummaryService;
 
     public ReadyForSaleController(
             VehicleService vehicleService,
@@ -49,7 +52,8 @@ public class ReadyForSaleController {
             SaleListingService saleListingService,
             SaleLocationService saleLocationService,
             VehicleRegistrationService vehicleRegistrationService,
-            VehiclePhotoService vehiclePhotoService
+            VehiclePhotoService vehiclePhotoService,
+            VehicleSummaryService vehicleSummaryService
     ) {
         this.vehicleService = vehicleService;
         this.preparationProgressService = preparationProgressService;
@@ -57,6 +61,7 @@ public class ReadyForSaleController {
         this.saleLocationService = saleLocationService;
         this.vehicleRegistrationService = vehicleRegistrationService;
         this.vehiclePhotoService = vehiclePhotoService;
+        this.vehicleSummaryService = vehicleSummaryService;
     }
 
     @GetMapping
@@ -163,17 +168,26 @@ public class ReadyForSaleController {
             return "redirect:/yards";
         }
 
+        VehicleSummary summary = vehicleSummaryService.build(chassisNo);
+        if (summary == null) {
+            return "redirect:" + ReadyStageUrls.saleLocation(saleCode);
+        }
         SaleProgress status = saleListingService.progressFor(chassisNo);
         SaleListing listing = saleListingService.findByChassisNo(chassisNo);
         SaleRow row = new SaleRow(vehicle, status, listing);
         String tab = row.getTab();
+        SaleLocation sale = saleLocationService.findByCode(saleCode);
+        String saleTitle = sale != null && sale.getSaleName() != null && !sale.getSaleName().trim().isEmpty()
+                ? sale.getSaleName()
+                : saleCode;
         model.addAttribute("pageTitle", vehicleLabel(vehicle));
         model.addAttribute("activeMenu", "ready-for-sale");
         model.addAttribute("vehicle", vehicle);
+        model.addAttribute("summary", summary);
         model.addAttribute("listing", listing);
         model.addAttribute("registration", vehicleRegistrationService.findByChassisNo(chassisNo));
-        model.addAttribute("photos", vehiclePhotoService.list(chassisNo));
         model.addAttribute("saleCode", saleCode);
+        model.addAttribute("saleTitle", saleTitle);
         model.addAttribute("tab", tab);
         model.addAttribute("sold", row.isSold());
         model.addAttribute("registered", row.isRegistered());

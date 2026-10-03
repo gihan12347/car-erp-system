@@ -69,16 +69,7 @@ public class PreShipmentParser implements DocumentParser {
 
     @Override
     public AuctionParseResult parsePage(String text) {
-        AuctionParseResult result = new AuctionParseResult();
-        result.setRawText(text);
-        if (text == null || text.trim().isEmpty()) {
-            result.setSuccess(false);
-            result.setMessage("The pre-shipment document was empty.");
-            return result;
-        }
-        result.setSuccess(false);
-        result.setMessage("The document was read, but fields could not be mapped. Please fill them manually.");
-        return result;
+        return null;
     }
 
     @Override
@@ -134,6 +125,11 @@ public class PreShipmentParser implements DocumentParser {
     @Override
     public String getDocumentName() {
         return "pre shipment";
+    }
+
+    @Override
+    public String getOcrLanguage() {
+        return "";
     }
 
     static String mapType(String type) {

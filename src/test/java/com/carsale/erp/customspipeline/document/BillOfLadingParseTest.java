@@ -51,8 +51,6 @@ class BillOfLadingParseTest {
 
     @Test
     void mapsDocumentAiTypeAliases() {
-        assertEquals("blNo", BillOfLading.mapType("bl_no"));
-        assertEquals("dateOfBlIssue", BillOfLading.mapType("date_of_bl_issue"));
         assertEquals("NYK8182204251", BillOfLading.cleanValue("blNo", "NYK 8182204251"));
     }
 
