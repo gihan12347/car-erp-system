@@ -2,7 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <body>
 
-<!-- Reusable document upload toolbar: Choose file · Auto fill · Preview -->
+<!-- Reusable document upload toolbar: Choose file · Crop · Auto fill · Preview -->
 <div th:fragment="documentUploadToolbar(title, idSuffix, initialFileName, statusText, defaultProvider)"
      class="doc-upload-toolbar panel"
      th:with="ocrDefault=${defaultProvider != null and defaultProvider == 'google' ? 'google' : 'ocrspace'}">
@@ -22,6 +22,12 @@
                th:id="|sheetFile${idSuffix}|"
                accept="image/*,.pdf"
                class="visually-hidden-file">
+        <button type="button" class="panel-btn ghost"
+                th:id="|cropSheetBtn${idSuffix}|"
+                disabled>
+            <i class="fa-solid fa-crop-simple"></i>
+            Crop
+        </button>
         <button type="button" class="panel-btn auto-fill-btn"
                 th:id="|autoFillBtn${idSuffix}|"
                 disabled>
@@ -72,6 +78,7 @@
     <p class="upload-status"
        th:id="|uploadStatus${idSuffix}|"
        th:text="${statusText}">Choose a JPG, PNG, or PDF to upload and preview.</p>
+    <script th:src="@{/js/shared/document-crop.js(v=20261003a)}"></script>
 </div>
 
 </body>

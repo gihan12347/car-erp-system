@@ -2239,6 +2239,11 @@ body.preship-page .sheet-fields {
     align-items: stretch;
 }
 
+.doc-upload-toolbar-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+}
+
 .doc-upload-toolbar-actions .panel-btn,
 .doc-upload-toolbar-actions .upload-file-btn,
 .preship-toolbar-actions .panel-btn,
@@ -2275,10 +2280,137 @@ body.preship-page .sheet-fields {
     cursor: not-allowed;
 }
 
+.doc-upload-toolbar-actions .panel-btn.ghost:disabled {
+    background: #faf8f4;
+    color: var(--ink);
+    opacity: 0.45;
+}
+
 .doc-upload-toolbar .upload-status,
 .preship-toolbar .upload-status {
     margin: 0;
     font-size: 13px;
+}
+
+.image-crop-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 90;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px 16px;
+    background: rgba(28, 25, 23, 0.62);
+}
+
+.image-crop-modal[hidden] {
+    display: none;
+}
+
+.image-crop-dialog {
+    width: min(960px, 100%);
+    max-height: calc(100vh - 48px);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 16px;
+    border-radius: 16px;
+    background: var(--paper);
+    box-shadow: 0 24px 60px rgba(28, 25, 23, 0.35);
+}
+
+.image-crop-toolbar strong {
+    display: block;
+    font-size: 16px;
+}
+
+.image-crop-toolbar p,
+.image-crop-error {
+    margin: 4px 0 0;
+    color: var(--muted);
+    font-size: 13px;
+}
+
+.image-crop-error {
+    color: #b91c1c;
+}
+
+.image-crop-stage {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 220px;
+    max-height: calc(100vh - 240px);
+    overflow: hidden;
+    border-radius: 12px;
+    background: #1c1917;
+}
+
+.image-crop-frame {
+    position: relative;
+    display: inline-block;
+    line-height: 0;
+    max-width: 100%;
+}
+
+.image-crop-frame img {
+    display: block;
+    max-width: min(900px, 86vw);
+    max-height: calc(100vh - 260px);
+    width: auto;
+    height: auto;
+    user-select: none;
+    -webkit-user-drag: none;
+}
+
+.image-crop-box {
+    position: absolute;
+    border: 2px solid #fff;
+    box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.55);
+    cursor: move;
+    touch-action: none;
+}
+
+.image-crop-handle {
+    position: absolute;
+    width: 14px;
+    height: 14px;
+    border: 2px solid #fff;
+    border-radius: 3px;
+    background: var(--brand);
+    box-sizing: border-box;
+}
+
+.image-crop-handle.nw { left: -7px; top: -7px; cursor: nwse-resize; }
+.image-crop-handle.ne { right: -7px; top: -7px; cursor: nesw-resize; }
+.image-crop-handle.sw { left: -7px; bottom: -7px; cursor: nesw-resize; }
+.image-crop-handle.se { right: -7px; bottom: -7px; cursor: nwse-resize; }
+.image-crop-handle.n { left: calc(50% - 7px); top: -7px; cursor: ns-resize; }
+.image-crop-handle.s { left: calc(50% - 7px); bottom: -7px; cursor: ns-resize; }
+.image-crop-handle.e { right: -7px; top: calc(50% - 7px); cursor: ew-resize; }
+.image-crop-handle.w { left: -7px; top: calc(50% - 7px); cursor: ew-resize; }
+
+.image-crop-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+.image-crop-actions .panel-btn {
+    width: auto;
+    margin-top: 0;
+    min-height: 38px;
+    padding: 0 16px;
+}
+
+@media (max-width: 640px) {
+    .image-crop-actions {
+        flex-direction: column;
+    }
+
+    .image-crop-actions .panel-btn {
+        width: 100%;
+    }
 }
 
 .ocr-lang-banner {
