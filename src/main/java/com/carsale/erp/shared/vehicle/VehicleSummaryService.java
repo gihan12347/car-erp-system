@@ -397,13 +397,9 @@ public class VehicleSummaryService {
         List<SpecLine> lines = new ArrayList<SpecLine>();
         addSpec(lines, "Year", vehicle.getYear());
         addSpec(lines, "Mileage", vehicle.getMileage());
-        addSpec(lines, "Color", vehicle.getColor());
         addSpec(lines, "Grade", vehicle.getAuctionGrade());
         addSpec(lines, "Transmission", vehicle.getTransmission());
         addSpec(lines, "Fuel", vehicle.getFuel());
-        if (text(vehicle.getLotNo()) != null) {
-            lines.add(new SpecLine("Lot", vehicle.getLotNo().trim()));
-        }
         return lines;
     }
 

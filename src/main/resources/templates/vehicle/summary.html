@@ -70,16 +70,48 @@
                                th:href="@{/photos/{c}(c=${summary.vehicle.chassisNo})}">Manage images</a>
                         </div>
                         <div class="summary-gallery" th:if="${!summary.photos.isEmpty()}">
-                            <button type="button"
-                                    class="summary-photo"
-                                    th:each="photo : ${summary.photos}"
-                                    th:attr="data-doc-url=${photo.url}, data-doc-title=${photo.name}, data-doc-pdf=${photo.pdf}">
-                                <img th:unless="${photo.pdf}" th:src="${photo.url}" th:alt="${photo.name}">
-                                <span th:if="${photo.pdf}" class="summary-photo-file">
+                            <div class="summary-stage" id="summaryStage">
+                                <img id="summaryStageImage"
+                                     th:src="${summary.photos[0].pdf ? null : summary.photos[0].url}"
+                                     th:alt="${summary.photos[0].name}"
+                                     th:hidden="${summary.photos[0].pdf}">
+                                <div class="summary-stage-file" id="summaryStageFile" th:hidden="${!summary.photos[0].pdf}">
                                     <i class="fa-solid fa-file-pdf"></i>
-                                    <small th:text="${photo.name}">scan.pdf</small>
-                                </span>
-                            </button>
+                                    <strong id="summaryStageFileName" th:text="${summary.photos[0].name}">scan.pdf</strong>
+                                    <button type="button"
+                                            class="table-btn view"
+                                            id="summaryStageFileOpen"
+                                            th:attr="data-doc-url=${summary.photos[0].url}, data-doc-title=${summary.photos[0].name}, data-doc-pdf=true">
+                                        <i class="fa-solid fa-eye"></i>
+                                        View
+                                    </button>
+                                </div>
+                                <button type="button"
+                                        class="summary-stage-zoom"
+                                        id="summaryStageZoom"
+                                        aria-label="Open full size"
+                                        th:hidden="${summary.photos[0].pdf}"
+                                        th:attr="data-doc-url=${summary.photos[0].url}, data-doc-title=${summary.photos[0].name}, data-doc-pdf=false">
+                                    <i class="fa-solid fa-expand"></i>
+                                </button>
+                                <p class="summary-stage-caption">
+                                    <span id="summaryStageCount" th:text="${'1 / ' + summary.photos.size()}">1 / 3</span>
+                                    <span id="summaryStageName" th:text="${summary.photos[0].name}">front.jpg</span>
+                                </p>
+                            </div>
+                            <div class="summary-thumbs" id="summaryThumbs" role="listbox" aria-label="Vehicle images">
+                                <button type="button"
+                                        class="summary-thumb"
+                                        role="option"
+                                        th:each="photo, iter : ${summary.photos}"
+                                        th:classappend="${iter.index == 0} ? ' is-selected' : ''"
+                                        th:attr="aria-selected=${iter.index == 0}, data-photo-url=${photo.url}, data-photo-title=${photo.name}, data-photo-pdf=${photo.pdf}, data-photo-index=${iter.count}">
+                                    <img th:unless="${photo.pdf}" th:src="${photo.url}" th:alt="${photo.name}">
+                                    <span th:if="${photo.pdf}" class="summary-thumb-file">
+                                        <i class="fa-solid fa-file-pdf"></i>
+                                    </span>
+                                </button>
+                            </div>
                         </div>
                         <div class="summary-empty" th:if="${summary.photos.isEmpty()}">
                             <img th:src="@{/images/dashboard/illu-car.svg}" alt="">
@@ -122,7 +154,7 @@
                                 </div>
                                 <div class="doc-card-actions">
                                     <button type="button"
-                                            class="summary-btn"
+                                            class="table-btn view"
                                             th:if="${doc.fileUrl != null}"
                                             th:attr="data-doc-url=${doc.fileUrl}, data-doc-title=${doc.title}, data-doc-pdf=${doc.pdf}">
                                         <i class="fa-solid fa-eye"></i>
@@ -191,6 +223,6 @@
 <div th:replace="shared/document-viewer :: documentViewer"></div>
 <script th:src="@{/js/shared/app.js(v=20261003s)}"></script>
 <script th:src="@{/js/shared/document-viewer.js(v=20260826d)}"></script>
-<script th:src="@{/js/vehicle/summary.js(v=20261003s)}"></script>
+<script th:src="@{/js/vehicle/summary.js(v=20261003g)}"></script>
 </body>
 </html>
