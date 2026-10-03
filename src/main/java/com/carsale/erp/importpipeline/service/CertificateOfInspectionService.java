@@ -3,12 +3,11 @@ package com.carsale.erp.importpipeline.service;
 import com.carsale.erp.importpipeline.model.InspectionCertificate;
 import com.carsale.erp.importpipeline.repository.InspectionCertificateRepository;
 import com.carsale.erp.shared.document.SheetDocumentStorageService;
-import java.util.Map;
+import com.carsale.erp.shared.document.document.CertificateOfInspectionParser;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.carsale.erp.importpipeline.util.AuctionParseResult;
 import com.carsale.erp.shared.vehicle.Vehicle;
 import com.carsale.erp.shared.vehicle.VehicleRepository;
 
@@ -33,7 +32,9 @@ public class CertificateOfInspectionService {
         if (chassisNo == null || chassisNo.trim().isEmpty()) {
             return null;
         }
-        return certificateRepository.findById(chassisNo.trim()).orElse(null);
+        InspectionCertificate record = certificateRepository.findById(chassisNo.trim()).orElse(null);
+        normalizeInspectionDate(record);
+        return record;
     }
 
     public InspectionCertificate prepareForm(String chassisNo) {
@@ -59,8 +60,20 @@ public class CertificateOfInspectionService {
     }
 
     private void ensureInspectionDate(InspectionCertificate record) {
+        normalizeInspectionDate(record);
         if (record.getInspectionDate() == null || record.getInspectionDate().trim().isEmpty()) {
-            record.setInspectionDate(java.time.LocalDate.now().toString());
+            record.setInspectionDate(java.time.LocalDate.now().format(
+                    java.time.format.DateTimeFormatter.ofPattern("yyyy/MM/dd")));
+        }
+    }
+
+    private void normalizeInspectionDate(InspectionCertificate record) {
+        if (record == null || record.getInspectionDate() == null) {
+            return;
+        }
+        String normalized = CertificateOfInspectionParser.toSlashDate(record.getInspectionDate());
+        if (normalized != null && normalized.matches("\\d{4}/\\d{2}/\\d{2}")) {
+            record.setInspectionDate(normalized);
         }
     }
 
@@ -101,37 +114,6 @@ public class CertificateOfInspectionService {
         return certificateRepository.save(existing);
     }
 
-    public AuctionParseResult remapParseResult(AuctionParseResult parsed) {
-        if (parsed == null) {
-            return new AuctionParseResult();
-        }
-        Map<String, String> source = parsed.getFields();
-        AuctionParseResult remapped = new AuctionParseResult();
-        remapped.setSuccess(parsed.isSuccess());
-        remapped.setMessage(parsed.getMessage());
-        remapped.setRawText(parsed.getRawText());
-        remapped.put("certificateNo", value(source, "jevicCertificateNo"));
-        remapped.put("issueDate", value(source, "jevicIssueDate"));
-        remapped.put("inspectionBranch", value(source, "jevicLocation"));
-        remapped.put("make", value(source, "jevicMake"));
-        remapped.put("model", value(source, "jevicModel"));
-        remapped.put("engineCapacity", value(source, "jevicEngineCapacity"));
-        remapped.put("firstRegistration", value(source, "jevicFirstRegistration"));
-        remapped.put("chassisVin", value(source, "jevicChassisVin"));
-        remapped.put("engineNo", value(source, "jevicEngineNo"));
-        remapped.put("inspectedMileage", value(source, "jevicCurrentOdometer"));
-        remapped.put("inspectionDate", value(source, "jevicInspectionDate"));
-        remapped.put("remarks", value(source, "jevicRemarks"));
-        return remapped;
-    }
-
-    private String value(Map<String, String> source, String key) {
-        if (source == null) {
-            return null;
-        }
-        return source.get(key);
-    }
-
     private void keepStoredDocument(InspectionCertificate incoming, InspectionCertificate existing) {
         if (incoming.getDocumentStoredName() != null && !incoming.getDocumentStoredName().trim().isEmpty()) {
             return;
@@ -152,7 +134,6 @@ public class CertificateOfInspectionService {
 
     private void copyFields(InspectionCertificate source, InspectionCertificate target) {
         target.setCertificateNo(source.getCertificateNo());
-        target.setIssueDate(source.getIssueDate());
         target.setInspectionBranch(source.getInspectionBranch());
         target.setMake(source.getMake());
         target.setModel(source.getModel());

@@ -143,6 +143,9 @@ public class Vehicle {
     @Column(length = 80)
     private String sheetContentType;
 
+    @Column(name = "skipped_stages", length = 255)
+    private String skippedStages;
+
     public String getChassisNo() {
         return chassisNo;
     }
@@ -477,5 +480,13 @@ public class Vehicle {
 
     public void setSheetContentType(String sheetContentType) {
         this.sheetContentType = sheetContentType;
+    }
+
+    public String getSkippedStages() {
+        return skippedStages;
+    }
+
+    public void setSkippedStages(String skippedStages) {
+        this.skippedStages = skippedStages;
     }
 }

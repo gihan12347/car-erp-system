@@ -100,7 +100,6 @@ public class StandardsCertificateService {
     }
 
     private void copyFields(StandardsCertificate source, StandardsCertificate target) {
-        target.setScheduleType(source.getScheduleType());
         target.setEmissionCo(source.getEmissionCo());
         target.setEmissionNmhc(source.getEmissionNmhc());
         target.setEmissionNox(source.getEmissionNox());
@@ -115,12 +114,6 @@ public class StandardsCertificateService {
         target.setDriverAirbag(source.isDriverAirbag());
         target.setPassengerAirbag(source.isPassengerAirbag());
         target.setAbsFitted(source.isAbsFitted());
-        target.setMake(source.getMake());
-        target.setModel(source.getModel());
-        target.setChassisVin(source.getChassisVin());
-        target.setPlaceOfInspection(source.getPlaceOfInspection());
-        target.setInspectionDate(source.getInspectionDate());
-        target.setRemarks(source.getRemarks());
         target.setOcrText(source.getOcrText());
         target.setDocumentOriginalName(source.getDocumentOriginalName());
         target.setDocumentStoredName(source.getDocumentStoredName());

@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="shared/head :: head(${pageTitle})"></head>
+<body class="sheet-page import-form-page import-view-page">
+<div class="app-shell">
+    <aside th:replace="shared/sidebar :: sidebar(${activeMenu})"></aside>
+    <div class="app-main">
+        <header th:replace="shared/topbar :: topbar"></header>
+        <main class="page-content">
+            <div class="dash-head">
+                <div>
+                    <a th:href="@{/yards/{code}(code=${yard.bayCode})}" class="config-crumb">
+                        <i class="fa-solid fa-warehouse" aria-hidden="true"></i>
+                        <span th:text="${yard.yardName != null and !#strings.isEmpty(yard.yardName) ? yard.yardName : yard.bayCode}">Main yard</span>
+                    </a>
+                    <h1>Vehicle details</h1>
+                    <p class="form-lead">Review the vehicle, then move it to an available sale. That uses one space at the sale location.</p>
+                </div>
+            </div>
+
+            <p th:if="${notice}" class="alert alert-ok" th:text="${notice}"></p>
+            <p th:if="${error}" class="alert alert-error" th:text="${error}"></p>
+
+            <div th:replace="ready-for-sale/fragments/view-details :: detailsView(${vehicle}, ${photos})"></div>
+
+            <form th:action="@{/yards/{y}/{c}/move(y=${yard.bayCode}, c=${vehicle.chassisNo})}"
+                  th:object="${record}" method="post" class="vehicle-form">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                <input type="hidden" th:field="*{chassisNo}">
+                <input type="hidden" th:field="*{saleLocation}" id="saleLocationValue">
+
+                <article class="panel">
+                    <div class="panel-head"><h2>Move to available sale</h2></div>
+                    <div class="field-grid">
+                        <label>Date
+                            <input type="date" th:field="*{listedOn}" required>
+                        </label>
+                        <label>Available sale
+                            <select th:field="*{saleCode}" id="saleLocationSelect" required
+                                    th:attr="data-current=*{saleCode}">
+                                <option value="">Select sale…</option>
+                                <option th:each="sale : ${saleLocations}"
+                                        th:value="${sale.saleCode}"
+                                        th:text="${sale.full
+                                                ? sale.saleCode + ' · ' + sale.saleName + ' · full'
+                                                : sale.saleCode + ' · ' + sale.saleName + ' · ' + sale.remaining + ' left'}"
+                                        th:disabled="${sale.full}"
+                                        th:attr="data-location=${sale.location},
+                                                 data-remaining=${sale.remaining},
+                                                 data-capacity=${sale.capacity},
+                                                 data-occupied=${sale.occupied},
+                                                 data-name=${sale.saleName}">SL-01 · Showroom · 12 left</option>
+                            </select>
+                        </label>
+                        <label>Location
+                            <input type="text" id="saleLocationDisplay" readonly class="readonly-field"
+                                   th:value="${record.saleLocation}">
+                        </label>
+                        <p class="yard-capacity-hint span-2" id="saleCapacityHint" hidden></p>
+                    </div>
+                </article>
+
+                <div class="import-view-actions">
+                    <a th:href="@{/yards/{code}(code=${yard.bayCode})}" class="panel-btn ghost import-form-submit">Back to yard</a>
+                    <button type="submit" class="panel-btn import-form-submit">Move to sale</button>
+                </div>
+            </form>
+        </main>
+    </div>
+</div>
+<script th:src="@{/js/shared/app.js(v=20260905k)}"></script>
+<script th:src="@{/js/shared/capacity-select.js(v=20260919a)}"></script>
+<script>
+    window.bindCapacitySelect({
+        selectId: "saleLocationSelect",
+        displayId: "saleLocationDisplay",
+        valueId: "saleLocationValue",
+        hintId: "saleCapacityHint"
+    });
+</script>
+</body>
+</html>

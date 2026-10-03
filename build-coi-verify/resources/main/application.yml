@@ -1,0 +1,157 @@
+server:
+  # Railway sets PORT. Locally this stays 8080.
+  port: ${PORT:8080}
+  # So login and links stay https behind Railway's proxy.
+  forward-headers-strategy: framework
+
+spring:
+  application:
+    name: car-sale-erp-system
+  datasource:
+    # Locally this is localhost. On Railway, set MYSQLHOST, MYSQLPORT,
+    # MYSQLDATABASE, MYSQLUSER, and MYSQLPASSWORD from the MySQL service.
+    url: jdbc:mysql://${MYSQLHOST:localhost}:${MYSQLPORT:3306}/${MYSQLDATABASE:car-sale-erp}?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC&tcpKeepAlive=true&connectTimeout=20000
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: ${MYSQLUSER:root}
+    password: ${MYSQLPASSWORD:${MYSQL_PASSWORD:}}
+    hikari:
+      # The host closes idle MySQL sockets. Drop them before that, and ping the ones still in the pool.
+      maximum-pool-size: 5
+      minimum-idle: 1
+      connection-timeout: 20000
+      validation-timeout: 5000
+      idle-timeout: 60000
+      max-lifetime: 180000
+      keepalive-time: 30000
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.MySQL8Dialect
+  thymeleaf:
+    cache: false
+  servlet:
+    multipart:
+      max-file-size: 15MB
+      max-request-size: 15MB
+
+app:
+  ocr:
+    # ocrspace | google  — used when Auto fill does not send a provider.
+    provider: ${OCR_PROVIDER:ocrspace}
+    settingsFile: uploads/ocr-provider.txt
+    ocrspace:
+      # Free key: register at https://ocr.space/ocrapi/freekey (25k requests/month).
+      apiKey: ${OCR_SPACE_API_KEY:K81607309088957}
+      apiUrl: https://api.ocr.space/parse/image
+      language: jpn
+      engine: 2
+      maxImageSide: 2200
+      pdfRenderDpi: 220
+      maxUploadBytes: 1440000
+    google:
+      credentialsFile: ${GOOGLE_VISION_CREDENTIALS:config/google-vision-credentials.json}
+      apiUrl: https://vision.googleapis.com/v1/images:annotate
+      maxUploadBytes: 10000000
+    # Customs declaration Custom Extractor (Document AI). Falls back to OCR+regex if disabled/fails.
+    documentAi:
+      enabled: ${DOCUMENT_AI_ENABLED:true}
+      projectId: ${DOCUMENT_AI_PROJECT_ID:}
+      location: ${DOCUMENT_AI_LOCATION:us}
+      assessmentNoticeProcessorId: ${DOCUMENT_AI_ASSESSMENT_NOTICE_PROCESSOR_ID:6c0528b295451166}
+      cusdecProcessorId: ${DOCUMENT_AI_CUSDEC_PROCESSOR_ID:cd742e4a10abd3c9}
+      billOfLandingProcessorId: ${DOCUMENT_AI_BILL_OF_LANDING_PROCESSOR_ID:d0ad3dd16d4dd283}
+      preShipmentProcessorId: ${DOCUMENT_AI_PRE_SHIPMENT_PROCESSOR_ID:3fb83da8bb489dec}
+      exportCertificateProcessorId: ${DOCUMENT_AI_EXPORT_CERTIFICATE_PROCESSOR_ID:322628bd2494c32d}
+      odometerCertificateProcessorId: ${DOCUMENT_AI_ODOMETER_CERTIFICATE_PROCESSOR_ID:f15abb638c6327b7}
+      gradeSearchProcessorId: ${DOCUMENT_AI_GRADE_SEARCH_PROCESSOR_ID:c86ec486ccb7e7d7}
+      certificateOfInspectionProcessorId: ${DOCUMENT_AI_CERTIFICATE_OF_INSPECTION_PROCESSOR_ID:43cd71a403f5b8f7}
+      workingSheetProcessorId: ${DOCUMENT_AI_WORKING_SHEET_PROCESSOR_ID:118d57fe35792578}
+      processorVersion: ${DOCUMENT_AI_PROCESSOR_VERSION:}
+      assessmentProcessorId: ${DOCUMENT_AI_ASSESSMENT_PROCESSOR_ID:}
+      assessmentProcessorVersion: ${DOCUMENT_AI_ASSESSMENT_PROCESSOR_VERSION:}
+      assessmentLocation: ${DOCUMENT_AI_ASSESSMENT_LOCATION:}
+      maxUploadBytes: 20000000
+    preship:
+      language: eng
+    clearance:
+      language: eng
+    equipment:
+      language: eng
+    export:
+      language: eng
+
+  translate:
+    # auto uses Google Cloud Translation when the Vision credentials file exists, otherwise MyMemory.
+    provider: ${TRANSLATE_PROVIDER:auto}
+    google:
+      apiUrl: https://translation.googleapis.com/language/translate/v2
+    mymemory:
+      apiUrl: https://api.mymemory.translated.net/get
+      email: ${MYMEMORY_EMAIL:}
+
+  documents:
+    uploadDir: ${APP_DOCUMENTS_DIR:uploads/auction-sheets}
+    preshipUploadDir: ${APP_PRESHIP_DOCUMENTS_DIR:uploads/pre-shipment-docs}
+    clearanceUploadDir: ${APP_CLEARANCE_DOCUMENTS_DIR:uploads/clearance-docs}
+    equipmentUploadDir: ${APP_EQUIPMENT_DOCUMENTS_DIR:uploads/equipment-docs}
+    coiUploadDir: ${APP_COI_DOCUMENTS_DIR:uploads/coi-docs}
+    standardsUploadDir: ${APP_STANDARDS_DOCUMENTS_DIR:uploads/standards-docs}
+    exportUploadDir: ${APP_EXPORT_DOCUMENTS_DIR:uploads/export-docs}
+    gradeSearchUploadDir: ${APP_GRADE_SEARCH_DOCUMENTS_DIR:uploads/grade-search-docs}
+    photoUploadDir: ${APP_PHOTO_DOCUMENTS_DIR:uploads/vehicle-photos}
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      ocrSpace:
+        slidingWindowType: COUNT_BASED
+        slidingWindowSize: 3
+        minimumNumberOfCalls: 3
+        failureRateThreshold: 100
+        waitDurationInOpenState: 60s
+        permittedNumberOfCallsInHalfOpenState: 1
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+        recordExceptions:
+          - org.springframework.web.client.RestClientException
+        ignoreExceptions:
+          - java.io.IOException
+      googleVision:
+        slidingWindowType: COUNT_BASED
+        slidingWindowSize: 3
+        minimumNumberOfCalls: 3
+        failureRateThreshold: 100
+        waitDurationInOpenState: 60s
+        permittedNumberOfCallsInHalfOpenState: 1
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+        recordExceptions:
+          - org.springframework.web.client.RestClientException
+        ignoreExceptions:
+          - java.io.IOException
+      googleTranslate:
+        slidingWindowType: COUNT_BASED
+        slidingWindowSize: 3
+        minimumNumberOfCalls: 3
+        failureRateThreshold: 100
+        waitDurationInOpenState: 60s
+        permittedNumberOfCallsInHalfOpenState: 1
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+        recordExceptions:
+          - org.springframework.web.client.RestClientException
+        ignoreExceptions:
+          - java.io.IOException
+      myMemoryTranslate:
+        slidingWindowType: COUNT_BASED
+        slidingWindowSize: 3
+        minimumNumberOfCalls: 3
+        failureRateThreshold: 100
+        waitDurationInOpenState: 60s
+        permittedNumberOfCallsInHalfOpenState: 1
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+        recordExceptions:
+          - org.springframework.web.client.RestClientException
+        ignoreExceptions:
+          - java.io.IOException

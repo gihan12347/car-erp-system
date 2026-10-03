@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="shared/head :: head(${pageTitle})"></head>
+<body class="sheet-page import-form-page customs-page">
+<div class="app-shell">
+    <aside th:replace="shared/sidebar :: sidebar(${activeMenu})"></aside>
+    <div class="app-main">
+        <header th:replace="shared/topbar :: topbar"></header>
+        <main class="page-content">
+            <div class="dash-head">
+                <div>
+                    <h1 th:text="${'Step ' + @pipelineStageService.displayNumber('CUSTOMS', 'assessment') + ' · ' + @pipelineStageService.title('CUSTOMS', 'assessment')}">Step 2 · Assessment notice</h1>
+                    <p class="form-lead">Upload the assessment notice. Auto-fill reads the document; save when you are ready.</p>
+                </div>
+            </div>
+
+            <div th:replace="customs-pipeline/fragments/pipeline :: clearancePipelineSteps('assessment', ${vehicle.chassisNo}, ${blReady}, ${declarationReady}, ${assessmentReady}, ${worksheetReady}, ${vehicle.model}, false)"></div>
+
+            <p th:if="${successMessage}" class="alert alert-ok" th:text="${successMessage}"></p>
+            <p th:if="${errorMessage}" class="alert alert-error" th:text="${errorMessage}"></p>
+
+            <form th:action="@{/assessment/{chassisNo}(chassisNo=${vehicle.chassisNo})}"
+                  th:object="${record}" method="post" class="vehicle-form clearance-form" id="assessmentForm">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                <input type="hidden" name="hub" th:value="${hubMode}">
+                <input type="hidden" th:field="*{chassisNo}" id="chassisNo">
+                <input type="hidden" th:field="*{ocrTextPage3}" id="ocrTextPage3">
+                <input type="hidden" th:field="*{page3OriginalName}" id="page3OriginalName">
+                <input type="hidden" th:field="*{page3StoredName}" id="page3StoredName">
+                <input type="hidden" th:field="*{page3ContentType}" id="page3ContentType">
+                <input type="hidden" th:field="*{assessmentOffice}" id="assessmentOffice">
+                <input type="hidden" th:field="*{assessmentNoticeRef}" id="assessmentNoticeRef">
+                <input type="hidden" th:field="*{assessmentModel}" id="assessmentModel">
+                <input type="hidden" th:field="*{assessmentPackages}" id="assessmentPackages">
+                <input type="hidden" th:field="*{assessmentCustomsReference}" id="assessmentCustomsReference">
+                <input type="hidden" th:field="*{assessmentDeclarantReference}" id="assessmentDeclarantReference">
+                <input type="hidden" th:field="*{assessmentReference}" id="assessmentReference">
+
+                <div class="sheet-layout preship-layout">
+                    <div class="sheet-document-col">
+                    <aside class="panel sheet-document" id="sheetPreview"
+                           th:classappend="${record.page3StoredName != null and !#strings.isEmpty(record.page3StoredName)} ? ' has-file' : ''">
+                        <div class="panel-head">
+                            <h2>Document preview</h2>
+                        </div>
+
+                        <div class="sheet-preview-frame" id="sheetPreviewFrame"
+                             th:with="hasDoc=${record.page3StoredName != null and !#strings.isEmpty(record.page3StoredName)},
+                                      isPdf=${record.page3StoredName != null and ((record.page3ContentType != null and #strings.contains(record.page3ContentType, 'pdf')) or #strings.endsWith(record.page3StoredName, '.pdf'))}">
+                            <div class="sheet-preview-empty" id="sheetPreviewEmpty"
+                                 th:hidden="${hasDoc}">
+                                <i class="fa-solid fa-file-circle-plus"></i>
+                                <strong>No preview yet</strong>
+                                <span>Use <strong>Choose file</strong> below to upload the assessment notice.</span>
+                            </div>
+                            <img id="sheetPreviewImage"
+                                 alt="Assessment notice preview"
+                                 th:hidden="${!hasDoc or isPdf}"
+                                 th:src="${hasDoc and !isPdf} ? @{/assessment/documents/{name}(name=${record.page3StoredName})} : null">
+                            <iframe id="sheetPreviewPdf"
+                                    title="Assessment notice PDF"
+                                    th:hidden="${!hasDoc or !isPdf}"
+                                    th:src="${hasDoc and isPdf} ? @{/assessment/documents/{name}(name=${record.page3StoredName})} : null"></iframe>
+                        </div>
+                    </aside>
+
+                    <div th:replace="shared/document-upload-toolbar :: documentUploadToolbar(
+                            'Assessment notice',
+                            '',
+                            ${record.page3OriginalName},
+                            'Choose a JPG, PNG, or PDF assessment notice to upload and preview.',
+                            'google')"></div>
+                    </div>
+
+                    <div class="sheet-fields preship-fields">
+                        <article class="panel assessment-taxes-panel">
+                            <div class="panel-head">
+                                <h2>Item taxes &amp; totals</h2>
+                                <span class="price-breakdown-currency-note">All amounts in LKR</span>
+                            </div>
+                            <div class="price-breakdown">
+                                <div class="price-breakdown-lines">
+                                    <label class="price-breakdown-row">
+                                        <span class="price-breakdown-label">
+                                            <span class="price-breakdown-code">CID</span>
+                                            <span class="price-breakdown-name">Customs import duty</span>
+                                        </span>
+                                        <span class="price-breakdown-amount">
+                                            <input type="text" th:field="*{assessmentTaxCid}" id="assessmentTaxCid" inputmode="decimal" autocomplete="off">
+                                            <span class="price-breakdown-currency" aria-hidden="true">LKR</span>
+                                        </span>
+                                    </label>
+                                    <label class="price-breakdown-row">
+                                        <span class="price-breakdown-label">
+                                            <span class="price-breakdown-code">SUR</span>
+                                            <span class="price-breakdown-name">Surcharge</span>
+                                        </span>
+                                        <span class="price-breakdown-amount">
+                                            <input type="text" th:field="*{assessmentTaxSur}" id="assessmentTaxSur" inputmode="decimal" autocomplete="off">
+                                            <span class="price-breakdown-currency" aria-hidden="true">LKR</span>
+                                        </span>
+                                    </label>
+                                    <label class="price-breakdown-row">
+                                        <span class="price-breakdown-label">
+                                            <span class="price-breakdown-code">XID</span>
+                                            <span class="price-breakdown-name">Excise duty</span>
+                                        </span>
+                                        <span class="price-breakdown-amount">
+                                            <input type="text" th:field="*{assessmentTaxXid}" id="assessmentTaxXid" inputmode="decimal" autocomplete="off">
+                                            <span class="price-breakdown-currency" aria-hidden="true">LKR</span>
+                                        </span>
+                                    </label>
+                                    <label class="price-breakdown-row">
+                                        <span class="price-breakdown-label">
+                                            <span class="price-breakdown-code">VAT</span>
+                                            <span class="price-breakdown-name">Value added tax</span>
+                                        </span>
+                                        <span class="price-breakdown-amount">
+                                            <input type="text" th:field="*{assessmentTaxVat}" id="assessmentTaxVat" inputmode="decimal" autocomplete="off">
+                                            <span class="price-breakdown-currency" aria-hidden="true">LKR</span>
+                                        </span>
+                                    </label>
+                                    <label class="price-breakdown-row">
+                                        <span class="price-breakdown-label">
+                                            <span class="price-breakdown-code">VEL</span>
+                                            <span class="price-breakdown-name">Vehicle entitlement levy</span>
+                                        </span>
+                                        <span class="price-breakdown-amount">
+                                            <input type="text" th:field="*{assessmentTaxVel}" id="assessmentTaxVel" inputmode="decimal" autocomplete="off">
+                                            <span class="price-breakdown-currency" aria-hidden="true">LKR</span>
+                                        </span>
+                                    </label>
+                                </div>
+                                <div class="price-breakdown-totals">
+                                    <label class="price-breakdown-row is-total">
+                                        <span class="price-breakdown-label">
+                                            <span class="price-breakdown-name">Total tax</span>
+                                        </span>
+                                        <span class="price-breakdown-amount">
+                                            <input type="text" th:field="*{assessmentTotalAssessed}" id="assessmentTotalAssessed" inputmode="decimal" autocomplete="off">
+                                            <span class="price-breakdown-currency" aria-hidden="true">LKR</span>
+                                        </span>
+                                    </label>
+                                    <label class="price-breakdown-row is-paid">
+                                        <span class="price-breakdown-label">
+                                            <span class="price-breakdown-name">Total amount paid</span>
+                                        </span>
+                                        <span class="price-breakdown-amount">
+                                            <input type="text" th:field="*{assessmentTotalPaid}" id="assessmentTotalPaid" inputmode="decimal" autocomplete="off">
+                                            <span class="price-breakdown-currency" aria-hidden="true">LKR</span>
+                                        </span>
+                                    </label>
+                                </div>
+                            </div>
+                        </article>
+
+                        <button type="submit" class="panel-btn import-form-submit">Save &amp; continue</button>
+                    </div>
+                </div>
+            </form>
+        </main>
+    </div>
+</div>
+
+<div id="sheetViewer" class="sheet-viewer" hidden>
+    <div class="sheet-viewer-toolbar">
+        <strong id="sheetViewerTitle">Assessment notice</strong>
+        <div class="sheet-viewer-tools">
+            <button type="button" class="panel-btn ghost" id="sheetPrevEmptyField" title="Previous empty field">Prev</button>
+            <button type="button" class="panel-btn ghost" id="sheetZoomOut" title="Zoom out">−</button>
+            <button type="button" class="panel-btn ghost" id="sheetZoomIn" title="Zoom in">+</button>
+            <button type="button" class="panel-btn ghost" id="sheetNextEmptyField" title="Next empty field">Next</button>
+            <button type="button" class="panel-btn ghost" id="sheetViewerClose">Close</button>
+        </div>
+    </div>
+    <div class="sheet-viewer-body" id="sheetViewerBody">
+        <img id="sheetViewerImage" alt="Assessment notice">
+        <iframe id="sheetViewerPdf" title="Assessment notice PDF" hidden></iframe>
+    </div>
+</div>
+
+<div th:replace="shared/app-loader :: appLoader('fillLoader', 'Reading the assessment notice and filling fields...')"></div>
+
+<script th:src="@{/js/shared/app.js(v=20260905k)}"></script>
+<script th:src="@{/js/shared/document-viewer.js(v=20260826d)}"></script>
+<script th:src="@{/js/customs-pipeline/clearance-stage.js(v=20260908a)}"></script>
+<script th:src="@{/js/customs-pipeline/assessment.js(v=20260908a)}"></script>
+</body>
+</html>

@@ -6,9 +6,20 @@
     <article class="panel">
         <div class="panel-head"><h2>Certificate</h2></div>
         <div class="field-grid">
-            <label>Date of certificate <input type="date" th:field="*{issueDate}" id="issueDate"></label>
-            <label>Export scheduled day <input type="date" th:field="*{exportScheduledDate}" id="exportScheduledDate"></label>
-            <label class="span-2">Director General Land Transport Branch <input type="text" th:field="*{directorGeneralLandTransportBranch}" id="directorGeneralLandTransportBranch"></label>
+            <label class="slash-date-field">Date of certificate
+                <span class="slash-date">
+                    <input type="text" th:field="*{issueDate}" id="issueDate" placeholder="YYYY/MM/DD" maxlength="10" autocomplete="off" inputmode="numeric">
+                    <i class="fa-regular fa-calendar" aria-hidden="true"></i>
+                    <input type="date" class="slash-date-picker" data-slash-for="issueDate" tabindex="-1" aria-label="Choose date of certificate">
+                </span>
+            </label>
+            <label class="slash-date-field">Export scheduled day
+                <span class="slash-date">
+                    <input type="text" th:field="*{exportScheduledDate}" id="exportScheduledDate" placeholder="YYYY/MM/DD" maxlength="10" autocomplete="off" inputmode="numeric">
+                    <i class="fa-regular fa-calendar" aria-hidden="true"></i>
+                    <input type="date" class="slash-date-picker" data-slash-for="exportScheduledDate" tabindex="-1" aria-label="Choose export scheduled day">
+                </span>
+            </label>
         </div>
     </article>
 
@@ -16,8 +27,20 @@
         <div class="panel-head"><h2>Registration</h2></div>
         <div class="field-grid">
             <label class="span-2">Motor vehicle registration no. <input type="text" th:field="*{registrationNo}" id="registrationNo"></label>
-            <label>Registration date <input type="date" th:field="*{registrationDate}" id="registrationDate"></label>
-            <label>First registration date <input type="month" th:field="*{firstRegDate}" id="firstRegDate"></label>
+            <label class="slash-date-field">Registration date
+                <span class="slash-date">
+                    <input type="text" th:field="*{registrationDate}" id="registrationDate" placeholder="YYYY/MM/DD" maxlength="10" autocomplete="off" inputmode="numeric">
+                    <i class="fa-regular fa-calendar" aria-hidden="true"></i>
+                    <input type="date" class="slash-date-picker" data-slash-for="registrationDate" tabindex="-1" aria-label="Choose registration date">
+                </span>
+            </label>
+            <label class="slash-date-field">First registration date
+                <span class="slash-date">
+                    <input type="text" th:field="*{firstRegDate}" id="firstRegDate" placeholder="YYYY/MM/DD" maxlength="10" autocomplete="off" inputmode="numeric">
+                    <i class="fa-regular fa-calendar" aria-hidden="true"></i>
+                    <input type="date" class="slash-date-picker" data-slash-for="firstRegDate" tabindex="-1" aria-label="Choose first registration date">
+                </span>
+            </label>
             <label>Specification no. <input type="text" th:field="*{specificationNo}" id="specificationNo"></label>
             <label>Classified no. <input type="text" th:field="*{classificationNo}" id="classificationNo"></label>
         </div>

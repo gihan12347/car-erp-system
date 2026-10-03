@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<nav th:fragment="importStageNav(stageIndex, stageLabel, prevUrl, nextUrl, nextLabel, editUrl, auctionReady, preshipReady)"
+     class="import-stage-nav panel" aria-label="Import stage navigation">
+    <a th:if="${prevUrl != null}" th:href="${prevUrl}" class="panel-btn ghost stage-nav-btn">
+        <i class="fa-solid fa-chevron-left"></i> Previous
+    </a>
+    <span th:unless="${prevUrl != null}" class="stage-nav-spacer"></span>
+
+    <div class="import-stage-nav-meta">
+        <strong th:text="${stageLabel}">1 · Auction lot</strong>
+        <span th:text="${stageIndex + 1} + ' of 2 · Import pipeline'">1 of 2</span>
+        <div class="import-stage-nav-dots">
+            <em th:classappend="${auctionReady} ? ' is-done' : (stageIndex == 0 ? ' is-current' : '')" title="Auction"></em>
+            <em th:classappend="${preshipReady} ? ' is-done' : (stageIndex == 1 ? ' is-current' : '')" title="Pre-shipment"></em>
+        </div>
+    </div>
+
+    <a th:if="${nextUrl != null}" th:href="${nextUrl}" class="panel-btn stage-nav-btn">
+        <span th:text="${nextLabel != null ? nextLabel : 'Next'}">Next</span>
+        <i class="fa-solid fa-chevron-right"></i>
+    </a>
+    <span th:unless="${nextUrl != null}" class="stage-nav-spacer"></span>
+
+    <a th:if="${editUrl != null}" th:href="${editUrl}" class="panel-btn ghost stage-nav-edit">
+        <i class="fa-solid fa-pen"></i> Edit
+    </a>
+</nav>
+
+</body>
+</html>

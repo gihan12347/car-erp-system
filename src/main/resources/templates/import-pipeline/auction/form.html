@@ -186,6 +186,7 @@
                                     th:text="${!editMode and continueTarget != null and !#strings.isEmpty(continueTarget)}
                                             ? |Save & continue · ${@pipelineStageService.title('IMPORT', continueTarget)}|
                                             : 'Save & continue'">Save &amp; continue</button>
+                            <button th:replace="import-pipeline/fragments/form-actions :: skipStageButton('auction')"></button>
                         </div>
                     </div>
                 </div>

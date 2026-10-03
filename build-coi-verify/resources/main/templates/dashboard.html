@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="en">
+<head th:replace="shared/head :: head(${pageTitle})"></head>
+<body>
+<div class="app-shell">
+    <aside th:replace="shared/sidebar :: sidebar(${activeMenu})"></aside>
+    <div class="app-main">
+        <header th:replace="shared/topbar :: topbar"></header>
+        <main class="page-content dashboard-page">
+            <section class="dash-head reveal">
+                <div class="welcome-block">
+                    <img class="welcome-art" th:src="@{/images/dashboard/illu-sun.svg}" alt="">
+                    <div>
+                        <h2>Good Morning, <span sec:authentication="principal.fullName">Gihan</span></h2>
+                        <p>Here's what's happening with your vehicle business.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="stat-grid">
+                <article class="kpi-card reveal">
+                    <img class="kpi-art" th:src="@{/images/dashboard/illu-car.svg}" alt="Cars">
+                    <div class="kpi-copy">
+                        <strong th:attr="data-count=${dash.total}">0</strong>
+                        <span>Total Cars</span>
+                        <small th:text="${dash.listedCount} + ' listed'">0 listed</small>
+                    </div>
+                </article>
+                <article class="kpi-card reveal">
+                    <img class="kpi-art" th:src="@{/images/dashboard/illu-ship.svg}" alt="Import">
+                    <div class="kpi-copy">
+                        <strong th:attr="data-count=${dash.importCount}">0</strong>
+                        <span>Import</span>
+                        <small th:text="${dash.customsCount} + ' in customs'">0 in customs</small>
+                    </div>
+                </article>
+                <article class="kpi-card reveal">
+                    <img class="kpi-art" th:src="@{/images/dashboard/illu-workshop.svg}" alt="Preparation">
+                    <div class="kpi-copy">
+                        <strong th:attr="data-count=${dash.preparationCount}">0</strong>
+                        <span>Preparation</span>
+                        <small th:text="${dash.readyCount} + ' ready for sale'">0 ready for sale</small>
+                    </div>
+                </article>
+                <article class="kpi-card reveal">
+                    <img class="kpi-art" th:src="@{/images/dashboard/illu-sold.svg}" alt="Sold">
+                    <div class="kpi-copy">
+                        <strong th:attr="data-count=${dash.soldCount}">0</strong>
+                        <span>Sold</span>
+                        <small th:text="${dash.soldTotal}">—</small>
+                    </div>
+                </article>
+            </section>
+
+            <section class="equal-grid">
+                <article class="panel reveal">
+                    <div class="panel-head">
+                        <h2>Vehicle Pipeline</h2>
+                    </div>
+                    <ul class="pipe-list">
+                        <li th:each="bar : ${dash.bars}">
+                            <span th:text="${bar.label}">Import</span>
+                            <div class="bar" th:classappend="${bar.tone}"><i th:attr="data-width=${bar.width}"></i></div>
+                            <strong th:text="${bar.count}">0</strong>
+                        </li>
+                    </ul>
+                </article>
+
+                <article class="panel reveal">
+                    <div class="panel-head">
+                        <h2>Financial Summary</h2>
+                    </div>
+                    <ul class="finance-list">
+                        <li><span>Landing cost (LKR)</span><strong th:text="${dash.landingCostTotal}">—</strong></li>
+                        <li><span>Asking prices</span><strong th:text="${dash.askingTotal}">—</strong></li>
+                        <li><span>Sold prices</span><strong class="up" th:text="${dash.soldTotal}">—</strong></li>
+                    </ul>
+                    <a th:href="@{/reports}" class="panel-btn">View Financial Reports</a>
+                </article>
+            </section>
+
+            <article class="panel action-panel reveal">
+                <div class="panel-head">
+                    <img class="panel-art" th:src="@{/images/dashboard/illu-alert.svg}" alt="">
+                    <h2>Action Required</h2>
+                </div>
+                <ul class="action-list" th:if="${!dash.actions.isEmpty()}">
+                    <li th:each="action : ${dash.actions}">
+                        <img th:src="@{${action.image}}" alt="">
+                        <span th:text="${action.message}">Vehicles waiting</span>
+                        <a th:href="${action.href}" th:text="${action.linkLabel}">View</a>
+                    </li>
+                </ul>
+                <p class="muted" th:if="${dash.actions.isEmpty()}">Nothing is waiting right now.</p>
+            </article>
+
+            <section class="equal-grid">
+                <article class="panel reveal">
+                    <div class="panel-head">
+                        <h2>In progress</h2>
+                    </div>
+                    <ul class="record-list" th:if="${!dash.inProgress.isEmpty()}">
+                        <li th:each="row : ${dash.inProgress}">
+                            <img class="record-art" th:src="@{/images/dashboard/illu-car.svg}" alt="">
+                            <div>
+                                <strong th:text="${row.chassisNo}">TRJ250</strong>
+                                <span th:text="${row.vehicleLabel}">Toyota Prius</span>
+                            </div>
+                            <em class="pill" th:classappend="${row.pillClass}" th:text="${row.sectionLabel}">Import</em>
+                        </li>
+                    </ul>
+                    <p class="muted" th:if="${dash.inProgress.isEmpty()}">No vehicles are in progress.</p>
+                    <a th:href="@{/import}" class="panel-btn ghost">View import</a>
+                </article>
+
+                <article class="panel reveal">
+                    <div class="panel-head">
+                        <h2>Sold vehicles</h2>
+                    </div>
+                    <ul class="record-list" th:if="${!dash.soldVehicles.isEmpty()}">
+                        <li th:each="row : ${dash.soldVehicles}">
+                            <img class="record-art" th:src="@{/images/dashboard/illu-sold.svg}" alt="">
+                            <div>
+                                <strong th:text="${row.chassisNo}">TRJ250</strong>
+                                <span th:text="${row.vehicleLabel}">Toyota Aqua</span>
+                            </div>
+                            <em class="sale-amt" th:text="${row.advertisedPrice != '—' ? row.advertisedPrice : row.askingPrice}">—</em>
+                        </li>
+                    </ul>
+                    <p class="muted" th:if="${dash.soldVehicles.isEmpty()}">No vehicles are marked sold yet.</p>
+                    <a th:href="@{/reports(section='sold')}" class="panel-btn ghost">View sold report</a>
+                </article>
+            </section>
+        </main>
+    </div>
+</div>
+<script th:src="@{/js/shared/app.js(v=20260905k)}"></script>
+</body>
+</html>

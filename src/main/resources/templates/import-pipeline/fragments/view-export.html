@@ -54,9 +54,8 @@
                 <article class="panel">
                     <div class="panel-head"><h2>Certificate</h2></div>
                     <div class="field-grid">
-                        <label>Date of certificate <input type="date" th:value="${certificate.issueDate}" readonly class="readonly-field"></label>
-                        <label>Export scheduled day <input type="date" th:value="${certificate.exportScheduledDate}" readonly class="readonly-field"></label>
-                        <label class="span-2">Director General Land Transport Branch <input type="text" th:value="${certificate.directorGeneralLandTransportBranch}" readonly class="readonly-field"></label>
+                        <label>Date of certificate <input type="text" th:value="${certificate.issueDate}" readonly class="readonly-field" placeholder="YYYY/MM/DD"></label>
+                        <label>Export scheduled day <input type="text" th:value="${certificate.exportScheduledDate}" readonly class="readonly-field" placeholder="YYYY/MM/DD"></label>
                     </div>
                 </article>
 
@@ -64,8 +63,8 @@
                     <div class="panel-head"><h2>Registration</h2></div>
                     <div class="field-grid">
                         <label class="span-2">Motor vehicle registration no. <input type="text" th:value="${certificate.registrationNo}" readonly class="readonly-field"></label>
-                        <label>Registration date <input type="date" th:value="${certificate.registrationDate}" readonly class="readonly-field"></label>
-                        <label>First registration date <input type="month" th:value="${certificate.firstRegDate}" readonly class="readonly-field"></label>
+                        <label>Registration date <input type="text" th:value="${certificate.registrationDate}" readonly class="readonly-field" placeholder="YYYY/MM/DD"></label>
+                        <label>First registration date <input type="text" th:value="${certificate.firstRegDate}" readonly class="readonly-field" placeholder="YYYY/MM/DD"></label>
                         <label>Specification no. <input type="text" th:value="${certificate.specificationNo}" readonly class="readonly-field"></label>
                         <label>Classified no. <input type="text" th:value="${certificate.classificationNo}" readonly class="readonly-field"></label>
                     </div>

@@ -7,7 +7,7 @@ import java.nio.charset.StandardCharsets;
 
 import com.carsale.erp.importpipeline.model.StandardsCertificate;
 import com.carsale.erp.importpipeline.service.StandardsCertificateService;
-import com.carsale.erp.shared.document.document.StandardsCertificateDoc;
+import com.carsale.erp.shared.document.document.StandardsCertificateParser;
 import com.carsale.erp.shared.ocr.OcrImagePreparer;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
@@ -47,7 +47,7 @@ public class StandardsCertificateController {
     private final ImportProgressService importProgressService;
     private final CustomsProgressService customsProgressService;
     private final PipelineStageService pipelineStageService;
-    private final StandardsCertificateDoc parser;
+    private final StandardsCertificateParser parser;
     private final OcrImagePreparer imagePreparer;
 
     public StandardsCertificateController(
@@ -56,7 +56,7 @@ public class StandardsCertificateController {
             SheetDocumentStorageService documentStorageService,
             ImportProgressService importProgressService,
             CustomsProgressService customsProgressService,
-            PipelineStageService pipelineStageService, StandardsCertificateDoc parser, OcrImagePreparer imagePreparer
+            PipelineStageService pipelineStageService, StandardsCertificateParser parser, OcrImagePreparer imagePreparer
     ) {
         this.certificateService = certificateService;
         this.vehicleService = vehicleService;

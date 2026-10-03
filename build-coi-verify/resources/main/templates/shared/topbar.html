@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<header th:fragment="topbar" class="topbar">
+    <button type="button" class="icon-btn sidebar-toggle" id="sidebarToggle" aria-label="Toggle menu">
+        <i class="fa-solid fa-bars"></i>
+    </button>
+
+    <div class="topbar-actions">
+        <div class="dropdown" data-dropdown>
+            <button type="button" class="icon-btn notify-btn" data-dropdown-trigger aria-label="Notifications">
+                <i class="fa-regular fa-bell"></i>
+                <span class="badge">5</span>
+            </button>
+            <div class="dropdown-panel notify-panel">
+                <div class="dropdown-head">
+                    <strong>Notifications</strong>
+                    <span>5 new</span>
+                </div>
+                <a href="#"><i class="fa-solid fa-gavel"></i> Aqua 2018 won at USS Tokyo</a>
+                <a href="#"><i class="fa-solid fa-ship"></i> Vessel MOL Treasure departed</a>
+                <a href="#"><i class="fa-solid fa-passport"></i> Customs hold on X-Trail</a>
+                <a href="#"><i class="fa-solid fa-wrench"></i> Fit hybrid ready for QC</a>
+                <a href="#"><i class="fa-solid fa-user"></i> New inquiry from Saman</a>
+            </div>
+        </div>
+    </div>
+</header>
+</html>

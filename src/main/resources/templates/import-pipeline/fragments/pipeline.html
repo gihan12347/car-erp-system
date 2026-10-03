@@ -4,7 +4,7 @@
 
 <nav th:fragment="importPipelineSteps(currentStep, chassisNo, auctionReady, preshipReady, equipmentReady, jevicReady, coiReady, standardsReady, exportReady, gradeReady, photosReady, worksheetReady, vehicleLabel, compact, viewMode)"
      class="import-pipeline panel"
-     th:with="isView=${viewMode != null and viewMode}, isCompact=${compact != null and compact}, equipmentDone=${equipmentReady != null and equipmentReady}, jevicDone=${jevicReady != null and jevicReady}, coiDone=${coiReady != null and coiReady}, standardsDone=${standardsReady != null and standardsReady}, exportDone=${exportReady != null and exportReady}, gradeDone=${gradeReady != null and gradeReady}, photosDone=${photosReady != null and photosReady}, worksheetDone=${worksheetReady != null and worksheetReady}, importComplete=${auctionReady and preshipReady and equipmentDone and jevicDone and coiDone and standardsDone and exportDone and gradeDone and photosDone and worksheetDone}, orderedStages=${@pipelineStageService.list('IMPORT')}"
+     th:with="isView=${viewMode != null and viewMode}, isCompact=${compact != null and compact}, stageSkipped=${chassisNo != null and !#strings.isEmpty(chassisNo) ? @importProgressService.skippedToken(chassisNo) : '|'}, equipmentDone=${equipmentReady != null and equipmentReady}, jevicDone=${jevicReady != null and jevicReady}, coiDone=${coiReady != null and coiReady}, standardsDone=${standardsReady != null and standardsReady}, exportDone=${exportReady != null and exportReady}, gradeDone=${gradeReady != null and gradeReady}, photosDone=${photosReady != null and photosReady}, worksheetDone=${worksheetReady != null and worksheetReady}, importComplete=${(auctionReady or #strings.contains(stageSkipped, '|auction|')) and (preshipReady or #strings.contains(stageSkipped, '|preshipment|')) and (equipmentDone or #strings.contains(stageSkipped, '|equipment|')) and (jevicDone or #strings.contains(stageSkipped, '|jevic|')) and (coiDone or #strings.contains(stageSkipped, '|coi|')) and (standardsDone or #strings.contains(stageSkipped, '|standards|')) and (exportDone or #strings.contains(stageSkipped, '|export|')) and (gradeDone or #strings.contains(stageSkipped, '|grade|')) and (photosDone or #strings.contains(stageSkipped, '|photos|')) and (worksheetDone or #strings.contains(stageSkipped, '|worksheet|'))}, orderedStages=${@pipelineStageService.list('IMPORT')}"
      th:classappend="${(isCompact ? ' is-compact' : '') + (importComplete ? ' is-import-complete' : '')}"
      aria-label="Import pipeline">
     <div class="import-pipeline-head" th:unless="${isCompact}">
@@ -35,7 +35,7 @@
         th:style="'--pipeline-cols: ' + (${orderedStages.size()} + (${importComplete} ? 1 : 0))">
         <th:block th:each="stage, iter : ${orderedStages}">
             <li th:if="${stage.stageKey == 'auction'}"
-                th:classappend="${(currentStep == 'auction' ? ' is-current' : '') + (auctionReady ? ' is-done' : ' is-pending')}">
+                th:classappend="${(currentStep == 'auction' ? ' is-current' : '') + (auctionReady ? ' is-done' : (#strings.contains(stageSkipped, '|auction|') ? ' is-skipped' : ' is-pending'))}">
                 <a th:if="${chassisNo != null and !#strings.isEmpty(chassisNo) and isView}"
                    th:href="@{/auction/{chassisNo}(chassisNo=${chassisNo}, stage=${stage.stageKey})}"
                    class="import-pipeline-step">
@@ -76,7 +76,7 @@
                 </span>
             </li>
             <li th:if="${stage.stageKey == 'preshipment'}"
-                th:classappend="${(currentStep == 'preshipment' ? ' is-current' : '') + (preshipReady ? ' is-done' : ' is-pending')}">
+                th:classappend="${(currentStep == 'preshipment' ? ' is-current' : '') + (preshipReady ? ' is-done' : (#strings.contains(stageSkipped, '|preshipment|') ? ' is-skipped' : ' is-pending'))}">
                 <a th:if="${chassisNo != null and !#strings.isEmpty(chassisNo) and isView}"
                    th:href="@{/auction/{chassisNo}(chassisNo=${chassisNo}, stage=${stage.stageKey})}"
                    class="import-pipeline-step">
@@ -117,7 +117,7 @@
                 </span>
             </li>
             <li th:if="${stage.stageKey == 'equipment'}"
-                th:classappend="${(currentStep == 'equipment' ? ' is-current' : '') + (equipmentDone ? ' is-done' : ' is-pending')}">
+                th:classappend="${(currentStep == 'equipment' ? ' is-current' : '') + (equipmentDone ? ' is-done' : (#strings.contains(stageSkipped, '|equipment|') ? ' is-skipped' : ' is-pending'))}">
                 <a th:if="${chassisNo != null and !#strings.isEmpty(chassisNo) and isView}"
                    th:href="@{/auction/{chassisNo}(chassisNo=${chassisNo}, stage=${stage.stageKey})}"
                    class="import-pipeline-step">
@@ -158,7 +158,7 @@
                 </span>
             </li>
             <li th:if="${stage.stageKey == 'jevic'}"
-                th:classappend="${(currentStep == 'jevic' ? ' is-current' : '') + (jevicDone ? ' is-done' : ' is-pending')}">
+                th:classappend="${(currentStep == 'jevic' ? ' is-current' : '') + (jevicDone ? ' is-done' : (#strings.contains(stageSkipped, '|jevic|') ? ' is-skipped' : ' is-pending'))}">
                 <a th:if="${chassisNo != null and !#strings.isEmpty(chassisNo) and isView}"
                    th:href="@{/auction/{chassisNo}(chassisNo=${chassisNo}, stage=${stage.stageKey})}"
                    class="import-pipeline-step">
@@ -199,7 +199,7 @@
                 </span>
             </li>
             <li th:if="${stage.stageKey == 'coi'}"
-                th:classappend="${(currentStep == 'coi' ? ' is-current' : '') + (coiDone ? ' is-done' : ' is-pending')}">
+                th:classappend="${(currentStep == 'coi' ? ' is-current' : '') + (coiDone ? ' is-done' : (#strings.contains(stageSkipped, '|coi|') ? ' is-skipped' : ' is-pending'))}">
                 <a th:if="${chassisNo != null and !#strings.isEmpty(chassisNo) and isView}"
                    th:href="@{/auction/{chassisNo}(chassisNo=${chassisNo}, stage=${stage.stageKey})}"
                    class="import-pipeline-step">
@@ -240,7 +240,7 @@
                 </span>
             </li>
             <li th:if="${stage.stageKey == 'standards'}"
-                th:classappend="${(currentStep == 'standards' ? ' is-current' : '') + (standardsDone ? ' is-done' : ' is-pending')}">
+                th:classappend="${(currentStep == 'standards' ? ' is-current' : '') + (standardsDone ? ' is-done' : (#strings.contains(stageSkipped, '|standards|') ? ' is-skipped' : ' is-pending'))}">
                 <a th:if="${chassisNo != null and !#strings.isEmpty(chassisNo) and isView}"
                    th:href="@{/auction/{chassisNo}(chassisNo=${chassisNo}, stage=${stage.stageKey})}"
                    class="import-pipeline-step">
@@ -281,7 +281,7 @@
                 </span>
             </li>
             <li th:if="${stage.stageKey == 'export'}"
-                th:classappend="${(currentStep == 'export' ? ' is-current' : '') + (exportDone ? ' is-done' : ' is-pending')}">
+                th:classappend="${(currentStep == 'export' ? ' is-current' : '') + (exportDone ? ' is-done' : (#strings.contains(stageSkipped, '|export|') ? ' is-skipped' : ' is-pending'))}">
                 <a th:if="${chassisNo != null and !#strings.isEmpty(chassisNo) and isView}"
                    th:href="@{/auction/{chassisNo}(chassisNo=${chassisNo}, stage=${stage.stageKey})}"
                    class="import-pipeline-step">
@@ -322,7 +322,7 @@
                 </span>
             </li>
             <li th:if="${stage.stageKey == 'grade'}"
-                th:classappend="${(currentStep == 'grade' ? ' is-current' : '') + (gradeDone ? ' is-done' : ' is-pending')}">
+                th:classappend="${(currentStep == 'grade' ? ' is-current' : '') + (gradeDone ? ' is-done' : (#strings.contains(stageSkipped, '|grade|') ? ' is-skipped' : ' is-pending'))}">
                 <a th:if="${chassisNo != null and !#strings.isEmpty(chassisNo) and isView}"
                    th:href="@{/auction/{chassisNo}(chassisNo=${chassisNo}, stage=${stage.stageKey})}"
                    class="import-pipeline-step">
@@ -363,7 +363,7 @@
                 </span>
             </li>
             <li th:if="${stage.stageKey == 'photos'}"
-                th:classappend="${(currentStep == 'photos' ? ' is-current' : '') + (photosDone ? ' is-done' : ' is-pending')}">
+                th:classappend="${(currentStep == 'photos' ? ' is-current' : '') + (photosDone ? ' is-done' : (#strings.contains(stageSkipped, '|photos|') ? ' is-skipped' : ' is-pending'))}">
                 <a th:if="${chassisNo != null and !#strings.isEmpty(chassisNo) and isView}"
                    th:href="@{/auction/{chassisNo}(chassisNo=${chassisNo}, stage=${stage.stageKey})}"
                    class="import-pipeline-step">
@@ -404,7 +404,7 @@
                 </span>
             </li>
             <li th:if="${stage.stageKey == 'worksheet'}"
-                th:classappend="${(currentStep == 'worksheet' ? ' is-current' : '') + (worksheetDone ? ' is-done' : ' is-pending')}">
+                th:classappend="${(currentStep == 'worksheet' ? ' is-current' : '') + (worksheetDone ? ' is-done' : (#strings.contains(stageSkipped, '|worksheet|') ? ' is-skipped' : ' is-pending'))}">
                 <a th:if="${chassisNo != null and !#strings.isEmpty(chassisNo) and isView}"
                    th:href="@{/auction/{chassisNo}(chassisNo=${chassisNo}, stage=${stage.stageKey})}"
                    class="import-pipeline-step">

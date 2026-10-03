@@ -10,10 +10,27 @@ import com.carsale.erp.shared.vehicle.Vehicle;
 import com.carsale.erp.shared.vehicle.VehicleStage;
 import com.carsale.erp.shared.vehicle.VehicleRepository;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 @Service
 public class ImportProgressService {
+
+    private static final List<String> IMPORT_STAGE_KEYS = Arrays.asList(
+            FlowStage.AUCTION.getStageKey(),
+            FlowStage.PRESHIP.getStageKey(),
+            FlowStage.EQUIPMENT.getStageKey(),
+            FlowStage.JEVIC.getStageKey(),
+            FlowStage.COI.getStageKey(),
+            FlowStage.STANDARDS.getStageKey(),
+            FlowStage.EXPORT.getStageKey(),
+            FlowStage.GRADE.getStageKey(),
+            FlowStage.PHOTOS.getStageKey(),
+            FlowStage.WORKSHEET.getStageKey()
+    );
 
     private final VehicleRepository vehicleRepository;
     private final PreShipmentService preShipmentService;
@@ -62,7 +79,77 @@ public class ImportProgressService {
                 exportCertificateService.hasCertificate(chassisNo),
                 vehiclePhotoService.hasPhotos(chassisNo),
                 gradeSearchService.hasDocument(chassisNo),
-                customsDocumentService.hasWorksheet(chassisNo));
+                customsDocumentService.hasWorksheet(chassisNo),
+                parseSkippedStages(vehicle.getSkippedStages()));
+    }
+
+    @Transactional
+    public void skipStage(String chassisNo, String stageKey) {
+        FlowStage stage = FlowStage.fromKey(stageKey);
+        if (stage == null || !IMPORT_STAGE_KEYS.contains(stage.getStageKey())) {
+            throw new IllegalArgumentException("That stage cannot be skipped.");
+        }
+        if (chassisNo == null || chassisNo.trim().isEmpty()) {
+            throw new IllegalArgumentException("Chassis number is required.");
+        }
+        Vehicle vehicle = vehicleRepository.findById(chassisNo.trim())
+                .orElseThrow(() -> new IllegalArgumentException("Vehicle not found."));
+        if (progressFor(vehicle).isStageFilled(stage.getStageKey())) {
+            return;
+        }
+        Set<String> skipped = parseSkippedStages(vehicle.getSkippedStages());
+        skipped.add(stage.getStageKey());
+        vehicle.setSkippedStages(joinSkippedStages(skipped));
+        vehicleRepository.save(vehicle);
+        syncVehicleStage(vehicle.getChassisNo());
+    }
+
+    public boolean isStageSatisfied(String chassisNo, String stageKey) {
+        if (chassisNo == null || chassisNo.trim().isEmpty() || stageKey == null) {
+            return false;
+        }
+        return progressFor(chassisNo).isStageComplete(stageKey);
+    }
+
+    public String skippedToken(String chassisNo) {
+        if (chassisNo == null || chassisNo.trim().isEmpty()) {
+            return "|";
+        }
+        Vehicle vehicle = vehicleRepository.findById(chassisNo.trim()).orElse(null);
+        if (vehicle == null) {
+            return "|";
+        }
+        StringBuilder token = new StringBuilder("|");
+        for (String key : parseSkippedStages(vehicle.getSkippedStages())) {
+            token.append(key).append('|');
+        }
+        return token.toString();
+    }
+
+    static Set<String> parseSkippedStages(String stored) {
+        Set<String> keys = new LinkedHashSet<String>();
+        if (stored == null || stored.trim().isEmpty()) {
+            return keys;
+        }
+        String[] parts = stored.split(",");
+        for (String part : parts) {
+            FlowStage stage = FlowStage.fromKey(part);
+            if (stage != null && IMPORT_STAGE_KEYS.contains(stage.getStageKey())) {
+                keys.add(stage.getStageKey());
+            }
+        }
+        return keys;
+    }
+
+    private static String joinSkippedStages(Set<String> keys) {
+        StringBuilder stored = new StringBuilder();
+        for (String key : keys) {
+            if (stored.length() > 0) {
+                stored.append(',');
+            }
+            stored.append(key);
+        }
+        return stored.toString();
     }
 
     public ImportProgress progressFor(String chassisNo) {
@@ -112,6 +199,7 @@ public class ImportProgressService {
         private final boolean photosReady;
         private final boolean gradeReady;
         private final boolean worksheetReady;
+        private final Set<String> skippedStages;
 
         public ImportProgress(
                 boolean auctionReady,
@@ -125,6 +213,34 @@ public class ImportProgressService {
                 boolean gradeReady,
                 boolean worksheetReady
         ) {
+            this(
+                    auctionReady,
+                    preshipReady,
+                    equipmentReady,
+                    jevicReady,
+                    coiReady,
+                    standardsReady,
+                    exportReady,
+                    photosReady,
+                    gradeReady,
+                    worksheetReady,
+                    Collections.<String>emptySet()
+            );
+        }
+
+        public ImportProgress(
+                boolean auctionReady,
+                boolean preshipReady,
+                boolean equipmentReady,
+                boolean jevicReady,
+                boolean coiReady,
+                boolean standardsReady,
+                boolean exportReady,
+                boolean photosReady,
+                boolean gradeReady,
+                boolean worksheetReady,
+                Set<String> skippedStages
+        ) {
             this.auctionReady = auctionReady;
             this.preshipReady = preshipReady;
             this.equipmentReady = equipmentReady;
@@ -135,6 +251,9 @@ public class ImportProgressService {
             this.photosReady = photosReady;
             this.gradeReady = gradeReady;
             this.worksheetReady = worksheetReady;
+            this.skippedStages = skippedStages == null
+                    ? Collections.<String>emptySet()
+                    : skippedStages;
         }
 
         public boolean isAuctionReady() {
@@ -179,30 +298,40 @@ public class ImportProgressService {
 
         @Override
         public boolean hasAnyCompletedStage() {
-            return auctionReady || preshipReady || equipmentReady || jevicReady || coiReady
-                    || standardsReady || exportReady || photosReady || gradeReady || worksheetReady;
+            for (String key : IMPORT_STAGE_KEYS) {
+                if (isStageComplete(key)) {
+                    return true;
+                }
+            }
+            return false;
         }
 
         @Override
         public int completedCount() {
-            return (auctionReady ? 1 : 0) + (preshipReady ? 1 : 0) + (equipmentReady ? 1 : 0)
-                    + (jevicReady ? 1 : 0) + (coiReady ? 1 : 0) + (standardsReady ? 1 : 0)
-                    + (exportReady ? 1 : 0) + (photosReady ? 1 : 0) + (gradeReady ? 1 : 0)
-                    + (worksheetReady ? 1 : 0);
+            int count = 0;
+            for (String key : IMPORT_STAGE_KEYS) {
+                if (isStageComplete(key)) {
+                    count++;
+                }
+            }
+            return count;
         }
 
         @Override
         public boolean isPipelineCompleted() {
-            return auctionReady && preshipReady && equipmentReady && jevicReady && coiReady
-                    && standardsReady && exportReady && photosReady && gradeReady && worksheetReady;
+            for (String key : IMPORT_STAGE_KEYS) {
+                if (!isStageComplete(key)) {
+                    return false;
+                }
+            }
+            return true;
         }
 
         public boolean isImportComplete() {
             return isPipelineCompleted();
         }
 
-        @Override
-        public boolean isStageComplete(String stageKey) {
+        public boolean isStageFilled(String stageKey) {
             if (FlowStage.PRESHIP.getStageKey().equals(stageKey)) {
                 return preshipReady;
             }
@@ -231,6 +360,15 @@ public class ImportProgressService {
                 return worksheetReady;
             }
             return auctionReady;
+        }
+
+        public boolean isStageSkipped(String stageKey) {
+            return stageKey != null && skippedStages.contains(stageKey) && !isStageFilled(stageKey);
+        }
+
+        @Override
+        public boolean isStageComplete(String stageKey) {
+            return isStageFilled(stageKey) || (stageKey != null && skippedStages.contains(stageKey));
         }
 
         public String firstIncompleteStageKey(List<String> keys) {

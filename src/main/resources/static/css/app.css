@@ -1836,7 +1836,7 @@ body.sheet-page .preship-fields .field-grid .equipment-field {
     }
 }
 
-body.sheet-page .preship-fields .field-grid input:not([type="radio"]):not([type="checkbox"]),
+body.sheet-page .preship-fields .field-grid input:not([type="radio"]):not([type="checkbox"]):not(.slash-date-picker),
 body.sheet-page .preship-fields .field-grid textarea {
     margin-top: 8px;
     border: 1px solid #c8c2b8;
@@ -1845,7 +1845,7 @@ body.sheet-page .preship-fields .field-grid textarea {
     color: var(--ink);
 }
 
-body.sheet-page .preship-fields .field-grid input:not([type="radio"]):not([type="checkbox"]):focus,
+body.sheet-page .preship-fields .field-grid input:not([type="radio"]):not([type="checkbox"]):not(.slash-date-picker):focus,
 body.sheet-page .preship-fields .field-grid textarea:focus {
     border-color: var(--sea);
     outline: 2px solid rgba(13, 148, 136, 0.18);
@@ -1856,6 +1856,39 @@ body.sheet-page .preship-fields .field-grid input.readonly-field,
 body.sheet-page .preship-fields .field-grid textarea.readonly-field {
     background: #f5f5f4;
     color: var(--muted);
+}
+
+body.sheet-page .preship-fields .field-grid .slash-date {
+    position: relative;
+    display: block;
+}
+
+body.sheet-page .preship-fields .field-grid .slash-date > input[type="text"] {
+    width: 100%;
+    padding-right: 2.4rem;
+}
+
+body.sheet-page .preship-fields .field-grid .slash-date > .fa-calendar {
+    position: absolute;
+    right: 0.75rem;
+    top: calc(8px + 0.55rem);
+    color: #78716c;
+    pointer-events: none;
+}
+
+body.sheet-page .preship-fields .field-grid .slash-date > input.slash-date-picker {
+    position: absolute;
+    right: 0.2rem;
+    top: 8px;
+    width: 2.2rem;
+    height: calc(100% - 8px);
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+    opacity: 0;
+    cursor: pointer;
 }
 
 .standards-choice,
@@ -3993,6 +4026,43 @@ a.import-pipeline-step:hover {
     border-color: var(--leaf);
 }
 
+.import-pipeline-steps li.is-skipped .import-pipeline-step,
+.import-pipeline-steps li.is-skipped .import-pipeline-step.is-static {
+    border-color: #fecaca;
+    background: #fef2f2;
+    box-shadow: none;
+}
+
+.import-pipeline-steps li.is-skipped .import-pipeline-step-icon {
+    background: #dc2626;
+    border-color: #dc2626;
+    color: #fff;
+    font-size: 0;
+}
+
+.import-pipeline-steps li.is-skipped .import-pipeline-step-icon > * {
+    display: none;
+}
+
+.import-pipeline-steps li.is-skipped .import-pipeline-step-icon::before {
+    content: "\f04e";
+    font-family: "Font Awesome 6 Free";
+    font-weight: 900;
+    font-size: 10px;
+    line-height: 1;
+}
+
+.import-pipeline-steps li.is-skipped .pipeline-step-status {
+    color: transparent;
+    font-size: 0;
+}
+
+.import-pipeline-steps li.is-skipped .pipeline-step-status::after {
+    content: "Skipped";
+    color: #dc2626;
+    font-size: 9px;
+}
+
 .import-pipeline-step.is-disabled {
     opacity: 0.55;
     cursor: not-allowed;
@@ -4764,6 +4834,33 @@ a.import-pipeline-step:hover {
 
 .list-pipeline-flow li.is-done small {
     color: var(--leaf);
+}
+
+.list-pipeline-flow li.is-skipped .list-pipeline-node {
+    background: #dc2626;
+    border-color: #dc2626;
+    color: #fff;
+}
+
+.list-pipeline-flow li.is-skipped small {
+    color: #dc2626;
+}
+
+.list-pipeline-flow li.is-skipped.is-linked::after {
+    background: #dc2626;
+}
+
+.skip-stage-btn {
+    min-width: 96px;
+    color: #b91c1c;
+    border-color: #fecaca;
+    background: #fff;
+}
+
+.skip-stage-btn:hover {
+    background: #fef2f2;
+    border-color: #dc2626;
+    color: #991b1b;
 }
 
 .list-pipeline-flow li.is-current .list-pipeline-node {

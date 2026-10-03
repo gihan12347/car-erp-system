@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<section th:fragment="detailsView(vehicle, photos)" class="import-view-stage sale-profile"
+         th:with="dash='—'">
+    <article class="panel vehicle-hero">
+        <div>
+            <div class="vehicle-hero-badges">
+                <span class="vehicle-stock" th:if="${vehicle.stockNo != null and !#strings.isEmpty(vehicle.stockNo)}"
+                      th:text="${vehicle.stockNo}">V001</span>
+                <em class="pill sea" th:if="${vehicle.auctionGrade != null and !#strings.isEmpty(vehicle.auctionGrade)}"
+                    th:text="${'Grade ' + vehicle.auctionGrade}">Grade 4.5</em>
+            </div>
+            <h1>
+                <span th:text="${vehicle.year != null and !#strings.isEmpty(vehicle.year) ? vehicle.year + ' ' : ''}">2025 </span>
+                <span th:text="${vehicle.model != null and !#strings.isEmpty(vehicle.model) ? vehicle.model : 'Vehicle'}">Toyota Roomy</span>
+            </h1>
+            <p class="vehicle-hero-sub">
+                <span class="hero-chassis" th:text="${vehicle.chassisNo}">M900A-1122703</span>
+                <span th:if="${vehicle.lotNo != null and !#strings.isEmpty(vehicle.lotNo)}"
+                      th:text="${' · Lot ' + vehicle.lotNo}"> · Lot 36497</span>
+            </p>
+            <div class="vehicle-hero-stats">
+                <div>
+                    <small>Mileage</small>
+                    <strong th:text="${vehicle.mileage != null and !#strings.isEmpty(vehicle.mileage) ? vehicle.mileage : dash}">—</strong>
+                </div>
+                <div>
+                    <small>Color</small>
+                    <strong th:text="${vehicle.color != null and !#strings.isEmpty(vehicle.color) ? vehicle.color : dash}">—</strong>
+                </div>
+                <div>
+                    <small>Fuel</small>
+                    <strong th:text="${vehicle.fuel != null and !#strings.isEmpty(vehicle.fuel) ? vehicle.fuel : dash}">—</strong>
+                </div>
+                <div>
+                    <small>Transmission</small>
+                    <strong th:text="${vehicle.transmission != null and !#strings.isEmpty(vehicle.transmission) ? vehicle.transmission : dash}">—</strong>
+                </div>
+                <div>
+                    <small>Engine</small>
+                    <strong th:text="${vehicle.engineSize != null and !#strings.isEmpty(vehicle.engineSize) ? vehicle.engineSize : dash}">—</strong>
+                </div>
+            </div>
+        </div>
+    </article>
+
+    <article class="panel" th:if="${photos != null and !photos.isEmpty()}">
+        <div class="panel-head">
+            <h2>Photos</h2>
+            <span class="photo-count" th:text="${photos.size()}">1</span>
+        </div>
+        <div class="photo-gallery is-view sale-profile-gallery">
+            <div class="photo-card" th:each="photo : ${photos}">
+                <img th:src="@{/photos/documents/{name}(name=${photo.storedName})}"
+                     th:alt="${photo.originalName}">
+            </div>
+        </div>
+    </article>
+
+    <div class="detail-spec-grid">
+        <div class="detail-spec-group">
+            <h3>Identity</h3>
+            <ul class="detail-spec-list">
+                <li><span>Chassis</span><strong th:text="${vehicle.chassisNo}">M900A-1122703</strong></li>
+                <li><span>Stock no.</span><strong th:text="${vehicle.stockNo != null and !#strings.isEmpty(vehicle.stockNo) ? vehicle.stockNo : dash}">—</strong></li>
+                <li><span>Make</span><strong th:text="${vehicle.make != null and !#strings.isEmpty(vehicle.make) ? vehicle.make : dash}">—</strong></li>
+                <li><span>Model</span><strong th:text="${vehicle.model != null and !#strings.isEmpty(vehicle.model) ? vehicle.model : dash}">—</strong></li>
+                <li><span>Grade</span><strong th:text="${vehicle.grade != null and !#strings.isEmpty(vehicle.grade) ? vehicle.grade : dash}">—</strong></li>
+                <li><span>Year</span><strong th:text="${vehicle.year != null and !#strings.isEmpty(vehicle.year) ? vehicle.year : dash}">—</strong></li>
+                <li><span>Body type</span><strong th:text="${vehicle.bodyStyle != null and !#strings.isEmpty(vehicle.bodyStyle) ? vehicle.bodyStyle : dash}">—</strong></li>
+            </ul>
+        </div>
+        <div class="detail-spec-group">
+            <h3>Auction</h3>
+            <ul class="detail-spec-list">
+                <li><span>Lot no.</span><strong th:text="${vehicle.lotNo != null and !#strings.isEmpty(vehicle.lotNo) ? vehicle.lotNo : dash}">—</strong></li>
+                <li><span>Auction house</span><strong th:text="${vehicle.auctionHouse != null and !#strings.isEmpty(vehicle.auctionHouse) ? vehicle.auctionHouse : dash}">—</strong></li>
+                <li><span>Overall grade</span><strong th:text="${vehicle.auctionGrade != null and !#strings.isEmpty(vehicle.auctionGrade) ? vehicle.auctionGrade : dash}">—</strong></li>
+                <li><span>Exterior</span><strong th:text="${vehicle.exteriorGrade != null and !#strings.isEmpty(vehicle.exteriorGrade) ? vehicle.exteriorGrade : dash}">—</strong></li>
+                <li><span>Interior</span><strong th:text="${vehicle.interiorGrade != null and !#strings.isEmpty(vehicle.interiorGrade) ? vehicle.interiorGrade : dash}">—</strong></li>
+                <li><span>History</span><strong th:text="${vehicle.history != null and !#strings.isEmpty(vehicle.history) ? vehicle.history : dash}">—</strong></li>
+            </ul>
+        </div>
+        <div class="detail-spec-group">
+            <h3>Powertrain</h3>
+            <ul class="detail-spec-list">
+                <li><span>Engine</span><strong th:text="${vehicle.engineSize != null and !#strings.isEmpty(vehicle.engineSize) ? vehicle.engineSize : dash}">—</strong></li>
+                <li><span>Fuel</span><strong th:text="${vehicle.fuel != null and !#strings.isEmpty(vehicle.fuel) ? vehicle.fuel : dash}">—</strong></li>
+                <li><span>Transmission</span><strong th:text="${vehicle.transmission != null and !#strings.isEmpty(vehicle.transmission) ? vehicle.transmission : dash}">—</strong></li>
+                <li><span>Drive</span><strong th:text="${vehicle.driveSystem != null and !#strings.isEmpty(vehicle.driveSystem) ? vehicle.driveSystem : dash}">—</strong></li>
+                <li><span>Air conditioning</span><strong th:text="${vehicle.acType != null and !#strings.isEmpty(vehicle.acType) ? vehicle.acType : dash}">—</strong></li>
+                <li><span>Model code</span><strong th:text="${vehicle.modelCode != null and !#strings.isEmpty(vehicle.modelCode) ? vehicle.modelCode : dash}">—</strong></li>
+            </ul>
+        </div>
+        <div class="detail-spec-group">
+            <h3>Body &amp; size</h3>
+            <ul class="detail-spec-list">
+                <li><span>Color</span><strong th:text="${vehicle.color != null and !#strings.isEmpty(vehicle.color) ? vehicle.color : dash}">—</strong></li>
+                <li><span>Color code</span><strong th:text="${vehicle.colorCode != null and !#strings.isEmpty(vehicle.colorCode) ? vehicle.colorCode : dash}">—</strong></li>
+                <li><span>Mileage</span><strong th:text="${vehicle.mileage != null and !#strings.isEmpty(vehicle.mileage) ? vehicle.mileage : dash}">—</strong></li>
+                <li><span>Seats</span><strong th:text="${vehicle.seats != null and !#strings.isEmpty(vehicle.seats) ? vehicle.seats : dash}">—</strong></li>
+                <li><span>Doors</span><strong th:text="${vehicle.doors != null and !#strings.isEmpty(vehicle.doors) ? vehicle.doors : dash}">—</strong></li>
+                <li><span>Size (L×W×H)</span>
+                    <strong th:text="${(vehicle.lengthCm != null and !#strings.isEmpty(vehicle.lengthCm)) or (vehicle.widthCm != null and !#strings.isEmpty(vehicle.widthCm)) or (vehicle.heightCm != null and !#strings.isEmpty(vehicle.heightCm))
+                            ? (vehicle.lengthCm != null ? vehicle.lengthCm : dash) + ' × ' + (vehicle.widthCm != null ? vehicle.widthCm : dash) + ' × ' + (vehicle.heightCm != null ? vehicle.heightCm : dash)
+                            : dash}">—</strong>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <article class="panel" th:if="${(vehicle.equipment != null and !#strings.isEmpty(vehicle.equipment)) or (vehicle.salesPoints != null and !#strings.isEmpty(vehicle.salesPoints))}">
+        <div class="panel-head"><h2>Notes</h2></div>
+        <div class="detail-spec-grid">
+            <div class="detail-spec-group" th:if="${vehicle.equipment != null and !#strings.isEmpty(vehicle.equipment)}">
+                <h3>Equipment</h3>
+                <p class="sale-profile-note" th:text="${vehicle.equipment}">—</p>
+            </div>
+            <div class="detail-spec-group" th:if="${vehicle.salesPoints != null and !#strings.isEmpty(vehicle.salesPoints)}">
+                <h3>Sales points</h3>
+                <p class="sale-profile-note" th:text="${vehicle.salesPoints}">—</p>
+            </div>
+        </div>
+    </article>
+
+    <div class="import-view-actions">
+        <a th:if="${stageNav != null and stageNav.nextUrl != null}"
+           th:href="${stageNav.nextUrl}"
+           class="panel-btn import-form-submit">
+            <span th:text="${stageNav.nextLabel}">Continue listing</span>
+            <i class="fa-solid fa-chevron-right"></i>
+        </a>
+    </div>
+</section>
+
+</body>
+</html>

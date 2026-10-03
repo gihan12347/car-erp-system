@@ -23,10 +23,9 @@
     var previewName = "";
     var objectUrl = null;
     var FIELD_ORDER = [
-        "scheduleType", "emissionCo", "emissionNmhc", "emissionNox", "emissionPm",
+        "emissionCo", "emissionNmhc", "emissionNox", "emissionPm",
         "emissionHc", "emissionHcNox", "emissionThc", "emissionCh4", "emissionSmoke",
-        "threePointSeatBelts", "twoPointSeatBelts", "driverAirbag", "passengerAirbag", "absFitted",
-        "make", "model", "chassisVin", "placeOfInspection", "inspectionDate", "remarks"
+        "threePointSeatBelts", "twoPointSeatBelts", "driverAirbag", "passengerAirbag", "absFitted"
     ];
     var currentFieldIndex = 0;
 
@@ -427,7 +426,12 @@
                 try {
                     var result = JSON.parse(xhr.responseText);
                     var filled = fillForm(result);
-                    var message = result.message || ("Filled " + filled + " fields from the certificate.");
+                    var message = result.message || "";
+                    if (!message || message.indexOf("could not be mapped") >= 0) {
+                        message = filled > 0
+                            ? ("Filled " + filled + " fields from the certificate.")
+                            : "";
+                    }
                     setStatus(message, result.success !== false);
                 } catch (e) {
                     setStatus("Could not read the certificate. Fill the form manually.", false);

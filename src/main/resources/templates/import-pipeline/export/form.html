@@ -67,7 +67,7 @@
 
                     <div class="sheet-fields preship-fields">
                         <div th:replace="import-pipeline/fragments/export-fields :: exportFields"></div>
-                        <div th:replace="import-pipeline/fragments/form-actions :: importFormActions('Save & continue')"></div>
+                        <div th:replace="import-pipeline/fragments/form-actions :: importFormActions('Save & continue', 'export')"></div>
                     </div>
                 </div>
             </form>
@@ -96,6 +96,6 @@
 
 <script th:src="@{/js/shared/app.js(v=20260905k)}"></script>
 <script th:src="@{/js/shared/document-viewer.js(v=20260826d)}"></script>
-<script th:src="@{/js/import-pipeline/export.js(v=20260921a)}"></script>
+<script th:src="@{/js/import-pipeline/export.js(v=20261003h)}"></script>
 </body>
 </html>

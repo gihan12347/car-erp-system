@@ -10,7 +10,7 @@
             <div class="dash-head">
                 <div>
                     <h1>Import pipeline</h1>
-                    <p class="form-lead">Complete auction, pre-shipment, equipment, JEVIC, the certificate of inspection, the standards certificate, the export certificate, grade search, vehicle images, and the working sheet — in any order. When all ten are done, the vehicle moves to customs clearance.</p>
+                    <p class="form-lead">Complete auction, pre-shipment, equipment, JEVIC, the certificate of inspection, the standards certificate, the export certificate, grade search, vehicle images, and the working sheet — in any order. Adding a vehicle here also opens it in customs clearance and preparation.</p>
                 </div>
             </div>
 
@@ -62,12 +62,14 @@
                                      th:attr="data-completed=${row.status.completedCount}">
                                     <ol class="list-pipeline-flow">
                                         <li th:each="stage, iter : ${stages}"
-                                            th:with="ready=${row.status.isStageComplete(stage.stageKey)},
-                                                     nextReady=${!iter.last and row.status.isStageComplete(stages[iter.count].stageKey)},
-                                                     current=${!ready and pendingKey == stage.stageKey},
+                                            th:with="skipped=${row.status.isStageSkipped(stage.stageKey)},
+                                                     ready=${!skipped and row.status.isStageComplete(stage.stageKey)},
+                                                     nextSkipped=${!iter.last and row.status.isStageSkipped(stages[iter.count].stageKey)},
+                                                     nextReady=${!iter.last and !nextSkipped and row.status.isStageComplete(stages[iter.count].stageKey)},
+                                                     current=${!ready and !skipped and pendingKey == stage.stageKey},
                                                      editHref=${@pipelineStageService.editUrlFor(#uris.escapePathSegment(row.vehicle.chassisNo), stage.stageKey)},
                                                      shortTitle=${@pipelineStageService.shortTitleFor(stage.stageKey)}"
-                                            th:classappend="${(ready ? ' is-done' : (current ? ' is-current' : ' is-pending')) + (ready and nextReady ? ' is-linked' : '')}"
+                                            th:classappend="${(skipped ? ' is-skipped' : (ready ? ' is-done' : (current ? ' is-current' : ' is-pending'))) + ((ready or skipped) and (nextReady or nextSkipped) ? ' is-linked' : '')}"
                                             th:style="'--step:' + ${iter.index}">
                                             <a th:if="${ready}"
                                                th:href="@{/auction/{c}(c=${row.vehicle.chassisNo}, stage=${stage.stageKey})}"
@@ -75,13 +77,19 @@
                                                th:title="${stage.title + ' — complete'}">
                                                 <i class="fa-solid fa-check"></i>
                                             </a>
-                                            <a th:if="${!ready and editHref != null}"
+                                            <a th:if="${skipped}"
+                                               th:href="@{/auction/{c}(c=${row.vehicle.chassisNo}, stage=${stage.stageKey})}"
+                                               class="list-pipeline-node"
+                                               th:title="${stage.title + ' — skipped'}">
+                                                <i class="fa-solid fa-forward"></i>
+                                            </a>
+                                            <a th:if="${!ready and !skipped and editHref != null}"
                                                th:href="${editHref}"
                                                class="list-pipeline-node"
                                                th:title="${stage.title + (current ? ' — next' : ' — pending')}">
                                                 <span th:text="${iter.count}">1</span>
                                             </a>
-                                            <span th:if="${!ready and editHref == null}"
+                                            <span th:if="${!ready and !skipped and editHref == null}"
                                                   class="list-pipeline-node"
                                                   th:title="${stage.title + (current ? ' — next' : ' — pending')}">
                                                 <span th:text="${iter.count}">1</span>

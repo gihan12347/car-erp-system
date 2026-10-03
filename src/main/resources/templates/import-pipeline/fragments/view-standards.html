@@ -69,23 +69,28 @@
                 <article class="panel">
                     <div class="panel-head"><h2>Safety measures</h2></div>
                     <div class="field-grid">
-                        <label>Three point seat belts <input type="text" th:value="${certificate.threePointSeatBelts} ? 'Yes' : 'No'" readonly class="readonly-field"></label>
-                        <label>Two point seat belts <input type="text" th:value="${certificate.twoPointSeatBelts} ? 'Yes' : 'No'" readonly class="readonly-field"></label>
-                        <label>Driver air bag <input type="text" th:value="${certificate.driverAirbag} ? 'Yes' : 'No'" readonly class="readonly-field"></label>
-                        <label>Front passenger air bag <input type="text" th:value="${certificate.passengerAirbag} ? 'Yes' : 'No'" readonly class="readonly-field"></label>
-                        <label>ABS <input type="text" th:value="${certificate.absFitted} ? 'Yes' : 'No'" readonly class="readonly-field"></label>
-                    </div>
-                </article>
-
-                <article class="panel">
-                    <div class="panel-head"><h2>Vehicle and inspection</h2></div>
-                    <div class="field-grid">
-                        <label>Make <input type="text" th:value="${certificate.make}" readonly class="readonly-field"></label>
-                        <label>Model <input type="text" th:value="${certificate.model}" readonly class="readonly-field"></label>
-                        <label>Chassis number <input type="text" th:value="${certificate.chassisVin}" readonly class="readonly-field"></label>
-                        <label>Place of inspection <input type="text" th:value="${certificate.placeOfInspection}" readonly class="readonly-field"></label>
-                        <label>Date of inspection <input type="text" th:value="${certificate.inspectionDate}" readonly class="readonly-field"></label>
-                        <label class="span-2">Remarks <input type="text" th:value="${certificate.remarks}" readonly class="readonly-field"></label>
+                        <div class="span-2 standards-check-list">
+                            <label>
+                                <input type="checkbox" th:checked="${certificate.threePointSeatBelts}" disabled>
+                                Three point seat belts for driver and front passengers
+                            </label>
+                            <label>
+                                <input type="checkbox" th:checked="${certificate.twoPointSeatBelts}" disabled>
+                                Minimum two point seat belts for other passengers
+                            </label>
+                            <label>
+                                <input type="checkbox" th:checked="${certificate.driverAirbag}" disabled>
+                                Driver air bag
+                            </label>
+                            <label>
+                                <input type="checkbox" th:checked="${certificate.passengerAirbag}" disabled>
+                                Front passenger air bag
+                            </label>
+                            <label>
+                                <input type="checkbox" th:checked="${certificate.absFitted}" disabled>
+                                ABS
+                            </label>
+                        </div>
                     </div>
                 </article>
             </div>

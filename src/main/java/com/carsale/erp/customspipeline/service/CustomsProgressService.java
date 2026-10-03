@@ -1,6 +1,5 @@
 package com.carsale.erp.customspipeline.service;
 
-import com.carsale.erp.importpipeline.service.ImportProgressService;
 import com.carsale.erp.shared.pipeline.PipelineProgress;
 import com.carsale.erp.shared.pipeline.FlowStage;
 import com.carsale.erp.shared.vehicle.VehicleService;
@@ -21,18 +20,15 @@ public class CustomsProgressService {
 
     private final VehicleRepository vehicleRepository;
     private final VehicleService vehicleService;
-    private final ImportProgressService importProgressService;
     private final CustomsDocumentService customsDocumentService;
 
     public CustomsProgressService(
             VehicleRepository vehicleRepository,
             VehicleService vehicleService,
-            ImportProgressService importProgressService,
             CustomsDocumentService customsDocumentService
     ) {
         this.vehicleRepository = vehicleRepository;
         this.vehicleService = vehicleService;
-        this.importProgressService = importProgressService;
         this.customsDocumentService = customsDocumentService;
     }
 
@@ -56,18 +52,9 @@ public class CustomsProgressService {
     }
 
     public boolean isEligible(Vehicle vehicle) {
-        if (vehicle == null) {
-            return false;
-        }
-        VehicleStage stage = vehicle.getStage();
-        if (stage == VehicleStage.CUSTOMS
-                || stage == VehicleStage.WORKSHOP
-                || stage == VehicleStage.READY
-                || stage == VehicleStage.RESERVED
-                || stage == VehicleStage.SOLD) {
-            return true;
-        }
-        return importProgressService.progressFor(vehicle).isPipelineCompleted();
+        return vehicle != null
+                && vehicle.getChassisNo() != null
+                && !vehicle.getChassisNo().trim().isEmpty();
     }
 
     public List<Vehicle> listEligible(String query) {

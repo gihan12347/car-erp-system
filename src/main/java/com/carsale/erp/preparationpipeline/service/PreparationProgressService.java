@@ -67,17 +67,9 @@ public class PreparationProgressService {
     }
 
     public boolean isEligible(Vehicle vehicle) {
-        if (vehicle == null) {
-            return false;
-        }
-        VehicleStage stage = vehicle.getStage();
-        if (stage == VehicleStage.WORKSHOP
-                || stage == VehicleStage.READY
-                || stage == VehicleStage.RESERVED
-                || stage == VehicleStage.SOLD) {
-            return true;
-        }
-        return customsProgressService.progressFor(vehicle).isPipelineCompleted();
+        return vehicle != null
+                && vehicle.getChassisNo() != null
+                && !vehicle.getChassisNo().trim().isEmpty();
     }
 
     public String redirectWhenNotEligible(Vehicle vehicle) {

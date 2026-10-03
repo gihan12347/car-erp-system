@@ -22,7 +22,6 @@ public class ExportCertificateParser implements DocumentParser {
 
     private static final Map<String, String> TYPE_TO_FIELD = new LinkedHashMap<>();
     private static final Set<String> DATE_FIELDS = new HashSet<>();
-    private static final Set<String> MONTH_FIELDS = new HashSet<>();
 
     static {
         TYPE_TO_FIELD.put("address_of_owner", "ownerAddress");
@@ -60,7 +59,7 @@ public class ExportCertificateParser implements DocumentParser {
         DATE_FIELDS.add("issueDate");
         DATE_FIELDS.add("exportScheduledDate");
         DATE_FIELDS.add("registrationDate");
-        MONTH_FIELDS.add("firstRegDate");
+        DATE_FIELDS.add("firstRegDate");
     }
 
     private final String processorId;
@@ -154,10 +153,7 @@ public class ExportCertificateParser implements DocumentParser {
             return null;
         }
         if (DATE_FIELDS.contains(field)) {
-            return toIsoDate(value);
-        }
-        if (MONTH_FIELDS.contains(field)) {
-            return toIsoMonth(value);
+            return toSlashDate(value);
         }
         return value;
     }
@@ -202,7 +198,31 @@ public class ExportCertificateParser implements DocumentParser {
                     1
             );
         }
+        Matcher yearMonthNumeric = RegexConstants.Dates.YEAR_MONTH_NUMERIC_PATTERN.matcher(value);
+        if (yearMonthNumeric.matches()) {
+            return formatDate(
+                    Integer.parseInt(yearMonthNumeric.group(1)),
+                    Integer.parseInt(yearMonthNumeric.group(2)),
+                    1
+            );
+        }
+        Matcher monthYear = RegexConstants.Dates.MONTH_YEAR_NUMERIC_PATTERN.matcher(value);
+        if (monthYear.matches()) {
+            return formatDate(
+                    Integer.parseInt(monthYear.group(2)),
+                    Integer.parseInt(monthYear.group(1)),
+                    1
+            );
+        }
         return value;
+    }
+
+    public static String toSlashDate(String raw) {
+        String iso = toIsoDate(raw);
+        if (iso != null && iso.matches("\\d{4}-\\d{2}-\\d{2}")) {
+            return iso.replace('-', '/');
+        }
+        return iso;
     }
 
     public static String toIsoMonth(String raw) {

@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<section th:fragment="workshopView(vehicle, workshop, workshopReady)" class="import-view-stage">
+    <div class="panel import-view-empty" th:if="${workshop == null or workshop.lines == null or workshop.lines.isEmpty()}">
+        <i class="fa-solid fa-wrench"></i>
+        <strong>No workshop jobs</strong>
+        <p>Inspection did not mark any item as No, so workshop is complete. Continue to yard.</p>
+        <div class="import-view-actions">
+            <a th:if="${stageNav != null and stageNav.prevUrl != null}"
+               th:href="${stageNav.prevUrl}"
+               class="panel-btn ghost import-form-submit">
+                <i class="fa-solid fa-chevron-left"></i>
+                Previous
+            </a>
+            <a th:href="@{/yard/{c}(c=${vehicle.chassisNo}, hub=1)}" class="panel-btn import-form-submit">Continue to yard</a>
+        </div>
+    </div>
+
+    <div th:if="${workshop != null and workshop.lines != null and !workshop.lines.isEmpty()}">
+        <article class="panel workshop-job-card" th:each="line, stat : ${workshop.lines}">
+            <div class="panel-head">
+                <h2>
+                    Job <span th:text="${stat.count}">1</span>
+                    <em class="pill rust inspection-job-pill"
+                        th:if="${line.inspectionItemKey != null and !#strings.isEmpty(line.inspectionItemKey)}">From inspection</em>
+                </h2>
+                <em class="pill muted-pill" th:text="${line.jobStatus}">PENDING</em>
+            </div>
+            <div class="field-grid">
+                <label>Technician <input type="text" th:value="${line.technician}" readonly class="readonly-field"></label>
+                <label>Labour hours <input type="text" th:value="${line.laborHours}" readonly class="readonly-field"></label>
+                <label class="span-2">Summary <input type="text" th:value="${line.jobSummary}" readonly class="readonly-field"></label>
+                <label>Started on <input type="date" th:value="${line.startedOn}" readonly class="readonly-field"></label>
+                <label>Completed on <input type="date" th:value="${line.completedOn}" readonly class="readonly-field"></label>
+                <label>Estimated cost
+                    <span class="money-field">
+                        <input type="text" th:value="${line.estimatedCost}" readonly class="readonly-field">
+                        <span class="money-currency" aria-hidden="true">LKR</span>
+                    </span>
+                </label>
+                <label>Actual cost
+                    <span class="money-field">
+                        <input type="text" th:value="${line.actualCost}" readonly class="readonly-field">
+                        <span class="money-currency" aria-hidden="true">LKR</span>
+                    </span>
+                </label>
+                <label class="span-2">Parts used
+                    <textarea th:text="${line.partsUsed}" readonly class="readonly-field" rows="2"></textarea>
+                </label>
+                <label class="span-2">Notes
+                    <textarea th:text="${line.notes}" readonly class="readonly-field" rows="2"></textarea>
+                </label>
+            </div>
+        </article>
+        <div class="import-view-actions">
+            <a th:if="${stageNav != null and stageNav.prevUrl != null}"
+               th:href="${stageNav.prevUrl}"
+               class="panel-btn ghost import-form-submit">
+                <i class="fa-solid fa-chevron-left"></i>
+                Previous
+            </a>
+            <a th:href="@{/workshop/{c}(c=${vehicle.chassisNo}, hub=1)}" class="panel-btn ghost import-form-submit">Edit workshop</a>
+            <a th:if="${stageNav != null and stageNav.nextUrl != null}"
+               th:href="${stageNav.nextUrl}"
+               class="panel-btn import-form-submit">
+                <span th:text="${stageNav.nextLabel}">Next · Yard</span>
+                <i class="fa-solid fa-chevron-right"></i>
+            </a>
+        </div>
+    </div>
+</section>
+
+</body>
+</html>

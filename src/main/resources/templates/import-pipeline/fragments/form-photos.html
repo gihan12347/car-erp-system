@@ -34,10 +34,13 @@
             <p class="upload-status" id="uploadStatus"></p>
         </article>
 
+        <div class="import-view-actions">
         <button type="submit" class="panel-btn import-form-submit"
                 th:text="${continueTarget != null and !#strings.isEmpty(continueTarget)}
                         ? |Save & continue · ${@pipelineStageService.title('IMPORT', continueTarget)}|
                         : 'Save & continue'">Save &amp; continue</button>
+        <button th:replace="import-pipeline/fragments/form-actions :: skipStageButton('photos')"></button>
+        </div>
     </form>
 
     <script th:src="@{/js/shared/app.js(v=20260905k)}"></script>

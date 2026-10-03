@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="shared/head :: head(${pageTitle})"></head>
+<body class="sheet-page import-form-page customs-page">
+<div class="app-shell">
+    <aside th:replace="shared/sidebar :: sidebar(${activeMenu})"></aside>
+    <div class="app-main">
+        <header th:replace="shared/topbar :: topbar"></header>
+        <main class="page-content">
+            <div class="dash-head">
+                <div>
+                    <h1 th:text="${'Step ' + @pipelineStageService.displayNumber('CUSTOMS', 'bl') + ' · ' + @pipelineStageService.title('CUSTOMS', 'bl')}">Step 1 · Bill of lading</h1>
+                    <p class="form-lead">Upload the bill of lading. Auto-fill reads the B/L number and issue date; enter landing cost and exchange rate to get the LKR value.</p>
+                </div>
+            </div>
+
+            <div th:replace="customs-pipeline/fragments/pipeline :: clearancePipelineSteps('bl', ${vehicle.chassisNo}, ${blReady}, ${declarationReady}, ${assessmentReady}, ${worksheetReady}, ${vehicle.model}, false)"></div>
+
+            <p th:if="${successMessage}" class="alert alert-ok" th:text="${successMessage}"></p>
+            <p th:if="${errorMessage}" class="alert alert-error" th:text="${errorMessage}"></p>
+
+            <form th:action="@{/bl/{chassisNo}(chassisNo=${vehicle.chassisNo})}"
+                  th:object="${record}" method="post" class="vehicle-form clearance-form" id="billOfLadingForm">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                <input type="hidden" name="hub" th:value="${hubMode}">
+                <input type="hidden" th:field="*{chassisNo}" id="chassisNo">
+                <input type="hidden" th:field="*{ocrTextPage5}" id="ocrTextPage5">
+                <input type="hidden" th:field="*{page5OriginalName}" id="page5OriginalName">
+                <input type="hidden" th:field="*{page5StoredName}" id="page5StoredName">
+                <input type="hidden" th:field="*{page5ContentType}" id="page5ContentType">
+
+                <div class="sheet-layout preship-layout">
+                    <div class="sheet-document-col">
+                    <aside class="panel sheet-document" id="sheetPreview"
+                           th:classappend="${record.page5StoredName != null and !#strings.isEmpty(record.page5StoredName)} ? ' has-file' : ''">
+                        <div class="panel-head">
+                            <h2>Document preview</h2>
+                        </div>
+
+                        <div class="sheet-preview-frame" id="sheetPreviewFrame"
+                             th:with="hasDoc=${record.page5StoredName != null and !#strings.isEmpty(record.page5StoredName)},
+                                      isPdf=${record.page5StoredName != null and ((record.page5ContentType != null and #strings.contains(record.page5ContentType, 'pdf')) or #strings.endsWith(record.page5StoredName, '.pdf'))}">
+                            <div class="sheet-preview-empty" id="sheetPreviewEmpty"
+                                 th:hidden="${hasDoc}">
+                                <i class="fa-solid fa-file-circle-plus"></i>
+                                <strong>No preview yet</strong>
+                                <span>Use <strong>Choose file</strong> below to upload the bill of lading.</span>
+                            </div>
+                            <img id="sheetPreviewImage"
+                                 alt="Bill of lading preview"
+                                 th:hidden="${!hasDoc or isPdf}"
+                                 th:src="${hasDoc and !isPdf} ? @{/bl/documents/{name}(name=${record.page5StoredName})} : null">
+                            <iframe id="sheetPreviewPdf"
+                                    title="Bill of lading PDF"
+                                    th:hidden="${!hasDoc or !isPdf}"
+                                    th:src="${hasDoc and isPdf} ? @{/bl/documents/{name}(name=${record.page5StoredName})} : null"></iframe>
+                        </div>
+                    </aside>
+
+                    <div th:replace="shared/document-upload-toolbar :: documentUploadToolbar(
+                            'Bill of lading',
+                            '',
+                            ${record.page5OriginalName},
+                            'Choose a JPG, PNG, or PDF bill of lading to upload and preview.',
+                            'ocrspace')"></div>
+                    </div>
+
+                    <div class="sheet-fields preship-fields">
+                        <article class="panel">
+                            <div class="panel-head">
+                                <h2>Bill of lading</h2>
+                            </div>
+                            <div class="field-grid">
+                                <label>B/L number <input type="text" th:field="*{blNo}" id="blNo" autocomplete="off"></label>
+                                <label>Date of B(s)/L issue <input type="text" th:field="*{dateOfBlIssue}" id="dateOfBlIssue" autocomplete="off"></label>
+                            </div>
+                        </article>
+
+                        <article class="panel assessment-taxes-panel">
+                            <div class="panel-head">
+                                <h2>Landing cost</h2>
+                                <span class="price-breakdown-currency-note">Landing cost in USD · Final value in LKR</span>
+                            </div>
+                            <div class="price-breakdown">
+                                <div class="price-breakdown-lines">
+                                    <label class="price-breakdown-row">
+                                        <span class="price-breakdown-label">
+                                            <span class="price-breakdown-code">USD</span>
+                                            <span class="price-breakdown-name">Landing cost</span>
+                                        </span>
+                                        <span class="price-breakdown-amount">
+                                            <input type="text" th:field="*{landingCostUsd}" id="landingCostUsd" inputmode="decimal" autocomplete="off">
+                                            <span class="price-breakdown-currency" aria-hidden="true">USD</span>
+                                        </span>
+                                    </label>
+                                    <label class="price-breakdown-row">
+                                        <span class="price-breakdown-label">
+                                            <span class="price-breakdown-code">FX</span>
+                                            <span class="price-breakdown-name">Exchange rate</span>
+                                        </span>
+                                        <span class="price-breakdown-amount">
+                                            <input type="text" th:field="*{blExchangeRate}" id="blExchangeRate" inputmode="decimal" autocomplete="off">
+                                            <span class="price-breakdown-currency" aria-hidden="true">×</span>
+                                        </span>
+                                    </label>
+                                </div>
+                                <div class="price-breakdown-totals">
+                                    <label class="price-breakdown-row is-paid">
+                                        <span class="price-breakdown-label">
+                                            <span class="price-breakdown-name">Value</span>
+                                        </span>
+                                        <span class="price-breakdown-amount">
+                                            <input type="text" th:field="*{landingCostLkr}" id="landingCostLkr" inputmode="decimal" autocomplete="off">
+                                            <span class="price-breakdown-currency" aria-hidden="true">LKR</span>
+                                        </span>
+                                    </label>
+                                </div>
+                            </div>
+                        </article>
+
+                        <button type="submit" class="panel-btn import-form-submit">Save &amp; continue</button>
+                    </div>
+                </div>
+            </form>
+        </main>
+    </div>
+</div>
+
+<div id="sheetViewer" class="sheet-viewer" hidden>
+    <div class="sheet-viewer-toolbar">
+        <strong id="sheetViewerTitle">Bill of lading</strong>
+        <div class="sheet-viewer-tools">
+            <button type="button" class="panel-btn ghost" id="sheetPrevEmptyField" title="Previous empty field">Prev</button>
+            <button type="button" class="panel-btn ghost" id="sheetZoomOut" title="Zoom out">−</button>
+            <button type="button" class="panel-btn ghost" id="sheetZoomIn" title="Zoom in">+</button>
+            <button type="button" class="panel-btn ghost" id="sheetNextEmptyField" title="Next empty field">Next</button>
+            <button type="button" class="panel-btn ghost" id="sheetViewerClose">Close</button>
+        </div>
+    </div>
+    <div class="sheet-viewer-body" id="sheetViewerBody">
+        <img id="sheetViewerImage" alt="Bill of lading">
+        <iframe id="sheetViewerPdf" title="Bill of lading PDF" hidden></iframe>
+    </div>
+</div>
+
+<div th:replace="shared/app-loader :: appLoader('fillLoader', 'Reading the bill of lading and filling fields...')"></div>
+
+<script th:src="@{/js/shared/app.js(v=20260905k)}"></script>
+<script th:src="@{/js/shared/document-viewer.js(v=20260826d)}"></script>
+<script th:src="@{/js/customs-pipeline/clearance-stage.js(v=20260911a)}"></script>
+<script th:src="@{/js/customs-pipeline/bl.js(v=20260914a)}"></script>
+</body>
+</html>

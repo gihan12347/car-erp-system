@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="shared/head :: head(${pageTitle})"></head>
+<body class="sheet-page import-form-page customs-page">
+<div class="app-shell">
+    <aside th:replace="shared/sidebar :: sidebar(${activeMenu})"></aside>
+    <div class="app-main">
+        <header th:replace="shared/topbar :: topbar"></header>
+        <main class="page-content">
+            <div class="dash-head">
+                <div>
+                    <h1 th:text="${'Step ' + @pipelineStageService.displayNumber('CUSTOMS', 'declaration') + ' · ' + @pipelineStageService.title('CUSTOMS', 'declaration')}">Step 1 · Customs declaration</h1>
+                    <p class="form-lead">Upload the customs declaration (CUSDEC). Auto-fill reads the document; save when you are ready.</p>
+                </div>
+            </div>
+
+            <div th:replace="customs-pipeline/fragments/pipeline :: clearancePipelineSteps('declaration', ${vehicle.chassisNo}, ${blReady}, ${declarationReady}, ${assessmentReady}, ${worksheetReady}, ${vehicle.model}, false)"></div>
+
+            <p th:if="${successMessage}" class="alert alert-ok" th:text="${successMessage}"></p>
+            <p th:if="${errorMessage}" class="alert alert-error" th:text="${errorMessage}"></p>
+
+            <form th:action="@{/declaration/{chassisNo}(chassisNo=${vehicle.chassisNo})}"
+                  th:object="${record}" method="post" class="vehicle-form clearance-form" id="declarationForm">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                <input type="hidden" name="hub" th:value="${hubMode}">
+                <input type="hidden" th:field="*{chassisNo}" id="chassisNo">
+                <input type="hidden" th:field="*{ocrTextPage2}" id="ocrTextPage2">
+                <input type="hidden" th:field="*{page2OriginalName}" id="page2OriginalName">
+                <input type="hidden" th:field="*{page2StoredName}" id="page2StoredName">
+                <input type="hidden" th:field="*{page2ContentType}" id="page2ContentType">
+
+                <div class="sheet-layout preship-layout">
+                    <div class="sheet-document-col">
+                    <aside class="panel sheet-document" id="sheetPreview"
+                           th:classappend="${record.page2StoredName != null and !#strings.isEmpty(record.page2StoredName)} ? ' has-file' : ''">
+                        <div class="panel-head">
+                            <h2>Document preview</h2>
+                        </div>
+
+                        <div class="sheet-preview-frame" id="sheetPreviewFrame"
+                             th:with="hasDoc=${record.page2StoredName != null and !#strings.isEmpty(record.page2StoredName)},
+                                      isPdf=${record.page2StoredName != null and ((record.page2ContentType != null and #strings.contains(record.page2ContentType, 'pdf')) or #strings.endsWith(record.page2StoredName, '.pdf'))}">
+                            <div class="sheet-preview-empty" id="sheetPreviewEmpty"
+                                 th:hidden="${hasDoc}">
+                                <i class="fa-solid fa-file-circle-plus"></i>
+                                <strong>No preview yet</strong>
+                                <span>Use <strong>Choose file</strong> below to upload the customs declaration.</span>
+                            </div>
+                            <img id="sheetPreviewImage"
+                                 alt="Customs declaration preview"
+                                 th:hidden="${!hasDoc or isPdf}"
+                                 th:src="${hasDoc and !isPdf} ? @{/declaration/documents/{name}(name=${record.page2StoredName})} : null">
+                            <iframe id="sheetPreviewPdf"
+                                    title="Customs declaration PDF"
+                                    th:hidden="${!hasDoc or !isPdf}"
+                                    th:src="${hasDoc and isPdf} ? @{/declaration/documents/{name}(name=${record.page2StoredName})} : null"></iframe>
+                        </div>
+                    </aside>
+
+                    <div th:replace="shared/document-upload-toolbar :: documentUploadToolbar(
+                            'Customs declaration',
+                            '',
+                            ${record.page2OriginalName},
+                            'Choose a JPG, PNG, or PDF customs declaration to upload and preview.',
+                            'google')"></div>
+                    </div>
+
+                    <div class="sheet-fields preship-fields">
+                        <article class="panel assessment-taxes-panel">
+                            <div class="panel-head">
+                                <h2>Invoice amount</h2>
+                                <span class="price-breakdown-currency-note">Amounts in JPY · Final value in LKR</span>
+                            </div>
+                            <div class="price-breakdown">
+                                <div class="price-breakdown-lines">
+                                    <label class="price-breakdown-row">
+                                        <span class="price-breakdown-label">
+                                            <span class="price-breakdown-code">FOB</span>
+                                            <span class="price-breakdown-name">FOB / CIF</span>
+                                        </span>
+                                        <span class="price-breakdown-amount">
+                                            <input type="text" th:field="*{invoiceFob}" id="invoiceFob" inputmode="decimal" autocomplete="off">
+                                            <span class="price-breakdown-currency" aria-hidden="true">JPY</span>
+                                        </span>
+                                    </label>
+                                    <label class="price-breakdown-row">
+                                        <span class="price-breakdown-label">
+                                            <span class="price-breakdown-code">FRT</span>
+                                            <span class="price-breakdown-name">Freight</span>
+                                        </span>
+                                        <span class="price-breakdown-amount">
+                                            <input type="text" th:field="*{invoiceFreight}" id="invoiceFreight" inputmode="decimal" autocomplete="off">
+                                            <span class="price-breakdown-currency" aria-hidden="true">JPY</span>
+                                        </span>
+                                    </label>
+                                    <label class="price-breakdown-row">
+                                        <span class="price-breakdown-label">
+                                            <span class="price-breakdown-code">INS</span>
+                                            <span class="price-breakdown-name">Insurance</span>
+                                        </span>
+                                        <span class="price-breakdown-amount">
+                                            <input type="text" th:field="*{invoiceInsurance}" id="invoiceInsurance" inputmode="decimal" autocomplete="off">
+                                            <span class="price-breakdown-currency" aria-hidden="true">JPY</span>
+                                        </span>
+                                    </label>
+                                    <label class="price-breakdown-row">
+                                        <span class="price-breakdown-label">
+                                            <span class="price-breakdown-code">OTH</span>
+                                            <span class="price-breakdown-name">Other</span>
+                                        </span>
+                                        <span class="price-breakdown-amount">
+                                            <input type="text" th:field="*{invoiceOther}" id="invoiceOther" inputmode="decimal" autocomplete="off">
+                                            <span class="price-breakdown-currency" aria-hidden="true">JPY</span>
+                                        </span>
+                                    </label>
+                                </div>
+                                <div class="price-breakdown-totals">
+                                    <label class="price-breakdown-row is-total">
+                                        <span class="price-breakdown-label">
+                                            <span class="price-breakdown-name">Total</span>
+                                        </span>
+                                        <span class="price-breakdown-amount">
+                                            <input type="text" th:field="*{invoiceTotal}" id="invoiceTotal" inputmode="decimal" autocomplete="off">
+                                            <span class="price-breakdown-currency" aria-hidden="true">JPY</span>
+                                        </span>
+                                    </label>
+                                    <label class="price-breakdown-row">
+                                        <span class="price-breakdown-label">
+                                            <span class="price-breakdown-code">FX</span>
+                                            <span class="price-breakdown-name">Exchange rate</span>
+                                        </span>
+                                        <span class="price-breakdown-amount">
+                                            <input type="text" th:field="*{exchangeRate}" id="exchangeRate" inputmode="decimal" autocomplete="off">
+                                            <span class="price-breakdown-currency" aria-hidden="true">×</span>
+                                        </span>
+                                    </label>
+                                    <label class="price-breakdown-row is-paid">
+                                        <span class="price-breakdown-label">
+                                            <span class="price-breakdown-name">Value (NCY)</span>
+                                        </span>
+                                        <span class="price-breakdown-amount">
+                                            <input type="text" th:field="*{valueNcy}" id="valueNcy" inputmode="decimal" autocomplete="off">
+                                            <span class="price-breakdown-currency" aria-hidden="true">LKR</span>
+                                        </span>
+                                    </label>
+                                </div>
+                            </div>
+                        </article>
+
+                        <button type="submit" class="panel-btn import-form-submit">Save &amp; continue</button>
+                    </div>
+                </div>
+            </form>
+        </main>
+    </div>
+</div>
+
+<div id="sheetViewer" class="sheet-viewer" hidden>
+    <div class="sheet-viewer-toolbar">
+        <strong id="sheetViewerTitle">Customs declaration</strong>
+        <div class="sheet-viewer-tools">
+            <button type="button" class="panel-btn ghost" id="sheetPrevEmptyField" title="Previous empty field">Prev</button>
+            <button type="button" class="panel-btn ghost" id="sheetZoomOut" title="Zoom out">−</button>
+            <button type="button" class="panel-btn ghost" id="sheetZoomIn" title="Zoom in">+</button>
+            <button type="button" class="panel-btn ghost" id="sheetNextEmptyField" title="Next empty field">Next</button>
+            <button type="button" class="panel-btn ghost" id="sheetViewerClose">Close</button>
+        </div>
+    </div>
+    <div class="sheet-viewer-body" id="sheetViewerBody">
+        <img id="sheetViewerImage" alt="Customs declaration">
+        <iframe id="sheetViewerPdf" title="Customs declaration PDF" hidden></iframe>
+    </div>
+</div>
+
+<div th:replace="shared/app-loader :: appLoader('fillLoader', 'Reading the customs declaration and filling fields...')"></div>
+
+<script th:src="@{/js/shared/app.js(v=20260905k)}"></script>
+<script th:src="@{/js/shared/document-viewer.js(v=20260826d)}"></script>
+<script th:src="@{/js/customs-pipeline/clearance-stage.js(v=20260911a)}"></script>
+<script th:src="@{/js/customs-pipeline/declaration.js(v=20260911b)}"></script>
+</body>
+</html>

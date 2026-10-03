@@ -2,7 +2,7 @@ package com.carsale.erp.importpipeline.controller;
 
 import com.carsale.erp.importpipeline.service.CertificateOfInspectionService;
 import com.carsale.erp.importpipeline.model.InspectionCertificate;
-import com.carsale.erp.shared.document.document.JavicCertificate;
+import com.carsale.erp.shared.document.document.CertificateOfInspectionParser;
 import com.carsale.erp.importpipeline.util.ImportStageUrls;
 import java.io.IOException;
 import java.net.URLEncoder;
@@ -48,7 +48,7 @@ public class CertificateOfInspectionController {
     private final ImportProgressService importProgressService;
     private final CustomsProgressService customsProgressService;
     private final PipelineStageService pipelineStageService;
-    private final JavicCertificate javicCertificate;
+    private final CertificateOfInspectionParser certificateOfInspectionParser;
 
     public CertificateOfInspectionController(
             CertificateOfInspectionService certificateService,
@@ -57,7 +57,8 @@ public class CertificateOfInspectionController {
             SheetDocumentStorageService documentStorageService,
             ImportProgressService importProgressService,
             CustomsProgressService customsProgressService,
-            PipelineStageService pipelineStageService, JavicCertificate javicCertificate
+            PipelineStageService pipelineStageService,
+            CertificateOfInspectionParser certificateOfInspectionParser
     ) {
         this.certificateService = certificateService;
         this.vehicleService = vehicleService;
@@ -66,7 +67,7 @@ public class CertificateOfInspectionController {
         this.importProgressService = importProgressService;
         this.customsProgressService = customsProgressService;
         this.pipelineStageService = pipelineStageService;
-        this.javicCertificate = javicCertificate;
+        this.certificateOfInspectionParser = certificateOfInspectionParser;
     }
 
     @GetMapping
@@ -182,7 +183,7 @@ public class CertificateOfInspectionController {
             @RequestParam("file") MultipartFile file,
             @RequestParam(value = "provider", required = false) String provider
     ) {
-        return certificateService.remapParseResult(ocrService.parsePage(file, this.javicCertificate, provider));
+        return ocrService.parsePage(file, this.certificateOfInspectionParser, provider);
     }
 
     @PostMapping("/{chassisNo}")

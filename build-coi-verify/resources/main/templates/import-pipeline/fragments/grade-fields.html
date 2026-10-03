@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<div th:fragment="gradeFields" class="grade-fields">
+    <article class="panel">
+        <div class="panel-head"><h2>Grade search</h2></div>
+        <div class="field-grid">
+            <label>Grade <input type="text" th:field="*{grade}" id="grade"></label>
+        </div>
+    </article>
+</div>
+
+</body>
+</html>

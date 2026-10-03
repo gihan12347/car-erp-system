@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="shared/head :: head(${pageTitle})"></head>
+<body class="sheet-page import-form-page">
+<div class="app-shell">
+    <aside th:replace="shared/sidebar :: sidebar(${activeMenu})"></aside>
+    <div class="app-main">
+        <header th:replace="shared/topbar :: topbar"></header>
+        <main class="page-content">
+            <div class="dash-head">
+                <div>
+                    <a th:href="@{/ready-for-sale/{s}/{c}(s=${record.saleCode}, c=${vehicle.chassisNo})}"
+                       class="config-crumb">
+                        <i class="fa-solid fa-tags" aria-hidden="true"></i>
+                        Sale
+                    </a>
+                    <h1>Sell</h1>
+                    <p class="form-lead">Set the date and sale location, then price the vehicle. Mark it listed or sold. Selling frees one space at the sale location.</p>
+                </div>
+            </div>
+
+            <p th:if="${successMessage}" class="alert alert-ok" th:text="${successMessage}"></p>
+            <p th:if="${errorMessage}" class="alert alert-error" th:text="${errorMessage}"></p>
+            <p th:if="${notice}" class="alert alert-warn" th:text="${notice}"></p>
+
+            <form th:action="@{/listing/{chassisNo}(chassisNo=${vehicle.chassisNo})}"
+                  th:object="${record}" method="post" class="vehicle-form prep-form">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                <input type="hidden" name="hub" th:value="${hubMode}">
+                <input type="hidden" th:field="*{chassisNo}">
+                <input type="hidden" th:field="*{saleLocation}" id="saleLocationValue">
+                <input type="hidden" th:field="*{assignmentComplete}">
+
+                <label class="complete-check panel">
+                    <input type="checkbox" th:field="*{listed}" id="saleListedCheck">
+                    <span>
+                        <strong>Mark as listed / available for sale</strong>
+                        <small>Assign a sale location. That vehicle uses one space until it is sold.</small>
+                    </span>
+                </label>
+
+                <label class="complete-check panel">
+                    <input type="checkbox" th:field="*{sold}" id="saleSoldCheck">
+                    <span>
+                        <strong>Mark as sold</strong>
+                        <small>The vehicle leaves the sale location and capacity increases by one.</small>
+                    </span>
+                </label>
+
+                <article class="panel">
+                    <div class="panel-head"><h2>Sale assignment</h2></div>
+                    <div class="field-grid">
+                        <label>Date
+                            <input type="date" th:field="*{listedOn}">
+                        </label>
+                        <label>Available sale
+                            <select th:field="*{saleCode}" id="saleLocationSelect"
+                                    th:attr="data-current=*{saleCode}">
+                                <option value="">Select sale…</option>
+                                <option th:each="sale : ${saleLocations}"
+                                        th:value="${sale.saleCode}"
+                                        th:text="${sale.full and (record.saleCode == null or not #strings.equalsIgnoreCase(record.saleCode, sale.saleCode))
+                                                ? sale.saleCode + ' · ' + sale.saleName + ' · full'
+                                                : sale.saleCode + ' · ' + sale.saleName + ' · ' + sale.remaining + ' left'}"
+                                        th:disabled="${sale.full and (record.saleCode == null or not #strings.equalsIgnoreCase(record.saleCode, sale.saleCode))}"
+                                        th:attr="data-location=${sale.location},
+                                                 data-remaining=${sale.remaining},
+                                                 data-capacity=${sale.capacity},
+                                                 data-occupied=${sale.occupied},
+                                                 data-name=${sale.saleName}">SL-01 · Showroom · 12 left</option>
+                            </select>
+                        </label>
+                        <label>Location
+                            <input type="text" id="saleLocationDisplay" readonly class="readonly-field"
+                                   th:value="${record.saleLocation}">
+                        </label>
+                        <p class="yard-capacity-hint span-2" id="saleCapacityHint" hidden></p>
+                    </div>
+                </article>
+
+                <article class="panel">
+                    <div class="panel-head"><h2>Pricing</h2></div>
+                    <div class="field-grid">
+                        <label>Asking price <input type="text" th:field="*{askingPrice}" placeholder="Rs."></label>
+                        <label>Advertised price <input type="text" th:field="*{advertisedPrice}" placeholder="Rs."></label>
+                        <label>Condition
+                            <select th:field="*{saleCondition}">
+                                <option value="">Select</option>
+                                <option value="Excellent">Excellent</option>
+                                <option value="Good">Good</option>
+                                <option value="Fair">Fair</option>
+                                <option value="Needs work">Needs work</option>
+                            </select>
+                        </label>
+                    </div>
+                </article>
+
+                <article class="panel">
+                    <div class="panel-head"><h2>Sale notes</h2></div>
+                    <div class="field-grid">
+                        <label class="span-2">Listing notes
+                            <textarea th:field="*{listingNotes}" rows="3" placeholder="Features to highlight for buyers"></textarea>
+                        </label>
+                        <label class="span-2">Internal notes
+                            <textarea th:field="*{notes}" rows="3"></textarea>
+                        </label>
+                    </div>
+                </article>
+
+                <div class="import-view-actions">
+                    <a th:href="@{/ready-for-sale/{s}/{c}(s=${record.saleCode}, c=${vehicle.chassisNo})}"
+                       class="panel-btn ghost import-form-submit">Back</a>
+                    <button type="submit" class="panel-btn import-form-submit">Save</button>
+                </div>
+            </form>
+        </main>
+    </div>
+</div>
+<script th:src="@{/js/shared/app.js(v=20260905k)}"></script>
+<script th:src="@{/js/shared/capacity-select.js(v=20260919a)}"></script>
+<script>
+(function () {
+    var listed = document.querySelector("input[name='listed'][type='checkbox']");
+    var sold = document.querySelector("input[name='sold'][type='checkbox']");
+    if (listed && sold) {
+        sold.addEventListener("change", function () {
+            if (sold.checked) {
+                listed.checked = false;
+            }
+        });
+        listed.addEventListener("change", function () {
+            if (listed.checked) {
+                sold.checked = false;
+            }
+        });
+    }
+    window.bindCapacitySelect({
+        selectId: "saleLocationSelect",
+        displayId: "saleLocationDisplay",
+        valueId: "saleLocationValue",
+        hintId: "saleCapacityHint"
+    });
+})();
+</script>
+</body>
+</html>

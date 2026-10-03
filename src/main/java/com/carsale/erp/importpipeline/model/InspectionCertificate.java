@@ -20,10 +20,6 @@ public class InspectionCertificate {
 
     @Lob
     @Column(columnDefinition = "TEXT")
-    private String issueDate;
-
-    @Lob
-    @Column(columnDefinition = "TEXT")
     private String inspectionBranch;
 
     @Lob
@@ -89,14 +85,6 @@ public class InspectionCertificate {
 
     public void setCertificateNo(String certificateNo) {
         this.certificateNo = certificateNo;
-    }
-
-    public String getIssueDate() {
-        return issueDate;
-    }
-
-    public void setIssueDate(String issueDate) {
-        this.issueDate = issueDate;
     }
 
     public String getInspectionBranch() {

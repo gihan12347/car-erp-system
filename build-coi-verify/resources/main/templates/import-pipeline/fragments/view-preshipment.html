@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<section th:fragment="importViewStagePreship(vehicle, preShipment, preshipReady)"
+         class="import-view-stage"
+         th:with="previewUrl=${preShipment != null and preShipment.documentStoredName != null and !#strings.isEmpty(preShipment.documentStoredName) ? '/shipping/documents/' + preShipment.documentStoredName : null},
+                  hasDocument=${preShipment != null and preShipment.documentStoredName != null and !#strings.isEmpty(preShipment.documentStoredName)}">
+
+    <div class="panel import-view-empty" th:if="${preShipment == null}">
+        <i class="fa-solid fa-ship"></i>
+        <strong>Pre-shipment certificate not uploaded yet</strong>
+        <p>Upload the Bureau Veritas certificate to view inspection details.</p>
+        <div class="import-view-actions">
+            <a th:if="${stageNav != null and stageNav.prevUrl != null}"
+               th:href="${stageNav.prevUrl}"
+               class="panel-btn ghost import-form-submit">
+                <i class="fa-solid fa-chevron-left"></i>
+                Previous
+            </a>
+            <a th:if="${stageNav != null and stageNav.editUrl != null}"
+               th:href="${stageNav.editUrl}"
+               class="panel-btn">Upload certificate</a>
+            <a th:if="${stageNav != null and stageNav.nextUrl != null}"
+               th:href="${stageNav.nextUrl}"
+               class="panel-btn ghost import-form-submit"
+               th:text="${stageNav.nextLabel}">Continue</a>
+        </div>
+    </div>
+
+    <th:block th:if="${preShipment != null}">
+        <div class="sheet-layout preship-layout">
+            <div class="sheet-document-col">
+            <aside class="panel sheet-document" th:classappend="${hasDocument} ? ' has-file' : ''">
+                <div class="panel-head"><h2>Document preview</h2></div>
+                <div class="sheet-preview-frame" th:if="${hasDocument}">
+                    <img th:if="${!(preShipment.documentContentType != null and #strings.contains(preShipment.documentContentType, 'pdf')) and !(preShipment.documentStoredName != null and #strings.endsWith(preShipment.documentStoredName, '.pdf'))}"
+                         th:src="@{/shipping/documents/{name}(name=${preShipment.documentStoredName})}"
+                         alt="Certificate preview">
+                    <iframe th:if="${(preShipment.documentContentType != null and #strings.contains(preShipment.documentContentType, 'pdf')) or (preShipment.documentStoredName != null and #strings.endsWith(preShipment.documentStoredName, '.pdf'))}"
+                            th:src="@{/shipping/documents/{name}(name=${preShipment.documentStoredName})}"
+                            title="Certificate PDF"></iframe>
+                </div>
+                <div class="sheet-preview-empty" th:unless="${hasDocument}">
+                    <i class="fa-solid fa-file-circle-plus"></i>
+                    <strong>No certificate document</strong>
+                </div>
+            </aside>
+
+            <div th:replace="shared/document-view-toolbar :: documentViewToolbar(
+                    'Certificate file',
+                    ${preShipment.documentOriginalName},
+                    ${previewUrl},
+                    ${stageNav != null ? stageNav.editUrl : null})"></div>
+            </div>
+
+            <div class="sheet-fields preship-fields">
+                <div th:replace="import-pipeline/fragments/preship-parties :: preshipPartiesView(${preShipment})"></div>
+
+                <article class="panel">
+                    <div class="panel-head"><h2>Vehicle particulars</h2></div>
+                    <div class="field-grid">
+                        <label>Type of vehicle <input type="text" th:value="${preShipment.vehicleType}" readonly class="readonly-field"></label>
+                        <label>Make <input type="text" th:value="${preShipment.make}" readonly class="readonly-field"></label>
+                        <label>Model <input type="text" th:value="${preShipment.model}" readonly class="readonly-field"></label>
+                        <label>Commonly called <input type="text" th:value="${preShipment.commonName}" readonly class="readonly-field"></label>
+                        <label>Manufacture grade <input type="text" th:value="${preShipment.manufactureGrade}" readonly class="readonly-field"></label>
+                        <label>Auction grade <input type="text" th:value="${preShipment.preshipAuctionGrade}" readonly class="readonly-field"></label>
+                        <label>Body colour <input type="text" th:value="${preShipment.bodyColour}" readonly class="readonly-field"></label>
+                        <label>Fuel type <input type="text" th:value="${preShipment.fuelType}" readonly class="readonly-field"></label>
+                        <label>First registration <input type="month" th:value="${preShipment.firstRegistration}" readonly class="readonly-field"></label>
+                        <label>Inspection mileage <input type="text" th:value="${preShipment.inspectionMileage}" readonly class="readonly-field"></label>
+                        <label>Engine capacity <input type="text" th:value="${preShipment.engineCapacity}" readonly class="readonly-field"></label>
+                        <label>Engine model <input type="text" th:value="${preShipment.engineModel}" readonly class="readonly-field"></label>
+                        <label>Chassis no. <input type="text" th:value="${preShipment.chassisNo}" readonly class="readonly-field"></label>
+                        <label>Engine no. <input type="text" th:value="${preShipment.engineNo}" readonly class="readonly-field"></label>
+                        <label>Driving system <input type="text" th:value="${preShipment.drivingSystem}" readonly class="readonly-field"></label>
+                        <label>Accident marks on chassis <input type="text" th:value="${preShipment.accidentMarksOnChassis}" readonly class="readonly-field"></label>
+                        <label>Chassis condition <input type="text" th:value="${preShipment.chassisCondition}" readonly class="readonly-field"></label>
+                        <label>Tyre size <input type="text" th:value="${preShipment.tyreSize}" readonly class="readonly-field"></label>
+                        <label>Wheel base <input type="text" th:value="${preShipment.wheelBase}" readonly class="readonly-field"></label>
+                        <label>Gross vehicle mass <input type="text" th:value="${preShipment.grossVehicleMass}" readonly class="readonly-field"></label>
+                    </div>
+                </article>
+            </div>
+        </div>
+
+        <div class="import-view-actions">
+            <a th:if="${stageNav != null and stageNav.prevUrl != null}"
+               th:href="${stageNav.prevUrl}"
+               class="panel-btn ghost import-form-submit">
+                <i class="fa-solid fa-chevron-left"></i>
+                Previous
+            </a>
+            <a th:if="${stageNav != null and stageNav.editUrl != null}"
+               th:href="${stageNav.editUrl}"
+               class="panel-btn import-form-submit">Edit pre-shipment certificate</a>
+            <a th:if="${stageNav != null and stageNav.nextUrl != null}"
+               th:href="${stageNav.nextUrl}"
+               class="panel-btn ghost import-form-submit"
+               th:text="${stageNav.nextLabel}">Continue</a>
+        </div>
+    </th:block>
+</section>
+
+</body>
+</html>

@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<th:block th:fragment="inspectionForm">
+    <p id="inspectionJobStatus" class="alert alert-ok" hidden></p>
+    <p id="inspectionJobError" class="alert alert-error" hidden></p>
+
+    <form th:action="@{/inspection/{chassisNo}(chassisNo=${vehicle.chassisNo})}"
+          th:object="${record}" method="post" class="vehicle-form prep-form" id="inspectionForm"
+          th:attr="data-chassis=${vehicle.chassisNo}, data-fail-url=@{/inspection/{c}/fail-item(c=${vehicle.chassisNo})}, data-clear-fail-url=@{/inspection/{c}/clear-fail-item(c=${vehicle.chassisNo})}">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+        <input type="hidden" name="hub" th:value="${hubMode}">
+        <input type="hidden" th:field="*{chassisNo}">
+        <article class="panel inspection-details-panel">
+            <div class="panel-head"><h2>Inspection details</h2></div>
+            <div class="field-grid">
+                <label>Inspector
+                    <input type="text" th:field="*{inspector}" id="inspector" placeholder="Name" required>
+                </label>
+                <label>Inspection date
+                    <input type="date" th:field="*{inspectionDate}" id="inspectionDate" required>
+                </label>
+            </div>
+        </article>
+
+        <article class="panel inspection-checklist-panel">
+            <div class="panel-head inspection-checklist-head">
+                <div>
+                    <h2>Checklist</h2>
+                    <p class="muted inspection-checklist-lead">Mark each item OK, No, or N/A. No creates a workshop job.</p>
+                </div>
+            </div>
+            <div class="inspection-check-header" aria-hidden="true">
+                <span class="inspection-check-header-item">Item</span>
+                <div class="inspection-check-header-choices">
+                    <span>OK</span>
+                    <span>No</span>
+                    <span>N/A</span>
+                </div>
+            </div>
+            <div id="inspectionItemList" class="inspection-checklist is-editable">
+                <div class="inspection-check-row"
+                     th:each="line, stat : *{lines}"
+                     th:data-index="${stat.index}"
+                     th:classappend="${(line.catalogItem ? ' is-catalog' : ' is-custom')
+                             + (T(com.carsale.erp.preparationpipeline.dto.InspectionResults).isNo(line.result) ? ' has-notes' : '')}">
+                    <input type="hidden" th:if="${line.id != null}" th:field="*{lines[__${stat.index}__].id}">
+                    <input type="hidden" th:field="*{lines[__${stat.index}__].itemKey}">
+                    <input type="hidden" th:field="*{lines[__${stat.index}__].catalogItem}">
+                    <input type="hidden" th:field="*{lines[__${stat.index}__].sortOrder}">
+                    <input type="hidden" th:if="${line.catalogItem}" th:field="*{lines[__${stat.index}__].itemTitle}">
+
+                    <div class="inspection-check-body">
+                        <div class="inspection-check-title-row">
+                            <strong class="inspection-item-title" th:if="${line.catalogItem}" th:text="${line.itemTitle}">Engine</strong>
+                            <label class="inspection-custom-title" th:unless="${line.catalogItem}">
+                                <span class="visually-hidden">Item</span>
+                                <input type="text" class="inspection-item-title-input"
+                                       th:field="*{lines[__${stat.index}__].itemTitle}"
+                                       placeholder="e.g. Windscreen chip">
+                            </label>
+                            <button type="button" class="panel-btn ghost workshop-job-remove inspection-item-remove"
+                                    th:unless="${line.catalogItem}" title="Remove">Remove</button>
+                        </div>
+                        <p class="inspection-job-note muted" hidden></p>
+                        <label class="inspection-item-notes"
+                               th:hidden="${!T(com.carsale.erp.preparationpipeline.dto.InspectionResults).isNo(line.result)}">
+                            <span>Notes</span>
+                            <textarea th:field="*{lines[__${stat.index}__].notes}" rows="2"
+                                      placeholder="Required work if No..."></textarea>
+                        </label>
+                    </div>
+
+                    <div class="inspection-check-choices" role="radiogroup" th:attr="aria-label=${line.itemTitle}">
+                        <label class="inspection-check-choice"
+                               th:each="opt : ${resultOptions}"
+                               th:with="optKey=${T(com.carsale.erp.preparationpipeline.dto.InspectionResults).cssClass(opt)}"
+                               th:classappend="${' result-' + optKey}">
+                            <input type="radio"
+                                   th:field="*{lines[__${stat.index}__].result}"
+                                   th:value="${opt}">
+                            <span class="inspection-check" th:title="${T(com.carsale.erp.preparationpipeline.dto.InspectionResults).display(opt)}">
+                                <i class="fa-solid fa-check" th:if="${optKey == 'OK'}" aria-hidden="true"></i>
+                                <i class="fa-solid fa-xmark" th:if="${optKey == 'NO'}" aria-hidden="true"></i>
+                                <i class="fa-solid fa-minus" th:if="${optKey == 'NA'}" aria-hidden="true"></i>
+                            </span>
+                            <span class="visually-hidden" th:text="${T(com.carsale.erp.preparationpipeline.dto.InspectionResults).display(opt)}">OK</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </article>
+
+        <div class="import-view-actions">
+            <th:block th:replace="preparation-pipeline/fragments/form-actions :: prepFormActions('Save & continue', 'saveInspectionBtn')"></th:block>
+        </div>
+    </form>
+</th:block>
+
+</body>
+</html>

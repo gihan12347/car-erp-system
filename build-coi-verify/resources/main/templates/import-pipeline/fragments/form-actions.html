@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!-- Previous + Save actions for import stage edit forms (mirrors customs / preparation). -->
+<div th:fragment="importFormActions(saveLabel)" class="import-view-actions">
+    <a th:if="${stageNav != null and stageNav.prevUrl != null}"
+       th:href="${stageNav.prevUrl}"
+       class="panel-btn ghost import-form-submit">
+        <i class="fa-solid fa-chevron-left"></i>
+        Previous
+    </a>
+    <button type="submit" class="panel-btn import-form-submit"
+            th:text="${saveLabel != null and !#strings.isEmpty(saveLabel) ? saveLabel : 'Save & continue'}">
+        Save &amp; continue
+    </button>
+</div>
+
+</body>
+</html>

@@ -61,10 +61,13 @@
 
                 <div th:replace="import-pipeline/fragments/export-fields :: exportFields"></div>
 
+                <div class="import-view-actions">
                 <button type="submit" class="panel-btn import-form-submit"
                         th:text="${continueTarget != null and !#strings.isEmpty(continueTarget)}
                                 ? |Save & continue · ${@pipelineStageService.title('IMPORT', continueTarget)}|
                                 : 'Save & continue'">Save &amp; continue</button>
+                <button th:replace="import-pipeline/fragments/form-actions :: skipStageButton('export')"></button>
+                </div>
             </div>
         </div>
     </form>
@@ -90,7 +93,7 @@
 
     <script th:src="@{/js/shared/app.js(v=20260905k)}"></script>
     <script th:src="@{/js/shared/document-viewer.js(v=20260826d)}"></script>
-    <script th:src="@{/js/import-pipeline/export.js(v=20260921a)}"></script>
+    <script th:src="@{/js/import-pipeline/export.js(v=20261003h)}"></script>
     <script th:src="@{/js/shared/chassis-check.js(v=20260827a)}"></script>
 </th:block>
 

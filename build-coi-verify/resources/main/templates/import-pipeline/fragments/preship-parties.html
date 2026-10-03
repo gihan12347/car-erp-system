@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!-- Editable Inspection organisation + Applicant (requires form th:object). -->
+<div th:fragment="preshipPartiesEdit" class="preship-parties">
+    <article class="panel preship-party">
+        <div class="panel-head"><h2>Inspection organisation</h2></div>
+        <div class="preship-party-grid">
+            <label class="span-all">Name <input type="text" th:field="*{inspectionOrgName}" id="inspectionOrgName"></label>
+            <label class="span-all">Address
+                <textarea th:field="*{inspectionOrgAddress}" id="inspectionOrgAddress" rows="2"></textarea>
+            </label>
+            <label>Tel <input type="text" th:field="*{inspectionOrgTel}" id="inspectionOrgTel"></label>
+            <label>Fax <input type="text" th:field="*{inspectionOrgFax}" id="inspectionOrgFax"></label>
+            <label class="span-all">Email <input type="email" th:field="*{inspectionOrgEmail}" id="inspectionOrgEmail"></label>
+        </div>
+    </article>
+
+    <article class="panel preship-party">
+        <div class="panel-head"><h2>Applicant</h2></div>
+        <div class="preship-party-grid">
+            <label class="span-all">Name <input type="text" th:field="*{applicantName}" id="applicantName"></label>
+            <label class="span-all">Address
+                <textarea th:field="*{applicantAddress}" id="applicantAddress" rows="2"></textarea>
+            </label>
+            <label>Tel <input type="text" th:field="*{applicantTel}" id="applicantTel"></label>
+            <label>Fax <input type="text" th:field="*{applicantFax}" id="applicantFax"></label>
+            <label class="span-all">Email <input type="email" th:field="*{applicantEmail}" id="applicantEmail"></label>
+        </div>
+    </article>
+</div>
+
+<!-- Read-only Inspection organisation + Applicant. -->
+<div th:fragment="preshipPartiesView(preShipment)" class="preship-parties">
+    <article class="panel preship-party">
+        <div class="panel-head"><h2>Inspection organisation</h2></div>
+        <div class="preship-party-grid">
+            <label class="span-all">Name <input type="text" th:value="${preShipment.inspectionOrgName}" readonly class="readonly-field"></label>
+            <label class="span-all">Address <textarea readonly class="readonly-field" rows="2" th:text="${preShipment.inspectionOrgAddress}"></textarea></label>
+            <label>Tel <input type="text" th:value="${preShipment.inspectionOrgTel}" readonly class="readonly-field"></label>
+            <label>Fax <input type="text" th:value="${preShipment.inspectionOrgFax}" readonly class="readonly-field"></label>
+            <label class="span-all">Email <input type="email" th:value="${preShipment.inspectionOrgEmail}" readonly class="readonly-field"></label>
+        </div>
+    </article>
+
+    <article class="panel preship-party">
+        <div class="panel-head"><h2>Applicant</h2></div>
+        <div class="preship-party-grid">
+            <label class="span-all">Name <input type="text" th:value="${preShipment.applicantName}" readonly class="readonly-field"></label>
+            <label class="span-all">Address <textarea readonly class="readonly-field" rows="2" th:text="${preShipment.applicantAddress}"></textarea></label>
+            <label>Tel <input type="text" th:value="${preShipment.applicantTel}" readonly class="readonly-field"></label>
+            <label>Fax <input type="text" th:value="${preShipment.applicantFax}" readonly class="readonly-field"></label>
+            <label class="span-all">Email <input type="email" th:value="${preShipment.applicantEmail}" readonly class="readonly-field"></label>
+        </div>
+    </article>
+</div>
+
+</body>
+</html>

@@ -18,6 +18,10 @@ public class StandardsCertificate {
     private String scheduleType;
 
     @Lob
+    @Column(name = "certificate_no", columnDefinition = "TEXT")
+    private String certificateNo;
+
+    @Lob
     @Column(columnDefinition = "TEXT")
     private String emissionCo;
 
@@ -119,6 +123,14 @@ public class StandardsCertificate {
 
     public void setScheduleType(String scheduleType) {
         this.scheduleType = scheduleType;
+    }
+
+    public String getCertificateNo() {
+        return certificateNo;
+    }
+
+    public void setCertificateNo(String certificateNo) {
+        this.certificateNo = certificateNo;
     }
 
     public String getEmissionCo() {

@@ -23,7 +23,7 @@
     var previewName = "";
     var objectUrl = null;
     var FIELD_ORDER = [
-        "issueDate", "exportScheduledDate", "directorGeneralLandTransportBranch",
+        "issueDate", "exportScheduledDate",
         "registrationNo", "registrationDate", "firstRegDate", "specificationNo", "classificationNo",
         "chassisVin", "vehicleClassification", "bodyType", "useType", "purpose", "fuelType", "engineCapacity",
         "seatingCapacity", "maxCarry", "weightKg", "grossWeightKg",
@@ -308,6 +308,14 @@
         if (m) {
             return m[3] + "-" + ("0" + m[2]).slice(-2) + "-" + ("0" + m[1]).slice(-2);
         }
+        m = s.match(/^(\d{4})[\/.\-](\d{1,2})$/);
+        if (m) {
+            return m[1] + "-" + ("0" + m[2]).slice(-2) + "-01";
+        }
+        m = s.match(/^(\d{1,2})[\/.\-](\d{4})$/);
+        if (m) {
+            return m[2] + "-" + ("0" + m[1]).slice(-2) + "-01";
+        }
         return "";
     }
 
@@ -331,9 +339,63 @@
         return text;
     }
 
+    var SLASH_DATE_FIELDS = {
+        issueDate: true,
+        exportScheduledDate: true,
+        registrationDate: true,
+        firstRegDate: true
+    };
+
+    function toSlashDate(value) {
+        var iso = toDateInputValue(value);
+        return iso ? iso.replace(/-/g, "/") : "";
+    }
+
+    function slashPicker(fieldId) {
+        return document.querySelector('.slash-date-picker[data-slash-for="' + fieldId + '"]');
+    }
+
+    function syncSlashDate(fieldId) {
+        var text = document.getElementById(fieldId);
+        if (!text) {
+            return;
+        }
+        var slash = toSlashDate(text.value);
+        text.value = slash;
+        var picker = slashPicker(fieldId);
+        if (picker) {
+            picker.value = slash ? slash.replace(/\//g, "-") : "";
+        }
+    }
+
+    function bindSlashDates() {
+        Object.keys(SLASH_DATE_FIELDS).forEach(function (fieldId) {
+            var text = document.getElementById(fieldId);
+            var picker = slashPicker(fieldId);
+            syncSlashDate(fieldId);
+            if (text) {
+                text.addEventListener("change", function () {
+                    syncSlashDate(fieldId);
+                });
+            }
+            if (picker) {
+                picker.addEventListener("change", function () {
+                    if (text) {
+                        text.value = picker.value ? toSlashDate(picker.value) : "";
+                    }
+                });
+            }
+        });
+    }
+
     function applyValue(el, value) {
         if (!el) {
             return false;
+        }
+        if (SLASH_DATE_FIELDS[el.id]) {
+            el.value = toSlashDate(value);
+            syncSlashDate(el.id);
+            return !!el.value;
         }
         if (el.type === "date") {
             el.value = toDateInputValue(value);
@@ -502,6 +564,7 @@
     });
 
     initExistingDocument();
+    bindSlashDates();
 
     function resolveField(fieldId) {
         return document.getElementById(fieldId);

@@ -42,6 +42,8 @@ public class DatabaseSchemaUpdater implements CommandLineRunner {
         createEquipmentInspectionsTable();
         createInspectionCertificatesTable();
         createStandardsCertificatesTable();
+        addStandardsCertificateColumns();
+        addVehicleSkippedStagesColumn();
         createExportCertificatesTable();
         addExportCertificateColumns();
         createGradeSearchesTable();
@@ -340,6 +342,7 @@ public class DatabaseSchemaUpdater implements CommandLineRunner {
                     "CREATE TABLE IF NOT EXISTS standards_certificates ("
                             + "chassis_no VARCHAR(40) NOT NULL, "
                             + "schedule_type VARCHAR(8), "
+                            + "certificate_no TEXT, "
                             + "emission_co TEXT, "
                             + "emission_nmhc TEXT, "
                             + "emission_nox TEXT, "
@@ -370,6 +373,30 @@ public class DatabaseSchemaUpdater implements CommandLineRunner {
             log.info("Verified table standards_certificates");
         } catch (Exception ex) {
             log.warn("Could not create standards_certificates: {}", ex.getMessage());
+        }
+    }
+
+    private void addVehicleSkippedStagesColumn() {
+        if (hasTableColumn("vehicles", "skipped_stages")) {
+            return;
+        }
+        try {
+            jdbcTemplate.execute("ALTER TABLE vehicles ADD COLUMN skipped_stages VARCHAR(255) NULL");
+            log.info("Added vehicles.skipped_stages");
+        } catch (Exception ex) {
+            log.warn("Could not add vehicles.skipped_stages: {}", ex.getMessage());
+        }
+    }
+
+    private void addStandardsCertificateColumns() {
+        if (hasTableColumn("standards_certificates", "certificate_no")) {
+            return;
+        }
+        try {
+            jdbcTemplate.execute("ALTER TABLE standards_certificates ADD COLUMN certificate_no TEXT NULL");
+            log.info("Added standards_certificates.certificate_no");
+        } catch (Exception ex) {
+            log.warn("Could not add standards_certificates.certificate_no: {}", ex.getMessage());
         }
     }
 

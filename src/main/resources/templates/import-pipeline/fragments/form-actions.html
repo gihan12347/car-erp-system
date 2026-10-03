@@ -3,7 +3,7 @@
 <body>
 
 <!-- Previous + Save actions for import stage edit forms (mirrors customs / preparation). -->
-<div th:fragment="importFormActions(saveLabel)" class="import-view-actions">
+<div th:fragment="importFormActions(saveLabel, stageKey)" class="import-view-actions">
     <a th:if="${stageNav != null and stageNav.prevUrl != null}"
        th:href="${stageNav.prevUrl}"
        class="panel-btn ghost import-form-submit">
@@ -14,7 +14,18 @@
             th:text="${saveLabel != null and !#strings.isEmpty(saveLabel) ? saveLabel : 'Save & continue'}">
         Save &amp; continue
     </button>
+    <button th:replace="import-pipeline/fragments/form-actions :: skipStageButton(${stageKey})"></button>
 </div>
+
+<button th:fragment="skipStageButton(stageKey)"
+        type="submit"
+        class="panel-btn ghost import-form-submit skip-stage-btn"
+        formnovalidate="formnovalidate"
+        formmethod="post"
+        th:if="${stageKey != null and vehicle != null and vehicle.chassisNo != null and !#strings.isEmpty(vehicle.chassisNo) and !@importProgressService.isStageSatisfied(vehicle.chassisNo, stageKey)}"
+        th:formaction="@{/import/{chassisNo}/skip(chassisNo=${vehicle.chassisNo}, stage=${stageKey})}">
+    Skip
+</button>
 
 </body>
 </html>

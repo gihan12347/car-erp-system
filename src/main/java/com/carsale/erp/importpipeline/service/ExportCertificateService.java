@@ -3,6 +3,7 @@ package com.carsale.erp.importpipeline.service;
 import com.carsale.erp.importpipeline.model.ExportCertificate;
 import com.carsale.erp.importpipeline.repository.ExportCertificateRepository;
 import com.carsale.erp.shared.document.SheetDocumentStorageService;
+import com.carsale.erp.shared.document.document.ExportCertificateParser;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.carsale.erp.shared.vehicle.Vehicle;
@@ -29,7 +30,9 @@ public class ExportCertificateService {
         if (chassisNo == null || chassisNo.trim().isEmpty()) {
             return null;
         }
-        return certificateRepository.findById(chassisNo.trim()).orElse(null);
+        ExportCertificate record = certificateRepository.findById(chassisNo.trim()).orElse(null);
+        formatDisplayDates(record);
+        return record;
     }
 
     public ExportCertificate prepareForm(String chassisNo) {
@@ -43,7 +46,18 @@ public class ExportCertificateService {
             record.setChassisNo(chassisNo);
             prefillFromVehicle(record, vehicle);
         }
+        formatDisplayDates(record);
         return record;
+    }
+
+    private void formatDisplayDates(ExportCertificate record) {
+        if (record == null) {
+            return;
+        }
+        record.setIssueDate(ExportCertificateParser.toSlashDate(record.getIssueDate()));
+        record.setExportScheduledDate(ExportCertificateParser.toSlashDate(record.getExportScheduledDate()));
+        record.setRegistrationDate(ExportCertificateParser.toSlashDate(record.getRegistrationDate()));
+        record.setFirstRegDate(ExportCertificateParser.toSlashDate(record.getFirstRegDate()));
     }
 
     public boolean hasCertificate(String chassisNo) {
@@ -80,6 +94,7 @@ public class ExportCertificateService {
                 copyFields(incoming, existing);
             }
         }
+        formatDisplayDates(existing);
         return certificateRepository.save(existing);
     }
 
@@ -129,7 +144,6 @@ public class ExportCertificateService {
         target.setOwnerAddress(source.getOwnerAddress());
         target.setLocalityOfUse(source.getLocalityOfUse());
         target.setExportScheduledDate(source.getExportScheduledDate());
-        target.setDirectorGeneralLandTransportBranch(source.getDirectorGeneralLandTransportBranch());
         target.setOcrText(source.getOcrText());
         target.setDocumentOriginalName(source.getDocumentOriginalName());
         target.setDocumentStoredName(source.getDocumentStoredName());

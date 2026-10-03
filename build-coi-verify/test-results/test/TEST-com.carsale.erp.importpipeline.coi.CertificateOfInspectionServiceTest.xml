@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.carsale.erp.importpipeline.coi.CertificateOfInspectionServiceTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2026-10-03T05:49:09" hostname="DESKTOP-G1RSC77" time="0.031">
+  <properties/>
+  <testcase name="newBlankUsesAnIsoInspectionDate()" classname="com.carsale.erp.importpipeline.coi.CertificateOfInspectionServiceTest" time="0.031"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

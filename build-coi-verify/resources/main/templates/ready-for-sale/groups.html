@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="shared/head :: head(${pageTitle})"></head>
+<body>
+<div class="app-shell">
+    <aside th:replace="shared/sidebar :: sidebar(${activeMenu})"></aside>
+    <div class="app-main">
+        <header th:replace="shared/topbar :: topbar"></header>
+        <main class="page-content">
+            <div class="dash-head">
+                <div>
+                    <h1>Sale</h1>
+                    <p class="form-lead">Open an available sale to see vehicles assigned there.</p>
+                </div>
+            </div>
+
+            <p th:if="${notice}" class="alert alert-ok" th:text="${notice}"></p>
+            <p th:if="${successMessage}" class="alert alert-ok" th:text="${successMessage}"></p>
+            <p th:if="${error}" class="alert alert-error" th:text="${error}"></p>
+
+            <section class="yard-bay-grid sale-group-hub" th:if="${groups != null and !groups.isEmpty()}">
+                <a class="yard-bay-card sale-group-card"
+                   th:each="group, stat : ${groups}"
+                   th:href="@{/ready-for-sale/{code}(code=${group.saleCode})}"
+                   th:style="|--i: ${stat.index}|"
+                   th:classappend="${group.unassigned ? ' is-unassigned' : group.fillState}">
+                    <span class="sale-group-art" aria-hidden="true">
+                        <th:block th:replace="shared/hub-art :: saleCardArt"></th:block>
+                    </span>
+                    <span class="sale-group-body">
+                        <span class="sale-group-card-top">
+                            <span class="yard-bay-chip" th:text="${group.unassigned ? 'Unassigned' : group.saleCode}">SL-01</span>
+                            <span class="sale-group-count" th:text="${group.vehicleCount}">12</span>
+                        </span>
+                        <h2 th:text="${group.title}">Showroom</h2>
+                        <span class="hub-location">
+                            <i class="fa-solid fa-location-dot" aria-hidden="true"></i>
+                            <span th:text="${group.location != null and !#strings.isEmpty(group.location) ? group.location : '—'}">Front showroom</span>
+                        </span>
+                        <div class="hub-capacity" th:if="${group.capacity != null}"
+                             th:classappend="${group.vehicleCount == 0} ? ' is-vacant'"
+                             th:style="|--fill: ${group.capacity > 0 ? (group.remaining * 100.0 / group.capacity) : 0}%;|">
+                            <div class="hub-capacity-meta">
+                                <span class="hub-capacity-left">
+                                    <strong th:text="${group.remaining}">14</strong>
+                                    <em>spaces left</em>
+                                </span>
+                                <span class="hub-capacity-right">
+                                    <span class="hub-empty-chip" th:if="${group.vehicleCount == 0}">Empty</span>
+                                    <span class="hub-full-chip" th:if="${group.remaining != null and group.remaining <= 0}">Full</span>
+                                    <span class="hub-capacity-total">of <b th:text="${group.capacity}">15</b></span>
+                                </span>
+                            </div>
+                            <div class="hub-capacity-track" role="progressbar"
+                                 th:attr="aria-valuenow=${group.fillPercent}, aria-valuemin=0, aria-valuemax=100, aria-label=|${group.remaining} of ${group.capacity} spaces left|">
+                                <span class="hub-capacity-fill"></span>
+                            </div>
+                        </div>
+                        <span class="hub-empty-chip" th:if="${group.capacity == null and group.vehicleCount == 0}">No vehicles yet</span>
+                    </span>
+                    <span class="config-tile-go" aria-hidden="true">
+                        <i class="fa-solid fa-arrow-right"></i>
+                    </span>
+                </a>
+            </section>
+            <article class="panel" th:if="${groups == null or groups.isEmpty()}">
+                <p class="muted">No sale locations yet. Add them in Configuration, then move vehicles from the yard.</p>
+            </article>
+        </main>
+    </div>
+</div>
+<script th:src="@{/js/shared/app.js(v=20260905k)}"></script>
+</body>
+</html>

@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="shared/head :: head(${pageTitle})"></head>
+<body class="sheet-page import-form-page import-view-page">
+<div class="app-shell">
+    <aside th:replace="shared/sidebar :: sidebar(${activeMenu})"></aside>
+    <div class="app-main">
+        <header th:replace="shared/topbar :: topbar"></header>
+        <main class="page-content">
+            <div class="dash-head">
+                <div>
+                    <a th:href="@{/ready-for-sale/{s}(s=${saleCode}, tab=${tab})}" class="config-crumb">
+                        <i class="fa-solid fa-tags" aria-hidden="true"></i>
+                        Sale
+                    </a>
+                    <h1>Vehicle details</h1>
+                    <p class="form-lead" th:if="${canRegister}">Register this vehicle, or sell it from this screen.</p>
+                    <p class="form-lead" th:if="${canSell and !canRegister}">This vehicle is registered. Sell when the buyer is ready.</p>
+                    <p class="form-lead" th:if="${sold}">This vehicle is sold.</p>
+                </div>
+            </div>
+
+            <p th:if="${notice}" class="alert alert-ok" th:text="${notice}"></p>
+            <p th:if="${successMessage}" class="alert alert-ok" th:text="${successMessage}"></p>
+            <p th:if="${error}" class="alert alert-error" th:text="${error}"></p>
+
+            <div th:replace="ready-for-sale/fragments/view-details :: detailsView(${vehicle}, ${photos})"></div>
+
+            <div class="import-view-actions">
+                <a th:href="@{/ready-for-sale/{s}(s=${saleCode}, tab=${tab})}" class="panel-btn ghost import-form-submit">Back to sale</a>
+                <a th:if="${canRegister}"
+                   th:href="@{/registration/{c}(c=${vehicle.chassisNo})}"
+                   class="panel-btn ghost import-form-submit">Register</a>
+                <a th:if="${canSell}"
+                   th:href="@{/listing/{c}(c=${vehicle.chassisNo})}"
+                   class="panel-btn import-form-submit">Sell</a>
+            </div>
+        </main>
+    </div>
+</div>
+<script th:src="@{/js/shared/app.js(v=20260905k)}"></script>
+</body>
+</html>

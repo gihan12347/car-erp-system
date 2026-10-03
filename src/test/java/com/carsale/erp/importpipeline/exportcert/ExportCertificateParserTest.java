@@ -54,10 +54,10 @@ class ExportCertificateParserTest {
                 new DocumentAiClient.DocumentAiResult("raw export certificate text", entities));
 
         assertThat(result.isSuccess()).isTrue();
-        assertThat(result.getFields()).containsEntry("issueDate", "2025-02-27");
-        assertThat(result.getFields()).containsEntry("exportScheduledDate", "2025-08-26");
-        assertThat(result.getFields()).containsEntry("firstRegDate", "2025-01");
-        assertThat(result.getFields()).containsEntry("registrationDate", "2025-02-27");
+        assertThat(result.getFields()).containsEntry("issueDate", "2025/02/27");
+        assertThat(result.getFields()).containsEntry("exportScheduledDate", "2025/08/26");
+        assertThat(result.getFields()).containsEntry("firstRegDate", "2025/01/01");
+        assertThat(result.getFields()).containsEntry("registrationDate", "2025/02/27");
         assertThat(result.getFields()).containsEntry("directorGeneralLandTransportBranch", "Kanto District Transport Bureau");
         assertThat(result.getFields()).containsEntry("registrationNo", "Toyama 583 ro 9037");
         assertThat(result.getFields()).containsEntry("chassisVin", "JF5-1141982");

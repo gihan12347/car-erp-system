@@ -12,6 +12,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import com.carsale.erp.shared.utils.PipelineStageUtils;
+import com.carsale.erp.shared.pipeline.FlowPipeline;
 import com.carsale.erp.shared.vehicle.Vehicle;
 import com.carsale.erp.importpipeline.service.ImportProgressService.ImportProgress;
 import com.carsale.erp.shared.pipeline.PipelineStageService;
@@ -49,6 +51,31 @@ public class ImportPipelineListController {
         model.addAttribute("importKeys", pipelineStageService.keys(PipelineStageService.FLOW_IMPORT));
         model.addAttribute("searchQuery", query == null ? "" : query.trim());
         return "import-pipeline/list";
+    }
+
+    @PostMapping("/import/{chassisNo}/skip")
+    public String skip(
+            @PathVariable String chassisNo,
+            @RequestParam("stage") String stage,
+            RedirectAttributes redirectAttributes
+    ) {
+        try {
+            importProgressService.skipStage(chassisNo, stage);
+            redirectAttributes.addFlashAttribute("successMessage", "Stage skipped.");
+            return "redirect:" + PipelineStageUtils.redirectAfterStageSave(
+                    chassisNo,
+                    FlowPipeline.IMPORT.getCurrentBase(),
+                    pipelineStageService.keys(PipelineStageService.FLOW_IMPORT),
+                    stage.trim()
+            );
+        } catch (IllegalArgumentException ex) {
+            redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
+            String editUrl = PipelineStageService.editUrlFor(
+                    PipelineStageUtils.encode(chassisNo),
+                    stage
+            );
+            return "redirect:" + (editUrl != null ? editUrl : "/import");
+        }
     }
 
     @PostMapping("/import/{chassisNo}/delete")

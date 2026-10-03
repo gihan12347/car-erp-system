@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<section th:fragment="listingView(vehicle, listing, listingReady)" class="import-view-stage">
+    <div class="panel import-view-empty" th:if="${listing == null}">
+        <i class="fa-solid fa-tags"></i>
+        <strong>No sale listing yet</strong>
+        <p>Set the date, choose an available sale, then enter the asking price and list the vehicle.</p>
+        <div class="import-view-actions">
+            <a th:if="${stageNav != null and stageNav.prevUrl != null}"
+               th:href="${stageNav.prevUrl}"
+               class="panel-btn ghost import-form-submit">
+                <i class="fa-solid fa-chevron-left"></i>
+                Previous
+            </a>
+            <a th:href="@{/listing/{c}(c=${vehicle.chassisNo}, hub=1)}" class="panel-btn import-form-submit">Start listing</a>
+        </div>
+    </div>
+
+    <div th:if="${listing != null}">
+        <article class="panel">
+            <div class="panel-head"><h2>Sale assignment</h2></div>
+            <div class="field-grid">
+                <label>Date <input type="text" th:value="${listing.listedOn}" readonly class="readonly-field"></label>
+                <label>Sale <input type="text" th:value="${listing.saleCode}" readonly class="readonly-field"></label>
+                <label>Location <input type="text" th:value="${listing.saleLocation}" readonly class="readonly-field"></label>
+            </div>
+        </article>
+        <article class="panel">
+            <div class="panel-head"><h2>Pricing</h2></div>
+            <div class="field-grid">
+                <label>Asking price <input type="text" th:value="${listing.askingPrice}" readonly class="readonly-field"></label>
+                <label>Advertised price <input type="text" th:value="${listing.advertisedPrice}" readonly class="readonly-field"></label>
+                <label>Condition <input type="text" th:value="${listing.saleCondition}" readonly class="readonly-field"></label>
+            </div>
+        </article>
+        <article class="panel">
+            <div class="panel-head"><h2>Status</h2></div>
+            <div class="field-grid">
+                <label>Listed <input type="text" th:value="${listing.listed and !listing.sold ? 'Yes' : 'No'}" readonly class="readonly-field"></label>
+                <label>Sold <input type="text" th:value="${listing.sold ? 'Yes' : 'No'}" readonly class="readonly-field"></label>
+            </div>
+        </article>
+        <div class="import-view-actions">
+            <a th:if="${stageNav != null and stageNav.prevUrl != null}"
+               th:href="${stageNav.prevUrl}"
+               class="panel-btn ghost import-form-submit">
+                <i class="fa-solid fa-chevron-left"></i>
+                Previous
+            </a>
+            <a th:href="@{/listing/{c}(c=${vehicle.chassisNo}, hub=1)}" class="panel-btn import-form-submit">Edit listing</a>
+            <a th:if="${listingReady and stageNav != null and stageNav.nextUrl != null}"
+               th:href="${stageNav.nextUrl}"
+               class="panel-btn import-form-submit">
+                <span th:text="${stageNav.nextLabel}">Continue registration</span>
+                <i class="fa-solid fa-chevron-right"></i>
+            </a>
+        </div>
+    </div>
+</section>
+
+</body>
+</html>

@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="shared/head :: head(${pageTitle})"></head>
+<body>
+<div class="app-shell">
+    <aside th:replace="shared/sidebar :: sidebar(${activeMenu})"></aside>
+    <div class="app-main">
+        <header th:replace="shared/topbar :: topbar"></header>
+        <main class="page-content">
+            <div class="dash-head">
+                <div>
+                    <h1>Reports</h1>
+                    <p class="form-lead">Counts, landing costs, and sale prices from the vehicles already in the pipeline.</p>
+                </div>
+            </div>
+
+            <form method="get" th:action="@{/reports}" class="auction-search">
+                <input type="hidden" name="section" th:value="${section}">
+                <div class="auction-search-field">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="search" name="q" th:value="${searchQuery}"
+                           placeholder="Search chassis, model, lot, stock...">
+                </div>
+                <button type="submit" class="panel-btn auction-search-btn">Search</button>
+                <a th:if="${searchQuery != null and !#strings.isEmpty(searchQuery)}"
+                   th:href="@{/reports(section=${section})}" class="panel-btn ghost auction-search-btn">Clear</a>
+            </form>
+
+            <section class="stat-grid report-kpis">
+                <a class="kpi-card report-kpi" th:href="@{/reports(q=${searchQuery})}"
+                   th:classappend="${section == 'all'} ? ' is-active' : ''">
+                    <div class="kpi-copy">
+                        <strong th:text="${report.total}">0</strong>
+                        <span>All vehicles</span>
+                    </div>
+                </a>
+                <a class="kpi-card report-kpi" th:href="@{/reports(section='import', q=${searchQuery})}"
+                   th:classappend="${section == 'import'} ? ' is-active' : ''">
+                    <div class="kpi-copy">
+                        <strong th:text="${report.importCount}">0</strong>
+                        <span>Import</span>
+                    </div>
+                </a>
+                <a class="kpi-card report-kpi" th:href="@{/reports(section='customs', q=${searchQuery})}"
+                   th:classappend="${section == 'customs'} ? ' is-active' : ''">
+                    <div class="kpi-copy">
+                        <strong th:text="${report.customsCount}">0</strong>
+                        <span>Customs</span>
+                    </div>
+                </a>
+                <a class="kpi-card report-kpi" th:href="@{/reports(section='preparation', q=${searchQuery})}"
+                   th:classappend="${section == 'preparation'} ? ' is-active' : ''">
+                    <div class="kpi-copy">
+                        <strong th:text="${report.preparationCount}">0</strong>
+                        <span>Preparation</span>
+                    </div>
+                </a>
+                <a class="kpi-card report-kpi" th:href="@{/reports(section='ready', q=${searchQuery})}"
+                   th:classappend="${section == 'ready'} ? ' is-active' : ''">
+                    <div class="kpi-copy">
+                        <strong th:text="${report.readyCount}">0</strong>
+                        <span>Ready for sale</span>
+                    </div>
+                </a>
+                <a class="kpi-card report-kpi" th:href="@{/reports(section='listed', q=${searchQuery})}"
+                   th:classappend="${section == 'listed'} ? ' is-active' : ''">
+                    <div class="kpi-copy">
+                        <strong th:text="${report.listedCount}">0</strong>
+                        <span>Listed</span>
+                    </div>
+                </a>
+                <a class="kpi-card report-kpi" th:href="@{/reports(section='sold', q=${searchQuery})}"
+                   th:classappend="${section == 'sold'} ? ' is-active' : ''">
+                    <div class="kpi-copy">
+                        <strong th:text="${report.soldCount}">0</strong>
+                        <span>Sold</span>
+                    </div>
+                </a>
+            </section>
+
+            <section class="equal-grid">
+                <article class="panel">
+                    <div class="panel-head">
+                        <h2>Money</h2>
+                    </div>
+                    <ul class="finance-list">
+                        <li><span>Landing cost (LKR)</span><strong th:text="${report.landingCostTotal}">—</strong></li>
+                        <li><span>Asking prices</span><strong th:text="${report.askingTotal}">—</strong></li>
+                        <li><span>Sold prices</span><strong class="up" th:text="${report.soldTotal}">—</strong></li>
+                    </ul>
+                    <p class="muted report-note">Landing cost comes from the bill of lading. Asking and advertised prices come from the sale listing. Sold prices use the advertised price when it is filled in.</p>
+                </article>
+                <article class="panel">
+                    <div class="panel-head">
+                        <h2>Vehicles by make</h2>
+                    </div>
+                    <ul class="finance-list" th:if="${!report.makes.isEmpty()}">
+                        <li th:each="item : ${report.makes}">
+                            <span th:text="${item.make}">Toyota</span>
+                            <strong th:text="${item.count}">1</strong>
+                        </li>
+                    </ul>
+                    <p class="muted" th:if="${report.makes.isEmpty()}">No vehicles yet.</p>
+                </article>
+            </section>
+
+            <article class="panel">
+                <div class="panel-head">
+                    <h2 th:text="${section == 'all'} ? 'All vehicles' : 'Filtered vehicles'">All vehicles</h2>
+                </div>
+                <div class="table-wrap is-fit" th:if="${!report.rows.isEmpty()}">
+                    <table class="report-table">
+                        <thead>
+                        <tr>
+                            <th>Chassis</th>
+                            <th>Vehicle</th>
+                            <th>Year</th>
+                            <th>Stage</th>
+                            <th>Landing cost</th>
+                            <th>Asking</th>
+                            <th>Advertised</th>
+                            <th>Location</th>
+                            <th></th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="row : ${report.rows}">
+                            <td data-label="Chassis"><strong th:text="${row.chassisNo}">ABC123</strong></td>
+                            <td data-label="Vehicle" th:text="${row.vehicleLabel}">Toyota Prius</td>
+                            <td data-label="Year" th:text="${row.year}">2018</td>
+                            <td data-label="Stage"><em class="pill" th:classappend="${row.pillClass}" th:text="${row.sectionLabel}">Import</em></td>
+                            <td data-label="Landing cost" th:text="${row.landingCost}">—</td>
+                            <td data-label="Asking" th:text="${row.askingPrice}">—</td>
+                            <td data-label="Advertised" th:text="${row.advertisedPrice}">—</td>
+                            <td data-label="Location" th:text="${row.saleLocation}">—</td>
+                            <td>
+                                <div class="table-row-actions">
+                                    <a class="table-btn view"
+                                       th:href="${row.section == 'customs'} ? @{/customs/{c}(c=${row.chassisNo})} : (${row.section == 'preparation'} ? @{/workshop-yard/{c}(c=${row.chassisNo})} : (${row.section == 'import'} ? @{/auction/{c}(c=${row.chassisNo})} : @{/ready-for-sale/{c}(c=${row.chassisNo})}))">
+                                        <i class="fa-solid fa-eye"></i>
+                                        <span>View</span>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p class="muted" th:if="${report.rows.isEmpty()}">No vehicles match this report.</p>
+            </article>
+        </main>
+    </div>
+</div>
+<script th:src="@{/js/shared/app.js(v=20260905k)}"></script>
+</body>
+</html>

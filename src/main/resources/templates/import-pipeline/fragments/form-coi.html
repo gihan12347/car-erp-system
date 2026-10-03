@@ -63,7 +63,6 @@
                     <div class="panel-head"><h2>Certificate of inspection</h2></div>
                     <div class="field-grid">
                         <label>Certificate no. <input type="text" th:field="*{certificateNo}" id="certificateNo"></label>
-                        <label>Date of issue <input type="text" th:field="*{issueDate}" id="issueDate"></label>
                         <label>Inspection branch <input type="text" th:field="*{inspectionBranch}" id="inspectionBranch"></label>
                         <label>Make <input type="text" th:field="*{make}" id="make"></label>
                         <label>Model <input type="text" th:field="*{model}" id="model"></label>
@@ -72,15 +71,18 @@
                         <label>Chassis number <input type="text" th:field="*{chassisVin}" id="chassisVin"></label>
                         <label>Engine number <input type="text" th:field="*{engineNo}" id="engineNo"></label>
                         <label>Inspected mileage (odometer reading) <input type="text" th:field="*{inspectedMileage}" id="inspectedMileage"></label>
-                        <label>Inspection date <input type="date" th:field="*{inspectionDate}" id="inspectionDate"></label>
+                        <label>Inspection date <input type="text" th:field="*{inspectionDate}" id="inspectionDate" placeholder="yyyy/MM/dd" inputmode="numeric"></label>
                         <label class="span-2">Remarks <input type="text" th:field="*{remarks}" id="remarks"></label>
                     </div>
                 </article>
 
+                <div class="import-view-actions">
                 <button type="submit" class="panel-btn import-form-submit"
                         th:text="${continueTarget != null and !#strings.isEmpty(continueTarget)}
                                 ? |Save & continue · ${@pipelineStageService.title('IMPORT', continueTarget)}|
                                 : 'Save & continue'">Save &amp; continue</button>
+                <button th:replace="import-pipeline/fragments/form-actions :: skipStageButton('coi')"></button>
+                </div>
             </div>
         </div>
     </form>
@@ -106,7 +108,7 @@
 
     <script th:src="@{/js/shared/app.js(v=20260905k)}"></script>
     <script th:src="@{/js/shared/document-viewer.js(v=20260826d)}"></script>
-    <script th:src="@{/js/import-pipeline/coi.js(v=20260908b)}"></script>
+    <script th:src="@{/js/import-pipeline/coi.js(v=20261003b)}"></script>
     <script th:src="@{/js/shared/chassis-check.js(v=20260827a)}"></script>
 </th:block>
 

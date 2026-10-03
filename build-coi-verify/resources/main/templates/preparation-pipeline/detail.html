@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="shared/head :: head(${pageTitle})"></head>
+<body class="sheet-page import-form-page import-view-page">
+<div class="app-shell">
+    <aside th:replace="shared/sidebar :: sidebar(${activeMenu})"></aside>
+    <div class="app-main">
+        <header th:replace="shared/topbar :: topbar"></header>
+        <main class="page-content">
+            <p th:if="${successMessage}" class="alert alert-ok" th:text="${successMessage}"></p>
+            <p th:if="${errorMessage}" class="alert alert-error" th:text="${errorMessage}"></p>
+
+            <div class="dash-head">
+                <div>
+                    <h1 th:if="${stageKey == 'inspection'}"
+                        th:text="${@pipelineStageService.title('PREP', 'inspection')}">Inspection</h1>
+                    <h1 th:if="${stageKey == 'workshop'}"
+                        th:text="${@pipelineStageService.title('PREP', 'workshop')}">Workshop</h1>
+                    <h1 th:if="${stageKey == 'yard'}"
+                        th:text="${@pipelineStageService.title('PREP', 'yard')}">Yard</h1>
+                    <p class="form-lead" th:if="${stageKey == 'inspection'}">Review checklist results. Marking No creates a workshop job.</p>
+                    <p class="form-lead" th:if="${stageKey == 'workshop'}">Review repair work, parts, and workshop completion.</p>
+                    <p class="form-lead" th:if="${stageKey == 'yard'}">Review the assigned date and yard.</p>
+                </div>
+                <div th:replace="shared/pipeline-delete :: pipelineDeleteBtn(
+                        @{/workshop-yard/{c}/delete(c=${vehicle.chassisNo})},
+                        'Delete preparation data? Sale pipeline data will also be deleted.')"></div>
+            </div>
+
+            <div th:replace="preparation-pipeline/fragments/pipeline :: prepPipelineSteps(
+                    ${stageKey},
+                    ${vehicle.chassisNo},
+                    ${workshopReady},
+                    ${yardReady},
+                    ${inspectionReady},
+                    ${canEnterYard},
+                    ${vehicle.model},
+                    true,
+                    ${saleReady})"></div>
+
+            <div class="vehicle-form" th:if="${stageKey == 'inspection'}">
+                <div th:replace="preparation-pipeline/fragments/view-inspection :: inspectionView(${vehicle}, ${inspection}, ${inspectionReady})"></div>
+            </div>
+            <div class="vehicle-form" th:if="${stageKey == 'workshop'}">
+                <div th:replace="preparation-pipeline/fragments/view-workshop :: workshopView(${vehicle}, ${workshop}, ${workshopReady})"></div>
+            </div>
+            <div class="vehicle-form" th:if="${stageKey == 'yard'}">
+                <div th:replace="preparation-pipeline/fragments/view-yard :: yardView(${vehicle}, ${yard}, ${yardReady})"></div>
+            </div>
+
+            <article class="panel import-next-pipeline" th:if="${prepComplete}">
+                <div class="panel-head">
+                    <h2>Next</h2>
+                    <em class="pill muted-pill">Yard</em>
+                </div>
+                <p class="form-lead">Preparation is complete. Open the yard to review vehicles and move one to an available sale.</p>
+                <div class="import-view-actions">
+                    <a th:href="@{/yards}" class="panel-btn import-form-submit">Open yard</a>
+                </div>
+            </article>
+        </main>
+    </div>
+</div>
+<script th:src="@{/js/shared/app.js(v=20260905k)}"></script>
+</body>
+</html>

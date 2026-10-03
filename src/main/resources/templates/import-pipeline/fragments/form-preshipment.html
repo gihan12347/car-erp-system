@@ -80,7 +80,8 @@
                 <div th:replace="import-pipeline/fragments/form-actions :: importFormActions(
                         ${continueTarget != null and !#strings.isEmpty(continueTarget)
                                 ? |Save & continue · ${@pipelineStageService.title('IMPORT', continueTarget)}|
-                                : 'Save & continue'})"></div>
+                                : 'Save & continue'},
+                        'preshipment')"></div>
             </div>
         </div>
     </form>
