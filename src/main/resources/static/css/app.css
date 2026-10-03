@@ -9,7 +9,10 @@
     --gold: #b45309;
     --sea: #0f766e;
     --leaf: #047857;
-    --shadow: 0 10px 28px rgba(28, 25, 23, 0.06);
+    --shadow: 0 1px 2px rgba(28, 25, 23, 0.05);
+    --radius: 8px;
+    --control-h: 36px;
+    --focus: 0 0 0 3px rgba(194, 65, 12, 0.16);
 }
 
 * { box-sizing: border-box; }
@@ -8247,6 +8250,309 @@ a.report-kpi.is-active {
 
     .report-kpis {
         grid-template-columns: 1fr 1fr;
+    }
+}
+
+/* Enterprise UI standard: one page header, control size, surface, and table. */
+.page-content {
+    padding: 20px 24px 28px;
+}
+
+.dash-head,
+.page-intro {
+    align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--line);
+}
+
+.page-content h1,
+.dash-head h1,
+.page-intro h1,
+body.sheet-page .dash-head h1 {
+    font-size: 22px;
+    font-weight: 600;
+    line-height: 1.25;
+    letter-spacing: -0.01em;
+}
+
+.form-lead,
+.dash-head .form-lead,
+.page-intro .form-lead,
+body.sheet-page .form-lead {
+    max-width: 78ch;
+    margin-top: 4px;
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.45;
+}
+
+.eyebrow {
+    margin: 0 0 4px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+}
+
+.panel,
+.stat-card,
+.kpi-card {
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+}
+
+.panel {
+    padding: 16px 18px;
+}
+
+.panel-head {
+    min-height: 28px;
+    margin-bottom: 12px;
+}
+
+.panel-head h2 {
+    font-size: 15px;
+    font-weight: 600;
+}
+
+.kpi-card {
+    transition: border-color 0.15s ease;
+}
+
+.kpi-card:hover {
+    transform: none;
+    border-color: #d6d3d1;
+    box-shadow: var(--shadow);
+}
+
+.panel-btn,
+a.panel-btn,
+button.panel-btn {
+    min-height: var(--control-h);
+    border-radius: var(--radius);
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.panel-btn.ghost:disabled,
+.doc-upload-toolbar-actions .panel-btn.ghost:disabled {
+    background: #faf8f4;
+    color: var(--ink);
+    opacity: 0.45;
+}
+
+.sheet-document-col .doc-upload-toolbar-actions .panel-btn,
+.sheet-document-col .doc-upload-toolbar-actions .upload-file-btn,
+.doc-upload-toolbar-actions .panel-btn,
+.doc-upload-toolbar-actions .upload-file-btn {
+    height: var(--control-h);
+    min-height: var(--control-h);
+    border-radius: var(--radius);
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.auction-search {
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.auction-search-field,
+.auction-search-btn {
+    height: var(--control-h);
+    min-height: var(--control-h);
+    border-radius: var(--radius);
+}
+
+.auction-search-field {
+    padding: 0 12px;
+}
+
+.auction-search-field input {
+    font-size: 13px;
+}
+
+.auction-search-field:focus-within {
+    border-color: var(--brand);
+    box-shadow: var(--focus);
+}
+
+.vehicle-form input,
+.vehicle-form select,
+.vehicle-form textarea,
+.period-select select {
+    border-radius: var(--radius);
+    font-size: 13px;
+}
+
+.vehicle-form input,
+.vehicle-form select {
+    min-height: var(--control-h);
+    padding: 7px 12px;
+}
+
+.vehicle-form input:focus,
+.vehicle-form select:focus,
+.vehicle-form textarea:focus,
+.period-select select:focus {
+    outline: none;
+    border-color: var(--brand);
+    box-shadow: var(--focus);
+}
+
+.vehicle-form input[type="radio"],
+.vehicle-form input[type="checkbox"],
+.vehicle-form input[type="file"],
+.vehicle-form input[type="hidden"] {
+    min-height: 0;
+    padding: 0;
+    box-shadow: none;
+}
+
+.alert,
+.alert-ok,
+.alert-error,
+.alert-warn {
+    margin-bottom: 12px;
+    padding: 10px 12px;
+    border-radius: var(--radius);
+    border: 1px solid transparent;
+    font-size: 13px;
+    line-height: 1.4;
+}
+
+.alert-ok {
+    background: #ecfdf5;
+    border-color: #a7f3d0;
+    color: #047857;
+}
+
+.alert-error {
+    background: #fef2f2;
+    border-color: #fecaca;
+    color: #b91c1c;
+}
+
+.alert-warn {
+    background: #fffbeb;
+    border-color: #fde68a;
+    color: #92400e;
+}
+
+.table-wrap th,
+table th {
+    padding: 10px 12px;
+    background: #faf8f4;
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.table-wrap td,
+table td {
+    padding: 10px 12px;
+    font-size: 13px;
+}
+
+.table-wrap tbody tr:hover {
+    background: #faf8f4;
+}
+
+.table-wrap tbody tr.pipeline-row-complete {
+    background: rgba(4, 120, 87, 0.05);
+}
+
+.table-wrap tbody tr.pipeline-row-complete:hover {
+    background: rgba(4, 120, 87, 0.08);
+}
+
+.table-btn,
+.table-btn.view,
+.table-btn.edit {
+    min-height: 32px;
+    border-radius: var(--radius);
+    background: #fff;
+    border: 1px solid var(--line);
+    color: var(--ink);
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.table-btn:hover,
+.table-btn.view:hover,
+.table-btn.edit:hover {
+    background: #f5f5f4;
+    border-color: #d6d3d1;
+    color: var(--ink);
+}
+
+.table-btn.delete {
+    background: #fff;
+    border-color: #fecaca;
+    color: #b91c1c;
+}
+
+.table-btn.delete:hover {
+    background: #fef2f2;
+    border-color: #fca5a5;
+    color: #b91c1c;
+}
+
+.sidebar-nav a,
+.nav-group-toggle {
+    min-height: 40px;
+    border-radius: var(--radius);
+    font-weight: 500;
+}
+
+.icon-btn {
+    border-radius: var(--radius);
+}
+
+@media (max-width: 1100px) {
+    .page-content {
+        padding: 18px 16px 24px;
+        padding-left: max(16px, env(safe-area-inset-left));
+        padding-right: max(16px, env(safe-area-inset-right));
+        padding-bottom: max(24px, env(safe-area-inset-bottom));
+    }
+}
+
+@media (max-width: 700px) {
+    .page-content {
+        padding: 14px 12px 20px;
+        padding-left: max(12px, env(safe-area-inset-left));
+        padding-right: max(12px, env(safe-area-inset-right));
+        padding-bottom: max(20px, env(safe-area-inset-bottom));
+    }
+
+    .panel {
+        padding: 12px;
+    }
+
+    .auction-search {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .auction-search-btn,
+    .auction-add-btn {
+        width: 100%;
+        height: auto;
+        min-height: 44px;
+    }
+
+    .sidebar-nav a,
+    .nav-group-toggle {
+        min-height: 44px;
+    }
+
+    .pipeline-table td,
+    .table-wrap > table td {
+        padding: 0;
     }
 }
 
