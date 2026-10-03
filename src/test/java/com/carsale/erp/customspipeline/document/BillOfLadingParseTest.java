@@ -10,6 +10,7 @@ import java.util.Collections;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class BillOfLadingParseTest {
@@ -17,19 +18,11 @@ class BillOfLadingParseTest {
     private final BillOfLading parser = new BillOfLading("");
 
     @Test
-    void parsesBlNoAndIssueDateFromNyKBillOfLadingOcr() {
+    void parsePageDoesNotUseRegexFallback() {
         AuctionParseResult result = parser.parsePage(SAMPLE_OCR);
 
-        assertTrue(result.isSuccess());
-        assertEquals("NYK8182204251", result.getFields().get("blNo"));
-        assertEquals("14 MAR 2025", result.getFields().get("dateOfBlIssue"));
-    }
-
-    @Test
-    void doesNotUseProformaInvoiceDateAsBlIssueDate() {
-        AuctionParseResult result = parser.parsePage(SAMPLE_OCR);
-
-        assertEquals("14 MAR 2025", result.getFields().get("dateOfBlIssue"));
+        assertFalse(result.isSuccess());
+        assertTrue(result.getFields().isEmpty());
     }
 
     @Test

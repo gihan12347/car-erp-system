@@ -8,6 +8,7 @@ import java.nio.charset.StandardCharsets;
 import com.carsale.erp.importpipeline.model.StandardsCertificate;
 import com.carsale.erp.importpipeline.service.StandardsCertificateService;
 import com.carsale.erp.shared.document.document.StandardsCertificateParser;
+import com.carsale.erp.shared.ocr.OcrClient;
 import com.carsale.erp.shared.ocr.OcrImagePreparer;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
@@ -178,11 +179,8 @@ public class StandardsCertificateController {
 
     @PostMapping("/parse-document")
     @ResponseBody
-    public AuctionParseResult parseDocument(
-            @RequestParam("file") MultipartFile file,
-            @RequestParam(value = "provider", required = false) String provider
-    ) {
-        return imagePreparer.parsePage(file, parser, provider);
+    public AuctionParseResult parseDocument(@RequestParam("file") MultipartFile file) {
+        return imagePreparer.parsePage(file, parser, OcrClient.GOOGLE);
     }
 
     @PostMapping("/{chassisNo}")

@@ -125,7 +125,7 @@
                         </thead>
                         <tbody>
                         <tr th:each="row : ${report.rows}">
-                            <td data-label="Chassis"><strong th:text="${row.chassisNo}">ABC123</strong></td>
+                            <td data-label="Chassis"><a th:replace="shared/chassis-link :: chassisLink(${row.chassisNo})">ABC123</a></td>
                             <td data-label="Vehicle" th:text="${row.vehicleLabel}">Toyota Prius</td>
                             <td data-label="Year" th:text="${row.year}">2018</td>
                             <td data-label="Stage"><em class="pill" th:classappend="${row.pillClass}" th:text="${row.sectionLabel}">Import</em></td>

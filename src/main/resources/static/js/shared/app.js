@@ -238,4 +238,30 @@
     window.addEventListener("pageshow", function () {
         showPageLoader(false);
     });
+
+    document.addEventListener("click", function (event) {
+        var node = event.target.closest ? event.target.closest("[data-vehicle-summary]") : null;
+        if (!node) {
+            return;
+        }
+        var href = node.getAttribute("data-vehicle-summary");
+        if (!href) {
+            return;
+        }
+        event.preventDefault();
+        event.stopPropagation();
+        window.location.href = href;
+    });
+
+    document.addEventListener("keydown", function (event) {
+        if (event.key !== "Enter" && event.key !== " ") {
+            return;
+        }
+        var node = event.target.closest ? event.target.closest("[data-vehicle-summary]") : null;
+        if (!node) {
+            return;
+        }
+        event.preventDefault();
+        window.location.href = node.getAttribute("data-vehicle-summary");
+    });
 })();

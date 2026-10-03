@@ -12,7 +12,7 @@
             <strong class="import-pipeline-kicker">Import pipeline</strong>
             <p class="import-pipeline-lead" th:if="${chassisNo != null and !#strings.isEmpty(chassisNo)}">
                 <span th:text="${vehicleLabel != null ? vehicleLabel : chassisNo}">Toyota Land Cruiser</span>
-                · <span class="import-pipeline-chassis" th:text="${chassisNo}">TRJ250-0025161</span>
+                · <a th:replace="shared/chassis-link :: chassisLink(${chassisNo})">TRJ250-0025161</a>
             </p>
             <p class="import-pipeline-lead" th:unless="${chassisNo != null and !#strings.isEmpty(chassisNo)}">
                 Save the auction lot first, then continue with pre-shipment, equipment condition, JEVIC, the certificate of inspection, the standards certificate, the export certificate, grade search, vehicle images, and the working sheet.

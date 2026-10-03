@@ -5,7 +5,8 @@
 <!-- Reusable document upload toolbar: Choose file · Crop · Auto fill · Preview -->
 <div th:fragment="documentUploadToolbar(title, idSuffix, initialFileName, statusText, defaultProvider)"
      class="doc-upload-toolbar panel"
-     th:with="ocrDefault=${defaultProvider != null and defaultProvider == 'google' ? 'google' : 'ocrspace'}">
+     th:with="googleOnly=${defaultProvider == 'google-only'},ocrDefault=${googleOnly or defaultProvider == 'google' ? 'google' : 'ocrspace'}"
+     th:attr="data-ocr-provider=${googleOnly} ? 'google' : null">
     <div class="doc-upload-toolbar-copy">
         <strong th:text="${title}">Document file</strong>
         <p th:id="|sheetFileName${idSuffix}|"
@@ -42,13 +43,10 @@
         </button>
     </div>
     <div class="ocr-lang-banner" role="note">
-        <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
-        <p>
-            <strong>Google Cloud Vision</strong> is suitable for Japanese language.
-            <strong>OCR.space</strong> is suitable for English language.
-        </p>
+        <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
+        <p>AI can make mistakes. Please review the input fields against the document before you submit.</p>
     </div>
-    <div class="ocr-autofill-tools">
+    <div class="ocr-autofill-tools" th:unless="${googleOnly}">
         <div class="ocr-model-picker"
              th:id="|ocrModelPicker${idSuffix}|"
              th:attr="data-ocr-provider=${ocrDefault}"

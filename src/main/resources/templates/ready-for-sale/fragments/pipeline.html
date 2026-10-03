@@ -12,7 +12,7 @@
             <strong class="import-pipeline-kicker">Sale pipeline</strong>
             <p class="import-pipeline-lead" th:if="${chassisNo != null and !#strings.isEmpty(chassisNo)}">
                 <span th:text="${vehicleLabel != null ? vehicleLabel : chassisNo}">Toyota Aqua</span>
-                · <span class="import-pipeline-chassis" th:text="${chassisNo}">NHP10-884211</span>
+                · <a th:replace="shared/chassis-link :: chassisLink(${chassisNo})">NHP10-884211</a>
             </p>
         </div>
         <a th:if="${chassisNo != null and !#strings.isEmpty(chassisNo) and !isView}"

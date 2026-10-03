@@ -27,6 +27,7 @@ import com.carsale.erp.importpipeline.util.AuctionParseResult;
 import com.carsale.erp.shared.document.SheetUploadResult;
 import com.carsale.erp.customspipeline.model.CustomsDocument;
 import com.carsale.erp.shared.vehicle.Vehicle;
+import com.carsale.erp.shared.ocr.OcrClient;
 import com.carsale.erp.shared.ocr.OcrImagePreparer;
 import com.carsale.erp.customspipeline.service.CustomsProgressService;
 import com.carsale.erp.customspipeline.service.CustomsDocumentService;
@@ -189,11 +190,8 @@ public class OdometerCertificateController {
 
     @PostMapping("/parse-document")
     @ResponseBody
-    public AuctionParseResult parseDocument(
-            @RequestParam("file") MultipartFile file,
-            @RequestParam(value = "provider", required = false) String provider
-    ) {
-        return ocrService.parsePage(file, this.odometerCertificateParser, provider);
+    public AuctionParseResult parseDocument(@RequestParam("file") MultipartFile file) {
+        return ocrService.parsePage(file, this.odometerCertificateParser, OcrClient.GOOGLE);
     }
 
     @PostMapping("/{chassisNo}")

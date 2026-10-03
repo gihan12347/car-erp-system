@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="shared/head :: head(${pageTitle})"></head>
+<body class="vehicle-summary-page">
+<div class="app-shell">
+    <aside th:replace="shared/sidebar :: sidebar(${activeMenu})"></aside>
+    <div class="app-main">
+        <header th:replace="shared/topbar :: topbar"></header>
+        <main class="page-content">
+            <button type="button" class="summary-back" id="summaryBack">
+                <i class="fa-solid fa-arrow-left"></i>
+                <span>Back</span>
+            </button>
+
+            <section class="summary-hero">
+                <div class="summary-hero-copy">
+                    <div class="summary-kicker">
+                        <em class="pill sea" th:text="${summary.stageLabel}">Sale</em>
+                        <span th:if="${summary.stockNo != null}" class="summary-stock" th:text="${summary.stockNo}">V001</span>
+                    </div>
+                    <h1 th:text="${summary.title}">2020 Toyota Aqua</h1>
+                    <p class="summary-chassis">
+                        <i class="fa-solid fa-barcode"></i>
+                        <span th:text="${summary.vehicle.chassisNo}">NHP10-884211</span>
+                    </p>
+                    <ul class="summary-chips" th:if="${!summary.highlights.isEmpty()}">
+                        <li th:each="item : ${summary.highlights}">
+                            <small th:text="${item.label}">Year</small>
+                            <strong th:text="${item.value}">2020</strong>
+                        </li>
+                    </ul>
+                </div>
+                <div class="summary-meters">
+                    <div class="summary-meter">
+                        <span>Documents</span>
+                        <strong>
+                            <th:block th:text="${summary.onFileCount}">8</th:block>
+                            <small th:text="${' / ' + summary.trackedCount}"> / 12</small>
+                        </strong>
+                        <div class="summary-progress" aria-hidden="true">
+                            <i th:style="'width:' + ${summary.progressPercent} + '%'"></i>
+                        </div>
+                    </div>
+                    <div class="summary-meter" th:classappend="${summary.pendingCount > 0} ? ' is-alert'">
+                        <span>Pending</span>
+                        <strong th:text="${summary.pendingCount}">4</strong>
+                    </div>
+                    <div class="summary-meter">
+                        <span>Landing cost</span>
+                        <strong th:text="${summary.landingCost != null ? summary.landingCost : '—'}">—</strong>
+                    </div>
+                    <div class="summary-meter">
+                        <span>Asking price</span>
+                        <strong th:text="${summary.askingPrice != null ? summary.askingPrice : '—'}">—</strong>
+                    </div>
+                </div>
+            </section>
+
+            <div class="summary-layout">
+                <div class="summary-main">
+                    <article class="panel summary-block" id="images">
+                        <div class="summary-block-head">
+                            <div>
+                                <h2>Images</h2>
+                                <p th:if="${!summary.photos.isEmpty()}"
+                                   th:text="${summary.photos.size() + (summary.photos.size() == 1 ? ' photo on file' : ' photos on file')}">3 photos on file</p>
+                                <p th:if="${summary.photos.isEmpty()}">No vehicle images uploaded yet.</p>
+                            </div>
+                            <a class="summary-text-link"
+                               th:href="@{/photos/{c}(c=${summary.vehicle.chassisNo})}">Manage images</a>
+                        </div>
+                        <div class="summary-gallery" th:if="${!summary.photos.isEmpty()}">
+                            <button type="button"
+                                    class="summary-photo"
+                                    th:each="photo : ${summary.photos}"
+                                    th:attr="data-doc-url=${photo.url}, data-doc-title=${photo.name}, data-doc-pdf=${photo.pdf}">
+                                <img th:unless="${photo.pdf}" th:src="${photo.url}" th:alt="${photo.name}">
+                                <span th:if="${photo.pdf}" class="summary-photo-file">
+                                    <i class="fa-solid fa-file-pdf"></i>
+                                    <small th:text="${photo.name}">scan.pdf</small>
+                                </span>
+                            </button>
+                        </div>
+                        <div class="summary-empty" th:if="${summary.photos.isEmpty()}">
+                            <img th:src="@{/images/dashboard/illu-car.svg}" alt="">
+                            <p>Photos appear here once they are added on the vehicle images step.</p>
+                        </div>
+                    </article>
+
+                    <article class="panel summary-block" id="documents">
+                        <div class="summary-block-head">
+                            <div>
+                                <h2>Documents</h2>
+                                <p>On file, still waiting, and skipped stages for this chassis.</p>
+                            </div>
+                        </div>
+                        <div class="summary-filters" role="tablist">
+                            <button type="button" class="is-active" data-doc-filter="all">
+                                All <span th:text="${summary.documents.size()}">13</span>
+                            </button>
+                            <button type="button" data-doc-filter="on-file">
+                                On file <span th:text="${summary.onFileCount}">8</span>
+                            </button>
+                            <button type="button" data-doc-filter="pending">
+                                Pending <span th:text="${summary.pendingCount}">4</span>
+                            </button>
+                            <button type="button" data-doc-filter="skipped" th:if="${summary.skippedCount > 0}">
+                                Skipped <span th:text="${summary.skippedCount}">1</span>
+                            </button>
+                        </div>
+                        <div class="summary-docs">
+                            <article class="doc-card"
+                                     th:each="doc : ${summary.documents}"
+                                     th:attr="data-status=${doc.status}"
+                                     th:classappend="${' is-' + doc.status}">
+                                <div class="doc-card-icon"><i th:class="${doc.icon}"></i></div>
+                                <div class="doc-card-copy">
+                                    <strong th:text="${doc.title}">Auction sheet</strong>
+                                    <small th:text="${doc.group}">Import</small>
+                                    <em class="doc-status" th:text="${doc.statusLabel}">On file</em>
+                                    <p th:if="${doc.fileName != null}" th:text="${doc.fileName}">sheet.pdf</p>
+                                </div>
+                                <div class="doc-card-actions">
+                                    <button type="button"
+                                            class="summary-btn"
+                                            th:if="${doc.fileUrl != null}"
+                                            th:attr="data-doc-url=${doc.fileUrl}, data-doc-title=${doc.title}, data-doc-pdf=${doc.pdf}">
+                                        <i class="fa-solid fa-eye"></i>
+                                        View
+                                    </button>
+                                    <a class="summary-btn ghost" th:href="${doc.stageUrl}">Open</a>
+                                </div>
+                            </article>
+                        </div>
+                        <p class="summary-doc-empty" id="summaryDocEmpty" hidden>Nothing to show in this view.</p>
+                    </article>
+                </div>
+
+                <aside class="summary-side">
+                    <article class="panel summary-block" id="prices">
+                        <div class="summary-block-head">
+                            <div>
+                                <h2>Prices</h2>
+                                <p>Landing, invoice, duty, worksheet, and sale figures.</p>
+                            </div>
+                        </div>
+                        <div th:if="${summary.pricesEmpty}" class="summary-empty is-compact">
+                            <p>No prices have been entered for this vehicle yet.</p>
+                        </div>
+                        <section class="price-group" th:each="group : ${summary.priceGroups}">
+                            <h3 th:text="${group.title}">Landing</h3>
+                            <dl>
+                                <div th:each="line : ${group.lines}">
+                                    <dt th:text="${line.label}">Landing cost (LKR)</dt>
+                                    <dd th:text="${line.value}">4,250,000</dd>
+                                </div>
+                            </dl>
+                        </section>
+                    </article>
+
+                    <article class="panel summary-block" th:if="${!summary.specs.isEmpty()}">
+                        <div class="summary-block-head">
+                            <div>
+                                <h2>Vehicle</h2>
+                                <p>Specification captured from the auction sheet.</p>
+                            </div>
+                        </div>
+                        <dl class="summary-specs">
+                            <div th:each="spec : ${summary.specs}">
+                                <dt th:text="${spec.label}">Color</dt>
+                                <dd th:text="${spec.value}">White</dd>
+                            </div>
+                        </dl>
+                    </article>
+
+                    <article class="panel summary-block" th:if="${!summary.notes.isEmpty()}">
+                        <div class="summary-block-head">
+                            <div>
+                                <h2>Notes</h2>
+                            </div>
+                        </div>
+                        <ul class="summary-notes">
+                            <li th:each="note : ${summary.notes}" th:text="${note}">Sales points</li>
+                        </ul>
+                    </article>
+                </aside>
+            </div>
+        </main>
+    </div>
+</div>
+<div th:replace="shared/document-viewer :: documentViewer"></div>
+<script th:src="@{/js/shared/app.js(v=20261003s)}"></script>
+<script th:src="@{/js/shared/document-viewer.js(v=20260826d)}"></script>
+<script th:src="@{/js/vehicle/summary.js(v=20261003s)}"></script>
+</body>
+</html>

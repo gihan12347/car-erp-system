@@ -17,7 +17,7 @@
                 <span th:text="${vehicle.model != null and !#strings.isEmpty(vehicle.model) ? vehicle.model : 'Vehicle'}">Toyota Roomy</span>
             </h1>
             <p class="vehicle-hero-sub">
-                <span class="hero-chassis" th:text="${vehicle.chassisNo}">M900A-1122703</span>
+                <a th:replace="shared/chassis-link :: chassisLink(${vehicle.chassisNo})" class="hero-chassis">M900A-1122703</a>
                 <span th:if="${vehicle.lotNo != null and !#strings.isEmpty(vehicle.lotNo)}"
                       th:text="${' · Lot ' + vehicle.lotNo}"> · Lot 36497</span>
             </p>
@@ -63,7 +63,7 @@
         <div class="detail-spec-group">
             <h3>Identity</h3>
             <ul class="detail-spec-list">
-                <li><span>Chassis</span><strong th:text="${vehicle.chassisNo}">M900A-1122703</strong></li>
+                <li><span>Chassis</span><a th:replace="shared/chassis-link :: chassisLink(${vehicle.chassisNo})">M900A-1122703</a></li>
                 <li><span>Stock no.</span><strong th:text="${vehicle.stockNo != null and !#strings.isEmpty(vehicle.stockNo) ? vehicle.stockNo : dash}">—</strong></li>
                 <li><span>Make</span><strong th:text="${vehicle.make != null and !#strings.isEmpty(vehicle.make) ? vehicle.make : dash}">—</strong></li>
                 <li><span>Model</span><strong th:text="${vehicle.model != null and !#strings.isEmpty(vehicle.model) ? vehicle.model : dash}">—</strong></li>

@@ -1,0 +1,10 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<a th:fragment="chassisLink(chassisNo)"
+   class="chassis-link"
+   th:href="@{/vehicle/{c}(c=${chassisNo})}"
+   th:text="${chassisNo}"
+   title="Open the full vehicle summary">TRJ250-0025161</a>
+</body>
+</html>

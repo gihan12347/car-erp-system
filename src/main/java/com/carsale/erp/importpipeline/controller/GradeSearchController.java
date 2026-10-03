@@ -14,6 +14,7 @@ import com.carsale.erp.importpipeline.service.GradeSearchService;
 import com.carsale.erp.shared.document.SheetDocumentStorageService;
 import com.carsale.erp.shared.document.SheetUploadResult;
 import com.carsale.erp.shared.document.document.GradeSearchParser;
+import com.carsale.erp.shared.ocr.OcrClient;
 import com.carsale.erp.shared.ocr.OcrImagePreparer;
 import com.carsale.erp.shared.pipeline.FlowStage;
 import com.carsale.erp.shared.pipeline.PipelineStageService;
@@ -186,11 +187,8 @@ public class GradeSearchController {
 
     @PostMapping("/parse-document")
     @ResponseBody
-    public AuctionParseResult parseDocument(
-            @RequestParam("file") MultipartFile file,
-            @RequestParam(value = "provider", required = false) String provider
-    ) {
-        return imagePreparer.parsePage(file, parser, provider);
+    public AuctionParseResult parseDocument(@RequestParam("file") MultipartFile file) {
+        return imagePreparer.parsePage(file, parser, OcrClient.GOOGLE);
     }
 
     @PostMapping("/{chassisNo}")

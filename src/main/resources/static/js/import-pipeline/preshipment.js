@@ -419,7 +419,6 @@
         withParseFile(function (file) {
             var data = new FormData();
             data.append("file", file);
-            data.append("provider", window.selectedOcrProvider ? window.selectedOcrProvider("") : "google");
             var token = document.querySelector('meta[name="_csrf"]');
             var header = document.querySelector('meta[name="_csrf_header"]');
             var xhr = new XMLHttpRequest();

@@ -103,7 +103,7 @@
                         <li th:each="row : ${dash.inProgress}">
                             <img class="record-art" th:src="@{/images/dashboard/illu-car.svg}" alt="">
                             <div>
-                                <strong th:text="${row.chassisNo}">TRJ250</strong>
+                                <a th:replace="shared/chassis-link :: chassisLink(${row.chassisNo})">TRJ250</a>
                                 <span th:text="${row.vehicleLabel}">Toyota Prius</span>
                             </div>
                             <em class="pill" th:classappend="${row.pillClass}" th:text="${row.sectionLabel}">Import</em>
@@ -121,7 +121,7 @@
                         <li th:each="row : ${dash.soldVehicles}">
                             <img class="record-art" th:src="@{/images/dashboard/illu-sold.svg}" alt="">
                             <div>
-                                <strong th:text="${row.chassisNo}">TRJ250</strong>
+                                <a th:replace="shared/chassis-link :: chassisLink(${row.chassisNo})">TRJ250</a>
                                 <span th:text="${row.vehicleLabel}">Toyota Aqua</span>
                             </div>
                             <em class="sale-amt" th:text="${row.advertisedPrice != '—' ? row.advertisedPrice : row.askingPrice}">—</em>

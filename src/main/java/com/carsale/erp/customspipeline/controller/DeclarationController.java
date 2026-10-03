@@ -23,6 +23,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.util.UriUtils;
 
 import com.carsale.erp.customspipeline.model.CustomsDocument;
+import com.carsale.erp.shared.ocr.OcrClient;
 import com.carsale.erp.shared.ocr.OcrImagePreparer;
 import com.carsale.erp.customspipeline.service.CustomsDocumentService;
 import com.carsale.erp.customspipeline.service.CustomsProgressService;
@@ -135,11 +136,8 @@ public class DeclarationController {
 
     @PostMapping("/parse-document")
     @ResponseBody
-    public AuctionParseResult parseDocument(
-            @RequestParam("file") MultipartFile file,
-            @RequestParam(value = "provider", required = false) String provider
-    ) {
-        return ocrService.parsePage(file, this.customsDeclaration, provider);
+    public AuctionParseResult parseDocument(@RequestParam("file") MultipartFile file) {
+        return ocrService.parsePage(file, this.customsDeclaration, OcrClient.GOOGLE);
     }
 
     @PostMapping("/{chassisNo}")

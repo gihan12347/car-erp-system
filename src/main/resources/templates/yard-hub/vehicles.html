@@ -72,7 +72,11 @@
                     </span>
                     <span class="yard-vehicle-copy">
                         <strong th:text="${card.vehicle.model != null and !#strings.isEmpty(card.vehicle.model) ? card.vehicle.model : 'Vehicle'}">Toyota Aqua</strong>
-                        <small th:text="${card.vehicle.chassisNo}">NHP10-884211</small>
+                        <small class="chassis-link"
+                              role="link"
+                              tabindex="0"
+                              th:attr="data-vehicle-summary=@{/vehicle/{c}(c=${card.vehicle.chassisNo})}"
+                              th:text="${card.vehicle.chassisNo}">NHP10-884211</small>
                         <span class="yard-vehicle-meta">
                             <em th:if="${card.vehicle.year != null and !#strings.isEmpty(card.vehicle.year)}"
                                 th:text="${card.vehicle.year}">2025</em>
@@ -99,6 +103,6 @@
         </main>
     </div>
 </div>
-<script th:src="@{/js/shared/app.js(v=20260905k)}"></script>
+<script th:src="@{/js/shared/app.js(v=20261003s)}"></script>
 </body>
 </html>

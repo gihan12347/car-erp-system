@@ -53,7 +53,7 @@
                         </thead>
                         <tbody>
                         <tr th:each="item : ${vehicles}">
-                            <td data-label="Chassis"><strong th:text="${item.chassisNo}">M900A-1122703</strong></td>
+                            <td data-label="Chassis"><a th:replace="shared/chassis-link :: chassisLink(${item.chassisNo})">M900A-1122703</a></td>
                             <td data-label="Stock" th:text="${item.stockNo}">V001</td>
                             <td data-label="Vehicle">
                                 <strong th:text="${item.model != null and item.make != null and item.model.startsWith(item.make)} ? ${item.model} : |${item.make} ${item.model}|">Toyota Roomy</strong>

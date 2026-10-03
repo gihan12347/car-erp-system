@@ -48,13 +48,14 @@ public class BillOfLading implements DocumentParser {
     @Override
     public AuctionParseResult parsePage(String text) {
         AuctionParseResult result = new AuctionParseResult();
+        result.setRawText(text);
         if (text == null || text.trim().isEmpty()) {
             result.setSuccess(false);
-            result.setMessage("bill of lading was empty.");
+            result.setMessage("The bill of lading was empty.");
             return result;
         }
-        fillFromText(result, CustomsDocumentParserUtils.normalize(text));
-        CustomsDocumentParserUtils.finish(result, "Bill of lading");
+        result.setSuccess(false);
+        result.setMessage("The document was read, but fields could not be mapped. Please fill them manually.");
         return result;
     }
 
@@ -124,11 +125,6 @@ public class BillOfLading implements DocumentParser {
             return cleanBlNo(value);
         }
         return value;
-    }
-
-    private static void fillFromText(AuctionParseResult result, String text) {
-        result.put("blNo", extractBlNo(text));
-        result.put("dateOfBlIssue", extractDateOfBlIssue(text));
     }
 
     private static void fillMissingFromText(AuctionParseResult result, String text) {
