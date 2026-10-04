@@ -134,10 +134,16 @@ public class VehicleSummary {
     public static final class SpecLine {
         private final String label;
         private final String value;
+        private final boolean total;
 
         public SpecLine(String label, String value) {
+            this(label, value, false);
+        }
+
+        public SpecLine(String label, String value, boolean total) {
             this.label = label;
             this.value = value;
+            this.total = total;
         }
 
         public String getLabel() {
@@ -146,6 +152,10 @@ public class VehicleSummary {
 
         public String getValue() {
             return value;
+        }
+
+        public boolean isTotal() {
+            return total;
         }
     }
 
@@ -270,10 +280,18 @@ public class VehicleSummary {
         }
 
         public void add(String label, String value) {
+            add(label, value, false);
+        }
+
+        public void addTotal(String label, String value) {
+            add(label, value, true);
+        }
+
+        private void add(String label, String value, boolean total) {
             if (value == null || value.trim().isEmpty()) {
                 return;
             }
-            lines.add(new SpecLine(label, value.trim()));
+            lines.add(new SpecLine(label, value.trim(), total));
         }
 
         public PriceGroup build() {

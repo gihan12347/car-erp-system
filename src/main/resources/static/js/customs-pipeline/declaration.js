@@ -111,7 +111,7 @@
     }
 
     ClearanceStage({
-        title: "Customs declaration",
+        title: "Customs declaration(CUSDEC)",
         uploadUrl: "/declaration/upload-document",
         parseUrl: "/declaration/parse-document",
         docUrlPrefix: "/declaration/documents/",

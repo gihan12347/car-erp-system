@@ -151,7 +151,7 @@ public class DeclarationController {
         try {
             customsDocumentService.saveDeclaration(record);
             customsProgressService.syncVehicleStage(chassisNo);
-            redirectAttributes.addFlashAttribute("successMessage", "Customs declaration saved.");
+            redirectAttributes.addFlashAttribute("successMessage", "Customs declaration(CUSDEC) saved.");
             return "redirect:" + CustomsStageUrls.redirectAfterDeclarationSave(
                     chassisNo,
                     pipelineStageService.keys(PipelineStageService.FLOW_CUSTOMS)

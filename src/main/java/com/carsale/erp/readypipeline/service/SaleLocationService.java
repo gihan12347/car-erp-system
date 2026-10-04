@@ -206,6 +206,15 @@ public class SaleLocationService implements CommandLineRunner {
     }
 
     @Transactional
+    public void pin(Long id, Double latitude, Double longitude) {
+        SaleLocation sale = saleLocationRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Sale location not found."));
+        sale.setLatitude(latitude);
+        sale.setLongitude(longitude);
+        saleLocationRepository.save(sale);
+    }
+
+    @Transactional
     public void delete(Long id) {
         SaleLocation sale = saleLocationRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Sale location not found."));

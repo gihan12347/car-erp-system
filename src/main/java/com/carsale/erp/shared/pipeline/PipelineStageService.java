@@ -41,6 +41,7 @@ public class PipelineStageService implements CommandLineRunner {
         seedIfMissing(FLOW_READY, defaultReady());
         refreshImportDocumentCopy();
         refreshSalePipelineCopy();
+        refreshDeclarationCopy();
         removePrepSaleStage();
         placePrepInspectionFirst();
         placeBillOfLadingFirst();
@@ -174,6 +175,20 @@ public class PipelineStageService implements CommandLineRunner {
         pipelineStageRepository.delete(sale);
         pipelineStageRepository.flush();
         reindex(prep.getId());
+    }
+
+    private void refreshDeclarationCopy() {
+        PipelineFlow customs = pipelineFlowRepository.findByFlowKey(FLOW_CUSTOMS).orElse(null);
+        if (customs == null) {
+            return;
+        }
+        PipelineStage declaration = pipelineStageRepository
+                .findByFlowIdAndStageKey(customs.getId(), FlowStage.DECLARATION.getStageKey())
+                .orElse(null);
+        if (declaration != null && blankOrOneOf(declaration.getTitle(), "Customs declaration")) {
+            declaration.setTitle("Customs declaration(CUSDEC)");
+            pipelineStageRepository.save(declaration);
+        }
     }
 
     private void refreshImportDocumentCopy() {
@@ -553,7 +568,7 @@ public class PipelineStageService implements CommandLineRunner {
     private static List<DefaultStage> defaultCustoms() {
         return Arrays.asList(
                 new DefaultStage(FlowStage.BILL_OF_LADING.getStageKey(), "Bill of lading", "Ocean B/L and landing cost"),
-                new DefaultStage(FlowStage.DECLARATION.getStageKey(), "Customs declaration", "Sri Lanka CUSDEC"),
+                new DefaultStage(FlowStage.DECLARATION.getStageKey(), "Customs declaration(CUSDEC)", "Sri Lanka CUSDEC"),
                 new DefaultStage(FlowStage.ASSESSMENT.getStageKey(), "Assessment notice", "ASYCUDA assessment")
         );
     }

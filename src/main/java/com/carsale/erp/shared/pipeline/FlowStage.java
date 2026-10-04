@@ -10,7 +10,7 @@ public enum FlowStage {
     EXPORT("export", "/export/", "Export certificate", "Export"),
     GRADE("grade", "/grade/", "Grade search", "Grade"),
     PHOTOS("photos", "/photos/", "Vehicle images", "Images"),
-    DECLARATION("declaration", "/declaration/", "Customs declaration", "CUSDEC"),
+    DECLARATION("declaration", "/declaration/", "Customs declaration(CUSDEC)", "CUSDEC"),
     BILL_OF_LADING("bl", "/bl/", "Bill of lading", "B/L"),
     ASSESSMENT("assessment", "/assessment/", "Assessment notice", "Assessment"),
     WORKSHEET("worksheet", "/worksheet/", "Working sheet", "Worksheet"),

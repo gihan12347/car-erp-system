@@ -151,7 +151,11 @@ public class ReportService {
                         displayMoney(landingRaw),
                         displayMoney(askingRaw),
                         displayMoney(advertisedRaw),
-                        blankTo(listing == null ? null : listing.getSaleLocation(), "—")
+                        blankTo(listing == null ? null : listing.getSaleLocation(), "—"),
+                        slashDate(listing == null ? null : listing.getListedOn()),
+                        landing,
+                        asking,
+                        advertised
                 ));
             }
         }
@@ -282,6 +286,17 @@ public class ReportService {
         return label.isEmpty() ? "—" : label;
     }
 
+    private static String slashDate(String raw) {
+        if (raw == null || raw.trim().isEmpty()) {
+            return "—";
+        }
+        String text = raw.trim().replace('-', '/');
+        if (text.length() >= 10 && text.charAt(4) == '/' && text.charAt(7) == '/') {
+            return text.substring(0, 10);
+        }
+        return raw.trim();
+    }
+
     private static String blankTo(String value, String fallback) {
         if (value == null || value.trim().isEmpty()) {
             return fallback;
@@ -404,6 +419,10 @@ public class ReportService {
         private final String askingPrice;
         private final String advertisedPrice;
         private final String saleLocation;
+        private final String listedOn;
+        private final BigDecimal landingAmount;
+        private final BigDecimal askingAmount;
+        private final BigDecimal advertisedAmount;
 
         public ReportRow(
                 String chassisNo,
@@ -416,7 +435,11 @@ public class ReportService {
                 String landingCost,
                 String askingPrice,
                 String advertisedPrice,
-                String saleLocation
+                String saleLocation,
+                String listedOn,
+                BigDecimal landingAmount,
+                BigDecimal askingAmount,
+                BigDecimal advertisedAmount
         ) {
             this.chassisNo = chassisNo;
             this.vehicleLabel = vehicleLabel;
@@ -429,6 +452,10 @@ public class ReportService {
             this.askingPrice = askingPrice;
             this.advertisedPrice = advertisedPrice;
             this.saleLocation = saleLocation;
+            this.listedOn = listedOn;
+            this.landingAmount = landingAmount;
+            this.askingAmount = askingAmount;
+            this.advertisedAmount = advertisedAmount;
         }
 
         public String getChassisNo() { return chassisNo; }
@@ -442,6 +469,10 @@ public class ReportService {
         public String getAskingPrice() { return askingPrice; }
         public String getAdvertisedPrice() { return advertisedPrice; }
         public String getSaleLocation() { return saleLocation; }
+        public String getListedOn() { return listedOn; }
+        public BigDecimal getLandingAmount() { return landingAmount; }
+        public BigDecimal getAskingAmount() { return askingAmount; }
+        public BigDecimal getAdvertisedAmount() { return advertisedAmount; }
     }
 
     public static final class MakeCount {

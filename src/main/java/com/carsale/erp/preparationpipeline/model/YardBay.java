@@ -28,6 +28,12 @@ public class YardBay {
     @Column(nullable = false, length = 80)
     private String section;
 
+    @Column(name = "latitude")
+    private Double latitude;
+
+    @Column(name = "longitude")
+    private Double longitude;
+
     @Column(length = 160)
     private String notes;
 
@@ -86,6 +92,22 @@ public class YardBay {
 
     public void setLocation(String location) {
         this.section = location;
+    }
+
+    public Double getLatitude() {
+        return latitude;
+    }
+
+    public void setLatitude(Double latitude) {
+        this.latitude = latitude;
+    }
+
+    public Double getLongitude() {
+        return longitude;
+    }
+
+    public void setLongitude(Double longitude) {
+        this.longitude = longitude;
     }
 
     public String getNotes() {

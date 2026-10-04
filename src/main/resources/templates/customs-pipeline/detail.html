@@ -13,7 +13,7 @@
             <div class="dash-head">
                 <div>
                     <h1 th:if="${stageKey == 'bl'}">Bill of lading</h1>
-                    <h1 th:if="${stageKey == 'declaration'}">Customs declaration</h1>
+                    <h1 th:if="${stageKey == 'declaration'}">Customs declaration(CUSDEC)</h1>
                     <h1 th:if="${stageKey == 'assessment'}">Assessment notice</h1>
                     <p class="form-lead" th:if="${stageKey == 'bl'}">Review the bill of lading number, issue date, and landing cost.</p>
                     <p class="form-lead" th:if="${stageKey == 'declaration'}">Review the Sri Lanka customs declaration data.</p>

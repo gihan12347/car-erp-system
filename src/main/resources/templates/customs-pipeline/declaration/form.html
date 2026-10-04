@@ -9,7 +9,7 @@
         <main class="page-content">
             <div class="dash-head">
                 <div>
-                    <h1 th:text="${'Step ' + @pipelineStageService.displayNumber('CUSTOMS', 'declaration') + ' · ' + @pipelineStageService.title('CUSTOMS', 'declaration')}">Step 1 · Customs declaration</h1>
+                    <h1 th:text="${'Step ' + @pipelineStageService.displayNumber('CUSTOMS', 'declaration') + ' · ' + @pipelineStageService.title('CUSTOMS', 'declaration')}">Step 1 · Customs declaration(CUSDEC)</h1>
                     <p class="form-lead">Upload the customs declaration (CUSDEC). Auto-fill reads the document; save when you are ready.</p>
                 </div>
             </div>
@@ -58,7 +58,7 @@
                     </aside>
 
                     <div th:replace="shared/document-upload-toolbar :: documentUploadToolbar(
-                            'Customs declaration',
+                            'Customs declaration(CUSDEC)',
                             '',
                             ${record.page2OriginalName},
                             'Choose a JPG, PNG, or PDF customs declaration to upload and preview.',
@@ -157,7 +157,7 @@
 
 <div id="sheetViewer" class="sheet-viewer" hidden>
     <div class="sheet-viewer-toolbar">
-        <strong id="sheetViewerTitle">Customs declaration</strong>
+        <strong id="sheetViewerTitle">Customs declaration(CUSDEC)</strong>
         <div class="sheet-viewer-tools">
             <button type="button" class="panel-btn ghost" id="sheetPrevEmptyField" title="Previous empty field">Prev</button>
             <button type="button" class="panel-btn ghost" id="sheetZoomOut" title="Zoom out">−</button>
@@ -177,6 +177,6 @@
 <script th:src="@{/js/shared/app.js(v=20260905k)}"></script>
 <script th:src="@{/js/shared/document-viewer.js(v=20260826d)}"></script>
 <script th:src="@{/js/customs-pipeline/clearance-stage.js(v=20260911a)}"></script>
-<script th:src="@{/js/customs-pipeline/declaration.js(v=20260911b)}"></script>
+<script th:src="@{/js/customs-pipeline/declaration.js(v=20261004a)}"></script>
 </body>
 </html>

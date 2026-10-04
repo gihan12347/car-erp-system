@@ -263,7 +263,7 @@ public class VehicleSummaryService {
                 "/bl/documents/", "/bl/", chassis
         );
         addDocument(
-                documents, null, "Customs declaration", "Customs", "fa-solid fa-file-invoice",
+                documents, null, "Customs declaration(CUSDEC)", "Customs", "fa-solid fa-file-invoice",
                 null,
                 clearance != null && text(clearance.getPage2StoredName()) != null,
                 clearance == null ? null : clearance.getPage2OriginalName(),
@@ -328,7 +328,7 @@ public class VehicleSummaryService {
     private List<PriceGroup> pricesFor(Vehicle vehicle, CustomsDocument clearance, SaleListing listing) {
         List<PriceGroup> groups = new ArrayList<PriceGroup>();
         PriceBuilder landing = new PriceBuilder("Landing");
-        PriceBuilder invoice = new PriceBuilder("Invoice");
+        PriceBuilder invoice = new PriceBuilder("Customs declaration(CUSDEC)");
         PriceBuilder assessment = new PriceBuilder("Assessment");
         PriceBuilder worksheet = new PriceBuilder("Working sheet");
         PriceBuilder sale = new PriceBuilder("Sale");
@@ -338,29 +338,27 @@ public class VehicleSummaryService {
             landing.add("Exchange rate", clearance.getBlExchangeRate());
             landing.add("Landing cost (LKR)", clearance.getLandingCostLkr());
 
-            invoice.add("FOB", clearance.getInvoiceFob());
-            invoice.add("Freight", clearance.getInvoiceFreight());
-            invoice.add("Insurance", clearance.getInvoiceInsurance());
-            invoice.add("Other", clearance.getInvoiceOther());
-            invoice.add("Invoice total", clearance.getInvoiceTotal());
+            invoice.add("FOB", withCurrency(clearance.getInvoiceFob(), "JPY"));
+            invoice.add("Freight", withCurrency(clearance.getInvoiceFreight(), "JPY"));
+            invoice.add("Insurance", withCurrency(clearance.getInvoiceInsurance(), "JPY"));
+            invoice.add("Other", withCurrency(clearance.getInvoiceOther(), "JPY"));
+            invoice.addTotal("Invoice total", withCurrency(clearance.getInvoiceTotal(), "JPY"));
+            invoice.add("Exchange rate", clearance.getExchangeRate());
+            invoice.add("Value (NCY)", withCurrency(clearance.getValueNcy(), "LKR"));
 
-            assessment.add("OTC", clearance.getAssessmentTaxOtc());
-            assessment.add("COM", clearance.getAssessmentTaxCom());
-            assessment.add("EXM", clearance.getAssessmentTaxExm());
-            assessment.add("CID", clearance.getAssessmentTaxCid());
-            assessment.add("SUR", clearance.getAssessmentTaxSur());
-            assessment.add("XID", clearance.getAssessmentTaxXid());
-            assessment.add("VAT", clearance.getAssessmentTaxVat());
-            assessment.add("VEL", clearance.getAssessmentTaxVel());
-            assessment.add("Total assessed", clearance.getAssessmentTotalAssessed());
-            assessment.add("Total paid", clearance.getAssessmentTotalPaid());
+            assessment.add("OTC", withCurrency(clearance.getAssessmentTaxOtc(), "LKR"));
+            assessment.add("COM", withCurrency(clearance.getAssessmentTaxCom(), "LKR"));
+            assessment.add("EXM", withCurrency(clearance.getAssessmentTaxExm(), "LKR"));
+            assessment.add("CID", withCurrency(clearance.getAssessmentTaxCid(), "LKR"));
+            assessment.add("SUR", withCurrency(clearance.getAssessmentTaxSur(), "LKR"));
+            assessment.add("XID", withCurrency(clearance.getAssessmentTaxXid(), "LKR"));
+            assessment.add("VAT", withCurrency(clearance.getAssessmentTaxVat(), "LKR"));
+            assessment.add("VEL", withCurrency(clearance.getAssessmentTaxVel(), "LKR"));
+            assessment.addTotal("Total assessed", withCurrency(clearance.getAssessmentTotalAssessed(), "LKR"));
+            assessment.addTotal("Total paid", withCurrency(clearance.getAssessmentTotalPaid(), "LKR"));
 
-            worksheet.add("Agents FOB", clearance.getWorksheetAgentsFob());
-            worksheet.add("Invoiced FOB", clearance.getWorksheetInvoicedFob());
             worksheet.add("Agents freight", clearance.getWorksheetAgentsFreight());
-            worksheet.add("Invoiced freight", clearance.getWorksheetInvoicedFreight());
             worksheet.add("Agents insurance", clearance.getWorksheetAgentsInsurance());
-            worksheet.add("Invoiced insurance", clearance.getWorksheetInvoicedInsurance());
             worksheet.add("B/L freight", clearance.getWorksheetBlFreightAmount());
             worksheet.add("Website value", clearance.getWorksheetWebsiteValue());
             worksheet.add("Local taxes", clearance.getWorksheetLocalTaxes());
@@ -370,7 +368,7 @@ public class VehicleSummaryService {
             worksheet.add("Fiscal freight", clearance.getWorksheetFiscalFreight());
             worksheet.add("Fiscal insurance", clearance.getWorksheetFiscalInsurance());
             worksheet.add("Fiscal options", clearance.getWorksheetFiscalOptions());
-            worksheet.add("Fiscal total", withCurrency(clearance.getWorksheetFiscalTotal(), clearance.getWorksheetFiscalTotalCurrency()));
+            worksheet.addTotal("Fiscal total", withCurrency(clearance.getWorksheetFiscalTotal(), clearance.getWorksheetFiscalTotalCurrency()));
         }
 
         sale.add("Recycle fee", vehicle.getRecycleFee());

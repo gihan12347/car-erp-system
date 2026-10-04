@@ -174,7 +174,7 @@
                         <div class="summary-block-head">
                             <div>
                                 <h2>Prices</h2>
-                                <p>Landing, invoice, duty, worksheet, and sale figures.</p>
+                                <p>Landing, customs declaration, duty, worksheet, and sale figures.</p>
                             </div>
                         </div>
                         <div th:if="${summary.pricesEmpty}" class="summary-empty is-compact">
@@ -183,7 +183,7 @@
                         <section class="price-group" th:each="group : ${summary.priceGroups}">
                             <h3 th:text="${group.title}">Landing</h3>
                             <dl>
-                                <div th:each="line : ${group.lines}">
+                                <div th:each="line : ${group.lines}" th:classappend="${line.total} ? ' is-total'">
                                     <dt th:text="${line.label}">Landing cost (LKR)</dt>
                                     <dd th:text="${line.value}">4,250,000</dd>
                                 </div>

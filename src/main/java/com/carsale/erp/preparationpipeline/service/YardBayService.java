@@ -236,6 +236,15 @@ public class YardBayService implements CommandLineRunner {
     }
 
     @Transactional
+    public void pin(Long id, Double latitude, Double longitude) {
+        YardBay bay = yardBayRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Yard not found."));
+        bay.setLatitude(latitude);
+        bay.setLongitude(longitude);
+        yardBayRepository.save(bay);
+    }
+
+    @Transactional
     public void delete(Long id) {
         YardBay bay = yardBayRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Yard not found."));
