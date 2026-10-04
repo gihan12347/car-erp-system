@@ -35,10 +35,12 @@ public class SaleLocationController {
             @RequestParam("saleName") String saleName,
             @RequestParam("capacity") Integer capacity,
             @RequestParam("location") String location,
+            @RequestParam(value = "latitude", required = false) String latitude,
+            @RequestParam(value = "longitude", required = false) String longitude,
             RedirectAttributes redirectAttributes
     ) {
         try {
-            saleLocationService.add(saleName, capacity, location);
+            saleLocationService.add(saleName, capacity, location, coordinate(latitude), coordinate(longitude));
             redirectAttributes.addFlashAttribute("successMessage", "Sale location added.");
         } catch (IllegalArgumentException ex) {
             redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
@@ -46,6 +48,8 @@ public class SaleLocationController {
             redirectAttributes.addFlashAttribute("draftSaleName", saleName);
             redirectAttributes.addFlashAttribute("draftCapacity", capacity);
             redirectAttributes.addFlashAttribute("draftLocation", location);
+            redirectAttributes.addFlashAttribute("draftLatitude", latitude);
+            redirectAttributes.addFlashAttribute("draftLongitude", longitude);
         }
         return "redirect:/sale-locations";
     }
@@ -57,10 +61,12 @@ public class SaleLocationController {
             @RequestParam("saleName") String saleName,
             @RequestParam("capacity") Integer capacity,
             @RequestParam("location") String location,
+            @RequestParam(value = "latitude", required = false) String latitude,
+            @RequestParam(value = "longitude", required = false) String longitude,
             RedirectAttributes redirectAttributes
     ) {
         try {
-            saleLocationService.update(id, saleCode, saleName, capacity, location);
+            saleLocationService.update(id, saleCode, saleName, capacity, location, coordinate(latitude), coordinate(longitude));
             redirectAttributes.addFlashAttribute("successMessage", "Sale location updated.");
         } catch (IllegalArgumentException ex) {
             redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
@@ -80,5 +86,16 @@ public class SaleLocationController {
             redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
         }
         return "redirect:/sale-locations";
+    }
+
+    private static Double coordinate(String raw) {
+        if (raw == null || raw.trim().isEmpty()) {
+            return null;
+        }
+        try {
+            return Double.valueOf(raw.trim());
+        } catch (NumberFormatException ex) {
+            throw new IllegalArgumentException("Click the map to set both latitude and longitude.");
+        }
     }
 }

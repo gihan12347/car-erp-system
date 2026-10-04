@@ -201,17 +201,19 @@ public class YardBayService implements CommandLineRunner {
     }
 
     @Transactional
-    public YardBay add(String yardName, Integer capacity, String location) {
+    public YardBay add(String yardName, Integer capacity, String location, Double latitude, Double longitude) {
         String code = nextYardCode();
         int nextOrder = 0;
         for (YardBay existing : yardBayRepository.findAllByOrderBySortOrderAscIdAsc()) {
             nextOrder = Math.max(nextOrder, existing.getSortOrder() + 1);
         }
-        return saveNew(code, requireYardName(yardName), requireCapacity(capacity), requireLocation(location), nextOrder);
+        YardBay created = saveNew(code, requireYardName(yardName), requireCapacity(capacity), requireLocation(location), nextOrder);
+        applyPoint(created, latitude, longitude);
+        return yardBayRepository.save(created);
     }
 
     @Transactional
-    public void update(Long id, String bayCode, String yardName, Integer capacity, String location) {
+    public void update(Long id, String bayCode, String yardName, Integer capacity, String location, Double latitude, Double longitude) {
         YardBay bay = yardBayRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Yard not found."));
         String previousCode = bay.getBayCode();
@@ -225,6 +227,7 @@ public class YardBayService implements CommandLineRunner {
         bay.setYardName(requireYardName(yardName));
         bay.setCapacity(requireCapacity(capacity));
         bay.setLocation(resolvedLocation);
+        applyPoint(bay, latitude, longitude);
         yardBayRepository.save(bay);
         if (!code.equalsIgnoreCase(previousCode) || !resolvedLocation.equals(previousLocation)) {
             for (YardRecord record : yardRecordRepository.findByBayNoIgnoreCase(previousCode)) {
@@ -233,6 +236,21 @@ public class YardBayService implements CommandLineRunner {
                 yardRecordRepository.save(record);
             }
         }
+    }
+
+    private static void applyPoint(YardBay bay, Double latitude, Double longitude) {
+        if (latitude == null && longitude == null) {
+            bay.setLatitude(null);
+            bay.setLongitude(null);
+            return;
+        }
+        if (latitude == null || longitude == null
+                || latitude.doubleValue() < -90 || latitude.doubleValue() > 90
+                || longitude.doubleValue() < -180 || longitude.doubleValue() > 180) {
+            throw new IllegalArgumentException("Click the map to set both latitude and longitude.");
+        }
+        bay.setLatitude(latitude);
+        bay.setLongitude(longitude);
     }
 
     @Transactional

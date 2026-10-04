@@ -171,17 +171,19 @@ public class SaleLocationService implements CommandLineRunner {
     }
 
     @Transactional
-    public SaleLocation add(String saleName, Integer capacity, String location) {
+    public SaleLocation add(String saleName, Integer capacity, String location, Double latitude, Double longitude) {
         String code = nextSaleCode();
         int nextOrder = 0;
         for (SaleLocation existing : saleLocationRepository.findAllByOrderBySortOrderAscIdAsc()) {
             nextOrder = Math.max(nextOrder, existing.getSortOrder() + 1);
         }
-        return saveNew(code, requireSaleName(saleName), requireCapacity(capacity), requireLocation(location), nextOrder);
+        SaleLocation created = saveNew(code, requireSaleName(saleName), requireCapacity(capacity), requireLocation(location), nextOrder);
+        applyPoint(created, latitude, longitude);
+        return saleLocationRepository.save(created);
     }
 
     @Transactional
-    public void update(Long id, String saleCode, String saleName, Integer capacity, String location) {
+    public void update(Long id, String saleCode, String saleName, Integer capacity, String location, Double latitude, Double longitude) {
         SaleLocation sale = saleLocationRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Sale location not found."));
         String previousCode = sale.getSaleCode();
@@ -195,6 +197,7 @@ public class SaleLocationService implements CommandLineRunner {
         sale.setSaleName(requireSaleName(saleName));
         sale.setCapacity(requireCapacity(capacity));
         sale.setLocation(resolvedLocation);
+        applyPoint(sale, latitude, longitude);
         saleLocationRepository.save(sale);
         if (!code.equalsIgnoreCase(previousCode) || !resolvedLocation.equals(previousLocation)) {
             for (SaleListing listing : saleListingRepository.findBySaleCodeIgnoreCase(previousCode)) {
@@ -203,6 +206,21 @@ public class SaleLocationService implements CommandLineRunner {
                 saleListingRepository.save(listing);
             }
         }
+    }
+
+    private static void applyPoint(SaleLocation sale, Double latitude, Double longitude) {
+        if (latitude == null && longitude == null) {
+            sale.setLatitude(null);
+            sale.setLongitude(null);
+            return;
+        }
+        if (latitude == null || longitude == null
+                || latitude.doubleValue() < -90 || latitude.doubleValue() > 90
+                || longitude.doubleValue() < -180 || longitude.doubleValue() > 180) {
+            throw new IllegalArgumentException("Click the map to set both latitude and longitude.");
+        }
+        sale.setLatitude(latitude);
+        sale.setLongitude(longitude);
     }
 
     @Transactional

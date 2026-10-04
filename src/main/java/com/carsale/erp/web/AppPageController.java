@@ -4,9 +4,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.carsale.erp.report.DashboardService;
 
@@ -30,23 +28,6 @@ public class AppPageController {
         model.addAttribute("activeMenu", "dashboard");
         model.addAttribute("dash", dashboardService.build(period));
         return "dashboard";
-    }
-
-    @PostMapping("/dashboard/place")
-    public String pinPlace(
-            @RequestParam("kind") String kind,
-            @RequestParam("id") Long id,
-            @RequestParam("latitude") Double latitude,
-            @RequestParam("longitude") Double longitude,
-            RedirectAttributes redirectAttributes
-    ) {
-        try {
-            dashboardService.pin(kind, id, latitude, longitude);
-            redirectAttributes.addFlashAttribute("successMessage", "Location saved on the map.");
-        } catch (IllegalArgumentException ex) {
-            redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
-        }
-        return "redirect:/dashboard#fleet-map";
     }
 
     @GetMapping("/configuration")

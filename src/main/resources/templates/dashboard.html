@@ -14,7 +14,7 @@
             <header class="fleet-head">
                 <div>
                     <h1>Dashboard</h1>
-                    <p th:text="${dash.summary}">3 on hand.</p>
+                    <p th:text="${dash.periodLabel + ' covers the totals, chart, and lists below.'}">All time</p>
                 </div>
                 <nav class="fleet-periods" aria-label="Dashboard period">
                     <a th:href="@{/dashboard(period='all')}" th:classappend="${dash.period == 'all'} ? ' is-on'">All time</a>
@@ -31,11 +31,11 @@
                    th:href="${metric.href}" th:classappend="${metric.tone}">
                     <span class="fleet-kpi-icon" aria-hidden="true">
                         <svg th:if="${metric.icon == 'fa-car'}" viewBox="0 0 24 24"><path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"/><circle cx="7" cy="17" r="2"/><path d="M9 17h6"/><circle cx="17" cy="17" r="2"/></svg>
-                        <svg th:if="${metric.icon == 'fa-circle-check'}" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="m9 12 2 2 4-4"/></svg>
+                        <svg th:if="${metric.icon == 'fa-circle-check'}" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.2 2.4 2.4 4.6-5"/></svg>
                         <svg th:if="${metric.icon == 'fa-wrench'}" viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
-                        <svg th:if="${metric.icon == 'fa-file-invoice'}" viewBox="0 0 24 24"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M8 13h8M8 17h5"/></svg>
-                        <svg th:if="${metric.icon == 'fa-ship'}" viewBox="0 0 24 24"><path d="M12 2v3"/><path d="M19 13V7a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v6"/><path d="M12 10.2V14"/><path d="M21 14l-8.2-3.6a2 2 0 0 0-1.6 0L3 14"/><path d="M2 21c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2s2.5 2 5 2 2.5-2 5-2c1.3 0 1.9.5 2.5 1"/></svg>
-                        <svg th:if="${metric.icon == 'fa-flag-checkered'}" viewBox="0 0 24 24"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><path d="M4 22V15"/></svg>
+                        <svg th:if="${metric.icon == 'fa-file-invoice'}" viewBox="0 0 24 24"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M8 13h8M8 17h5"/></svg>
+                        <svg th:if="${metric.icon == 'fa-ship'}" viewBox="0 0 24 24"><circle cx="12" cy="5" r="2.5"/><path d="M12 22V8"/><path d="M5 12H2a10 10 0 0 0 20 0h-3"/></svg>
+                        <svg th:if="${metric.icon == 'fa-flag-checkered'}" viewBox="0 0 24 24"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.2"/><path d="M6 12h.01M18 12h.01"/></svg>
                     </span>
                     <span class="fleet-kpi-copy">
                         <span th:text="${metric.label}">Total vehicles</span>
@@ -149,40 +149,6 @@
                         <h2>Yard and sale map</h2>
                     </div>
                     <div id="fleetMap" class="fleet-map" role="application" aria-label="Open map of yards and sale locations"></div>
-                    <form class="fleet-pin" method="post" th:action="@{/dashboard/place}">
-                        <div class="fleet-pin-fields">
-                        <label>
-                            Place
-                            <select name="kind" id="pinKind">
-                                <option value="sale">Sale location</option>
-                                <option value="yard">Yard</option>
-                            </select>
-                        </label>
-                        <label class="fleet-pin-place">
-                            Name
-                            <select name="id" id="pinId" required>
-                                <optgroup label="Sale locations">
-                                    <option th:each="place : ${dash.places}"
-                                            th:if="${place.kind == 'sale'}"
-                                            th:value="${place.id}"
-                                            th:attr="data-kind=${place.kind}"
-                                            th:text="${place.code + ' · ' + place.name + (place.pinned ? ' · pinned' : '')}">SL-01</option>
-                                </optgroup>
-                                <optgroup label="Yards">
-                                    <option th:each="place : ${dash.places}"
-                                            th:if="${place.kind == 'yard'}"
-                                            th:value="${place.id}"
-                                            th:attr="data-kind=${place.kind}"
-                                            th:text="${place.code + ' · ' + place.name + (place.pinned ? ' · pinned' : '')}">Y-01</option>
-                                </optgroup>
-                            </select>
-                        </label>
-                        </div>
-                        <input type="hidden" name="latitude" id="pinLat" required>
-                        <input type="hidden" name="longitude" id="pinLng" required>
-                        <button type="submit" class="fleet-pin-save">Save pin</button>
-                    </form>
-                    <p class="fleet-note">Click the map to drop a sale floor or yard. Moving markers are sample routes, not live GPS.</p>
                 </article>
                 </div>
             </section>
@@ -221,7 +187,7 @@
 <script id="dash-charts" type="application/json" th:utext="${dash.chartJson}">{}</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
-<script th:src="@{/js/shared/dashboard.js(v=20261004f)}"></script>
+<script th:src="@{/js/shared/dashboard.js(v=20261004g)}"></script>
 <script th:src="@{/js/shared/app.js(v=20260905k)}"></script>
 </body>
 </html>

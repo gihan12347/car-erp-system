@@ -139,58 +139,5 @@
         map.fitBounds(bounds, { padding: [24, 24], maxZoom: 13 });
     }
 
-    var latInput = document.getElementById("pinLat");
-    var lngInput = document.getElementById("pinLng");
-    var draft = null;
-    map.on("click", function (event) {
-        var lat = event.latlng.lat.toFixed(6);
-        var lng = event.latlng.lng.toFixed(6);
-        if (latInput) {
-            latInput.value = lat;
-        }
-        if (lngInput) {
-            lngInput.value = lng;
-        }
-        if (draft) {
-            draft.setLatLng(event.latlng);
-        } else {
-            draft = L.marker(event.latlng, { draggable: true }).addTo(map);
-            draft.on("dragend", function () {
-                var point = draft.getLatLng();
-                if (latInput) {
-                    latInput.value = point.lat.toFixed(6);
-                }
-                if (lngInput) {
-                    lngInput.value = point.lng.toFixed(6);
-                }
-            });
-        }
-    });
-
-    var kindSelect = document.getElementById("pinKind");
-    var idSelect = document.getElementById("pinId");
-    function syncPlaces() {
-        if (!kindSelect || !idSelect) {
-            return;
-        }
-        var kind = kindSelect.value;
-        var first = null;
-        Array.prototype.forEach.call(idSelect.options, function (option) {
-            var show = option.getAttribute("data-kind") === kind;
-            option.hidden = !show;
-            option.disabled = !show;
-            if (show && !first) {
-                first = option;
-            }
-        });
-        if (idSelect.selectedOptions.length && idSelect.selectedOptions[0].disabled && first) {
-            idSelect.value = first.value;
-        }
-    }
-    if (kindSelect) {
-        kindSelect.addEventListener("change", syncPlaces);
-        syncPlaces();
-    }
-
     window.setTimeout(function () { map.invalidateSize(); }, 200);
 })();

@@ -14,7 +14,7 @@
                         Configuration
                     </a>
                     <h1>Sale configuration</h1>
-                    <p class="form-lead">Define sale locations with code, name, capacity, and location. Remaining spaces drop when a vehicle is assigned, and come back when it is sold.</p>
+                    <p class="form-lead">Define sale locations with code, name, capacity, and a map point. Remaining spaces drop when a vehicle is assigned, and come back when it is sold.</p>
                 </div>
                 <button type="button" class="panel-btn" id="saleAddOpen">
                     <i class="fa-solid fa-plus" aria-hidden="true"></i>
@@ -73,6 +73,18 @@
                                                list="saleLocationSuggestions" required maxlength="80"
                                                autocomplete="off" aria-label="Location">
                                     </label>
+                                </div>
+                                <div class="place-point">
+                                    <input type="hidden" name="latitude" th:value="${sale.latitude}"
+                                           th:attr="data-original=${sale.latitude}">
+                                    <input type="hidden" name="longitude" th:value="${sale.longitude}"
+                                           th:attr="data-original=${sale.longitude}">
+                                    <div class="place-map-row">
+                                        <span>Map point</span>
+                                        <button type="button" class="place-map-clear">Clear</button>
+                                    </div>
+                                    <div class="place-map"
+                                         th:attr="data-lat=${sale.latitude},data-lng=${sale.longitude}"></div>
                                 </div>
                                 <div class="yard-bay-meter">
                                     <div class="yard-bay-meter-track">
@@ -143,6 +155,15 @@
                            th:value="${draftLocation}">
                 </span>
             </label>
+            <div class="place-point">
+                <input type="hidden" name="latitude" th:value="${draftLatitude}">
+                <input type="hidden" name="longitude" th:value="${draftLongitude}">
+                <div class="place-map-row">
+                    <span>Map point</span>
+                    <button type="button" class="place-map-clear">Clear</button>
+                </div>
+                <div class="place-map" th:attr="data-lat=${draftLatitude},data-lng=${draftLongitude}"></div>
+            </div>
             <div class="yard-modal-actions">
                 <button type="button" class="panel-btn ghost" id="saleAddCancel">Cancel</button>
                 <button type="submit" class="panel-btn">Add sale</button>
@@ -154,7 +175,10 @@
     <option th:each="location : ${saleLocationNames}" th:value="${location}"></option>
 </datalist>
 
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script th:src="@{/js/shared/app.js(v=20260905k)}"></script>
+<script th:src="@{/js/shared/place-map.js(v=20261004a)}"></script>
 <script>
 (function () {
     var modal = document.getElementById("saleAddModal");
@@ -175,6 +199,19 @@
             setTimeout(function () {
                 firstField.focus();
             }, 20);
+        }
+        refreshMap();
+    }
+
+    function refreshMap() {
+        if (!modal) {
+            return;
+        }
+        var node = modal.querySelector(".place-map");
+        if (node && node._placeMap) {
+            setTimeout(function () {
+                node._placeMap.invalidateSize();
+            }, 60);
         }
     }
 
@@ -212,6 +249,7 @@
         if (firstField) {
             firstField.focus();
         }
+        refreshMap();
     }
 
     var cards = document.querySelectorAll(".yard-bay-card");
@@ -221,7 +259,7 @@
         if (!form || !save) {
             return;
         }
-        var fields = form.querySelectorAll("input[name='saleName'], input[name='capacity'], input[name='location']");
+        var fields = form.querySelectorAll("input[name='saleName'], input[name='capacity'], input[name='location'], input[name='latitude'], input[name='longitude']");
         function sync() {
             var dirty = false;
             Array.prototype.forEach.call(fields, function (input) {

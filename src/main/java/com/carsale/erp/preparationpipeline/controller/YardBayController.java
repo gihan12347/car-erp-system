@@ -35,10 +35,12 @@ public class YardBayController {
             @RequestParam("yardName") String yardName,
             @RequestParam("capacity") Integer capacity,
             @RequestParam("location") String location,
+            @RequestParam(value = "latitude", required = false) String latitude,
+            @RequestParam(value = "longitude", required = false) String longitude,
             RedirectAttributes redirectAttributes
     ) {
         try {
-            yardBayService.add(yardName, capacity, location);
+            yardBayService.add(yardName, capacity, location, coordinate(latitude), coordinate(longitude));
             redirectAttributes.addFlashAttribute("successMessage", "Yard added.");
         } catch (IllegalArgumentException ex) {
             redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
@@ -46,6 +48,8 @@ public class YardBayController {
             redirectAttributes.addFlashAttribute("draftYardName", yardName);
             redirectAttributes.addFlashAttribute("draftCapacity", capacity);
             redirectAttributes.addFlashAttribute("draftLocation", location);
+            redirectAttributes.addFlashAttribute("draftLatitude", latitude);
+            redirectAttributes.addFlashAttribute("draftLongitude", longitude);
         }
         return "redirect:/yard-bays";
     }
@@ -57,10 +61,12 @@ public class YardBayController {
             @RequestParam("yardName") String yardName,
             @RequestParam("capacity") Integer capacity,
             @RequestParam("location") String location,
+            @RequestParam(value = "latitude", required = false) String latitude,
+            @RequestParam(value = "longitude", required = false) String longitude,
             RedirectAttributes redirectAttributes
     ) {
         try {
-            yardBayService.update(id, bayCode, yardName, capacity, location);
+            yardBayService.update(id, bayCode, yardName, capacity, location, coordinate(latitude), coordinate(longitude));
             redirectAttributes.addFlashAttribute("successMessage", "Yard updated.");
         } catch (IllegalArgumentException ex) {
             redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
@@ -80,5 +86,16 @@ public class YardBayController {
             redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
         }
         return "redirect:/yard-bays";
+    }
+
+    private static Double coordinate(String raw) {
+        if (raw == null || raw.trim().isEmpty()) {
+            return null;
+        }
+        try {
+            return Double.valueOf(raw.trim());
+        } catch (NumberFormatException ex) {
+            throw new IllegalArgumentException("Click the map to set both latitude and longitude.");
+        }
     }
 }

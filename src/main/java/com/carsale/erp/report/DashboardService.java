@@ -383,24 +383,6 @@ public class DashboardService {
         );
     }
 
-    @Transactional
-    public void pin(String kind, Long id, Double latitude, Double longitude) {
-        if (id == null || latitude == null || longitude == null
-                || latitude.doubleValue() < -90 || latitude.doubleValue() > 90
-                || longitude.doubleValue() < -180 || longitude.doubleValue() > 180) {
-            throw new IllegalArgumentException("Click the map to choose a point.");
-        }
-        if ("yard".equals(kind)) {
-            yardBayService.pin(id, latitude, longitude);
-            return;
-        }
-        if ("sale".equals(kind)) {
-            saleLocationService.pin(id, latitude, longitude);
-            return;
-        }
-        throw new IllegalArgumentException("Choose a sale location or a yard.");
-    }
-
     private Map<String, Vehicle> vehiclesByChassis() {
         Map<String, Vehicle> vehicles = new HashMap<String, Vehicle>();
         for (Vehicle vehicle : vehicleService.findAll()) {

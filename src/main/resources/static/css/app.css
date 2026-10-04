@@ -6595,6 +6595,8 @@ body.yard-modal-open {
     position: relative;
     z-index: 1;
     width: min(460px, 100%);
+    max-height: calc(100vh - 40px);
+    overflow: auto;
     margin: 0;
     padding: 18px 18px 16px;
     border-radius: 18px;
@@ -6631,8 +6633,45 @@ body.yard-modal-open {
 
 .yard-bay-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
     gap: 12px;
+}
+
+.place-point {
+    display: grid;
+    gap: 6px;
+}
+
+.place-map-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.place-map-row span {
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.place-map-clear {
+    border: 0;
+    padding: 0;
+    background: transparent;
+    color: var(--brand);
+    font: inherit;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.place-map {
+    height: 148px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    overflow: hidden;
+    background: var(--canvas);
 }
 
 .yard-bay-card {
@@ -8836,14 +8875,15 @@ small.chassis-link {
 .vehicle-summary-page .page-content {
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 10px;
+    padding: 12px 18px 16px;
 }
 
 .summary-body,
 .summary-move {
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 10px;
 }
 
 .summary-back {
@@ -8866,10 +8906,10 @@ small.chassis-link {
 .summary-hero {
     display: grid;
     grid-template-columns: minmax(0, 1.4fr) minmax(280px, 1fr);
-    gap: 22px;
-    padding: 22px 24px;
+    gap: 14px;
+    padding: 12px 14px;
     border: 1px solid var(--line);
-    border-radius: 18px;
+    border-radius: 14px;
     background:
         radial-gradient(420px 180px at 100% 0%, rgba(194, 65, 12, 0.12), transparent 70%),
         linear-gradient(135deg, #fffdf8 0%, #f8f4ee 100%);
@@ -8879,8 +8919,8 @@ small.chassis-link {
 .summary-kicker {
     display: flex;
     align-items: center;
-    gap: 10px;
-    margin-bottom: 10px;
+    gap: 8px;
+    margin-bottom: 4px;
 }
 
 .summary-stock {
@@ -8892,19 +8932,20 @@ small.chassis-link {
 
 .summary-hero h1 {
     margin: 0;
-    font-size: 30px;
+    font-size: 22px;
     line-height: 1.15;
 }
 
 .summary-chassis {
     display: inline-flex;
     align-items: center;
-    gap: 8px;
-    margin: 8px 0 0;
-    padding: 6px 10px;
+    gap: 6px;
+    margin: 6px 0 0;
+    padding: 2px 8px;
     border-radius: 999px;
     background: #fff;
     border: 1px solid var(--line);
+    font-size: 13px;
     font-weight: 700;
     letter-spacing: 0.03em;
 }
@@ -8914,16 +8955,16 @@ small.chassis-link {
 .summary-chips {
     display: flex;
     flex-wrap: wrap;
-    gap: 8px;
-    margin: 16px 0 0;
+    gap: 6px;
+    margin: 8px 0 0;
     padding: 0;
     list-style: none;
 }
 
 .summary-chips li {
-    min-width: 88px;
-    padding: 8px 12px;
-    border-radius: 12px;
+    min-width: 72px;
+    padding: 4px 8px;
+    border-radius: 10px;
     background: rgba(255, 255, 255, 0.82);
     border: 1px solid var(--line);
 }
@@ -8939,20 +8980,20 @@ small.chassis-link {
 
 .summary-chips strong {
     display: block;
-    margin-top: 2px;
-    font-size: 14px;
+    margin-top: 1px;
+    font-size: 13px;
 }
 
 .summary-meters {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 10px;
+    gap: 8px;
     align-content: start;
 }
 
 .summary-meter {
-    padding: 14px 14px 12px;
-    border-radius: 14px;
+    padding: 8px 10px 7px;
+    border-radius: 12px;
     background: #fff;
     border: 1px solid var(--line);
 }
@@ -8968,23 +9009,23 @@ small.chassis-link {
 
 .summary-meter strong {
     display: block;
-    margin-top: 6px;
-    font-size: 20px;
-    line-height: 1.2;
+    margin-top: 2px;
+    font-size: 16px;
+    line-height: 1.15;
     word-break: break-word;
 }
 
 .summary-meter strong small {
     color: var(--muted);
-    font-size: 14px;
+    font-size: 12px;
     font-weight: 600;
 }
 
 .summary-meter.is-alert strong { color: var(--brand); }
 
 .summary-progress {
-    height: 6px;
-    margin-top: 10px;
+    height: 4px;
+    margin-top: 6px;
     border-radius: 999px;
     background: #f5f0e8;
     overflow: hidden;
@@ -9000,7 +9041,7 @@ small.chassis-link {
 .summary-layout {
     display: grid;
     grid-template-columns: minmax(0, 1.5fr) minmax(280px, 0.9fr);
-    gap: 16px;
+    gap: 10px;
     align-items: stretch;
 }
 
@@ -9013,23 +9054,23 @@ small.chassis-link {
 .summary-side {
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 10px;
     min-width: 0;
 }
 
-.summary-block { padding: 18px; }
+.summary-block { padding: 12px 14px; }
 
 .summary-block-head {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
     gap: 12px;
-    margin-bottom: 14px;
+    margin-bottom: 8px;
 }
 
 .summary-block-head h2 {
     margin: 0;
-    font-size: 18px;
+    font-size: 16px;
 }
 
 .summary-block-head p {
@@ -9051,7 +9092,7 @@ small.chassis-link {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    gap: 14px;
+    gap: 8px;
 }
 
 .summary-stage {
@@ -9060,17 +9101,17 @@ small.chassis-link {
     align-items: center;
     justify-content: center;
     width: 100%;
-    min-height: 380px;
-    padding: 16px 16px 52px;
+    min-height: 220px;
+    padding: 8px 8px 36px;
     border: 1px solid var(--line);
-    border-radius: 18px;
+    border-radius: 14px;
     background: #fff;
     overflow: hidden;
 }
 
 .summary-stage img {
     max-width: 100%;
-    max-height: 460px;
+    max-height: 280px;
     width: auto;
     height: auto;
     object-fit: contain;
@@ -9789,15 +9830,22 @@ small.chassis-link {
     letter-spacing: -0.02em;
 }
 
+.fleet-head > div {
+    min-width: 0;
+    flex: 1;
+}
+
 .fleet-head p {
     margin: 2px 0 0;
     color: var(--muted);
     font-size: 12px;
+    line-height: 1.4;
 }
 
 .fleet-periods {
     display: flex;
-    flex-wrap: wrap;
+    flex: 0 0 auto;
+    flex-wrap: nowrap;
     gap: 4px;
     padding: 3px;
     border: 1px solid var(--line);
@@ -9811,6 +9859,7 @@ small.chassis-link {
     color: var(--muted);
     font-size: 12px;
     font-weight: 700;
+    white-space: nowrap;
     text-decoration: none;
 }
 
@@ -9840,21 +9889,28 @@ small.chassis-link {
 }
 
 .fleet-kpi-icon {
-    width: 28px;
-    height: 28px;
+    width: 32px;
+    height: 32px;
     display: grid;
     place-items: center;
     flex-shrink: 0;
+    border-radius: 8px;
 }
+.fleet-kpi.is-blue .fleet-kpi-icon { background: #ccfbf1; }
+.fleet-kpi.is-green .fleet-kpi-icon { background: #d1fae5; }
+.fleet-kpi.is-orange .fleet-kpi-icon { background: #fef3c7; }
+.fleet-kpi.is-gold .fleet-kpi-icon { background: #ffedd5; }
+.fleet-kpi.is-red .fleet-kpi-icon { background: #ffedd5; }
+.fleet-kpi.is-slate .fleet-kpi-icon { background: #f5f5f4; }
 
 .fleet-kpi-icon svg,
 .fleet-actions svg {
-    width: 18px;
-    height: 18px;
+    width: 20px;
+    height: 20px;
     display: block;
     fill: none;
     stroke: currentColor;
-    stroke-width: 1.75;
+    stroke-width: 1.8;
     stroke-linecap: round;
     stroke-linejoin: round;
 }
@@ -10060,48 +10116,12 @@ small.chassis-link {
 .fleet-bars em { font-style: normal; color: var(--leaf); font-weight: 700; text-align: right; }
 
 .fleet-map {
-    height: 148px;
+    height: 200px;
     border-radius: 12px;
     overflow: hidden;
     border: 1px solid var(--line);
     background: var(--canvas);
 }
-.fleet-pin {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    margin-top: 10px;
-}
-.fleet-pin-fields {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 8px;
-}
-.fleet-pin label {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    color: var(--muted);
-    font-size: 11px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-}
-.fleet-pin-save {
-    height: 38px;
-    width: 100%;
-    padding: 0 14px;
-    border: 0;
-    border-radius: 12px;
-    background: var(--brand);
-    color: #fff;
-    font: inherit;
-    font-size: 13px;
-    font-weight: 700;
-    cursor: pointer;
-}
-.fleet-pin-save:hover { background: #9a3412; }
-
 .fleet-pin-icon span {
     display: block;
     width: 14px;
