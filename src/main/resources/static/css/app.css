@@ -9903,7 +9903,13 @@ small.chassis-link {
 .fleet-kpi.is-red .fleet-kpi-icon { background: #ffedd5; }
 .fleet-kpi.is-slate .fleet-kpi-icon { background: #f5f5f4; }
 
-.fleet-kpi-icon svg,
+.fleet-kpi-icon svg {
+    width: 22px;
+    height: 22px;
+    display: block;
+    fill: currentColor;
+    stroke: none;
+}
 .fleet-actions svg {
     width: 20px;
     height: 20px;
