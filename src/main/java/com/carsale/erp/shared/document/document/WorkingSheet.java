@@ -1,11 +1,12 @@
 package com.carsale.erp.shared.document.document;
 
-import com.carsale.erp.importpipeline.util.AuctionSheetEnglish;
 import com.carsale.erp.shared.ocr.DocumentAiClient;
-import com.carsale.erp.shared.ocr.JapaneseTextTranslator;
+import com.carsale.erp.shared.ocr.dto.DocumentAiEntity;
 import com.carsale.erp.shared.utils.CustomsDocumentParserUtils;
 import com.carsale.erp.shared.regex.RegexConstants;
 import com.carsale.erp.importpipeline.util.AuctionParseResult;
+import com.carsale.erp.importpipeline.util.AuctionSheetEnglish;
+import com.carsale.erp.shared.ocr.JapaneseTextTranslator;
 import com.carsale.erp.shared.document.DocumentParser;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -17,8 +18,8 @@ import java.util.regex.Pattern;
 @Component
 public class WorkingSheet implements DocumentParser {
 
-    private static final Map<String, String> TYPE_TO_FIELD = new LinkedHashMap<String, String>();
-    private static final Set<String> DATE_FIELDS = new HashSet<String>();
+    private static final Map<String, String> TYPE_TO_FIELD = new LinkedHashMap<>();
+    private static final Set<String> DATE_FIELDS = new HashSet<>();
 
     static {
         TYPE_TO_FIELD.put("document_identifier", "worksheetRef");
@@ -93,9 +94,9 @@ public class WorkingSheet implements DocumentParser {
             return result;
         }
         result.setRawText(documentAi.getText());
-        List<DocumentAiClient.DocumentAiEntity> entities = documentAi.getEntities();
+        List<DocumentAiEntity> entities = documentAi.getEntities();
         if (entities != null) {
-            for (DocumentAiClient.DocumentAiEntity entity : entities) {
+            for (DocumentAiEntity entity : entities) {
                 if (entity == null) {
                     continue;
                 }
@@ -172,11 +173,11 @@ public class WorkingSheet implements DocumentParser {
             return raw;
         }
         Matcher parts = Pattern.compile("(\\d+)").matcher(raw);
-        List<Integer> nums = new ArrayList<Integer>();
+        List<Integer> nums = new ArrayList<>();
         while (parts.find() && nums.size() < 3) {
             nums.add(Integer.valueOf(parts.group(1)));
         }
-        if (nums.size() == 3 && nums.get(0).intValue() < 100) {
+        if (nums.size() == 3 && nums.get(0) < 100) {
             return nums.get(0) + " years " + nums.get(1) + " months " + nums.get(2) + " days";
         }
         return raw;
@@ -215,13 +216,20 @@ public class WorkingSheet implements DocumentParser {
     public static class AuctionSheetParser implements DocumentParser {
 
         private static final Map<String, String> MODEL_MAKES = new LinkedHashMap<>();
+        private static final Map<String, String> JP_MODELS = new LinkedHashMap<>();
         private static final Map<String, String[]> CODE_MODELS = new LinkedHashMap<>();
         private static final Map<String, String[]> MODEL_SPECS = new LinkedHashMap<>();
+        private static final Map<String, String> ENTITY_FIELDS = new LinkedHashMap<>();
+        private static final double ENTITY_MIN_CONFIDENCE = 0.55d;
+        private static final String DEFAULT_PROCESSOR_ID = "bdd4eb40cbc32911";
 
         private final JapaneseTextTranslator translator;
 
         @Value("${app.ocr.ocrspace.language:jpn}")
         private String language;
+
+        @Value("${app.ocr.documentAi.auctionSheetProcessorId:bdd4eb40cbc32911}")
+        private String processorId;
 
         public AuctionSheetParser(JapaneseTextTranslator translator) {
             this.translator = translator;
@@ -255,6 +263,55 @@ public class WorkingSheet implements DocumentParser {
             putSpec("A201A", "5BA-A201A", "Raize", "Toyota", null, "Gasoline", "1000");
             putSpec("A202S", "5AA-A202S", "Rocky", "Daihatsu", "Hybrid Z", "Hybrid", "1200");
             putSpec("A200S", "5BA-A200S", "Rocky", "Daihatsu", null, "Gasoline", "1000");
+            JP_MODELS.put("アクア", "Aqua");
+            JP_MODELS.put("ライズ", "Raize");
+            JP_MODELS.put("ルーミー", "Roomy");
+            JP_MODELS.put("プリウス", "Prius");
+            JP_MODELS.put("ワゴンR", "Wagon R");
+            JP_MODELS.put("ワゴンＲ", "Wagon R");
+            JP_MODELS.put("ヴェゼル", "Vezel");
+            JP_MODELS.put("ロッキー", "Rocky");
+            putEntity("chassis_no", "chassisNo");
+            putEntity("chassis_number", "chassisNo");
+            putEntity("chassis", "chassisNo");
+            putEntity("lot_no", "lotNo");
+            putEntity("lot_number", "lotNo");
+            putEntity("exhibit_number", "lotNo");
+            putEntity("model_code", "modelCode");
+            putEntity("model", "model");
+            putEntity("vehicle_name", "model");
+            putEntity("car_name", "model");
+            putEntity("make", "make");
+            putEntity("manufacturer", "make");
+            putEntity("grade", "grade");
+            putEntity("trim", "grade");
+            putEntity("auction_grade", "auctionGrade");
+            putEntity("evaluation", "auctionGrade");
+            putEntity("exterior_grade", "exteriorGrade");
+            putEntity("exterior", "exteriorGrade");
+            putEntity("interior_grade", "interiorGrade");
+            putEntity("interior", "interiorGrade");
+            putEntity("mileage", "mileage");
+            putEntity("odometer", "mileage");
+            putEntity("year", "year");
+            putEntity("first_registration", "year");
+            putEntity("engine_size", "engineSize");
+            putEntity("displacement", "engineSize");
+            putEntity("fuel", "fuel");
+            putEntity("transmission", "transmission");
+            putEntity("shift", "transmission");
+            putEntity("color", "color");
+            putEntity("exterior_color", "color");
+            putEntity("color_code", "colorCode");
+            putEntity("seats", "seats");
+            putEntity("body_style", "bodyStyle");
+            putEntity("doors", "bodyStyle");
+            putEntity("ac", "acType");
+            putEntity("history", "history");
+        }
+
+        private static void putEntity(String type, String field) {
+            ENTITY_FIELDS.put(type, field);
         }
 
         private static void putCode(String code, String model, String make) {
@@ -280,11 +337,13 @@ public class WorkingSheet implements DocumentParser {
             String text = translator.translateDocument(original);
             result.setRawText(text);
             fillIdentity(result, text);
-            result.put("grade", extractGrade(text));
+            preferKnownModel(result, text + "\n" + original);
+            result.put("grade", firstNonNull(extractGrade(text), extractGrade(original)));
             result.put("modelCode", firstNonNull(extractModelCode(text), extractModelCode(original)));
-            result.put("chassisNo", firstNonNull(
+            result.put("chassisNo", alignChassisPrefix(firstNonNull(
                     extractChassis(text, result.getFields().get("modelCode")),
-                    extractChassis(original, result.getFields().get("modelCode"))));
+                    extractChassis(original, result.getFields().get("modelCode"))),
+                    result.getFields().get("modelCode")));
             fillFromModelCode(result, text + "\n" + original);
             fillVehicleName(result);
             result.put("year", firstNonNull(extractFirstRegistration(text), extractFirstRegistration(original)));
@@ -314,6 +373,8 @@ public class WorkingSheet implements DocumentParser {
             fillAuctionSheetGrades(result, text);
             fillAuctionSheetGrades(result, original);
             result.put("history", firstNonNull(extractHistory(text), extractHistory(original)));
+            applyScoreColumn(result, text);
+            applyScoreColumn(result, original);
             extractDimensions(result, text);
             if (isBlank(result.getFields().get("lengthCm"))) {
                 extractDimensions(result, original);
@@ -321,24 +382,30 @@ public class WorkingSheet implements DocumentParser {
             fillKnownSpecs(result, text + "\n" + original);
             englishize(result);
             fillVehicleName(result);
-            keepFormFields(result);
-
-            boolean any = !result.getFields().isEmpty();
-            result.setSuccess(any);
-            result.setMessage(any
-                    ? "Filled " + result.getFields().size() + " fields from the auction sheet. Please check and edit."
-                    : "The sheet was read, but fields could not be mapped. Please fill them manually.");
+            finish(result);
             return result;
         }
 
         @Override
         public AuctionParseResult parsePage(DocumentAiClient.DocumentAiResult documentAi) {
-            return null;
+            if (documentAi == null) {
+                AuctionParseResult failed = new AuctionParseResult();
+                failed.setSuccess(false);
+                failed.setMessage("Document AI returned no result.");
+                return failed;
+            }
+            AuctionParseResult result = parsePage(documentAi.getText());
+            applyEntities(result, documentAi.getEntities());
+            finish(result);
+            return result;
         }
 
         @Override
         public String getProcessorId() {
-            return "";
+            if (processorId == null || processorId.trim().isEmpty()) {
+                return DEFAULT_PROCESSOR_ID;
+            }
+            return processorId.trim();
         }
 
         @Override
@@ -349,6 +416,145 @@ public class WorkingSheet implements DocumentParser {
         @Override
         public String getOcrLanguage() {
             return language == null || language.trim().isEmpty() ? "jpn" : language.trim();
+        }
+
+        private void applyEntities(AuctionParseResult result, java.util.List<DocumentAiEntity> entities) {
+            if (entities == null) {
+                return;
+            }
+            for (DocumentAiEntity entity : entities) {
+                String field = entityField(entity.getType());
+                if (field == null) {
+                    continue;
+                }
+                Double confidence = entity.getConfidence();
+                if (confidence != null && confidence.doubleValue() < ENTITY_MIN_CONFIDENCE) {
+                    result.addWarning("Document AI left " + field + " unused because the reading was uncertain.");
+                    continue;
+                }
+                if (result.getFields().get(field) != null) {
+                    continue;
+                }
+                String value = translator.translateJaToEn(entity.getValue());
+                result.put(field, value);
+            }
+        }
+
+        private static String entityField(String type) {
+            if (type == null) {
+                return null;
+            }
+            String key = type.trim().toLowerCase(Locale.ROOT).replace(' ', '_').replace('-', '_');
+            String mapped = ENTITY_FIELDS.get(key);
+            if (mapped != null) {
+                return mapped;
+            }
+            int slash = key.lastIndexOf('/');
+            if (slash >= 0 && slash + 1 < key.length()) {
+                return ENTITY_FIELDS.get(key.substring(slash + 1));
+            }
+            return null;
+        }
+
+        private void finish(AuctionParseResult result) {
+            keepFormFields(result);
+            java.util.List<String> warnings = new ArrayList<String>();
+            if (result.getWarnings() != null) {
+                for (String warning : result.getWarnings()) {
+                    if (warning.startsWith("Document AI")) {
+                        warnings.add(warning);
+                    }
+                }
+            }
+            warnings.addAll(validateFields(result));
+            result.setWarnings(warnings);
+            boolean any = !result.getFields().isEmpty();
+            result.setSuccess(any);
+            String message = any
+                    ? "Filled " + result.getFields().size() + " fields from the auction sheet. Please check and edit."
+                    : "The sheet was read, but fields could not be mapped. Please fill them manually.";
+            if (!warnings.isEmpty()) {
+                message = message + " Check: " + joinWarnings(warnings) + ".";
+            }
+            result.setMessage(message);
+        }
+
+        private static String joinWarnings(java.util.List<String> warnings) {
+            StringBuilder builder = new StringBuilder();
+            for (int i = 0; i < warnings.size(); i++) {
+                if (i > 0) {
+                    builder.append("; ");
+                }
+                builder.append(warnings.get(i));
+            }
+            return builder.toString();
+        }
+
+        private java.util.List<String> validateFields(AuctionParseResult result) {
+            java.util.List<String> warnings = new ArrayList<String>();
+            Map<String, String> fields = result.getFields();
+            require(warnings, fields, "chassisNo", "chassis number");
+            require(warnings, fields, "model", "model");
+            String year = fields.get("year");
+            if (isBlank(year) || !year.matches(".*(?:19|20)\\d{2}.*")) {
+                warnings.add("year is missing or not a calendar year");
+            }
+            String mileage = fields.get("mileage");
+            if (isBlank(mileage)) {
+                warnings.add("mileage is missing");
+            } else {
+                String digits = mileage.replaceAll(RegexConstants.Text.DIGITS_ONLY, "");
+                if (digits.isEmpty()) {
+                    warnings.add("mileage is not a number");
+                } else {
+                    try {
+                        long km = Long.parseLong(digits);
+                        if (km < 0 || km > 999999L) {
+                            warnings.add("mileage is outside 0–999,999 km");
+                        }
+                    } catch (NumberFormatException ex) {
+                        warnings.add("mileage is not a number");
+                    }
+                }
+            }
+            String engine = fields.get("engineSize");
+            if (!isBlank(engine)) {
+                String digits = engine.replaceAll(RegexConstants.Text.DIGITS_ONLY, "");
+                if (digits.isEmpty()) {
+                    warnings.add("engine size is not a number");
+                } else {
+                    try {
+                        int cc = Integer.parseInt(digits);
+                        if (cc < 400 || cc > 8000) {
+                            warnings.add("engine size is outside 400–8,000 cc");
+                        }
+                    } catch (NumberFormatException ex) {
+                        warnings.add("engine size is not a number");
+                    }
+                }
+            }
+            flagJapanese(warnings, fields, "model");
+            flagJapanese(warnings, fields, "color");
+            flagJapanese(warnings, fields, "grade");
+            flagJapanese(warnings, fields, "fuel");
+            String chassis = fields.get("chassisNo");
+            if (!isBlank(chassis) && !chassis.toUpperCase(Locale.ROOT).matches("[A-Z0-9]{3,}-[A-Z0-9]{4,}")) {
+                warnings.add("chassis number looks uncertain");
+            }
+            return warnings;
+        }
+
+        private void require(java.util.List<String> warnings, Map<String, String> fields, String key, String label) {
+            if (isBlank(fields.get(key))) {
+                warnings.add(label + " is missing");
+            }
+        }
+
+        private void flagJapanese(java.util.List<String> warnings, Map<String, String> fields, String key) {
+            String value = fields.get(key);
+            if (!isBlank(value) && AuctionSheetEnglish.containsJapanese(value)) {
+                warnings.add(key + " is still in Japanese");
+            }
         }
 
         private String repairOcrNoise(String text) {
@@ -438,6 +644,57 @@ public class WorkingSheet implements DocumentParser {
             }
         }
 
+        private void preferKnownModel(AuctionParseResult result, String text) {
+            String known = matchKnownModel(text);
+            if (known == null) {
+                return;
+            }
+            String current = result.getFields().get("model");
+            if (isBlank(current) || isFieldLabel(current) || !current.toLowerCase().contains(known.toLowerCase())) {
+                result.put("model", known);
+                result.put("make", inferMake(text, known));
+            }
+        }
+
+        private void applyScoreColumn(AuctionParseResult result, String text) {
+            Matcher merged = RegexConstants.AuctionSheet.Identity.MERGED_SR.matcher(text);
+            if (merged.find()) {
+                String grade = result.getFields().get("grade");
+                if (isBlank(grade) || grade.matches(".*\\d{3,}.*") || grade.length() > 12) {
+                    result.put("grade", "S");
+                }
+                if (isBlank(result.getFields().get("auctionGrade"))) {
+                    result.put("auctionGrade", "R");
+                }
+            }
+            Matcher column = RegexConstants.AuctionSheet.Identity.SCORE_COLUMN.matcher(text);
+            if (column.find()) {
+                result.put("auctionGrade", column.group(1).toUpperCase());
+                if (isBlank(result.getFields().get("exteriorGrade"))) {
+                    result.put("exteriorGrade", column.group(2).toUpperCase());
+                }
+                if (isBlank(result.getFields().get("interiorGrade"))) {
+                    result.put("interiorGrade", column.group(3).toUpperCase());
+                }
+            }
+        }
+
+        private String alignChassisPrefix(String chassis, String modelCode) {
+            if (isBlank(chassis) || isBlank(modelCode)) {
+                return chassis;
+            }
+            String prefix = chassisPrefix(modelCode);
+            int dash = chassis.indexOf('-');
+            if (prefix == null || dash <= 0) {
+                return chassis;
+            }
+            String head = chassis.substring(0, dash);
+            if (prefix.endsWith(head) && prefix.length() > head.length()) {
+                return prefix + chassis.substring(dash);
+            }
+            return chassis;
+        }
+
         private void applyIdentity(AuctionParseResult result, String haystack) {
             if (haystack == null || haystack.trim().isEmpty()) {
                 return;
@@ -466,6 +723,11 @@ public class WorkingSheet implements DocumentParser {
             for (String english : MODEL_MAKES.keySet()) {
                 if (english != null && upper.contains(english.toUpperCase())) {
                     return english;
+                }
+            }
+            for (Map.Entry<String, String> entry : JP_MODELS.entrySet()) {
+                if (haystack.contains(entry.getKey())) {
+                    return entry.getValue();
                 }
             }
             return null;
@@ -514,8 +776,11 @@ public class WorkingSheet implements DocumentParser {
                     + " " + nullToEmpty(result.getFields().get("chassisNo")));
             for (Map.Entry<String, String[]> entry : CODE_MODELS.entrySet()) {
                 if (haystack.contains(entry.getKey())) {
-                    if (result.getFields().get("model") == null) {
-                        result.put("model", entry.getValue()[0]);
+                    String known = entry.getValue()[0];
+                    String current = result.getFields().get("model");
+                    if (isBlank(current) || AuctionSheetEnglish.containsJapanese(current)
+                            || !current.toLowerCase().contains(known.toLowerCase())) {
+                        result.put("model", known);
                     }
                     if (result.getFields().get("make") == null) {
                         result.put("make", entry.getValue()[1]);
@@ -832,10 +1097,15 @@ public class WorkingSheet implements DocumentParser {
             Matcher label = RegexConstants.AuctionSheet.Identity.FIRST_REG_LABEL.matcher(text);
             while (label.find()) {
                 int from = label.start();
-                int to = Math.min(text.length(), label.end() + 80);
-                int[] parsed = extractEraDate(text.substring(from, to), false);
+                int to = Math.min(text.length(), label.end() + 140);
+                String window = text.substring(from, to);
+                int[] parsed = extractEraDate(window, false);
                 if (parsed != null) {
                     return parsed;
+                }
+                int[] yen = eraFromYen(window);
+                if (yen != null) {
+                    return yen;
                 }
             }
             Matcher yearMonth = RegexConstants.AuctionSheet.Identity.MODEL_YEAR_LABEL.matcher(text);
@@ -858,8 +1128,9 @@ public class WorkingSheet implements DocumentParser {
         private int[] extractEraDate(String window, boolean headerOnly) {
             Matcher reiwa = RegexConstants.AuctionSheet.Identity.REIWA.matcher(window);
             if (reiwa.find()) {
+                int eraYear = "元".equals(reiwa.group(1)) ? 1 : Integer.parseInt(reiwa.group(1));
                 int month = Integer.parseInt(reiwa.group(2));
-                if (month >= 1 && month <= 12) {
+                if (eraYear >= 1 && eraYear <= 15 && month >= 1 && month <= 12) {
                     return new int[] {toWesternYear("令和", reiwa.group(1)), month};
                 }
             }
@@ -870,6 +1141,10 @@ public class WorkingSheet implements DocumentParser {
                 if (eraYear >= 1 && eraYear <= 31 && month >= 1 && month <= 12) {
                     return new int[] {toWesternYear("平成", heisei.group(1)), month};
                 }
+            }
+            int[] yen = eraFromYen(window);
+            if (yen != null) {
+                return yen;
             }
             Matcher jpYearMonth = RegexConstants.Dates.JP_YEAR_MONTH_PATTERN.matcher(window);
             if (jpYearMonth.find()) {
@@ -903,6 +1178,25 @@ public class WorkingSheet implements DocumentParser {
                         return new int[] {2018 + eraYear, month};
                     }
                 }
+            }
+            return null;
+        }
+
+        private int[] eraFromYen(String window) {
+            Matcher yen = RegexConstants.AuctionSheet.Identity.ERA_AS_YEN.matcher(window);
+            if (!yen.find()) {
+                return null;
+            }
+            int eraYear = Integer.parseInt(yen.group(1));
+            int month = Integer.parseInt(yen.group(2));
+            if (month < 1 || month > 12) {
+                return null;
+            }
+            if (eraYear >= 9 && eraYear <= 31) {
+                return new int[] {1988 + eraYear, month};
+            }
+            if (eraYear >= 1 && eraYear <= 8) {
+                return new int[] {2018 + eraYear, month};
             }
             return null;
         }
@@ -1037,10 +1331,18 @@ public class WorkingSheet implements DocumentParser {
         }
 
         private String codeHaystack(String text) {
-            return text.toUpperCase().replace('Ｏ', '0').replace('O', '0');
+            return text.toUpperCase()
+                    .replace('Ｏ', '0')
+                    .replace('O', '0')
+                    .replaceAll("NHP[I1]0", "NHP10")
+                    .replace("DAA-NHP", "DBA-NHP");
         }
 
         private String extractMileage(String text) {
+            Matcher grid = RegexConstants.AuctionSheet.Specs.MILEAGE_DIGIT_GRID.matcher(text);
+            if (grid.find()) {
+                return grid.group(1).replaceAll("\\s+", "") + " km";
+            }
             Matcher withUnit = RegexConstants.AuctionSheet.Specs.MILEAGE_LABELED_UNIT
                     .matcher(text);
             if (withUnit.find()) {
@@ -1198,9 +1500,9 @@ public class WorkingSheet implements DocumentParser {
             String labeled = extract(text, new String[] {
                     "評価点", "評点", "点数", "総合評価", "評価", "Evaluation", "Rating", "Auction grade", "Overall grade"
             });
-            if (labeled != null) {
+            if (labeled != null && !labeled.toLowerCase().startsWith("score")) {
                 Matcher value = RegexConstants.AuctionSheet.Grade.EVAL_VALUE.matcher(labeled.trim());
-                if (value.find()) {
+                if (value.find() && labeled.trim().length() <= 3) {
                     return value.group(1);
                 }
             }
@@ -1234,17 +1536,28 @@ public class WorkingSheet implements DocumentParser {
         }
 
         private String extractGrade(String text) {
-            String raw = extract(text, new String[] {"グレード", "Vehicle grade", "Trim"});
-            if (isVehicleGrade(raw)) {
-                return Objects.requireNonNull(raw).replaceAll(RegexConstants.Text.WHITESPACE, " ").trim();
+            String raw = acceptVehicleGrade(extract(text, new String[] {"グレード", "Vehicle grade", "Trim"}));
+            if (raw != null) {
+                return raw;
             }
             Matcher labeled = RegexConstants.AuctionSheet.Identity.GRADE_NAME
                     .matcher(text);
             if (labeled.find()) {
-                String grade = cleanValue(labeled.group(1));
-                if (isVehicleGrade(grade) && !isFieldLabel(grade)) {
-                    return grade.replaceAll(RegexConstants.Text.WHITESPACE, " ").trim();
-                }
+                return acceptVehicleGrade(cleanValue(labeled.group(1)));
+            }
+            return null;
+        }
+
+        private String acceptVehicleGrade(String raw) {
+            if (!hasContent(raw) || isFieldLabel(raw)) {
+                return null;
+            }
+            String trimmed = raw.replaceAll(RegexConstants.Text.WHITESPACE, " ").trim();
+            if (isSpecToken(trimmed) || trimmed.matches(".*\\d{3,}.*") || trimmed.toLowerCase().contains("yen")) {
+                return null;
+            }
+            if (isVehicleGrade(trimmed) || trimmed.matches("(?i)[A-Z][A-Z0-9.+]{0,3}")) {
+                return trimmed;
             }
             return null;
         }
@@ -1634,8 +1947,9 @@ public class WorkingSheet implements DocumentParser {
                     "Chassis number", "Vehicle name", "Car name", "Model name", "Model code",
                     "First registration", "Mileage", "Exterior color", "Interior color",
                     "Displacement", "Engine size", "Transmission", "Fuel", "Evaluation",
-                    "Lot number", "Door shape", "Seating capacity", "Grade", "History",
-                    "Air conditioner", "Specifications"};
+                    "Lot number", "Door shape", "Door/shape", "Seating capacity", "Grade", "History",
+                    "Air conditioner", "Specifications", "Listing number", "Evaluation score",
+                    "Manufacturer", "Selling points", "Vehicle history"};
             String lower = trimmed.toLowerCase();
             for (String label : labels) {
                 String key = label.toLowerCase();
@@ -1671,7 +1985,57 @@ public class WorkingSheet implements DocumentParser {
         }
 
         private String translateColor(String value) {
+            String mapped = japaneseColor(value);
+            if (mapped != null) {
+                return mapped;
+            }
             return translator.translateJaToEn(value);
+        }
+
+        private String japaneseColor(String value) {
+            if (value == null || value.isEmpty()) {
+                return null;
+            }
+            if (value.contains("ブルー") || value.contains("青") || value.contains("紺")) {
+                return "Blue";
+            }
+            if (value.contains("ホワイト") || value.contains("白") || value.contains("パール")) {
+                return "White";
+            }
+            if (value.contains("ブラック") || value.contains("黒")) {
+                return "Black";
+            }
+            if (value.contains("シルバー") || value.contains("銀")) {
+                return "Silver";
+            }
+            if (value.contains("グレー") || value.contains("グレイ") || value.contains("灰")) {
+                return "Gray";
+            }
+            if (value.contains("レッド") || value.contains("赤")) {
+                return "Red";
+            }
+            if (value.contains("グリーン") || value.contains("緑")) {
+                return "Green";
+            }
+            if (value.contains("ベージュ")) {
+                return "Beige";
+            }
+            if (value.contains("ゴールド") || value.contains("金")) {
+                return "Gold";
+            }
+            if (value.contains("イエロー") || value.contains("黄")) {
+                return "Yellow";
+            }
+            if (value.contains("ブラウン") || value.contains("茶")) {
+                return "Brown";
+            }
+            if (value.contains("ピンク")) {
+                return "Pink";
+            }
+            if (value.contains("パープル") || value.contains("紫")) {
+                return "Purple";
+            }
+            return null;
         }
 
         private String translateTransmission(String value) {

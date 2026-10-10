@@ -111,6 +111,7 @@
                     <a th:href="@{/ready-for-sale/{s}/{c}(s=${record.saleCode}, c=${vehicle.chassisNo})}"
                        class="panel-btn ghost import-form-submit">Back</a>
                     <button type="submit" class="panel-btn import-form-submit">Save</button>
+                    <button th:replace="import-pipeline/fragments/form-actions :: pipelineSkip('listing', '/ready-for-sale/')"></button>
                 </div>
             </form>
         </main>

@@ -27,5 +27,17 @@
     Skip
 </button>
 
+<th:block th:fragment="pipelineSkip(stageKey, actionPrefix)"
+          th:with="skipChassis=${#ctx.containsVariable('vehicle') and vehicle != null and vehicle.chassisNo != null and !#strings.isEmpty(vehicle.chassisNo) ? vehicle.chassisNo : (#ctx.containsVariable('certificate') and certificate != null and certificate.chassisNo != null and !#strings.isEmpty(certificate.chassisNo) ? certificate.chassisNo : null)}">
+    <button type="submit"
+            class="panel-btn ghost import-form-submit skip-stage-btn"
+            formnovalidate="formnovalidate"
+            formmethod="post"
+            th:if="${stageKey != null and skipChassis != null and !#strings.isEmpty(skipChassis) and @stageSkipSupport.canSkip(skipChassis, stageKey)}"
+            th:formaction="@{${@skippedStageService.skipAction(skipChassis, stageKey, actionPrefix)}}">
+        Skip
+    </button>
+</th:block>
+
 </body>
 </html>

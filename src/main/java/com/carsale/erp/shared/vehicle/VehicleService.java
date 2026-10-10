@@ -16,6 +16,8 @@ import com.carsale.erp.importpipeline.repository.StandardsCertificateRepository;
 import com.carsale.erp.importpipeline.repository.PreShipmentInspectionRepository;
 import com.carsale.erp.readypipeline.repository.SaleListingRepository;
 import com.carsale.erp.readypipeline.repository.VehicleRegistrationRepository;
+import com.carsale.erp.preparationpipeline.repository.PreviousOwnerRepository;
+import com.carsale.erp.preparationpipeline.repository.RegistrationCertificateRepository;
 import com.carsale.erp.preparationpipeline.repository.VehicleInspectionRepository;
 import com.carsale.erp.preparationpipeline.repository.WorkshopJobRepository;
 import com.carsale.erp.preparationpipeline.repository.YardRecordRepository;
@@ -35,6 +37,8 @@ public class VehicleService {
     private final WorkshopJobRepository workshopJobRepository;
     private final YardRecordRepository yardRecordRepository;
     private final VehicleInspectionRepository vehicleInspectionRepository;
+    private final RegistrationCertificateRepository registrationCertificateRepository;
+    private final PreviousOwnerRepository previousOwnerRepository;
     private final SaleListingRepository saleListingRepository;
     private final VehicleRegistrationRepository vehicleRegistrationRepository;
 
@@ -52,6 +56,8 @@ public class VehicleService {
             WorkshopJobRepository workshopJobRepository,
             YardRecordRepository yardRecordRepository,
             VehicleInspectionRepository vehicleInspectionRepository,
+            RegistrationCertificateRepository registrationCertificateRepository,
+            PreviousOwnerRepository previousOwnerRepository,
             SaleListingRepository saleListingRepository,
             VehicleRegistrationRepository vehicleRegistrationRepository
     ) {
@@ -68,6 +74,8 @@ public class VehicleService {
         this.workshopJobRepository = workshopJobRepository;
         this.yardRecordRepository = yardRecordRepository;
         this.vehicleInspectionRepository = vehicleInspectionRepository;
+        this.registrationCertificateRepository = registrationCertificateRepository;
+        this.previousOwnerRepository = previousOwnerRepository;
         this.saleListingRepository = saleListingRepository;
         this.vehicleRegistrationRepository = vehicleRegistrationRepository;
     }
@@ -112,6 +120,9 @@ public class VehicleService {
         if (!isNew) {
             preserveExistingStockNo(vehicle, existing);
             preserveExistingDocument(vehicle, existing);
+            if (vehicle.getIntake() == null) {
+                vehicle.setIntake(existing.getIntake());
+            }
         } else if (vehicle.getStockNo() == null || vehicle.getStockNo().trim().isEmpty()) {
             vehicle.setStockNo(nextAvailableStockNo());
         }
@@ -215,6 +226,14 @@ public class VehicleService {
         workshopJobRepository.findById(chassisNo).ifPresent(workshopJobRepository::delete);
         yardRecordRepository.findById(chassisNo).ifPresent(yardRecordRepository::delete);
         vehicleInspectionRepository.findById(chassisNo).ifPresent(vehicleInspectionRepository::delete);
+        registrationCertificateRepository.findById(chassisNo).ifPresent(record -> {
+            documentStorageService.deleteRegistrationCertificateIfExists(record.getDocumentStoredName());
+            registrationCertificateRepository.delete(record);
+        });
+        previousOwnerRepository.findById(chassisNo).ifPresent(record -> {
+            documentStorageService.deleteIdCardIfExists(record.getDocumentStoredName());
+            previousOwnerRepository.delete(record);
+        });
     }
 
     private void deleteCustomsData(String chassisNo, boolean keepOdometerCertificate) {

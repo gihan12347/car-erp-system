@@ -114,9 +114,14 @@
                                 </button>
                             </div>
                         </div>
-                        <div class="summary-empty" th:if="${summary.photos.isEmpty()}">
-                            <img th:src="@{/images/dashboard/illu-car.svg}" alt="">
-                            <p>Photos appear here once they are added on the vehicle images step.</p>
+                        <div class="summary-gallery" th:if="${summary.photos.isEmpty()}">
+                            <div class="summary-stage">
+                                <img th:src="@{/images/vehicle-default.jpg}" alt="Default vehicle image">
+                                <p class="summary-stage-caption">
+                                    <span>Default image</span>
+                                    <span>Photos replace this once they are added.</span>
+                                </p>
+                            </div>
                         </div>
                     </article>
 
@@ -195,7 +200,7 @@
                         <div class="summary-block-head">
                             <div>
                                 <h2>Vehicle</h2>
-                                <p>Specification captured from the auction sheet.</p>
+                                <p>Specification for this vehicle.</p>
                             </div>
                         </div>
                         <dl class="summary-specs">

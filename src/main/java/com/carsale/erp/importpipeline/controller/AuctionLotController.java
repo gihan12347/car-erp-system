@@ -72,8 +72,8 @@ public class AuctionLotController {
     private final GradeSearchService gradeSearchService;
     private final VehiclePhotoService vehiclePhotoService;
     private final PipelineStageService pipelineStageService;
-    private final WorkingSheet.AuctionSheetParser parser;
     private final OcrImagePreparer imagePreparer;
+    private final WorkingSheet.AuctionSheetParser parser;
 
     public AuctionLotController(
             VehicleService vehicleService,
@@ -103,8 +103,8 @@ public class AuctionLotController {
         this.gradeSearchService = gradeSearchService;
         this.vehiclePhotoService = vehiclePhotoService;
         this.pipelineStageService = pipelineStageService;
-        this.parser = parser;
         this.imagePreparer = imagePreparer;
+        this.parser = parser;
     }
 
     @GetMapping

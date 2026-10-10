@@ -178,7 +178,7 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script th:src="@{/js/shared/app.js(v=20260905k)}"></script>
-<script th:src="@{/js/shared/place-map.js(v=20261004a)}"></script>
+<script th:src="@{/js/shared/place-map.js(v=20261005a)}"></script>
 <script>
 (function () {
     var modal = document.getElementById("saleAddModal");
@@ -204,15 +204,14 @@
     }
 
     function refreshMap() {
-        if (!modal) {
+        if (!modal || typeof window.mountPlaceMaps !== "function") {
             return;
         }
-        var node = modal.querySelector(".place-map");
-        if (node && node._placeMap) {
-            setTimeout(function () {
-                node._placeMap.invalidateSize();
-            }, 60);
-        }
+        window.requestAnimationFrame(function () {
+            window.setTimeout(function () {
+                window.mountPlaceMaps(modal);
+            }, 40);
+        });
     }
 
     function closeModal() {

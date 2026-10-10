@@ -1,6 +1,7 @@
 package com.carsale.erp.shared.document.document;
 
 import com.carsale.erp.shared.ocr.DocumentAiClient;
+import com.carsale.erp.shared.ocr.dto.DocumentAiEntity;
 import com.carsale.erp.shared.utils.CustomsDocumentParserUtils;
 import com.carsale.erp.shared.regex.RegexConstants;
 import com.carsale.erp.importpipeline.util.AuctionParseResult;
@@ -79,18 +80,17 @@ public class AssessmentNotice implements DocumentParser {
     @Override
     public AuctionParseResult parsePage(DocumentAiClient.DocumentAiResult documentAi) {
         AuctionParseResult result = new AuctionParseResult();
-
         if (documentAi == null) {
             result.setSuccess(false);
             result.setMessage("Document AI returned no result.");
             return result;
         }
         result.setRawText(documentAi.getText());
-        List<DocumentAiClient.DocumentAiEntity> entities = documentAi.getEntities();
+        List<DocumentAiEntity> entities = documentAi.getEntities();
         String pendingCode = null;
         String pendingValue = null;
         if (entities != null) {
-            for (DocumentAiClient.DocumentAiEntity entity : entities) {
+            for (DocumentAiEntity entity : entities) {
                 if (entity == null) {
                     continue;
                 }
@@ -226,7 +226,7 @@ public class AssessmentNotice implements DocumentParser {
 
     private TaxParseResult handleTaxType(
             String type,
-            DocumentAiClient.DocumentAiEntity entity,
+            DocumentAiEntity entity,
             AuctionParseResult result,
             String pendingCode,
             String pendingValue) {

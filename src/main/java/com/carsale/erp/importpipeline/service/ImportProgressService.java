@@ -3,6 +3,7 @@ package com.carsale.erp.importpipeline.service;
 import com.carsale.erp.customspipeline.service.CustomsDocumentService;
 import com.carsale.erp.shared.pipeline.PipelineProgress;
 import com.carsale.erp.shared.pipeline.FlowStage;
+import com.carsale.erp.shared.pipeline.SkippedStageService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -12,7 +13,6 @@ import com.carsale.erp.shared.vehicle.VehicleRepository;
 
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -41,6 +41,7 @@ public class ImportProgressService {
     private final ExportCertificateService exportCertificateService;
     private final GradeSearchService gradeSearchService;
     private final VehiclePhotoService vehiclePhotoService;
+    private final SkippedStageService skippedStageService;
 
     public ImportProgressService(
             VehicleRepository vehicleRepository,
@@ -51,7 +52,8 @@ public class ImportProgressService {
             StandardsCertificateService standardsCertificateService,
             ExportCertificateService exportCertificateService,
             GradeSearchService gradeSearchService,
-            VehiclePhotoService vehiclePhotoService
+            VehiclePhotoService vehiclePhotoService,
+            SkippedStageService skippedStageService
     ) {
         this.vehicleRepository = vehicleRepository;
         this.preShipmentService = preShipmentService;
@@ -62,6 +64,7 @@ public class ImportProgressService {
         this.exportCertificateService = exportCertificateService;
         this.gradeSearchService = gradeSearchService;
         this.vehiclePhotoService = vehiclePhotoService;
+        this.skippedStageService = skippedStageService;
     }
 
     public ImportProgress progressFor(Vehicle vehicle) {
@@ -80,7 +83,7 @@ public class ImportProgressService {
                 vehiclePhotoService.hasPhotos(chassisNo),
                 gradeSearchService.hasDocument(chassisNo),
                 customsDocumentService.hasWorksheet(chassisNo),
-                parseSkippedStages(vehicle.getSkippedStages()));
+                skippedStageService.matching(vehicle, IMPORT_STAGE_KEYS));
     }
 
     @Transactional
@@ -97,10 +100,7 @@ public class ImportProgressService {
         if (progressFor(vehicle).isStageFilled(stage.getStageKey())) {
             return;
         }
-        Set<String> skipped = parseSkippedStages(vehicle.getSkippedStages());
-        skipped.add(stage.getStageKey());
-        vehicle.setSkippedStages(joinSkippedStages(skipped));
-        vehicleRepository.save(vehicle);
+        skippedStageService.add(vehicle.getChassisNo(), stage.getStageKey());
         syncVehicleStage(vehicle.getChassisNo());
     }
 
@@ -120,36 +120,10 @@ public class ImportProgressService {
             return "|";
         }
         StringBuilder token = new StringBuilder("|");
-        for (String key : parseSkippedStages(vehicle.getSkippedStages())) {
+        for (String key : skippedStageService.matching(vehicle, IMPORT_STAGE_KEYS)) {
             token.append(key).append('|');
         }
         return token.toString();
-    }
-
-    static Set<String> parseSkippedStages(String stored) {
-        Set<String> keys = new LinkedHashSet<String>();
-        if (stored == null || stored.trim().isEmpty()) {
-            return keys;
-        }
-        String[] parts = stored.split(",");
-        for (String part : parts) {
-            FlowStage stage = FlowStage.fromKey(part);
-            if (stage != null && IMPORT_STAGE_KEYS.contains(stage.getStageKey())) {
-                keys.add(stage.getStageKey());
-            }
-        }
-        return keys;
-    }
-
-    private static String joinSkippedStages(Set<String> keys) {
-        StringBuilder stored = new StringBuilder();
-        for (String key : keys) {
-            if (stored.length() > 0) {
-                stored.append(',');
-            }
-            stored.append(key);
-        }
-        return stored.toString();
     }
 
     public ImportProgress progressFor(String chassisNo) {

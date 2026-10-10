@@ -21,6 +21,7 @@ import com.carsale.erp.preparationpipeline.service.PreparationProgressService;
 import com.carsale.erp.readypipeline.model.SaleListing;
 import com.carsale.erp.readypipeline.repository.SaleListingRepository;
 import com.carsale.erp.shared.vehicle.Vehicle;
+import com.carsale.erp.shared.vehicle.VehicleIntake;
 import com.carsale.erp.shared.vehicle.VehicleService;
 
 import java.nio.charset.StandardCharsets;
@@ -202,6 +203,12 @@ public class ReportService {
         }
         if (listing != null && listing.isListed()) {
             return LISTED;
+        }
+        if (vehicle.getIntake() == VehicleIntake.LOCAL_REGISTERED) {
+            if (!preparationProgressService.progressFor(vehicle).isPipelineCompleted()) {
+                return PREPARATION;
+            }
+            return READY;
         }
         if (!importProgressService.progressFor(vehicle).isPipelineCompleted()) {
             return IMPORT;

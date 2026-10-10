@@ -6,20 +6,17 @@
     <aside th:replace="shared/sidebar :: sidebar(${activeMenu})"></aside>
     <div class="app-main">
         <header th:replace="shared/topbar :: topbar"></header>
-        <main class="page-content">
-            <div class="dash-head">
+        <main class="page-content import-board">
+            <div class="import-hero">
                 <div>
                     <a th:href="@{/ready-for-sale}" class="config-crumb">
-                        <i class="fa-solid fa-tags" aria-hidden="true"></i>
+                        <svg viewBox="0 0 24 24" aria-hidden="true" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 12.2 12 4.8h6.2v6.2l-7.4 7.4z"/><circle cx="15.6" cy="8.4" r="1"/></svg>
                         Sale groups
                     </a>
+                    <p class="import-kicker">Fleet operations</p>
                     <h1 th:text="${saleGroup != null ? saleGroup.title : 'Sale pipeline'}">Sale pipeline</h1>
-                    <p class="form-lead" th:if="${saleGroup != null and !saleGroup.unassigned}">
-                        Details, listing, then registration for vehicles in this sale group.
-                    </p>
-                    <p class="form-lead" th:if="${saleGroup != null and saleGroup.unassigned}">
-                        Vehicles in the sale pipeline that do not have a sale assigned yet.
-                    </p>
+                    <p th:if="${saleGroup != null and !saleGroup.unassigned}">Details, listing, then registration for vehicles in this sale group.</p>
+                    <p th:if="${saleGroup != null and saleGroup.unassigned}">Vehicles in the sale pipeline that do not have a sale assigned yet.</p>
                 </div>
             </div>
 
@@ -27,29 +24,53 @@
             <p th:if="${successMessage}" class="alert alert-ok" th:text="${successMessage}"></p>
             <p th:if="${error}" class="alert alert-error" th:text="${error}"></p>
 
-            <form method="get" th:action="@{/ready-for-sale/pipeline}" class="auction-search">
+            <form method="get" th:action="@{/ready-for-sale/pipeline}" class="import-toolbar">
                 <input type="hidden" name="sale" th:value="${saleFilter}">
-                <div class="auction-search-field">
-                    <i class="fa-solid fa-magnifying-glass"></i>
+                <label class="import-search">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <circle cx="11" cy="11" r="6.5"/>
+                        <path d="M16 16.5 20 20.5"/>
+                    </svg>
                     <input type="search" name="q" th:value="${searchQuery}"
-                           placeholder="Search chassis, model, lot, stock...">
-                </div>
-                <button type="submit" class="panel-btn auction-search-btn">Search</button>
+                           placeholder="Search chassis, model, lot, or stock">
+                </label>
+                <button type="submit" class="import-tool">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <circle cx="11" cy="11" r="6.5"/>
+                        <path d="M16 16.5 20 20.5"/>
+                    </svg>
+                    <span>Search</span>
+                </button>
                 <a th:if="${searchQuery != null and !#strings.isEmpty(searchQuery)}"
                    th:href="@{/ready-for-sale/pipeline(sale=${saleFilter})}"
-                   class="panel-btn ghost auction-search-btn">Clear</a>
+                   class="import-tool is-quiet">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M6 6l12 12M18 6 6 18"/>
+                    </svg>
+                    <span>Clear</span>
+                </a>
             </form>
 
-            <article class="panel">
+            <article class="panel import-panel">
                 <div class="table-wrap is-fit" th:if="${!rows.isEmpty()}">
-                    <table class="pipeline-table is-flow is-short">
+                    <table class="pipeline-table is-flow is-import is-compact">
                         <thead>
                         <tr>
-                            <th>Chassis</th>
-                            <th>Vehicle</th>
-                            <th>Pipeline</th>
-                            <th>Status</th>
-                            <th>Actions</th>
+                            <th class="pipeline-vehicle-col">
+                                <span class="import-th"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 16.5 7 8h10l3 8.5"/><path d="M6 16.5h12"/><circle cx="8" cy="17.2" r="1.2"/><circle cx="16" cy="17.2" r="1.2"/></svg> Vehicle</span>
+                            </th>
+                            <th class="pipeline-chassis-col">
+                                <span class="import-th"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="7" width="18" height="10" rx="2"/><path d="M7 12h10"/></svg> Chassis</span>
+                            </th>
+                            <th>
+                                <span class="import-th"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h16"/><path d="M14 6l6 6-6 6"/></svg> Pipeline</span>
+                            </th>
+                            <th class="pipeline-status-col">
+                                <span class="import-th"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7"/><path d="M12 8.5V12l2.5 2"/></svg> Status</span>
+                            </th>
+                            <th class="pipeline-actions-col">
+                                <span class="import-th"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="18" cy="12" r="1.2"/></svg> Actions</span>
+                            </th>
                         </tr>
                         </thead>
                         <tbody>
@@ -58,10 +79,13 @@
                                      keys=${pipelineKeys != null ? pipelineKeys : @pipelineStageService.keys('READY')},
                                      pendingKey=${row.status.firstIncompleteStageKey(keys)}"
                             th:classappend="${row.status.pipelineCompleted} ? ' pipeline-row-complete' : ''">
-                            <td><a th:replace="shared/chassis-link :: chassisLink(${row.vehicle.chassisNo})">NHP10-884211</a></td>
-                            <td>
-                                <strong th:text="${row.vehicle.model != null ? row.vehicle.model : '—'}">Toyota Aqua</strong>
+                            <td class="pipeline-vehicle-cell">
+                                <strong th:text="${row.vehicle.model != null ? row.vehicle.model : '—'}"
+                                        th:title="${row.vehicle.model}">Toyota Aqua</strong>
                                 <div class="muted" th:text="${row.vehicle.lotNo != null ? 'Lot ' + row.vehicle.lotNo : (row.vehicle.stockNo != null ? row.vehicle.stockNo : '')}">Lot 36497</div>
+                            </td>
+                            <td class="pipeline-chassis-cell">
+                                <a th:replace="shared/chassis-link :: chassisLink(${row.vehicle.chassisNo})">NHP10-884211</a>
                             </td>
                             <td class="list-pipeline-cell">
                                 <div class="list-pipeline"
@@ -70,45 +94,58 @@
                                      th:attr="data-completed=${row.status.completedCount}">
                                     <ol class="list-pipeline-flow">
                                         <li th:each="stage, iter : ${stages}"
-                                            th:with="ready=${row.status.isStageComplete(stage.stageKey)},
-                                                     nextReady=${!iter.last and row.status.isStageComplete(stages[iter.count].stageKey)},
-                                                     current=${!ready and pendingKey == stage.stageKey},
+                                            th:with="skipped=${row.status.isStageSkipped(stage.stageKey)},
+                                                     ready=${!skipped and row.status.isStageComplete(stage.stageKey)},
+                                                     nextSkipped=${!iter.last and row.status.isStageSkipped(stages[iter.count].stageKey)},
+                                                     nextReady=${!iter.last and !nextSkipped and row.status.isStageComplete(stages[iter.count].stageKey)},
+                                                     current=${!ready and !skipped and pendingKey == stage.stageKey},
                                                      editHref=${@pipelineStageService.editUrlFor(#uris.escapePathSegment(row.vehicle.chassisNo), stage.stageKey)},
                                                      shortTitle=${@pipelineStageService.shortTitleFor(stage.stageKey)}"
-                                            th:classappend="${(ready ? ' is-done' : (current ? ' is-current' : ' is-pending')) + (ready and nextReady ? ' is-linked' : '')}"
+                                            th:classappend="${(skipped ? ' is-skipped' : (ready ? ' is-done' : (current ? ' is-current' : ' is-pending'))) + ((ready or skipped) and (nextReady or nextSkipped) ? ' is-linked' : '')}"
                                             th:style="'--step:' + ${iter.index}">
                                             <a th:if="${ready}"
                                                th:href="@{/ready-for-sale/{c}(c=${row.vehicle.chassisNo}, stage=${iter.index})}"
                                                class="list-pipeline-node"
                                                th:title="${stage.title + ' — complete'}">
-                                                <i class="fa-solid fa-check"></i>
+                                                <th:block th:replace="~{import-pipeline/fragments/stage-icon :: icon(${stage.stageKey})}"></th:block>
                                             </a>
-                                            <a th:if="${!ready and editHref != null}"
+                                            <a th:if="${skipped}"
+                                               th:href="@{/ready-for-sale/{c}(c=${row.vehicle.chassisNo}, stage=${iter.index})}"
+                                               class="list-pipeline-node"
+                                               th:title="${stage.title + ' — skipped'}">
+                                                <th:block th:replace="~{import-pipeline/fragments/stage-icon :: icon(${stage.stageKey})}"></th:block>
+                                            </a>
+                                            <a th:if="${!ready and !skipped and editHref != null}"
                                                th:href="${editHref}"
                                                class="list-pipeline-node"
                                                th:title="${stage.title + (current ? ' — next' : ' — pending')}">
-                                                <span th:text="${iter.count}">1</span>
+                                                <th:block th:replace="~{import-pipeline/fragments/stage-icon :: icon(${stage.stageKey})}"></th:block>
                                             </a>
-                                            <span th:if="${!ready and editHref == null}"
+                                            <span th:if="${!ready and !skipped and editHref == null}"
                                                   class="list-pipeline-node"
                                                   th:title="${stage.title + (current ? ' — next' : ' — pending')}">
-                                                <span th:text="${iter.count}">1</span>
+                                                <th:block th:replace="~{import-pipeline/fragments/stage-icon :: icon(${stage.stageKey})}"></th:block>
                                             </span>
                                             <small th:text="${shortTitle != null ? shortTitle : stage.title}">Listing</small>
                                         </li>
                                     </ol>
                                 </div>
                             </td>
-                            <td>
-                                <em th:if="${row.status.registrationReady}" class="pill sea">Registered</em>
-                                <em th:if="${row.sold}" class="pill sea">Sold</em>
-                                <em th:if="${row.listed}" class="pill sea">Listed</em>
-                                <em th:unless="${row.listed or row.sold or row.status.registrationReady}" class="pill gold">Ready to list</em>
+                            <td class="pipeline-status-cell">
+                                <div class="import-status-stack">
+                                    <em th:if="${row.status.registrationReady}" class="import-status is-forward">Registered</em>
+                                    <em th:if="${row.sold}" class="import-status is-forward">Sold</em>
+                                    <em th:if="${row.listed}" class="import-status is-forward">Listed</em>
+                                    <em th:unless="${row.listed or row.sold or row.status.registrationReady}" class="import-status">
+                                        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7"/><path d="M12 8.5V12l2.2 2"/></svg>
+                                        Ready to list
+                                    </em>
+                                </div>
                             </td>
-                            <td>
+                            <td class="pipeline-actions-cell">
                                 <div class="table-row-actions">
                                     <a th:href="@{/ready-for-sale/{c}(c=${row.vehicle.chassisNo})}" class="table-btn view">
-                                        <i class="fa-solid fa-eye"></i>
+                                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12S6 6.5 12 6.5 21.5 12 21.5 12 18 17.5 12 17.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="2.4"/></svg>
                                         <span>View</span>
                                     </a>
                                     <div th:replace="shared/pipeline-delete :: pipelineDeleteBtn(
@@ -120,9 +157,10 @@
                         </tbody>
                     </table>
                 </div>
-                <p class="muted" th:if="${rows.isEmpty()}">
-                    No vehicles are in this sale group yet. Assign vehicles during preparation, then return here.
-                </p>
+                <div class="import-empty" th:if="${rows.isEmpty()}">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 12.2 12 4.8h6.2v6.2l-7.4 7.4z"/><circle cx="15.6" cy="8.4" r="1"/></svg>
+                    <p>No vehicles are in this sale group yet. Assign vehicles during preparation, then return here.</p>
+                </div>
             </article>
         </main>
     </div>

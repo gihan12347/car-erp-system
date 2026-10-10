@@ -8,28 +8,43 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.carsale.erp.shared.pipeline.FlowStage;
+import com.carsale.erp.shared.pipeline.SkippedStageService;
 import com.carsale.erp.shared.vehicle.Vehicle;
 import com.carsale.erp.shared.vehicle.VehicleRepository;
 import com.carsale.erp.shared.vehicle.VehicleStage;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
+
 @Service
 public class SaleListingService {
+
+    private static final List<String> READY_STAGE_KEYS = Arrays.asList(
+            FlowStage.DETAILS.getStageKey(),
+            FlowStage.LISTING.getStageKey(),
+            FlowStage.REGISTRATION.getStageKey()
+    );
 
     private final VehicleRepository vehicleRepository;
     private final SaleListingRepository saleListingRepository;
     private final SaleLocationService saleLocationService;
     private final VehicleRegistrationService vehicleRegistrationService;
+    private final SkippedStageService skippedStageService;
 
     public SaleListingService(
             VehicleRepository vehicleRepository,
             SaleListingRepository saleListingRepository,
             SaleLocationService saleLocationService,
-            VehicleRegistrationService vehicleRegistrationService
+            VehicleRegistrationService vehicleRegistrationService,
+            SkippedStageService skippedStageService
     ) {
         this.vehicleRepository = vehicleRepository;
         this.saleListingRepository = saleListingRepository;
         this.saleLocationService = saleLocationService;
         this.vehicleRegistrationService = vehicleRegistrationService;
+        this.skippedStageService = skippedStageService;
     }
 
     public SaleListing findByChassisNo(String chassisNo) {
@@ -79,7 +94,37 @@ public class SaleListingService {
         boolean listed = record != null && record.isListed() && !record.isSold();
         boolean sold = record != null && record.isSold();
         boolean registrationReady = vehicleRegistrationService.isComplete(chassisNo);
-        return new SaleProgress(true, listed || sold, registrationReady, sold);
+        Vehicle vehicle = chassisNo == null || chassisNo.trim().isEmpty()
+                ? null
+                : vehicleRepository.findById(chassisNo.trim()).orElse(null);
+        return new SaleProgress(
+                true,
+                listed || sold,
+                registrationReady,
+                sold,
+                skippedStageService.matching(vehicle, READY_STAGE_KEYS)
+        );
+    }
+
+    public boolean isStageSatisfied(String chassisNo, String stageKey) {
+        return progressFor(chassisNo).isStageComplete(stageKey);
+    }
+
+    @Transactional
+    public void skipStage(String chassisNo, String stageKey) {
+        FlowStage stage = FlowStage.fromKey(stageKey);
+        if (stage == null || !READY_STAGE_KEYS.contains(stage.getStageKey())) {
+            throw new IllegalArgumentException("That stage cannot be skipped.");
+        }
+        if (chassisNo == null || chassisNo.trim().isEmpty()) {
+            throw new IllegalArgumentException("Chassis number is required.");
+        }
+        Vehicle vehicle = vehicleRepository.findById(chassisNo.trim())
+                .orElseThrow(() -> new IllegalArgumentException("Vehicle not found."));
+        if (progressFor(vehicle.getChassisNo()).isStageFilled(stage.getStageKey())) {
+            return;
+        }
+        skippedStageService.add(vehicle.getChassisNo(), stage.getStageKey());
     }
 
     @Transactional
@@ -188,12 +233,24 @@ public class SaleListingService {
         private final boolean listingReady;
         private final boolean registrationReady;
         private final boolean sold;
+        private final Set<String> skippedStages;
 
         public SaleProgress(boolean detailsReady, boolean listingReady, boolean registrationReady, boolean sold) {
+            this(detailsReady, listingReady, registrationReady, sold, Collections.<String>emptySet());
+        }
+
+        public SaleProgress(
+                boolean detailsReady,
+                boolean listingReady,
+                boolean registrationReady,
+                boolean sold,
+                Set<String> skippedStages
+        ) {
             this.detailsReady = detailsReady;
             this.listingReady = listingReady;
             this.registrationReady = registrationReady;
             this.sold = sold;
+            this.skippedStages = skippedStages == null ? Collections.<String>emptySet() : skippedStages;
         }
 
         public boolean isDetailsReady() {
@@ -214,21 +271,31 @@ public class SaleListingService {
 
         @Override
         public boolean hasAnyCompletedStage() {
-            return detailsReady || listingReady || registrationReady;
+            return completedCount() > 0;
         }
 
         @Override
         public int completedCount() {
-            return (detailsReady ? 1 : 0) + (listingReady ? 1 : 0) + (registrationReady ? 1 : 0);
+            int count = 0;
+            for (String key : READY_STAGE_KEYS) {
+                if (isStageComplete(key)) {
+                    count++;
+                }
+            }
+            return count;
         }
 
         @Override
         public boolean isPipelineCompleted() {
-            return detailsReady && listingReady && registrationReady;
+            for (String key : READY_STAGE_KEYS) {
+                if (!isStageComplete(key)) {
+                    return false;
+                }
+            }
+            return true;
         }
 
-        @Override
-        public boolean isStageComplete(String stageKey) {
+        public boolean isStageFilled(String stageKey) {
             if (FlowStage.DETAILS.getStageKey().equals(stageKey)) {
                 return detailsReady;
             }
@@ -236,6 +303,15 @@ public class SaleListingService {
                 return listingReady;
             }
             return FlowStage.REGISTRATION.getStageKey().equals(stageKey) && registrationReady;
+        }
+
+        public boolean isStageSkipped(String stageKey) {
+            return stageKey != null && skippedStages.contains(stageKey) && !isStageFilled(stageKey);
+        }
+
+        @Override
+        public boolean isStageComplete(String stageKey) {
+            return isStageFilled(stageKey) || (stageKey != null && skippedStages.contains(stageKey));
         }
 
         public String firstIncompleteStageKey(java.util.List<String> keys) {

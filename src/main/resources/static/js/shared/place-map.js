@@ -3,8 +3,10 @@
         return;
     }
 
-    var nodes = document.querySelectorAll(".place-map");
-    Array.prototype.forEach.call(nodes, function (node) {
+    function mountPlaceMap(node) {
+        if (!node || node._placeMap) {
+            return;
+        }
         var form = node.closest("form");
         if (!form) {
             return;
@@ -58,7 +60,8 @@
         });
 
         var clear = form.querySelector(".place-map-clear");
-        if (clear) {
+        if (clear && !clear._placeMapBound) {
+            clear._placeMapBound = true;
             clear.addEventListener("click", function () {
                 if (marker) {
                     map.removeLayer(marker);
@@ -76,8 +79,23 @@
         }
 
         node._placeMap = map;
-        window.setTimeout(function () {
-            map.invalidateSize();
-        }, 80);
-    });
+    }
+
+    function mountPlaceMaps(root) {
+        var scope = root && root.querySelectorAll ? root : document;
+        var nodes = scope.querySelectorAll(".place-map");
+        Array.prototype.forEach.call(nodes, function (node) {
+            var modal = node.closest(".yard-modal");
+            if (modal && !modal.classList.contains("is-open")) {
+                return;
+            }
+            mountPlaceMap(node);
+            if (node._placeMap) {
+                node._placeMap.invalidateSize();
+            }
+        });
+    }
+
+    window.mountPlaceMaps = mountPlaceMaps;
+    mountPlaceMaps(document);
 })();

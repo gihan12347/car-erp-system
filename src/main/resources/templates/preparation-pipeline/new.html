@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="shared/head :: head(${pageTitle})"></head>
+<body class="sheet-page import-form-page jevic-page">
+<div class="app-shell">
+    <aside th:replace="shared/sidebar :: sidebar(${activeMenu})"></aside>
+    <div class="app-main">
+        <header th:replace="shared/topbar :: topbar"></header>
+        <main class="page-content">
+            <div class="dash-head">
+                <div>
+                    <h1>Vehicle book</h1>
+                    <p class="form-lead">Upload the certificate of registration. Auto fill reads it with Document AI. Images and the previous owner come next, then preparation.</p>
+                </div>
+                <div th:if="${editing}" th:replace="shared/pipeline-delete :: pipelineDeleteBtn(
+                        @{/registered/{c}/delete(c=${certificate.chassisNo})},
+                        'Delete this registered vehicle and all of its data? This cannot be undone.')"></div>
+            </div>
+            <div th:if="${editing}" th:replace="registered/steps :: steps('book', ${certificate.chassisNo}, ${progress})"></div>
+
+            <p th:if="${notice}" class="alert alert-ok" th:text="${notice}"></p>
+            <p th:if="${errorMessage}" class="alert alert-error" th:text="${errorMessage}"></p>
+
+            <form th:action="${editing} ? @{/workshop-yard/{chassisNo}/certificate(chassisNo=${certificate.chassisNo})} : @{/workshop-yard/new}"
+                  th:object="${certificate}" method="post" class="vehicle-form clearance-form" id="registrationForm">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                <input type="hidden" th:field="*{ocrText}" id="ocrText">
+                <input type="hidden" th:field="*{documentOriginalName}" id="documentOriginalName">
+                <input type="hidden" th:field="*{documentStoredName}" id="documentStoredName">
+                <input type="hidden" th:field="*{documentContentType}" id="documentContentType">
+
+                <div class="sheet-layout preship-layout">
+                    <div class="sheet-document-col">
+                        <aside class="panel sheet-document" id="sheetPreview"
+                               th:classappend="${certificate.documentStoredName != null and !#strings.isEmpty(certificate.documentStoredName)} ? ' has-file' : ''">
+                            <div class="panel-head">
+                                <h2>Document preview</h2>
+                            </div>
+                            <div class="sheet-preview-frame" id="sheetPreviewFrame"
+                                 th:with="hasDoc=${certificate.documentStoredName != null and !#strings.isEmpty(certificate.documentStoredName)},
+                                          isPdf=${certificate.documentStoredName != null and ((certificate.documentContentType != null and #strings.contains(certificate.documentContentType, 'pdf')) or #strings.endsWith(certificate.documentStoredName, '.pdf'))}">
+                                <div class="sheet-preview-empty" id="sheetPreviewEmpty" th:hidden="${hasDoc}">
+                                    <i class="fa-solid fa-file-circle-plus"></i>
+                                    <strong>No preview yet</strong>
+                                    <span>Use <strong>Choose file</strong> below to upload the certificate of registration.</span>
+                                </div>
+                                <img id="sheetPreviewImage"
+                                     alt="Registration certificate preview"
+                                     th:hidden="${!hasDoc or isPdf}"
+                                     th:src="${hasDoc and !isPdf} ? @{/workshop-yard/documents/{name}(name=${certificate.documentStoredName})} : null">
+                                <iframe id="sheetPreviewPdf"
+                                        title="Registration certificate PDF"
+                                        th:hidden="${!hasDoc or !isPdf}"
+                                        th:src="${hasDoc and isPdf} ? @{/workshop-yard/documents/{name}(name=${certificate.documentStoredName})} : null"></iframe>
+                            </div>
+                        </aside>
+                        <div th:replace="shared/document-upload-toolbar :: documentUploadToolbar(
+                                'Certificate of registration',
+                                '',
+                                ${certificate.documentOriginalName},
+                                'Choose a JPG, PNG, or PDF certificate to upload and preview.',
+                                'google-only')"></div>
+                    </div>
+
+                    <div class="sheet-fields preship-fields">
+                        <article class="panel">
+                            <div class="panel-head"><h2>Certificate</h2></div>
+                            <div class="field-grid">
+                                <label>CR number
+                                    <input type="text" th:field="*{crNo}" maxlength="80">
+                                </label>
+                                <label>Registration number
+                                    <input type="text" th:field="*{registrationNo}" maxlength="80">
+                                </label>
+                                <label>Chassis number
+                                    <input type="text" th:field="*{chassisNo}" id="chassisNo" maxlength="40" required th:readonly="${editing}">
+                                </label>
+                                <label>Engine number
+                                    <input type="text" th:field="*{engineNo}" maxlength="80">
+                                </label>
+                                <label>Class of vehicle
+                                    <input type="text" th:field="*{classOfVehicle}">
+                                </label>
+                                <label>Taxation class
+                                    <input type="text" th:field="*{taxationClass}">
+                                </label>
+                                <label>Status when registered
+                                    <input type="text" th:field="*{statusWhenRegistered}">
+                                </label>
+                                <label>Make
+                                    <input type="text" th:field="*{make}" maxlength="80">
+                                </label>
+                                <label>Model
+                                    <input type="text" th:field="*{model}" maxlength="80">
+                                </label>
+                                <label>Manufacturer description
+                                    <input type="text" th:field="*{manufacturesDescription}">
+                                </label>
+                                <label>Colour
+                                    <input type="text" th:field="*{colour}" maxlength="80">
+                                </label>
+                                <label>Type of body
+                                    <input type="text" th:field="*{typeOfBody}">
+                                </label>
+                                <label>Fuel type
+                                    <input type="text" th:field="*{fuelType}">
+                                </label>
+                                <label>Cylinder capacity
+                                    <input type="text" th:field="*{cylinderCapacity}">
+                                </label>
+                                <label>Seating capacity
+                                    <input type="text" th:field="*{seatingCapacity}">
+                                </label>
+                                <label>Year of manufacture
+                                    <input type="text" th:field="*{yearOfManufacture}" maxlength="40">
+                                </label>
+                                <label>Country of origin
+                                    <input type="text" th:field="*{countryOfOrigin}">
+                                </label>
+                                <label>Date of first registration
+                                    <input type="text" th:field="*{dateOfFirstRegistration}">
+                                </label>
+                                <label>Mileage
+                                    <input type="text" id="mileage" th:field="*{mileage}" maxlength="40">
+                                </label>
+                            </div>
+                        </article>
+                        <article class="panel">
+                            <div class="panel-head"><h2>Size and weight</h2></div>
+                            <div class="field-grid">
+                                <label>Length<input type="text" th:field="*{length}"></label>
+                                <label>Width<input type="text" th:field="*{width}"></label>
+                                <label>Height<input type="text" th:field="*{height}"></label>
+                                <label>Wheel base<input type="text" th:field="*{wheelBase}"></label>
+                                <label>Over hang<input type="text" th:field="*{overHang}"></label>
+                                <label>Unladen weight<input type="text" th:field="*{weightUnladen}"></label>
+                                <label>Gross weight<input type="text" th:field="*{weightGross}"></label>
+                                <label>Tyre size front<input type="text" th:field="*{tyreSizeFront}"></label>
+                                <label>Tyre size rear<input type="text" th:field="*{tyreSizeRear}"></label>
+                                <label>Tyre size single<input type="text" th:field="*{tyreSizeSingle}"></label>
+                                <label>Tyre size dual<input type="text" th:field="*{tyreSizeDual}"></label>
+                            </div>
+                        </article>
+                        <article class="panel">
+                            <div class="panel-head"><h2>Owners</h2></div>
+                            <div class="field-grid">
+                                <label>Absolute owner
+                                    <textarea th:field="*{absoluteOwner}" rows="3"></textarea>
+                                </label>
+                                <label>Current owner, address, and ID
+                                    <textarea th:field="*{currentOwnerAddressIdNo}" rows="3"></textarea>
+                                </label>
+                                <label>Previous owners
+                                    <textarea th:field="*{previousOwners}" rows="3"></textarea>
+                                </label>
+                                <label>Conditions / special notes
+                                    <textarea th:field="*{conditionsSpecialNotes}" rows="3"></textarea>
+                                </label>
+                                <label>Provincial council
+                                    <input type="text" th:field="*{provincialCouncil}">
+                                </label>
+                                <label>Taxes payable
+                                    <input type="text" th:field="*{taxesPayable}">
+                                </label>
+                                <label>Printed date
+                                    <input type="text" th:field="*{printedDate}">
+                                </label>
+                            </div>
+                            <div class="import-view-actions">
+                                <a th:href="@{/workshop-yard}" class="panel-btn ghost import-form-submit">Cancel</a>
+                                <button type="submit" class="panel-btn import-form-submit" th:text="${editing} ? 'Save' : 'Save and continue'">Save and continue</button>
+                                <button th:if="${editing}" th:replace="import-pipeline/fragments/form-actions :: pipelineSkip('reg-book', '/registered/')"></button>
+                            </div>
+                        </article>
+                    </div>
+                </div>
+            </form>
+        </main>
+    </div>
+</div>
+
+<div id="sheetViewer" class="sheet-viewer" hidden>
+    <div class="sheet-viewer-toolbar">
+        <strong id="sheetViewerTitle">Certificate of registration</strong>
+        <div class="sheet-viewer-tools">
+            <button type="button" class="panel-btn ghost" id="sheetPrevEmptyField" title="Previous empty field">Prev</button>
+            <button type="button" class="panel-btn ghost" id="sheetZoomOut" title="Zoom out">−</button>
+            <button type="button" class="panel-btn ghost" id="sheetZoomIn" title="Zoom in">+</button>
+            <button type="button" class="panel-btn ghost" id="sheetNextEmptyField" title="Next empty field">Next</button>
+            <button type="button" class="panel-btn ghost" id="sheetViewerClose">Close</button>
+        </div>
+    </div>
+    <div class="sheet-viewer-body" id="sheetViewerBody">
+        <img id="sheetViewerImage" alt="Certificate of registration">
+        <iframe id="sheetViewerPdf" title="Certificate of registration PDF" hidden></iframe>
+    </div>
+</div>
+
+<div th:replace="shared/app-loader :: appLoader('fillLoader', 'Reading the registration certificate and filling fields...')"></div>
+
+<script th:src="@{/js/shared/app.js(v=20260905k)}"></script>
+<script th:src="@{/js/shared/document-viewer.js(v=20260826d)}"></script>
+<script th:src="@{/js/preparation-pipeline/registration.js(v=20261010a)}"></script>
+</body>
+</html>

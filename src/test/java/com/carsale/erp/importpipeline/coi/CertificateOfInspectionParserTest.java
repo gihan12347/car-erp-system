@@ -8,6 +8,7 @@ import java.util.List;
 import com.carsale.erp.importpipeline.util.AuctionParseResult;
 import com.carsale.erp.shared.document.document.CertificateOfInspectionParser;
 import com.carsale.erp.shared.ocr.DocumentAiClient;
+import com.carsale.erp.shared.ocr.dto.DocumentAiEntity;
 import org.junit.jupiter.api.Test;
 
 class CertificateOfInspectionParserTest {
@@ -16,7 +17,7 @@ class CertificateOfInspectionParserTest {
 
     @Test
     void parsePageMapsDocumentAiEntitiesAndNormalizesInspectionDate() {
-        List<DocumentAiClient.DocumentAiEntity> entities = new ArrayList<>();
+        List<DocumentAiEntity> entities = new ArrayList<>();
         entities.add(entity("certificate_number", "LK1-A000705"));
         entities.add(entity("chassis_number", "JF5-1141982"));
         entities.add(entity("engine_capacity", "650"));
@@ -65,7 +66,7 @@ class CertificateOfInspectionParserTest {
         assertThat(result.getFields()).isEmpty();
     }
 
-    private static DocumentAiClient.DocumentAiEntity entity(String type, String value) {
-        return new DocumentAiClient.DocumentAiEntity(type, value, 0.99);
+    private static DocumentAiEntity entity(String type, String value) {
+        return new DocumentAiEntity(type, value, 0.99);
     }
 }

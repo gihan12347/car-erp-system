@@ -4,9 +4,13 @@ import com.carsale.erp.readypipeline.service.SaleListingService;
 import com.carsale.erp.customspipeline.service.CustomsProgressService;
 import com.carsale.erp.shared.pipeline.PipelineProgress;
 import com.carsale.erp.shared.pipeline.FlowStage;
+import com.carsale.erp.shared.pipeline.SkippedStageService;
 import com.carsale.erp.shared.vehicle.VehicleService;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,6 +24,18 @@ import com.carsale.erp.shared.vehicle.VehicleRepository;
 @Service
 public class PreparationProgressService {
 
+    private static final List<String> PREP_STAGE_KEYS = Arrays.asList(
+            FlowStage.INSPECTION.getStageKey(),
+            FlowStage.WORKSHOP.getStageKey(),
+            FlowStage.YARD.getStageKey(),
+            FlowStage.SALE.getStageKey()
+    );
+    private static final List<String> REQUIRED_STAGE_KEYS = Arrays.asList(
+            FlowStage.INSPECTION.getStageKey(),
+            FlowStage.WORKSHOP.getStageKey(),
+            FlowStage.YARD.getStageKey()
+    );
+
     private final VehicleRepository vehicleRepository;
     private final VehicleService vehicleService;
     private final CustomsProgressService customsProgressService;
@@ -27,6 +43,7 @@ public class PreparationProgressService {
     private final YardService yardService;
     private final VehicleInspectionService vehicleInspectionService;
     private final SaleListingService saleListingService;
+    private final SkippedStageService skippedStageService;
 
     public PreparationProgressService(
             VehicleRepository vehicleRepository,
@@ -35,7 +52,8 @@ public class PreparationProgressService {
             WorkshopService workshopService,
             YardService yardService,
             VehicleInspectionService vehicleInspectionService,
-            SaleListingService saleListingService
+            SaleListingService saleListingService,
+            SkippedStageService skippedStageService
     ) {
         this.vehicleRepository = vehicleRepository;
         this.vehicleService = vehicleService;
@@ -44,6 +62,7 @@ public class PreparationProgressService {
         this.yardService = yardService;
         this.vehicleInspectionService = vehicleInspectionService;
         this.saleListingService = saleListingService;
+        this.skippedStageService = skippedStageService;
     }
 
     public PreparationProgress progressFor(Vehicle vehicle) {
@@ -57,13 +76,37 @@ public class PreparationProgressService {
         if (chassisNo == null || chassisNo.trim().isEmpty()) {
             return new PreparationProgress(false, false, false, false, false);
         }
+        Vehicle vehicle = vehicleRepository.findById(chassisNo.trim()).orElse(null);
         return new PreparationProgress(
                 workshopService.isComplete(chassisNo),
                 yardService.isComplete(chassisNo),
                 vehicleInspectionService.isComplete(chassisNo),
                 workshopService.canEnterYard(chassisNo),
-                false
+                false,
+                skippedStageService.matching(vehicle, PREP_STAGE_KEYS)
         );
+    }
+
+    public boolean isStageSatisfied(String chassisNo, String stageKey) {
+        return progressFor(chassisNo).isStageComplete(stageKey);
+    }
+
+    @Transactional
+    public void skipStage(String chassisNo, String stageKey) {
+        FlowStage stage = FlowStage.fromKey(stageKey);
+        if (stage == null || !PREP_STAGE_KEYS.contains(stage.getStageKey())) {
+            throw new IllegalArgumentException("That stage cannot be skipped.");
+        }
+        if (chassisNo == null || chassisNo.trim().isEmpty()) {
+            throw new IllegalArgumentException("Chassis number is required.");
+        }
+        Vehicle vehicle = vehicleRepository.findById(chassisNo.trim())
+                .orElseThrow(() -> new IllegalArgumentException("Vehicle not found."));
+        if (progressFor(vehicle).isStageFilled(stage.getStageKey())) {
+            return;
+        }
+        skippedStageService.add(vehicle.getChassisNo(), stage.getStageKey());
+        syncVehicleStage(vehicle.getChassisNo());
     }
 
     public boolean isEligible(Vehicle vehicle) {
@@ -160,13 +203,26 @@ public class PreparationProgressService {
         private final boolean inspectionReady;
         private final boolean canEnterYard;
         private final boolean saleReady;
+        private final Set<String> skippedStages;
 
         public PreparationProgress(boolean workshopReady, boolean yardReady, boolean inspectionReady, boolean canEnterYard, boolean saleReady) {
+            this(workshopReady, yardReady, inspectionReady, canEnterYard, saleReady, Collections.<String>emptySet());
+        }
+
+        public PreparationProgress(
+                boolean workshopReady,
+                boolean yardReady,
+                boolean inspectionReady,
+                boolean canEnterYard,
+                boolean saleReady,
+                Set<String> skippedStages
+        ) {
             this.workshopReady = workshopReady;
             this.yardReady = yardReady;
             this.inspectionReady = inspectionReady;
             this.canEnterYard = canEnterYard;
             this.saleReady = saleReady;
+            this.skippedStages = skippedStages == null ? Collections.<String>emptySet() : skippedStages;
         }
 
         public boolean isWorkshopReady() {
@@ -191,19 +247,30 @@ public class PreparationProgressService {
 
         @Override
         public boolean hasAnyCompletedStage() {
-            return workshopReady || yardReady || inspectionReady;
+            return completedCount() > 0;
         }
 
         @Override
         public int completedCount() {
-            return (workshopReady ? 1 : 0) + (yardReady ? 1 : 0) + (inspectionReady ? 1 : 0);
+            int count = 0;
+            for (String key : REQUIRED_STAGE_KEYS) {
+                if (isStageComplete(key)) {
+                    count++;
+                }
+            }
+            return count;
         }
 
         public boolean isPipelineCompleted() {
-            return workshopReady && yardReady && inspectionReady;
+            for (String key : REQUIRED_STAGE_KEYS) {
+                if (!isStageComplete(key)) {
+                    return false;
+                }
+            }
+            return true;
         }
 
-        public boolean isStageComplete(String stageKey) {
+        public boolean isStageFilled(String stageKey) {
             if (FlowStage.INSPECTION.getStageKey().equals(stageKey)) {
                 return inspectionReady;
             }
@@ -217,6 +284,14 @@ public class PreparationProgressService {
                 return saleReady;
             }
             return false;
+        }
+
+        public boolean isStageSkipped(String stageKey) {
+            return stageKey != null && skippedStages.contains(stageKey) && !isStageFilled(stageKey);
+        }
+
+        public boolean isStageComplete(String stageKey) {
+            return isStageFilled(stageKey) || (stageKey != null && skippedStages.contains(stageKey));
         }
 
          public String firstIncompleteStageKey(List<String> keys) {

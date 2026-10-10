@@ -1,6 +1,7 @@
 package com.carsale.erp.shared.document.document;
 
 import com.carsale.erp.shared.ocr.DocumentAiClient;
+import com.carsale.erp.shared.ocr.dto.DocumentAiEntity;
 import com.carsale.erp.shared.utils.CustomsDocumentParserUtils;
 import com.carsale.erp.shared.regex.RegexConstants;
 import com.carsale.erp.importpipeline.util.AuctionParseResult;
@@ -59,9 +60,9 @@ public class CustomsDeclaration implements DocumentParser {
             return result;
         }
         result.setRawText(documentAi.getText());
-        List<DocumentAiClient.DocumentAiEntity> entities = documentAi.getEntities();
+        List<DocumentAiEntity> entities = documentAi.getEntities();
         if (entities != null) {
-            for (DocumentAiClient.DocumentAiEntity entity : entities) {
+            for (DocumentAiEntity entity : entities) {
                 if (entity == null) {
                     continue;
                 }

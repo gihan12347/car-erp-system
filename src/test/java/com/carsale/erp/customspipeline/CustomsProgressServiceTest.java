@@ -4,6 +4,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
 
+import java.util.Collections;
+
 import com.carsale.erp.customspipeline.service.CustomsProgressService.CustomsProgress;
 
 class CustomsProgressServiceTest {
@@ -32,5 +34,18 @@ class CustomsProgressServiceTest {
                 .isNull();
         assertThat(complete.firstIncompleteStageKey(java.util.Arrays.asList("bl", "declaration", "assessment")))
                 .isNull();
+    }
+
+    @Test
+    void skippedCustomsStageCountsAsComplete() {
+        CustomsProgress skippedBl = new CustomsProgress(
+                false, false, false, false, Collections.singleton("bl"));
+
+        assertThat(skippedBl.isStageSkipped("bl")).isTrue();
+        assertThat(skippedBl.isStageComplete("bl")).isTrue();
+        assertThat(skippedBl.completedCount()).isEqualTo(1);
+        assertThat(skippedBl.isPipelineCompleted()).isFalse();
+        assertThat(skippedBl.firstIncompleteStageKey(java.util.Arrays.asList("bl", "declaration", "assessment")))
+                .isEqualTo("declaration");
     }
 }

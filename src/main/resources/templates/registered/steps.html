@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<nav th:fragment="steps(currentStep, chassisNo, progress)"
+     class="import-pipeline panel"
+     th:with="bookFilled=${progress != null and progress.bookFilled},
+              bookSkipped=${progress != null and progress.bookSkipped},
+              photosFilled=${progress != null and progress.photosFilled},
+              photosSkipped=${progress != null and progress.photosSkipped},
+              ownerFilled=${progress != null and progress.ownerFilled},
+              ownerSkipped=${progress != null and progress.ownerSkipped},
+              bookDone=${bookFilled or bookSkipped},
+              photosDone=${photosFilled or photosSkipped},
+              ownerDone=${ownerFilled or ownerSkipped},
+              registeredComplete=${bookDone and photosDone and ownerDone},
+              vehicleLabel=${progress != null and progress.vehicle != null and progress.vehicle.model != null ? progress.vehicle.model : chassisNo}"
+     th:classappend="${registeredComplete} ? ' is-import-complete' : ''"
+     aria-label="Registered vehicle pipeline">
+    <div class="import-pipeline-head">
+        <div>
+            <strong class="import-pipeline-kicker">Registered vehicle pipeline</strong>
+            <p class="import-pipeline-lead" th:if="${chassisNo != null and !#strings.isEmpty(chassisNo)}">
+                <span th:text="${vehicleLabel}">Toyota Aqua</span>
+                · <a th:replace="shared/chassis-link :: chassisLink(${chassisNo})">NHP10-884211</a>
+            </p>
+        </div>
+        <a th:if="${chassisNo != null and !#strings.isEmpty(chassisNo)}"
+           th:href="@{/registered}"
+           class="import-pipeline-hub-link">
+            <i class="fa-solid fa-list"></i> All vehicles
+        </a>
+    </div>
+
+    <div class="import-pipeline-scroller">
+        <ol class="import-pipeline-steps is-fill"
+            th:style="'--pipeline-cols: ' + (${registeredComplete} ? 4 : 3)">
+            <li data-registered-step="book"
+                th:classappend="${(currentStep == 'book' ? ' is-current' : '') + (bookFilled ? ' is-done' : (bookSkipped ? ' is-skipped' : ' is-pending'))}">
+                <a th:href="@{/workshop-yard/{c}/certificate(c=${chassisNo})}" class="import-pipeline-step">
+                    <span class="import-pipeline-step-icon">
+                        <i th:if="${bookFilled}" class="fa-solid fa-check"></i>
+                        <span th:unless="${bookFilled}">1</span>
+                    </span>
+                    <span class="import-pipeline-step-copy">
+                        <strong>Vehicle book</strong>
+                        <small>Certificate of registration</small>
+                        <em class="pipeline-step-status" th:classappend="${bookFilled} ? ' done' : ' pending'"
+                            th:text="${bookFilled} ? 'Complete' : 'Pending'">Pending</em>
+                    </span>
+                </a>
+            </li>
+            <li data-registered-step="photos"
+                th:classappend="${(currentStep == 'photos' ? ' is-current' : '') + (photosFilled ? ' is-done' : (photosSkipped ? ' is-skipped' : ' is-pending'))}">
+                <a th:href="@{/registered/{c}/photos(c=${chassisNo})}" class="import-pipeline-step">
+                    <span class="import-pipeline-step-icon">
+                        <i th:if="${photosFilled}" class="fa-solid fa-check"></i>
+                        <span th:unless="${photosFilled}">2</span>
+                    </span>
+                    <span class="import-pipeline-step-copy">
+                        <strong>Images</strong>
+                        <small>Vehicle photos</small>
+                        <em class="pipeline-step-status" th:classappend="${photosFilled} ? ' done' : ' pending'"
+                            th:text="${photosFilled} ? 'Complete' : 'Pending'">Pending</em>
+                    </span>
+                </a>
+            </li>
+            <li data-registered-step="owner"
+                th:classappend="${(currentStep == 'owner' ? ' is-current' : '') + (ownerFilled ? ' is-done' : (ownerSkipped ? ' is-skipped' : ' is-pending'))}">
+                <a th:href="@{/registered/{c}/owner(c=${chassisNo})}" class="import-pipeline-step">
+                    <span class="import-pipeline-step-icon">
+                        <i th:if="${ownerFilled}" class="fa-solid fa-check"></i>
+                        <span th:unless="${ownerFilled}">3</span>
+                    </span>
+                    <span class="import-pipeline-step-copy">
+                        <strong>Previous owner</strong>
+                        <small>Identity card and owner details</small>
+                        <em class="pipeline-step-status" th:classappend="${ownerFilled} ? ' done' : ' pending'"
+                            th:text="${ownerFilled} ? 'Complete' : 'Pending'">Pending</em>
+                    </span>
+                </a>
+            </li>
+            <li th:if="${registeredComplete}" class="is-workshop-next">
+                <a th:href="@{/workshop-yard/{c}(c=${chassisNo})}"
+                   class="import-pipeline-step import-pipeline-step-workshop">
+                    <span class="import-pipeline-step-icon">
+                        <i class="fa-solid fa-wrench"></i>
+                    </span>
+                    <span class="import-pipeline-step-copy">
+                        <strong>Preparation pipeline</strong>
+                        <small>Inspection, workshop, and yard</small>
+                        <em class="pipeline-step-status workshop-next">
+                            Continue <i class="fa-solid fa-arrow-right"></i>
+                        </em>
+                    </span>
+                </a>
+            </li>
+        </ol>
+    </div>
+
+    <p class="import-pipeline-note" th:if="${!registeredComplete}">
+        <i class="fa-solid fa-circle-info"></i>
+        Finish the vehicle book, images, and previous owner. Preparation opens after all three are saved.
+    </p>
+    <script th:src="@{/js/shared/pipeline-scroll.js(v=20260905a)}"></script>
+</nav>
+
+</body>
+</html>

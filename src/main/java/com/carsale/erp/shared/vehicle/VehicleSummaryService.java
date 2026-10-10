@@ -25,9 +25,14 @@ import com.carsale.erp.importpipeline.service.ImportProgressService.ImportProgre
 import com.carsale.erp.importpipeline.service.PreShipmentService;
 import com.carsale.erp.importpipeline.service.StandardsCertificateService;
 import com.carsale.erp.importpipeline.service.VehiclePhotoService;
+import com.carsale.erp.preparationpipeline.model.PreviousOwner;
+import com.carsale.erp.preparationpipeline.model.RegistrationCertificate;
+import com.carsale.erp.preparationpipeline.service.PreviousOwnerService;
+import com.carsale.erp.preparationpipeline.service.RegistrationCertificateService;
 import com.carsale.erp.readypipeline.model.SaleListing;
 import com.carsale.erp.readypipeline.service.SaleListingService;
 import com.carsale.erp.shared.pipeline.FlowStage;
+import com.carsale.erp.shared.pipeline.SkippedStageService;
 import com.carsale.erp.shared.vehicle.VehicleSummary.DocumentCard;
 import com.carsale.erp.shared.vehicle.VehicleSummary.PhotoCard;
 import com.carsale.erp.shared.vehicle.VehicleSummary.PriceBuilder;
@@ -48,6 +53,9 @@ public class VehicleSummaryService {
     private final VehiclePhotoService vehiclePhotoService;
     private final CustomsDocumentService customsDocumentService;
     private final SaleListingService saleListingService;
+    private final RegistrationCertificateService registrationCertificateService;
+    private final PreviousOwnerService previousOwnerService;
+    private final SkippedStageService skippedStageService;
 
     public VehicleSummaryService(
             VehicleService vehicleService,
@@ -60,7 +68,10 @@ public class VehicleSummaryService {
             GradeSearchService gradeSearchService,
             VehiclePhotoService vehiclePhotoService,
             CustomsDocumentService customsDocumentService,
-            SaleListingService saleListingService
+            SaleListingService saleListingService,
+            RegistrationCertificateService registrationCertificateService,
+            PreviousOwnerService previousOwnerService,
+            SkippedStageService skippedStageService
     ) {
         this.vehicleService = vehicleService;
         this.importProgressService = importProgressService;
@@ -73,6 +84,9 @@ public class VehicleSummaryService {
         this.vehiclePhotoService = vehiclePhotoService;
         this.customsDocumentService = customsDocumentService;
         this.saleListingService = saleListingService;
+        this.registrationCertificateService = registrationCertificateService;
+        this.previousOwnerService = previousOwnerService;
+        this.skippedStageService = skippedStageService;
     }
 
     public VehicleSummary build(String chassisNo) {
@@ -157,6 +171,9 @@ public class VehicleSummaryService {
             List<PhotoCard> photos,
             String chassis
     ) {
+        if (vehicle.getIntake() == VehicleIntake.LOCAL_REGISTERED) {
+            return registeredDocuments(photos, chassis);
+        }
         List<DocumentCard> documents = new ArrayList<DocumentCard>();
         PreShipmentInspection preship = preShipmentService.findByChassisNo(chassis);
         EquipmentInspection equipment = equipmentInspectionService.findByChassisNo(chassis);
@@ -164,6 +181,7 @@ public class VehicleSummaryService {
         StandardsCertificate standards = standardsCertificateService.findByChassisNo(chassis);
         ExportCertificate exportCertificate = exportCertificateService.findByChassisNo(chassis);
         GradeSearch grade = gradeSearchService.findByChassisNo(chassis);
+        RegistrationCertificate registration = registrationCertificateService.findByChassisNo(chassis);
 
         addDocument(
                 documents, progress, "Auction sheet", "Import", "fa-solid fa-gavel",
@@ -255,7 +273,7 @@ public class VehicleSummaryService {
         );
         addDocument(
                 documents, null, "Bill of lading", "Customs", "fa-solid fa-file-lines",
-                null,
+                FlowStage.BILL_OF_LADING.getStageKey(),
                 clearance != null && text(clearance.getPage5StoredName()) != null,
                 clearance == null ? null : clearance.getPage5OriginalName(),
                 clearance == null ? null : clearance.getPage5ContentType(),
@@ -264,7 +282,7 @@ public class VehicleSummaryService {
         );
         addDocument(
                 documents, null, "Customs declaration(CUSDEC)", "Customs", "fa-solid fa-file-invoice",
-                null,
+                FlowStage.DECLARATION.getStageKey(),
                 clearance != null && text(clearance.getPage2StoredName()) != null,
                 clearance == null ? null : clearance.getPage2OriginalName(),
                 clearance == null ? null : clearance.getPage2ContentType(),
@@ -273,14 +291,109 @@ public class VehicleSummaryService {
         );
         addDocument(
                 documents, null, "Assessment notice", "Customs", "fa-solid fa-scale-balanced",
-                null,
+                FlowStage.ASSESSMENT.getStageKey(),
                 clearance != null && text(clearance.getPage3StoredName()) != null,
                 clearance == null ? null : clearance.getPage3OriginalName(),
                 clearance == null ? null : clearance.getPage3ContentType(),
                 clearance == null ? null : clearance.getPage3StoredName(),
                 "/assessment/documents/", "/assessment/", chassis
         );
+        boolean bookOnFile = registration != null && text(registration.getDocumentStoredName()) != null;
+        addDocument(
+                documents, null, "Vehicle book", "Sale", "fa-solid fa-id-card",
+                FlowStage.REGISTRATION.getStageKey(),
+                bookOnFile,
+                registration == null ? null : registration.getDocumentOriginalName(),
+                registration == null ? null : registration.getDocumentContentType(),
+                registration == null ? null : registration.getDocumentStoredName(),
+                "/workshop-yard/documents/", "/registration/", chassis
+        );
         return documents;
+    }
+
+    private List<DocumentCard> registeredDocuments(List<PhotoCard> photos, String chassis) {
+        List<DocumentCard> documents = new ArrayList<DocumentCard>();
+        RegistrationCertificate registration = registrationCertificateService.findByChassisNo(chassis);
+        boolean bookOnFile = registration != null && text(registration.getDocumentStoredName()) != null;
+        String bookStored = registration == null ? null : registration.getDocumentStoredName();
+        String encoded = UriUtils.encodePathSegment(chassis, StandardCharsets.UTF_8);
+        addRegisteredDocument(
+                documents,
+                "Vehicle book",
+                "fa-solid fa-id-card",
+                SkippedStageService.REG_BOOK,
+                bookOnFile,
+                registration == null ? null : registration.getDocumentOriginalName(),
+                registration == null ? null : registration.getDocumentContentType(),
+                bookOnFile ? fileUrl("/workshop-yard/documents/", bookStored) : null,
+                "/workshop-yard/" + encoded + "/certificate",
+                chassis
+        );
+        addRegisteredDocument(
+                documents,
+                "Images",
+                "fa-solid fa-images",
+                SkippedStageService.REG_PHOTOS,
+                !photos.isEmpty(),
+                photos.isEmpty() ? null : photos.size() + (photos.size() == 1 ? " image" : " images"),
+                null,
+                null,
+                "/registered/" + encoded + "/photos",
+                chassis
+        );
+        PreviousOwner owner = previousOwnerService.findByChassisNo(chassis);
+        boolean ownerOnFile = owner != null && text(owner.getDocumentStoredName()) != null;
+        addRegisteredDocument(
+                documents,
+                "Owner document",
+                "fa-solid fa-address-card",
+                SkippedStageService.REG_OWNER,
+                ownerOnFile,
+                owner == null ? null : owner.getDocumentOriginalName(),
+                owner == null ? null : owner.getDocumentContentType(),
+                ownerOnFile ? fileUrl("/registered/documents/", owner.getDocumentStoredName()) : null,
+                "/registered/" + encoded + "/owner",
+                chassis
+        );
+        return documents;
+    }
+
+    private void addRegisteredDocument(
+            List<DocumentCard> documents,
+            String title,
+            String icon,
+            String stageKey,
+            boolean onFile,
+            String fileName,
+            String contentType,
+            String fileUrl,
+            String stageUrl,
+            String chassis
+    ) {
+        boolean skipped = !onFile && skippedStageService.isMarked(chassis, stageKey);
+        String status;
+        String statusLabel;
+        if (onFile) {
+            status = "on-file";
+            statusLabel = "On file";
+        } else if (skipped) {
+            status = "skipped";
+            statusLabel = "Skipped";
+        } else {
+            status = "pending";
+            statusLabel = "Pending";
+        }
+        documents.add(new DocumentCard(
+                title,
+                "Registered",
+                status,
+                statusLabel,
+                text(fileName),
+                fileUrl,
+                stageUrl,
+                fileUrl != null && isPdf(contentType, fileName),
+                icon
+        ));
     }
 
     private void addDocument(
@@ -298,7 +411,10 @@ public class VehicleSummaryService {
             String stagePath,
             String chassis
     ) {
-        boolean skipped = !onFile && progress != null && stageKey != null && progress.isStageSkipped(stageKey);
+        boolean skipped = !onFile && stageKey != null && (
+                (progress != null && progress.isStageSkipped(stageKey))
+                        || skippedStageService.isMarked(chassis, stageKey)
+        );
         String status;
         String statusLabel;
         if (onFile) {
@@ -402,6 +518,10 @@ public class VehicleSummaryService {
     }
 
     private List<SpecLine> specsFor(Vehicle vehicle) {
+        RegistrationCertificate book = registrationCertificateService.findByChassisNo(vehicle.getChassisNo());
+        if (book != null) {
+            return bookSpecs(book, vehicle);
+        }
         List<SpecLine> lines = new ArrayList<SpecLine>();
         addSpec(lines, "Make", vehicle.getMake());
         addSpec(lines, "Model", vehicle.getModel());
@@ -434,6 +554,53 @@ public class VehicleSummaryService {
         }
         addSpec(lines, "Equipment", vehicle.getEquipment());
         return lines;
+    }
+
+    private List<SpecLine> bookSpecs(RegistrationCertificate book, Vehicle vehicle) {
+        List<SpecLine> lines = new ArrayList<SpecLine>();
+        addSpec(lines, "CR number", book.getCrNo());
+        addSpec(lines, "Registration number", book.getRegistrationNo());
+        addSpec(lines, "Chassis", book.getChassisNo());
+        addSpec(lines, "Engine", book.getEngineNo());
+        addSpec(lines, "Class of vehicle", book.getClassOfVehicle());
+        addSpec(lines, "Taxation class", book.getTaxationClass());
+        addSpec(lines, "Status when registered", book.getStatusWhenRegistered());
+        addSpec(lines, "Make", firstText(book.getMake(), vehicle.getMake()));
+        addSpec(lines, "Model", firstText(book.getModel(), vehicle.getModel()));
+        addSpec(lines, "Manufacturer description", book.getManufacturesDescription());
+        addSpec(lines, "Colour", firstText(book.getColour(), vehicle.getColor()));
+        addSpec(lines, "Type of body", book.getTypeOfBody());
+        addSpec(lines, "Fuel", book.getFuelType());
+        addSpec(lines, "Cylinder capacity", book.getCylinderCapacity());
+        addSpec(lines, "Seats", book.getSeatingCapacity());
+        addSpec(lines, "Year of manufacture", firstText(book.getYearOfManufacture(), vehicle.getYear()));
+        addSpec(lines, "Country of origin", book.getCountryOfOrigin());
+        addSpec(lines, "Date of first registration", book.getDateOfFirstRegistration());
+        addSpec(lines, "Mileage", firstText(book.getMileage(), vehicle.getMileage()));
+        addSpec(lines, "Length", book.getLength());
+        addSpec(lines, "Width", book.getWidth());
+        addSpec(lines, "Height", book.getHeight());
+        addSpec(lines, "Wheel base", book.getWheelBase());
+        addSpec(lines, "Over hang", book.getOverHang());
+        addSpec(lines, "Unladen weight", book.getWeightUnladen());
+        addSpec(lines, "Gross weight", book.getWeightGross());
+        addSpec(lines, "Tyre size front", book.getTyreSizeFront());
+        addSpec(lines, "Tyre size rear", book.getTyreSizeRear());
+        addSpec(lines, "Tyre size single", book.getTyreSizeSingle());
+        addSpec(lines, "Tyre size dual", book.getTyreSizeDual());
+        addSpec(lines, "Absolute owner", book.getAbsoluteOwner());
+        addSpec(lines, "Current owner", book.getCurrentOwnerAddressIdNo());
+        addSpec(lines, "Previous owners", book.getPreviousOwners());
+        addSpec(lines, "Conditions", book.getConditionsSpecialNotes());
+        addSpec(lines, "Provincial council", book.getProvincialCouncil());
+        addSpec(lines, "Taxes payable", book.getTaxesPayable());
+        addSpec(lines, "Printed date", book.getPrintedDate());
+        return lines;
+    }
+
+    private static String firstText(String primary, String fallback) {
+        String value = text(primary);
+        return value != null ? value : text(fallback);
     }
 
     private List<String> notesFor(Vehicle vehicle, SaleListing listing) {

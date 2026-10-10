@@ -9,6 +9,7 @@ import java.util.regex.Matcher;
 
 import com.carsale.erp.shared.document.DocumentParser;
 import com.carsale.erp.shared.ocr.DocumentAiClient;
+import com.carsale.erp.shared.ocr.dto.DocumentAiEntity;
 import com.carsale.erp.shared.utils.CustomsDocumentParserUtils;
 import com.carsale.erp.shared.regex.RegexConstants;
 import org.springframework.beans.factory.annotation.Value;
@@ -82,9 +83,9 @@ public class PreShipmentParser implements DocumentParser {
         }
         result.setRawText(documentAi.getText());
         Map<String, List<String>> multiValues = new LinkedHashMap<>();
-        List<DocumentAiClient.DocumentAiEntity> entities = documentAi.getEntities();
+        List<DocumentAiEntity> entities = documentAi.getEntities();
         if (entities != null) {
-            for (DocumentAiClient.DocumentAiEntity entity : entities) {
+            for (DocumentAiEntity entity : entities) {
                 if (entity == null) {
                     continue;
                 }

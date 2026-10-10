@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<th:block th:fragment="icon(key)">
+    <svg class="import-stage-ico" viewBox="0 0 24 24" aria-hidden="true" fill="none"
+         stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"
+         th:switch="${key}">
+        <g th:case="'auction'">
+            <path d="M20.5 13.2 12.2 21.5 4 13.3V4.8h8.5z"/>
+            <path d="M8.2 8.2h.01"/>
+        </g>
+        <g th:case="'preshipment'">
+            <path d="M3 16.5 5.2 19h13.6L21 16.5"/>
+            <path d="M4.2 16.5 12 12l7.8 4.5"/>
+            <path d="M12 12V4"/>
+            <path d="M12 6.5h3.6L18 9.2"/>
+        </g>
+        <g th:case="'equipment'">
+            <path d="M14.8 6.2a3.2 3.2 0 0 0-4.4 4.4L4 17.1 6.9 20l6.5-6.5a3.2 3.2 0 0 0 4.4-4.4l-2.2 2.2-1.6-.4-.4-1.6z"/>
+        </g>
+        <g th:case="'jevic'">
+            <path d="M5 16.5a7 7 0 1 1 14 0"/>
+            <path d="M12 16.5 15.2 12"/>
+            <path d="M8 19.5h8"/>
+        </g>
+        <g th:case="'coi'">
+            <path d="M9 4.5h6V7H9z"/>
+            <path d="M8 5.5H6.5v14h11v-14H16"/>
+            <path d="M9.2 13.2 11 15l3.8-3.8"/>
+        </g>
+        <g th:case="'standards'">
+            <path d="M12 3.5 19 6.4v5.4c0 4.2-2.8 6.6-7 8.2-4.2-1.6-7-4-7-8.2V6.4z"/>
+            <path d="M9.2 12.1 11 13.9l3.8-3.8"/>
+        </g>
+        <g th:case="'export'">
+            <path d="M14 3.5H7.5v17h10v-12z"/>
+            <path d="M14 3.5V8h4.5"/>
+            <path d="M10 14.5h4.5"/>
+        </g>
+        <g th:case="'grade'">
+            <circle cx="11" cy="11" r="5.5"/>
+            <path d="M15.5 15.5 19 19"/>
+            <path d="M9 11h4"/>
+        </g>
+        <g th:case="'photos'">
+            <rect x="4" y="5.5" width="16" height="13" rx="2"/>
+            <circle cx="9" cy="10" r="1.2"/>
+            <path d="m4.5 16 3.8-3 2.7 2 2.6-3.2 5.9 4.2"/>
+        </g>
+        <g th:case="'worksheet'">
+            <path d="M8 3.5h7l4 4V20H8z"/>
+            <path d="M15 3.5V8h4"/>
+            <path d="M11 12.5h5"/>
+            <path d="M11 16h5"/>
+        </g>
+        <g th:case="'bl'">
+            <path d="M4 16.5 6.2 19h11.6L20 16.5"/>
+            <path d="M5.2 16.5 12 12.2l6.8 4.3"/>
+            <path d="M12 12.2V5"/>
+        </g>
+        <g th:case="'declaration'">
+            <path d="M8 3.5h6.2L18 7.2V20H8z"/>
+            <path d="M14.2 3.5V7.2H18"/>
+            <path d="M10.2 12h5.2"/>
+            <path d="M10.2 15.2h5.2"/>
+        </g>
+        <g th:case="'assessment'">
+            <path d="M7 4.5h10v15H7z"/>
+            <path d="M9.5 9h5"/>
+            <path d="M9.5 12.2h5"/>
+            <path d="M9.5 15.4h3"/>
+        </g>
+        <g th:case="'inspection'">
+            <path d="M9 4.5h6v2.2H9z"/>
+            <path d="M8 6.2H6.5v13h11v-13H16"/>
+            <path d="M9.2 12.4h5.6"/>
+            <path d="M9.2 15.2h3.4"/>
+        </g>
+        <g th:case="'workshop'">
+            <path d="M14.6 6.4a3 3 0 0 0-4.1 4.1L4.2 16.8 7.2 19.8l6.3-6.3a3 3 0 0 0 4.1-4.1l-2 2-.4-1.5-1.5-.4z"/>
+        </g>
+        <g th:case="'yard'">
+            <path d="M4 19.5h16"/>
+            <path d="M6 19.5V9.5L12 5l6 4.5v10"/>
+            <path d="M10 19.5v-5h4v5"/>
+        </g>
+        <g th:case="'sale'">
+            <path d="M4.5 12.2 12 4.8h6.2v6.2l-7.4 7.4z"/>
+            <circle cx="15.6" cy="8.4" r="1"/>
+        </g>
+        <g th:case="'details'">
+            <path d="M4.5 16.8 7.2 8.2h9.6l2.7 8.6"/>
+            <path d="M6.2 16.8h11.6"/>
+            <circle cx="8.2" cy="17.6" r="1.1"/>
+            <circle cx="15.8" cy="17.6" r="1.1"/>
+        </g>
+        <g th:case="'listing'">
+            <path d="M6 5.5h12v13H6z"/>
+            <path d="M9 9h6"/>
+            <path d="M9 12.2h6"/>
+            <path d="M9 15.4h3.5"/>
+        </g>
+        <g th:case="'registration'">
+            <circle cx="12" cy="12" r="6.5"/>
+            <path d="M9.2 12.2 11 14l3.8-3.8"/>
+        </g>
+        <g th:case="'book'">
+            <path d="M5 5.5h6.2A2.8 2.8 0 0 1 14 8.3V19a2.2 2.2 0 0 0-2.2-2.2H5z"/>
+            <path d="M19 5.5h-6.2A2.8 2.8 0 0 0 10 8.3V19a2.2 2.2 0 0 1 2.2-2.2H19z"/>
+        </g>
+        <g th:case="'owner'">
+            <circle cx="12" cy="8.2" r="2.6"/>
+            <path d="M6.8 18.2c.8-2.6 2.6-3.8 5.2-3.8s4.4 1.2 5.2 3.8"/>
+        </g>
+        <g th:case="*">
+            <circle cx="12" cy="12" r="6.5"/>
+        </g>
+    </svg>
+</th:block>
+</body>
+</html>

@@ -4,7 +4,7 @@
 
 <nav th:fragment="salePipelineSteps(currentStep, chassisNo, listingReady, vehicleLabel, viewMode, detailsReady, registrationReady)"
      class="import-pipeline panel"
-     th:with="isView=${viewMode != null and viewMode}, detailsDone=${detailsReady == null or detailsReady}, listingDone=${listingReady != null and listingReady}, registrationDone=${registrationReady != null and registrationReady}, saleComplete=${detailsDone and listingDone and registrationDone}, orderedStages=${@pipelineStageService.list('READY')}"
+     th:with="isView=${viewMode != null and viewMode}, stageSkipped=${chassisNo != null and !#strings.isEmpty(chassisNo) ? @skippedStageService.token(chassisNo) : '|'}, detailsDone=${detailsReady == null or detailsReady}, detailsSkip=${!detailsDone and #strings.contains(stageSkipped, '|details|')}, listingDone=${listingReady != null and listingReady}, listingSkip=${!listingDone and #strings.contains(stageSkipped, '|listing|')}, registrationDone=${registrationReady != null and registrationReady}, registrationSkip=${!registrationDone and #strings.contains(stageSkipped, '|registration|')}, saleComplete=${(detailsDone or detailsSkip) and (listingDone or listingSkip) and (registrationDone or registrationSkip)}, orderedStages=${@pipelineStageService.list('READY')}"
      th:classappend="${saleComplete} ? ' is-import-complete' : ''"
      aria-label="Sale pipeline">
     <div class="import-pipeline-head">
@@ -34,7 +34,7 @@
             <li th:if="${stage.stageKey == 'details'}"
                 data-sale-step="details"
                 th:attr="data-step-count=${iter.count}"
-                th:classappend="${(currentStep == 'details' ? ' is-current' : '') + (detailsDone ? ' is-done' : ' is-pending')}">
+                th:classappend="${(currentStep == 'details' ? ' is-current' : '') + (detailsDone ? ' is-done' : (detailsSkip ? ' is-skipped' : ' is-pending'))}">
                 <a th:href="@{/ready-for-sale/{chassisNo}(chassisNo=${chassisNo}, stage=${iter.index})}"
                    class="import-pipeline-step">
                     <span class="import-pipeline-step-icon">
@@ -52,7 +52,7 @@
             <li th:if="${stage.stageKey == 'listing'}"
                 data-sale-step="listing"
                 th:attr="data-step-count=${iter.count}"
-                th:classappend="${(currentStep == 'listing' ? ' is-current' : '') + (listingDone ? ' is-done' : ' is-pending')}">
+                th:classappend="${(currentStep == 'listing' ? ' is-current' : '') + (listingDone ? ' is-done' : (listingSkip ? ' is-skipped' : ' is-pending'))}">
                 <a th:if="${isView}"
                    th:href="@{/ready-for-sale/{chassisNo}(chassisNo=${chassisNo}, stage=${iter.index})}"
                    class="import-pipeline-step">
@@ -85,7 +85,7 @@
             <li th:if="${stage.stageKey == 'registration'}"
                 data-sale-step="registration"
                 th:attr="data-step-count=${iter.count}"
-                th:classappend="${(currentStep == 'registration' ? ' is-current' : '') + (registrationDone ? ' is-done' : ' is-pending')}">
+                th:classappend="${(currentStep == 'registration' ? ' is-current' : '') + (registrationDone ? ' is-done' : (registrationSkip ? ' is-skipped' : ' is-pending'))}">
                 <a th:if="${isView}"
                    th:href="@{/ready-for-sale/{chassisNo}(chassisNo=${chassisNo}, stage=${iter.index})}"
                    class="import-pipeline-step">

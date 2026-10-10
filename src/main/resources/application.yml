@@ -71,6 +71,8 @@ app:
       certificateOfInspectionProcessorId: ${DOCUMENT_AI_CERTIFICATE_OF_INSPECTION_PROCESSOR_ID:43cd71a403f5b8f7}
       standardsCertificateProcessorId: ${DOCUMENT_AI_STANDARDS_CERTIFICATE_PROCESSOR_ID:3f15be35d826514c}
       workingSheetProcessorId: ${DOCUMENT_AI_WORKING_SHEET_PROCESSOR_ID:118d57fe35792578}
+      auctionSheetProcessorId: ${DOCUMENT_AI_AUCTION_SHEET_PROCESSOR_ID:bdd4eb40cbc32911}
+      registrationCertificateProcessorId: ${DOCUMENT_AI_REGISTRATION_CERTIFICATE_PROCESSOR_ID:8b79a197a34f84f7}
       processorVersion: ${DOCUMENT_AI_PROCESSOR_VERSION:}
       assessmentProcessorId: ${DOCUMENT_AI_ASSESSMENT_PROCESSOR_ID:}
       assessmentProcessorVersion: ${DOCUMENT_AI_ASSESSMENT_PROCESSOR_VERSION:}
@@ -103,6 +105,8 @@ app:
     standardsUploadDir: ${APP_STANDARDS_DOCUMENTS_DIR:uploads/standards-docs}
     exportUploadDir: ${APP_EXPORT_DOCUMENTS_DIR:uploads/export-docs}
     gradeSearchUploadDir: ${APP_GRADE_SEARCH_DOCUMENTS_DIR:uploads/grade-search-docs}
+    registrationUploadDir: ${APP_REGISTRATION_DOCUMENTS_DIR:uploads/registration-certificates}
+    idCardUploadDir: ${APP_ID_CARD_DOCUMENTS_DIR:uploads/id-cards}
     photoUploadDir: ${APP_PHOTO_DOCUMENTS_DIR:uploads/vehicle-photos}
 
 resilience4j:

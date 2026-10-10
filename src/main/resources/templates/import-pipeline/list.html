@@ -6,41 +6,60 @@
     <aside th:replace="shared/sidebar :: sidebar(${activeMenu})"></aside>
     <div class="app-main">
         <header th:replace="shared/topbar :: topbar"></header>
-        <main class="page-content">
-            <div class="dash-head">
+        <main class="page-content import-board">
+            <div class="import-hero">
                 <div>
+                    <p class="import-kicker">Fleet operations</p>
                     <h1>Import pipeline</h1>
-                    <p class="form-lead">Complete auction, pre-shipment, equipment, JEVIC, the certificate of inspection, the standards certificate, the export certificate, grade search, vehicle images, and the working sheet — in any order. Adding a vehicle here also opens it in customs clearance and preparation.</p>
+                    <p>Follow each vehicle from the auction sheet through certificates, images, and the working sheet.</p>
                 </div>
             </div>
 
             <p th:if="${notice}" class="alert alert-ok" th:text="${notice}"></p>
             <p th:if="${error}" class="alert alert-error" th:text="${error}"></p>
 
-            <form method="get" th:action="@{/import}" class="auction-search">
-                <div class="auction-search-field">
-                    <i class="fa-solid fa-magnifying-glass"></i>
+            <form method="get" th:action="@{/import}" class="import-toolbar">
+                <label class="import-search">
+                    <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round">
+                        <circle cx="11" cy="11" r="6.5"/>
+                        <path d="M16 16.5 20 20.5"/>
+                    </svg>
                     <input type="search" name="q" th:value="${searchQuery}"
-                           placeholder="Search chassis, model, lot, stock...">
-                </div>
-                <button type="submit" class="panel-btn auction-search-btn">Search</button>
+                           placeholder="Search chassis, model, lot, or stock">
+                </label>
+                <button type="submit" class="import-tool">
+                    <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round">
+                        <circle cx="11" cy="11" r="6.5"/>
+                        <path d="M16 16.5 20 20.5"/>
+                    </svg>
+                    <span>Search</span>
+                </button>
                 <a th:if="${searchQuery != null and !#strings.isEmpty(searchQuery)}"
-                   th:href="@{/import}" class="panel-btn ghost auction-search-btn">Clear</a>
-                <a th:href="@{/auction/new}" class="panel-btn auction-search-btn auction-add-btn">
-                    <i class="fa-solid fa-plus"></i>
-                    <span>Add vehicle</span>
+                   th:href="@{/import}" class="import-tool is-quiet">
+                    <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round">
+                        <path d="M6 6l12 12M18 6 6 18"/>
+                    </svg>
+                    <span>Clear</span>
                 </a>
             </form>
 
-            <article class="panel">
+            <article class="panel import-panel">
                 <div class="table-wrap is-fit" th:if="${!rows.isEmpty()}">
                     <table class="pipeline-table is-flow is-import">
                         <thead>
                         <tr>
-                            <th class="pipeline-vehicle-col">Vehicle</th>
-                            <th>Pipeline</th>
-                            <th class="pipeline-status-col">Status</th>
-                            <th class="pipeline-actions-col">Actions</th>
+                            <th class="pipeline-vehicle-col">
+                                <span class="import-th"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 16.5 7 8h10l3 8.5"/><path d="M6 16.5h12"/><circle cx="8" cy="17.2" r="1.2"/><circle cx="16" cy="17.2" r="1.2"/></svg> Vehicle</span>
+                            </th>
+                            <th>
+                                <span class="import-th"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h16"/><path d="M14 6l6 6-6 6"/></svg> Pipeline</span>
+                            </th>
+                            <th class="pipeline-status-col">
+                                <span class="import-th"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7"/><path d="M12 8.5V12l2.5 2"/></svg> Status</span>
+                            </th>
+                            <th class="pipeline-actions-col">
+                                <span class="import-th"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="18" cy="12" r="1.2"/></svg> Actions</span>
+                            </th>
                         </tr>
                         </thead>
                         <tbody>
@@ -75,24 +94,24 @@
                                                th:href="@{/auction/{c}(c=${row.vehicle.chassisNo}, stage=${stage.stageKey})}"
                                                class="list-pipeline-node"
                                                th:title="${stage.title + ' — complete'}">
-                                                <i class="fa-solid fa-check"></i>
+                                                <th:block th:replace="~{import-pipeline/fragments/stage-icon :: icon(${stage.stageKey})}"></th:block>
                                             </a>
                                             <a th:if="${skipped}"
                                                th:href="@{/auction/{c}(c=${row.vehicle.chassisNo}, stage=${stage.stageKey})}"
                                                class="list-pipeline-node"
                                                th:title="${stage.title + ' — skipped'}">
-                                                <i class="fa-solid fa-forward"></i>
+                                                <th:block th:replace="~{import-pipeline/fragments/stage-icon :: icon(${stage.stageKey})}"></th:block>
                                             </a>
                                             <a th:if="${!ready and !skipped and editHref != null}"
                                                th:href="${editHref}"
                                                class="list-pipeline-node"
                                                th:title="${stage.title + (current ? ' — next' : ' — pending')}">
-                                                <span th:text="${iter.count}">1</span>
+                                                <th:block th:replace="~{import-pipeline/fragments/stage-icon :: icon(${stage.stageKey})}"></th:block>
                                             </a>
                                             <span th:if="${!ready and !skipped and editHref == null}"
                                                   class="list-pipeline-node"
                                                   th:title="${stage.title + (current ? ' — next' : ' — pending')}">
-                                                <span th:text="${iter.count}">1</span>
+                                                <th:block th:replace="~{import-pipeline/fragments/stage-icon :: icon(${stage.stageKey})}"></th:block>
                                             </span>
                                             <small th:text="${shortTitle != null ? shortTitle : stage.title}">Auction</small>
                                         </li>
@@ -100,25 +119,39 @@
                                 </div>
                             </td>
                             <td class="pipeline-status-cell">
-                                <em th:if="${row.status.pipelineCompleted}" class="pill sea">Customs clearance</em>
-                                <em th:unless="${row.status.pipelineCompleted}" class="pill muted-pill">In import</em>
+                                <em th:if="${row.status.pipelineCompleted}" class="import-status is-forward">
+                                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h12"/><path d="M13 7l5 5-5 5"/></svg>
+                                    Customs
+                                </em>
+                                <em th:unless="${row.status.pipelineCompleted}" class="import-status">
+                                    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7"/><path d="M12 8.5V12l2.2 2"/></svg>
+                                    In import
+                                </em>
                             </td>
                             <td class="pipeline-actions-cell">
                                 <div class="table-row-actions">
                                     <a th:href="@{/auction/{c}(c=${row.vehicle.chassisNo})}" class="table-btn view">
-                                        <i class="fa-solid fa-eye"></i>
+                                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12S6 6.5 12 6.5 21.5 12 21.5 12 18 17.5 12 17.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="2.4"/></svg>
                                         <span>View</span>
                                     </a>
-                                    <div th:replace="shared/pipeline-delete :: pipelineDeleteBtn(
-                                            @{/import/{c}/delete(c=${row.vehicle.chassisNo})},
-                                            'Delete this vehicle and all later pipeline data? This cannot be undone.')"></div>
+                                    <form th:action="@{/import/{c}/delete(c=${row.vehicle.chassisNo})}" method="post" class="table-action-form"
+                                          th:attr="onsubmit=|return confirm('Delete this vehicle and all later pipeline data? This cannot be undone.');|">
+                                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                                        <button type="submit" class="table-btn delete" title="Delete">
+                                            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 7.5h14"/><path d="M9.5 7.5V5.8h5V7.5"/><path d="M8 7.5l.7 11h6.6l.7-11"/></svg>
+                                            <span>Delete</span>
+                                        </button>
+                                    </form>
                                 </div>
                             </td>
                         </tr>
                         </tbody>
                     </table>
                 </div>
-                <p class="muted" th:if="${rows.isEmpty()}">No vehicles yet. Add one to start the import pipeline.</p>
+                <div class="import-empty" th:if="${rows.isEmpty()}">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 16.5 7 8h10l3 8.5"/><path d="M6 16.5h12"/><circle cx="8" cy="17.2" r="1.2"/><circle cx="16" cy="17.2" r="1.2"/></svg>
+                    <p>No vehicles in the import pipeline.</p>
+                </div>
             </article>
         </main>
     </div>

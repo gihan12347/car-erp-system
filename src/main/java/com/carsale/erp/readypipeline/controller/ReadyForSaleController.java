@@ -27,7 +27,9 @@ import com.carsale.erp.importpipeline.model.VehiclePhoto;
 import com.carsale.erp.importpipeline.service.VehiclePhotoService;
 import com.carsale.erp.preparationpipeline.service.PreparationProgressService;
 import com.carsale.erp.readypipeline.service.SaleListingService.SaleProgress;
+import com.carsale.erp.shared.pipeline.FlowStage;
 import com.carsale.erp.shared.pipeline.PipelineStageService;
+import com.carsale.erp.shared.utils.PipelineStageUtils;
 import com.carsale.erp.shared.vehicle.Vehicle;
 import com.carsale.erp.shared.vehicle.VehicleService;
 import com.carsale.erp.shared.vehicle.VehicleStage;
@@ -45,6 +47,7 @@ public class ReadyForSaleController {
     private final VehicleRegistrationService vehicleRegistrationService;
     private final VehiclePhotoService vehiclePhotoService;
     private final VehicleSummaryService vehicleSummaryService;
+    private final PipelineStageService pipelineStageService;
 
     public ReadyForSaleController(
             VehicleService vehicleService,
@@ -53,7 +56,8 @@ public class ReadyForSaleController {
             SaleLocationService saleLocationService,
             VehicleRegistrationService vehicleRegistrationService,
             VehiclePhotoService vehiclePhotoService,
-            VehicleSummaryService vehicleSummaryService
+            VehicleSummaryService vehicleSummaryService,
+            PipelineStageService pipelineStageService
     ) {
         this.vehicleService = vehicleService;
         this.preparationProgressService = preparationProgressService;
@@ -62,6 +66,7 @@ public class ReadyForSaleController {
         this.vehicleRegistrationService = vehicleRegistrationService;
         this.vehiclePhotoService = vehiclePhotoService;
         this.vehicleSummaryService = vehicleSummaryService;
+        this.pipelineStageService = pipelineStageService;
     }
 
     @GetMapping
@@ -137,6 +142,41 @@ public class ReadyForSaleController {
         model.addAttribute("soldCount", sold);
         model.addAttribute("searchQuery", query == null ? "" : query.trim());
         return "ready-for-sale/vehicles";
+    }
+
+    @PostMapping("/{chassisNo}/skip")
+    public String skip(
+            @PathVariable String chassisNo,
+            @RequestParam("stage") String stage,
+            RedirectAttributes redirectAttributes
+    ) {
+        try {
+            saleListingService.skipStage(chassisNo, stage);
+            redirectAttributes.addFlashAttribute("successMessage", "Stage skipped.");
+            return "redirect:" + redirectAfterReadySkip(chassisNo, stage.trim());
+        } catch (IllegalArgumentException ex) {
+            redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
+            String editUrl = PipelineStageService.editUrlFor(PipelineStageUtils.encode(chassisNo), stage);
+            return "redirect:" + (editUrl != null ? editUrl : "/ready-for-sale");
+        }
+    }
+
+    private String redirectAfterReadySkip(String chassisNo, String stage) {
+        List<String> keys = pipelineStageService.keys(PipelineStageService.FLOW_READY);
+        int index = keys.indexOf(stage);
+        if (index >= 0 && index < keys.size() - 1) {
+            String nextKey = keys.get(index + 1);
+            if (!FlowStage.DETAILS.getStageKey().equals(nextKey)
+                    && !saleListingService.isStageSatisfied(chassisNo, nextKey)) {
+                String editUrl = PipelineStageService.editUrlFor(PipelineStageUtils.encode(chassisNo), nextKey);
+                if (editUrl != null) {
+                    return editUrl;
+                }
+            }
+        }
+        SaleListing listing = saleListingService.findByChassisNo(chassisNo);
+        String saleCode = listing == null ? null : listing.getSaleCode();
+        return ReadyStageUrls.saleVehicle(saleCode, chassisNo);
     }
 
     @PostMapping("/{chassisNo}/delete")

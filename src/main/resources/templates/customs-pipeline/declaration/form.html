@@ -148,6 +148,7 @@
                         </article>
 
                         <button type="submit" class="panel-btn import-form-submit">Save &amp; continue</button>
+                        <button th:replace="import-pipeline/fragments/form-actions :: pipelineSkip('declaration', '/customs/')"></button>
                     </div>
                 </div>
             </form>

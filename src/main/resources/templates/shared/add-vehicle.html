@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<th:block th:fragment="dialog">
+<div class="add-vehicle-modal" id="addVehicleModal" hidden>
+    <button type="button" class="add-vehicle-backdrop" data-add-vehicle-close aria-label="Close"></button>
+    <div class="add-vehicle-dialog" role="dialog" aria-modal="true" aria-labelledby="addVehicleTitle">
+        <div class="add-vehicle-head">
+            <span class="add-vehicle-mark" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="M4 16.5h16"/><path d="M6 16.5V9.2L12 5.4l6 3.8v7.3"/><path d="M9.2 16.5v-3.2h5.6v3.2"/></svg>
+            </span>
+            <div class="add-vehicle-title">
+                <p class="add-vehicle-kicker">New intake</p>
+                <h2 id="addVehicleTitle">Add vehicle</h2>
+                <p>Choose how this vehicle is coming in.</p>
+            </div>
+            <button type="button" class="add-vehicle-close" data-add-vehicle-close aria-label="Close">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7l10 10M17 7 7 17"/></svg>
+            </button>
+        </div>
+        <div class="add-vehicle-lanes">
+            <section class="add-vehicle-lane" aria-labelledby="addVehicleImport">
+                <h3 id="addVehicleImport">Import pipeline</h3>
+                <a class="add-vehicle-choice" th:href="@{/auction/new}">
+                    <span class="add-vehicle-icon is-company" aria-hidden="true">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M5.4 19.6h13.2V8.6L12 4.6 5.4 8.6z"/>
+                            <path class="av-win" d="M8.6 10.2h1.7v1.7H8.6zm5.1 0h1.7v1.7h-1.7zM8.6 13.6h1.7v1.7H8.6zm5.1 0h1.7v1.7h-1.7z"/>
+                        </svg>
+                    </span>
+                    <span class="add-vehicle-copy">
+                        <strong>Company import</strong>
+                        <em>Auction or overseas stock for the company</em>
+                    </span>
+                    <svg class="add-vehicle-go" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg>
+                </a>
+                <a class="add-vehicle-choice" th:href="@{/auction/new}">
+                    <span class="add-vehicle-icon is-personal" aria-hidden="true">
+                        <svg viewBox="0 0 24 24">
+                            <circle class="av-head" cx="12" cy="8" r="3"/>
+                            <path d="M6.1 19.6c.9-3.5 3.1-5.2 5.9-5.2s5 1.7 5.9 5.2H6.1z"/>
+                        </svg>
+                    </span>
+                    <span class="add-vehicle-copy">
+                        <strong>Personal import</strong>
+                        <em>Bought for a named owner</em>
+                    </span>
+                    <svg class="add-vehicle-go" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg>
+                </a>
+                <a class="add-vehicle-choice" th:href="@{/auction/new}">
+                    <span class="add-vehicle-icon is-local" aria-hidden="true">
+                        <svg viewBox="0 0 24 24">
+                            <path class="av-body" d="M3.8 14.2 6.2 9h11.6l2.4 5.2v3.4H3.8z"/>
+                            <circle class="av-wheel" cx="8" cy="16.2" r="1.35"/>
+                            <circle class="av-wheel" cx="16" cy="16.2" r="1.35"/>
+                        </svg>
+                    </span>
+                    <span class="add-vehicle-copy">
+                        <strong>Local purchase (Unregister)</strong>
+                        <em>Local buy that still enters import</em>
+                    </span>
+                    <svg class="add-vehicle-go" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg>
+                </a>
+            </section>
+            <section class="add-vehicle-lane is-prep" aria-labelledby="addVehiclePrep">
+                <h3 id="addVehiclePrep">Preparation pipeline</h3>
+                <a class="add-vehicle-choice is-prep" th:href="@{/workshop-yard/new}">
+                    <span class="add-vehicle-icon is-registered" aria-hidden="true">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M7 3.6h6.4L18 8.2V20.4H7z"/>
+                            <path class="av-check" d="m9.6 13.2 1.8 1.8 3.6-3.8"/>
+                        </svg>
+                    </span>
+                    <span class="add-vehicle-copy">
+                        <strong>Local purchase (Register)</strong>
+                        <em>Already registered. Starts with the vehicle book.</em>
+                    </span>
+                    <svg class="add-vehicle-go" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg>
+                </a>
+            </section>
+        </div>
+    </div>
+</div>
+<script>
+(function () {
+    var modal = document.getElementById("addVehicleModal");
+    if (!modal) {
+        return;
+    }
+    var lastTrigger = null;
+
+    function openModal(trigger) {
+        lastTrigger = trigger || null;
+        modal.hidden = false;
+        modal.classList.remove("is-shown");
+        void modal.offsetWidth;
+        modal.classList.add("is-shown");
+        document.body.classList.add("add-vehicle-open");
+        var closeBtn = modal.querySelector(".add-vehicle-close");
+        if (closeBtn) {
+            closeBtn.focus();
+        }
+    }
+
+    function closeModal() {
+        if (modal.hidden) {
+            return;
+        }
+        modal.hidden = true;
+        modal.classList.remove("is-shown");
+        document.body.classList.remove("add-vehicle-open");
+        if (lastTrigger && typeof lastTrigger.focus === "function") {
+            lastTrigger.focus();
+        }
+    }
+
+    document.addEventListener("click", function (event) {
+        var openBtn = event.target.closest ? event.target.closest("[data-add-vehicle-open]") : null;
+        if (openBtn) {
+            event.preventDefault();
+            openModal(openBtn);
+            return;
+        }
+        var closeBtn = event.target.closest ? event.target.closest("[data-add-vehicle-close]") : null;
+        if (closeBtn && modal.contains(closeBtn)) {
+            event.preventDefault();
+            closeModal();
+        }
+    });
+
+    document.addEventListener("keydown", function (event) {
+        if (event.key === "Escape" && !modal.hidden) {
+            event.stopPropagation();
+            closeModal();
+        }
+    });
+})();
+</script>
+</th:block>
+</html>

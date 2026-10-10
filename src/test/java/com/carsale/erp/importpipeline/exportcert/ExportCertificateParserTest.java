@@ -7,6 +7,7 @@ import java.util.List;
 
 import com.carsale.erp.shared.document.document.ExportCertificateParser;
 import com.carsale.erp.shared.ocr.DocumentAiClient;
+import com.carsale.erp.shared.ocr.dto.DocumentAiEntity;
 import org.junit.jupiter.api.Test;
 
 import com.carsale.erp.importpipeline.util.AuctionParseResult;
@@ -17,7 +18,7 @@ class ExportCertificateParserTest {
 
     @Test
     void parsePageMapsDocumentAiEntitiesAndNormalizesDates() {
-        List<DocumentAiClient.DocumentAiEntity> entities = new ArrayList<>();
+        List<DocumentAiEntity> entities = new ArrayList<>();
         entities.add(entity("date", "2025-02-27T00:00:00"));
         entities.add(entity("export_scheduled_day", "26/08/2025"));
         entities.add(entity("first_registration_date", "01/2025"));
@@ -102,7 +103,7 @@ class ExportCertificateParserTest {
         assertThat(ExportCertificateParser.toIsoMonth("2025-01-15")).isEqualTo("2025-01");
     }
 
-    private static DocumentAiClient.DocumentAiEntity entity(String type, String value) {
-        return new DocumentAiClient.DocumentAiEntity(type, value, 0.99);
+    private static DocumentAiEntity entity(String type, String value) {
+        return new DocumentAiEntity(type, value, 0.99);
     }
 }

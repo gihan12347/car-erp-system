@@ -4,7 +4,7 @@
 
 <nav th:fragment="prepPipelineSteps(currentStep, chassisNo, workshopReady, yardReady, inspectionReady, canEnterYard, vehicleLabel, viewMode, saleReady)"
      class="import-pipeline panel"
-     th:with="isView=${viewMode != null and viewMode}, yardOpen=${canEnterYard != null and canEnterYard}, prepComplete=${workshopReady and yardReady and inspectionReady}, showYardHub=${currentStep == 'ready' or (workshopReady and yardReady and inspectionReady)}, orderedStages=${@pipelineStageService.list('PREP')}"
+     th:with="isView=${viewMode != null and viewMode}, stageSkipped=${chassisNo != null and !#strings.isEmpty(chassisNo) ? @skippedStageService.token(chassisNo) : '|'}, inspectionDone=${inspectionReady != null and inspectionReady}, inspectionSkip=${!inspectionDone and #strings.contains(stageSkipped, '|inspection|')}, workshopDone=${workshopReady != null and workshopReady}, workshopSkip=${!workshopDone and #strings.contains(stageSkipped, '|workshop|')}, yardDone=${yardReady != null and yardReady}, yardSkip=${!yardDone and #strings.contains(stageSkipped, '|yard|')}, yardOpen=${canEnterYard != null and canEnterYard}, prepComplete=${(workshopDone or workshopSkip) and (yardDone or yardSkip) and (inspectionDone or inspectionSkip)}, showYardHub=${currentStep == 'ready' or prepComplete}, orderedStages=${@pipelineStageService.list('PREP')}"
      th:classappend="${prepComplete} ? ' is-import-complete' : ''"
      aria-label="Preparation pipeline">
     <div class="import-pipeline-head">
@@ -34,7 +34,7 @@
             <li th:if="${stage.stageKey == 'inspection'}"
                 data-prep-step="inspection"
                 th:attr="data-step-count=${iter.count}"
-                th:classappend="${(currentStep == 'inspection' ? ' is-current' : '') + (inspectionReady ? ' is-done' : ' is-pending')}">
+                th:classappend="${(currentStep == 'inspection' ? ' is-current' : '') + (inspectionDone ? ' is-done' : (inspectionSkip ? ' is-skipped' : ' is-pending'))}">
                 <a th:if="${isView}"
                    th:href="@{/workshop-yard/{chassisNo}(chassisNo=${chassisNo}, stage=${iter.index})}"
                    class="import-pipeline-step">
@@ -67,7 +67,7 @@
             <li th:if="${stage.stageKey == 'workshop'}"
                 data-prep-step="workshop"
                 th:attr="data-step-count=${iter.count}"
-                th:classappend="${(currentStep == 'workshop' ? ' is-current' : '') + (workshopReady ? ' is-done' : ' is-pending')}">
+                th:classappend="${(currentStep == 'workshop' ? ' is-current' : '') + (workshopDone ? ' is-done' : (workshopSkip ? ' is-skipped' : ' is-pending'))}">
                 <a th:if="${isView}"
                    th:href="@{/workshop-yard/{chassisNo}(chassisNo=${chassisNo}, stage=${iter.index})}"
                    class="import-pipeline-step">
@@ -100,7 +100,7 @@
             <li th:if="${stage.stageKey == 'yard'}"
                 data-prep-step="yard"
                 th:attr="data-step-count=${iter.count}"
-                th:classappend="${(currentStep == 'yard' ? ' is-current' : '') + (yardReady ? ' is-done' : ' is-pending')}">
+                th:classappend="${(currentStep == 'yard' ? ' is-current' : '') + (yardDone ? ' is-done' : (yardSkip ? ' is-skipped' : ' is-pending'))}">
                 <a th:if="${isView}"
                    th:href="@{/workshop-yard/{chassisNo}(chassisNo=${chassisNo}, stage=${iter.index})}"
                    class="import-pipeline-step">

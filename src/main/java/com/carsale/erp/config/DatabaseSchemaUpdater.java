@@ -44,6 +44,7 @@ public class DatabaseSchemaUpdater implements CommandLineRunner {
         createStandardsCertificatesTable();
         addStandardsCertificateColumns();
         addVehicleSkippedStagesColumn();
+        addVehicleIntakeColumn();
         createExportCertificatesTable();
         addExportCertificateColumns();
         createGradeSearchesTable();
@@ -373,6 +374,18 @@ public class DatabaseSchemaUpdater implements CommandLineRunner {
             log.info("Verified table standards_certificates");
         } catch (Exception ex) {
             log.warn("Could not create standards_certificates: {}", ex.getMessage());
+        }
+    }
+
+    private void addVehicleIntakeColumn() {
+        if (hasTableColumn("vehicles", "intake")) {
+            return;
+        }
+        try {
+            jdbcTemplate.execute("ALTER TABLE vehicles ADD COLUMN intake VARCHAR(32) NULL");
+            log.info("Added vehicles.intake");
+        } catch (Exception ex) {
+            log.warn("Could not add vehicles.intake: {}", ex.getMessage());
         }
     }
 

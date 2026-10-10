@@ -1,6 +1,8 @@
 package com.carsale.erp.importpipeline.util;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 public class AuctionParseResult {
@@ -9,6 +11,7 @@ public class AuctionParseResult {
     private String message;
     private String rawText;
     private Map<String, String> fields = new LinkedHashMap<String, String>();
+    private List<String> warnings = new ArrayList<String>();
 
     public AuctionParseResult(boolean success, String message) {
         this.success = success;
@@ -58,6 +61,20 @@ public class AuctionParseResult {
     public void put(String key, String value) {
         if (value != null && !value.trim().isEmpty()) {
             this.fields.put(key, value.trim());
+        }
+    }
+
+    public List<String> getWarnings() {
+        return warnings;
+    }
+
+    public void setWarnings(List<String> warnings) {
+        this.warnings = warnings == null ? new ArrayList<String>() : warnings;
+    }
+
+    public void addWarning(String warning) {
+        if (warning != null && !warning.trim().isEmpty()) {
+            this.warnings.add(warning.trim());
         }
     }
 }

@@ -3,7 +3,7 @@
 <body>
 
 <!-- Previous + Save — same pattern as import-pipeline/fragments/form-actions. -->
-<th:block th:fragment="prepFormActions(saveLabel, buttonId)">
+<th:block th:fragment="prepFormActions(saveLabel, buttonId, stageKey)">
     <a th:if="${stageNav != null and stageNav.prevUrl != null}"
        th:href="${stageNav.prevUrl}"
        class="panel-btn ghost import-form-submit">
@@ -16,6 +16,7 @@
             th:text="${saveLabel != null and !#strings.isEmpty(saveLabel) ? saveLabel : 'Save & continue'}">
         Save &amp; continue
     </button>
+    <button th:replace="import-pipeline/fragments/form-actions :: pipelineSkip(${stageKey}, '/workshop-yard/')"></button>
 </th:block>
 
 </body>

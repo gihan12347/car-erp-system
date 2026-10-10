@@ -24,6 +24,9 @@
         <a th:href="@{/customs}" th:classappend="${activeMenu == 'customs'} ? 'is-active' : ''">
             <i class="fa-solid fa-passport"></i><span>Custom Clearance</span>
         </a>
+        <a th:href="@{/registered}" th:classappend="${activeMenu == 'registered'} ? 'is-active' : ''">
+            <i class="fa-solid fa-id-card"></i><span>Registered</span>
+        </a>
         <a th:href="@{/workshop-yard}" th:classappend="${activeMenu == 'workshop-yard'} ? 'is-active' : ''">
             <i class="fa-solid fa-wrench"></i><span>Preparation</span>
         </a>
@@ -71,6 +74,7 @@
     </div>
 </aside>
 <div class="sidebar-backdrop" id="sidebarBackdrop" hidden></div>
+<div th:replace="shared/add-vehicle :: dialog"></div>
 <div th:replace="shared/app-loader :: appLoader('pageLoader', '')"></div>
 </th:block>
 </html>

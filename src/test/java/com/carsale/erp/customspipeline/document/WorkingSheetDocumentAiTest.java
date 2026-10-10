@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.carsale.erp.shared.ocr.dto.DocumentAiEntity;
 import org.junit.jupiter.api.Test;
 
 import com.carsale.erp.importpipeline.util.AuctionParseResult;
@@ -22,7 +23,7 @@ class WorkingSheetDocumentAiTest {
 
     @Test
     void mapsDocumentAiEntitiesFromTheMotorVehicleSheet() {
-        List<DocumentAiClient.DocumentAiEntity> entities = new ArrayList<DocumentAiClient.DocumentAiEntity>();
+        List<DocumentAiEntity> entities = new ArrayList<>();
         entities.add(entity("document_identifier", "F5-1141982-AE"));
         entities.add(entity("hs_code", "8703.21.69"));
         entities.add(entity("type_of_vehicle", "01 UNIT USED HONDA N BOX CUSTOM PETROL ST/WAGON"));
@@ -79,7 +80,7 @@ class WorkingSheetDocumentAiTest {
 
     @Test
     void mapsSecondSheetAgeAndChassis() {
-        List<DocumentAiClient.DocumentAiEntity> entities = new ArrayList<DocumentAiClient.DocumentAiEntity>();
+        List<DocumentAiEntity> entities = new ArrayList<>();
         entities.add(entity("chassis_nos", "LA350A-0041575"));
         entities.add(entity("age_difference_for_icl", "2 years 1 month 29 days"));
         entities.add(entity("agents_fob_amount", "932,000.00"));
@@ -94,7 +95,7 @@ class WorkingSheetDocumentAiTest {
                 .containsEntry("worksheetBlFreightAmount", "64,501.97");
     }
 
-    private static DocumentAiClient.DocumentAiEntity entity(String type, String value) {
-        return new DocumentAiClient.DocumentAiEntity(type, value, 0.99);
+    private static DocumentAiEntity entity(String type, String value) {
+        return new DocumentAiEntity(type, value, 0.99);
     }
 }

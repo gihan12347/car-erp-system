@@ -15,6 +15,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import com.carsale.erp.shared.utils.PipelineStageUtils;
 import com.carsale.erp.shared.pipeline.FlowPipeline;
 import com.carsale.erp.shared.vehicle.Vehicle;
+import com.carsale.erp.shared.vehicle.VehicleIntake;
 import com.carsale.erp.importpipeline.service.ImportProgressService.ImportProgress;
 import com.carsale.erp.shared.pipeline.PipelineStageService;
 import com.carsale.erp.shared.vehicle.VehicleService;
@@ -41,6 +42,9 @@ public class ImportPipelineListController {
         List<Vehicle> vehicles = vehicleService.search(query);
         List<ImportListRow> rows = new ArrayList<>();
         for (Vehicle vehicle : vehicles) {
+            if (vehicle.getIntake() == VehicleIntake.LOCAL_REGISTERED) {
+                continue;
+            }
             ImportProgress status = importProgressService.progressFor(vehicle);
             rows.add(new ImportListRow(vehicle, status));
         }

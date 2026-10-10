@@ -10,13 +10,19 @@ import com.carsale.erp.shared.utils.PipelineStageUtils;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.util.UriUtils;
 
+import com.carsale.erp.preparationpipeline.model.RegistrationCertificate;
+import com.carsale.erp.preparationpipeline.service.RegisteredProgressService;
+import com.carsale.erp.preparationpipeline.service.RegistrationCertificateService;
 import com.carsale.erp.shared.vehicle.Vehicle;
+import com.carsale.erp.shared.vehicle.VehicleIntake;
+import com.carsale.erp.shared.vehicle.VehicleStage;
 import com.carsale.erp.preparationpipeline.service.PreparationProgressService.PreparationProgress;
 import com.carsale.erp.preparationpipeline.service.VehicleInspectionService;
 import com.carsale.erp.shared.vehicle.VehicleService;
@@ -36,6 +42,8 @@ public class PreparationPipelineListController {
     private final VehicleInspectionService vehicleInspectionService;
     private final SaleListingService saleListingService;
     private final PipelineStageService pipelineStageService;
+    private final RegistrationCertificateService registrationCertificateService;
+    private final RegisteredProgressService registeredProgressService;
 
     public PreparationPipelineListController(
             VehicleService vehicleService,
@@ -44,7 +52,9 @@ public class PreparationPipelineListController {
             YardService yardService,
             VehicleInspectionService vehicleInspectionService,
             SaleListingService saleListingService,
-            PipelineStageService pipelineStageService
+            PipelineStageService pipelineStageService,
+            RegistrationCertificateService registrationCertificateService,
+            RegisteredProgressService registeredProgressService
     ) {
         this.vehicleService = vehicleService;
         this.preparationProgressService = preparationProgressService;
@@ -53,6 +63,8 @@ public class PreparationPipelineListController {
         this.vehicleInspectionService = vehicleInspectionService;
         this.saleListingService = saleListingService;
         this.pipelineStageService = pipelineStageService;
+        this.registrationCertificateService = registrationCertificateService;
+        this.registeredProgressService = registeredProgressService;
     }
 
     @GetMapping("/workshop-yard")
@@ -60,6 +72,9 @@ public class PreparationPipelineListController {
         List<Vehicle> vehicles = preparationProgressService.listEligible(query);
         List<PreparationListRow> rows = new ArrayList<>();
         for (Vehicle vehicle : vehicles) {
+            if (!registeredProgressService.readyForPreparation(vehicle)) {
+                continue;
+            }
             rows.add(new PreparationListRow(vehicle, preparationProgressService.progressFor(vehicle)));
         }
         model.addAttribute("pageTitle", "Preparation pipeline");
@@ -69,6 +84,95 @@ public class PreparationPipelineListController {
         model.addAttribute("pipelineKeys", pipelineStageService.keys(PipelineStageService.FLOW_PREP));
         model.addAttribute("searchQuery", query == null ? "" : query.trim());
         return "preparation-pipeline/list";
+    }
+
+    @GetMapping("/workshop-yard/new")
+    public String createForm(Model model) {
+        model.addAttribute("pageTitle", "Vehicle book");
+        model.addAttribute("activeMenu", "registered");
+        if (!model.containsAttribute("certificate")) {
+            model.addAttribute("certificate", new RegistrationCertificate());
+        }
+        model.addAttribute("editing", false);
+        return "preparation-pipeline/new";
+    }
+
+    @PostMapping("/workshop-yard/new")
+    public String create(
+            @ModelAttribute("certificate") RegistrationCertificate certificate,
+            RedirectAttributes redirectAttributes
+    ) {
+        try {
+            String chassisNo = certificate.getChassisNo() == null ? "" : certificate.getChassisNo().trim();
+            certificate.setChassisNo(chassisNo);
+            if (chassisNo.isEmpty()) {
+                throw new IllegalArgumentException("Chassis number is required.");
+            }
+            Vehicle existing = vehicleService.findByChassisNo(chassisNo);
+            if (existing != null) {
+                if (existing.getIntake() == VehicleIntake.LOCAL_REGISTERED) {
+                    redirectAttributes.addFlashAttribute("notice",
+                            "This chassis is already in the registered vehicle pipeline.");
+                    return "redirect:/workshop-yard/" + encodeChassis(chassisNo) + "/certificate";
+                }
+                redirectAttributes.addFlashAttribute("errorMessage",
+                        "Chassis number " + chassisNo + " is already in the import pipeline.");
+                redirectAttributes.addFlashAttribute("certificate", certificate);
+                return "redirect:/workshop-yard/new";
+            }
+            Vehicle vehicle = new Vehicle();
+            registrationCertificateService.applyToVehicle(certificate, vehicle);
+            vehicle.setIntake(VehicleIntake.LOCAL_REGISTERED);
+            vehicle.setStage(VehicleStage.WORKSHOP);
+            Vehicle saved = vehicleService.save(vehicle);
+            certificate.setChassisNo(saved.getChassisNo());
+            registrationCertificateService.save(certificate);
+            redirectAttributes.addFlashAttribute("successMessage",
+                    "Vehicle book saved. Add the vehicle images next.");
+            return "redirect:/registered/" + encodeChassis(saved.getChassisNo()) + "/photos";
+        } catch (IllegalArgumentException ex) {
+            redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
+            redirectAttributes.addFlashAttribute("certificate", certificate);
+            return "redirect:/workshop-yard/new";
+        }
+    }
+
+    private static String encodeChassis(String chassisNo) {
+        return UriUtils.encodePathSegment(chassisNo, java.nio.charset.StandardCharsets.UTF_8);
+    }
+
+    private String firstPreparationUrl(String chassisNo) {
+        List<PipelineStage> stages = pipelineStageService.list(PipelineStageService.FLOW_PREP);
+        String stageKey = stages.isEmpty()
+                ? FlowStage.INSPECTION.getStageKey()
+                : stages.get(0).getStageKey();
+        String url = PipelineStageService.editUrlFor(
+                UriUtils.encodePathSegment(chassisNo, java.nio.charset.StandardCharsets.UTF_8),
+                stageKey
+        );
+        return url == null ? "/workshop-yard" : url;
+    }
+
+    @PostMapping("/workshop-yard/{chassisNo}/skip")
+    public String skip(
+            @PathVariable String chassisNo,
+            @RequestParam("stage") String stage,
+            RedirectAttributes redirectAttributes
+    ) {
+        try {
+            preparationProgressService.skipStage(chassisNo, stage);
+            redirectAttributes.addFlashAttribute("successMessage", "Stage skipped.");
+            return "redirect:" + PipelineStageUtils.redirectAfterStageSave(
+                    chassisNo,
+                    FlowPipeline.PREP.getCurrentBase(),
+                    pipelineStageService.keys(PipelineStageService.FLOW_PREP),
+                    stage.trim()
+            );
+        } catch (IllegalArgumentException ex) {
+            redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
+            String editUrl = PipelineStageService.editUrlFor(encodeChassis(chassisNo), stage);
+            return "redirect:" + (editUrl != null ? editUrl : "/workshop-yard");
+        }
     }
 
     @PostMapping("/workshop-yard/{chassisNo}/delete")
@@ -92,6 +196,11 @@ public class PreparationPipelineListController {
         Vehicle vehicle = vehicleService.findByChassisNo(chassisNo);
         if (vehicle == null) {
             return "redirect:/workshop-yard";
+        }
+        if (!registeredProgressService.readyForPreparation(vehicle)) {
+            redirectAttributes.addFlashAttribute("notice",
+                    "Finish vehicle book, images, and previous owner before preparation.");
+            return "redirect:/registered";
         }
         if (!preparationProgressService.isEligible(vehicle)) {
             redirectAttributes.addFlashAttribute("notice",

@@ -12,6 +12,7 @@ import java.util.Locale;
 import java.util.Map;
 
 import com.carsale.erp.shared.document.DocumentParser;
+import com.carsale.erp.shared.ocr.dto.DocumentAiEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -31,7 +32,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * Calls a Document AI Custom Extractor processor and returns typed entities.
  */
 @Component
-public class DocumentAiClient {
+public class  DocumentAiClient {
 
     private static final Logger log = LoggerFactory.getLogger(DocumentAiClient.class);
     private static final int CONNECT_TIMEOUT_MS = 30_000;
@@ -95,6 +96,11 @@ public class DocumentAiClient {
 
         Map<String, Object> body = new LinkedHashMap<>();
         body.put("rawDocument", rawDocument);
+        if (parser != null && "auction sheet".equals(parser.getDocumentName())) {
+            body.put("processOptions", AuctionSheetDocumentAi.processOptions(parser.getOcrLanguage()));
+        } else if (parser != null && "registration certificate".equals(parser.getDocumentName())) {
+            body.put("processOptions", RegistrationCertificateDocumentAi.processOptions());
+        }
 
         String url = processUrl(projectId, location, processId, processorVersion);
         HttpHeaders headers = new HttpHeaders();
@@ -301,30 +307,6 @@ public class DocumentAiClient {
 
         public List<DocumentAiEntity> getEntities() {
             return entities;
-        }
-    }
-
-    public static final class DocumentAiEntity {
-        private final String type;
-        private final String value;
-        private final Double confidence;
-
-        public DocumentAiEntity(String type, String value, Double confidence) {
-            this.type = type;
-            this.value = value;
-            this.confidence = confidence;
-        }
-
-        public String getType() {
-            return type;
-        }
-
-        public String getValue() {
-            return value;
-        }
-
-        public Double getConfidence() {
-            return confidence;
         }
     }
 }

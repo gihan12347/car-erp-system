@@ -139,7 +139,7 @@ public class YardBayService implements CommandLineRunner {
         return candidate;
     }
 
-    static String nextYardCode(Iterable<String> existingCodes) {
+    public static String nextYardCode(Iterable<String> existingCodes) {
         int max = 0;
         if (existingCodes != null) {
             for (String code : existingCodes) {
@@ -160,7 +160,7 @@ public class YardBayService implements CommandLineRunner {
         return formatYardCode(max + 1);
     }
 
-    static String formatYardCode(int sequence) {
+    public static String formatYardCode(int sequence) {
         if (sequence < 1) {
             sequence = 1;
         }

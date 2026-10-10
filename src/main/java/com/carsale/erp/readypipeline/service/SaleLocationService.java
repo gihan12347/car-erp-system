@@ -112,7 +112,7 @@ public class SaleLocationService implements CommandLineRunner {
         return candidate;
     }
 
-    static String nextSaleCode(Iterable<String> existingCodes) {
+    public static String nextSaleCode(Iterable<String> existingCodes) {
         int max = 0;
         if (existingCodes != null) {
             for (String code : existingCodes) {
@@ -133,7 +133,7 @@ public class SaleLocationService implements CommandLineRunner {
         return formatSaleCode(max + 1);
     }
 
-    static String formatSaleCode(int sequence) {
+    public static String formatSaleCode(int sequence) {
         if (sequence < 1) {
             sequence = 1;
         }

@@ -57,6 +57,28 @@ public class CustomsPipelineListController {
         return "customs-pipeline/list";
     }
 
+    @PostMapping("/customs/{chassisNo}/skip")
+    public String skip(
+            @PathVariable String chassisNo,
+            @RequestParam("stage") String stage,
+            RedirectAttributes redirectAttributes
+    ) {
+        try {
+            customsProgressService.skipStage(chassisNo, stage);
+            redirectAttributes.addFlashAttribute("successMessage", "Stage skipped.");
+            return "redirect:" + PipelineStageUtils.redirectAfterStageSave(
+                    chassisNo,
+                    FlowPipeline.CUSTOMS.getCurrentBase(),
+                    pipelineStageService.keys(PipelineStageService.FLOW_CUSTOMS),
+                    stage.trim()
+            );
+        } catch (IllegalArgumentException ex) {
+            redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
+            String editUrl = PipelineStageService.editUrlFor(PipelineStageUtils.encode(chassisNo), stage);
+            return "redirect:" + (editUrl != null ? editUrl : "/customs");
+        }
+    }
+
     @PostMapping("/customs/{chassisNo}/delete")
     public String delete(@PathVariable String chassisNo, RedirectAttributes redirectAttributes) {
         if (vehicleService.deleteFromFlow(chassisNo, PipelineStageService.FLOW_CUSTOMS)) {

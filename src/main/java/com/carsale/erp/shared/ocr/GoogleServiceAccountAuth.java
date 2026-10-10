@@ -65,7 +65,6 @@ public class GoogleServiceAccountAuth {
         return credentialsFile;
     }
 
-    /** Reads {@code project_id} from the service-account JSON, or null if missing. */
     public String projectId() throws IOException {
         Map<String, Object> credentials = readCredentials();
         return stringValue(credentials.get("project_id"));

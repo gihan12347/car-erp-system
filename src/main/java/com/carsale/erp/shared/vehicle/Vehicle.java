@@ -146,6 +146,10 @@ public class Vehicle {
     @Column(name = "skipped_stages", length = 255)
     private String skippedStages;
 
+    @Enumerated(EnumType.STRING)
+    @Column(length = 32)
+    private VehicleIntake intake;
+
     public String getChassisNo() {
         return chassisNo;
     }
@@ -488,5 +492,13 @@ public class Vehicle {
 
     public void setSkippedStages(String skippedStages) {
         this.skippedStages = skippedStages;
+    }
+
+    public VehicleIntake getIntake() {
+        return intake;
+    }
+
+    public void setIntake(VehicleIntake intake) {
+        this.intake = intake;
     }
 }

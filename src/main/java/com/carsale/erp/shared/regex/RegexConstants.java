@@ -738,7 +738,8 @@ public final class RegexConstants {
             public static final Pattern PANEL_LINE = compile("(?m)^\\s*[\\[\\(（]*\\s*([A-Ea-e])\\s*[\\]\\)）]*\\s*$");
             public static final Pattern PANEL_TOKEN = compile("(?<![A-Za-z0-9])([A-E])(?![A-Za-z0-9])");
             public static final Pattern EVALUATION = compileIgnoreCase(
-                    "(?:評価点|評点|総合評価|評価|evaluation|rating|score|auction\\s+grade|overall(?:\\s+grade)?)[^A-Za-z0-9]{0,40}([SRA-E6]|[1-6](?:\\.\\d)?)"
+                    "(?:評価点|評点|総合評価|(?<![A-Za-z])評価|evaluation(?:\\s+score)?|rating|auction\\s+grade|overall(?:\\s+grade)?)"
+                            + "[^A-Za-z0-9]{0,40}([SRA-E]|[1-6](?:\\.\\d)?)(?![A-Za-z])"
             );
             public static final Pattern EVAL_VALUE = compile("^([SRA-E]|[0-6](?:\\.\\d)?)");
             public static final Pattern G_GRADE = compile("\\bG\\s+([1-6])\\b");
@@ -779,8 +780,14 @@ public final class RegexConstants {
             public static final Pattern LOT_ERA = compileIgnoreCase(
                     "(?:(?:出品番号|(?<![A-Za-z])lot(?:\\s*(?:no\\.?|number))?)[^\\d]{0,16})?(\\d{3,6})[^\\n]{0,40}?((?:R|Ｒ|H|Ｈ|G)\\s*\\d{1,2}\\s+\\d{1,2})"
             );
-            public static final Pattern REIWA = compile("(?:令和|(?:^|[^A-Z])[RＲ])\\s*(\\d{1,2}|元)\\s*(?:年)?\\s*([1-9]|1[0-2])");
-            public static final Pattern HEISEI = compile("(?:平成|(?:^|[^A-Z])[HＨ])\\s*(\\d{1,2})\\s*(?:年)?\\s*([1-9]|1[0-2])");
+            public static final Pattern REIWA = compile(
+                    "(?:令和|(?:^|[^A-Z])[RＲ])\\s*(\\d{1,2}|元)\\s*(?:年\\s*|[/.．\\-]\\s*|\\s+)([1-9]|1[0-2])(?!\\d)");
+            public static final Pattern HEISEI = compile(
+                    "(?:平成|(?:^|[^A-Z])[HＨ])\\s*(\\d{1,2})\\s*(?:年\\s*|[/.．\\-]\\s*|\\s+)([1-9]|1[0-2])(?!\\d)");
+            public static final Pattern ERA_AS_YEN = compile("(?<!\\d)(\\d{2})(\\d{2})\\s*yen\\b");
+            public static final Pattern SCORE_COLUMN = compileIgnoreCase(
+                    "(?m)^\\s*([RS]|[A-E])\\s*\\n\\s*([A-E])\\s*\\n\\s*([A-E])\\s*$");
+            public static final Pattern MERGED_SR = compile("(?m)^\\s*S\\s*R\\s*$");
             public static final Pattern G_AS_R = compile("(?:^|[^A-Z])G\\s*([1-8])\\s+([1-9]|1[0-2])");
             public static final Pattern FIRST_REG_NUMBERS = compile("初度登録(?:年月)?[^\\d]{0,20}(\\d{1,2})[^\\d]{1,8}([1-9]|1[0-2])");
             public static final Pattern CHASSIS_DIGITS = compile("(\\d{6,8})");
@@ -807,6 +814,9 @@ public final class RegexConstants {
             }
 
             public static final String KM_UNIT = "km|kn|㎞|KM|キロ";
+            public static final Pattern MILEAGE_DIGIT_GRID = compileIgnoreCase(
+                    "(?:走行|mileage|odometer)[^\\d]{0,48}((?:\\d\\s+){3,7}\\d)"
+            );
             public static final Pattern MILEAGE_LABELED_UNIT = compileIgnoreCase(
                     "(?:走行|mileage|odometer|travel(?:led|ed)?(?:\\s+distance)?)[^\\d]{0,20}(\\d{1,3}(?:,\\d{3}|\\.\\d{3})+|\\d{1,6})\\s*("
                             + KM_UNIT + "|kilometers?|kilometres?)"

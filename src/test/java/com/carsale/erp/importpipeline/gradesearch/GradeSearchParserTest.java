@@ -8,6 +8,7 @@ import java.util.List;
 import com.carsale.erp.importpipeline.util.AuctionParseResult;
 import com.carsale.erp.shared.document.document.GradeSearchParser;
 import com.carsale.erp.shared.ocr.DocumentAiClient;
+import com.carsale.erp.shared.ocr.dto.DocumentAiEntity;
 import org.junit.jupiter.api.Test;
 
 class GradeSearchParserTest {
@@ -16,7 +17,7 @@ class GradeSearchParserTest {
 
     @Test
     void parsePageMapsDocumentAiEntities() {
-        List<DocumentAiClient.DocumentAiEntity> entities = new ArrayList<>();
+        List<DocumentAiEntity> entities = new ArrayList<>();
         entities.add(entity("chassis_number", "JF5-1141982"));
         entities.add(entity("grade", "Hybrid Z"));
 
@@ -31,7 +32,7 @@ class GradeSearchParserTest {
 
     @Test
     void parsePageMapsChassisAliasesOnce() {
-        List<DocumentAiClient.DocumentAiEntity> entities = new ArrayList<>();
+        List<DocumentAiEntity> entities = new ArrayList<>();
         entities.add(entity("chassis_no", "ABC-123"));
         entities.add(entity("chassis", "SHOULD-SKIP"));
         entities.add(entity("chassis_number", "SHOULD-SKIP-TOO"));
@@ -53,7 +54,7 @@ class GradeSearchParserTest {
         assertThat(result.getFields()).isEmpty();
     }
 
-    private static DocumentAiClient.DocumentAiEntity entity(String type, String value) {
-        return new DocumentAiClient.DocumentAiEntity(type, value, 0.99);
+    private static DocumentAiEntity entity(String type, String value) {
+        return new DocumentAiEntity(type, value, 0.99);
     }
 }

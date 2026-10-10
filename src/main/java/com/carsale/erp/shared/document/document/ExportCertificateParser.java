@@ -9,6 +9,7 @@ import java.util.regex.Matcher;
 
 import com.carsale.erp.shared.document.DocumentParser;
 import com.carsale.erp.shared.ocr.DocumentAiClient;
+import com.carsale.erp.shared.ocr.dto.DocumentAiEntity;
 import com.carsale.erp.shared.regex.RegexConstants;
 import com.carsale.erp.shared.utils.CustomsDocumentParserUtils;
 import org.springframework.beans.factory.annotation.Value;
@@ -83,9 +84,9 @@ public class ExportCertificateParser implements DocumentParser {
             return result;
         }
         result.setRawText(documentAi.getText());
-        List<DocumentAiClient.DocumentAiEntity> entities = documentAi.getEntities();
+        List<DocumentAiEntity> entities = documentAi.getEntities();
         if (entities != null) {
-            for (DocumentAiClient.DocumentAiEntity entity : entities) {
+            for (DocumentAiEntity entity : entities) {
                 if (entity == null) {
                     continue;
                 }

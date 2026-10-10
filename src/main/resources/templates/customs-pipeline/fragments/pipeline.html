@@ -4,7 +4,7 @@
 
 <nav th:fragment="clearancePipelineSteps(currentStep, chassisNo, blReady, declarationReady, assessmentReady, worksheetReady, vehicleLabel, viewMode)"
      class="import-pipeline panel"
-     th:with="isView=${viewMode != null and viewMode}, blDone=${blReady != null and blReady}, worksheetDone=${worksheetReady != null and worksheetReady}, clearanceComplete=${blDone and declarationReady and assessmentReady}, showPrep=${currentStep == 'prep' or (blDone and declarationReady and assessmentReady)}, orderedKeys=${@pipelineStageService.keys('CUSTOMS')}"
+     th:with="isView=${viewMode != null and viewMode}, stageSkipped=${chassisNo != null and !#strings.isEmpty(chassisNo) ? @skippedStageService.token(chassisNo) : '|'}, blDone=${blReady != null and blReady}, blSkip=${!blDone and #strings.contains(stageSkipped, '|bl|')}, declarationDone=${declarationReady != null and declarationReady}, declarationSkip=${!declarationDone and #strings.contains(stageSkipped, '|declaration|')}, assessmentDone=${assessmentReady != null and assessmentReady}, assessmentSkip=${!assessmentDone and #strings.contains(stageSkipped, '|assessment|')}, worksheetDone=${worksheetReady != null and worksheetReady}, worksheetSkip=${!worksheetDone and #strings.contains(stageSkipped, '|worksheet|')}, clearanceComplete=${(blDone or blSkip) and (declarationDone or declarationSkip) and (assessmentDone or assessmentSkip)}, showPrep=${currentStep == 'prep' or clearanceComplete}, orderedKeys=${@pipelineStageService.keys('CUSTOMS')}"
      th:classappend="${clearanceComplete} ? ' is-import-complete' : ''"
      aria-label="Customs clearance pipeline">
     <div class="import-pipeline-head">
@@ -34,7 +34,7 @@
             <li th:if="${key == 'bl'}"
                 data-clearance-step="bl"
                 th:attr="data-step-count=${iter.count}"
-                th:classappend="${(currentStep == 'bl' ? ' is-current' : '') + (blDone ? ' is-done' : ' is-pending')}">
+                th:classappend="${(currentStep == 'bl' ? ' is-current' : '') + (blDone ? ' is-done' : (blSkip ? ' is-skipped' : ' is-pending'))}">
                 <a th:if="${isView}"
                    th:href="@{/customs/{chassisNo}(chassisNo=${chassisNo}, stage=${iter.index})}"
                    class="import-pipeline-step">
@@ -67,7 +67,7 @@
             <li th:if="${key == 'declaration'}"
                 data-clearance-step="declaration"
                 th:attr="data-step-count=${iter.count}"
-                th:classappend="${(currentStep == 'declaration' ? ' is-current' : '') + (declarationReady ? ' is-done' : ' is-pending')}">
+                th:classappend="${(currentStep == 'declaration' ? ' is-current' : '') + (declarationDone ? ' is-done' : (declarationSkip ? ' is-skipped' : ' is-pending'))}">
                 <a th:if="${isView}"
                    th:href="@{/customs/{chassisNo}(chassisNo=${chassisNo}, stage=${iter.index})}"
                    class="import-pipeline-step">
@@ -100,7 +100,7 @@
             <li th:if="${key == 'assessment'}"
                 data-clearance-step="assessment"
                 th:attr="data-step-count=${iter.count}"
-                th:classappend="${(currentStep == 'assessment' ? ' is-current' : '') + (assessmentReady ? ' is-done' : ' is-pending')}">
+                th:classappend="${(currentStep == 'assessment' ? ' is-current' : '') + (assessmentDone ? ' is-done' : (assessmentSkip ? ' is-skipped' : ' is-pending'))}">
                 <a th:if="${isView}"
                    th:href="@{/customs/{chassisNo}(chassisNo=${chassisNo}, stage=${iter.index})}"
                    class="import-pipeline-step">
@@ -133,7 +133,7 @@
             <li th:if="${key == 'worksheet'}"
                 data-clearance-step="worksheet"
                 th:attr="data-step-count=${iter.count}"
-                th:classappend="${(currentStep == 'worksheet' ? ' is-current' : '') + (worksheetDone ? ' is-done' : ' is-pending')}">
+                th:classappend="${(currentStep == 'worksheet' ? ' is-current' : '') + (worksheetDone ? ' is-done' : (worksheetSkip ? ' is-skipped' : ' is-pending'))}">
                 <a th:if="${isView}"
                    th:href="@{/customs/{chassisNo}(chassisNo=${chassisNo}, stage=${iter.index})}"
                    class="import-pipeline-step">

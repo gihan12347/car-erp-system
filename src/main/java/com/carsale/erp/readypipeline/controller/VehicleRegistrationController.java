@@ -18,7 +18,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.util.UriUtils;
 
+import com.carsale.erp.preparationpipeline.model.RegistrationCertificate;
 import com.carsale.erp.preparationpipeline.service.PreparationProgressService;
+import com.carsale.erp.preparationpipeline.service.RegistrationCertificateService;
 import com.carsale.erp.shared.vehicle.Vehicle;
 import com.carsale.erp.shared.vehicle.VehicleService;
 
@@ -29,17 +31,20 @@ public class VehicleRegistrationController {
     private final VehicleService vehicleService;
     private final PreparationProgressService preparationProgressService;
     private final VehicleRegistrationService vehicleRegistrationService;
+    private final RegistrationCertificateService registrationCertificateService;
     private final SaleListingService saleListingService;
 
     public VehicleRegistrationController(
             VehicleService vehicleService,
             PreparationProgressService preparationProgressService,
             VehicleRegistrationService vehicleRegistrationService,
+            RegistrationCertificateService registrationCertificateService,
             SaleListingService saleListingService
     ) {
         this.vehicleService = vehicleService;
         this.preparationProgressService = preparationProgressService;
         this.vehicleRegistrationService = vehicleRegistrationService;
+        this.registrationCertificateService = registrationCertificateService;
         this.saleListingService = saleListingService;
     }
 
@@ -59,13 +64,13 @@ public class VehicleRegistrationController {
                     "Move this vehicle from the yard to an available sale first.");
             return "redirect:/yards";
         }
-        VehicleRegistration record = vehicleRegistrationService.prepareForm(chassisNo);
+        RegistrationCertificate certificate = registrationCertificateService.prepareForm(chassisNo);
         SaleListing listing = saleListingService.findByChassisNo(chassisNo);
         model.addAttribute("pageTitle", "Register");
         model.addAttribute("activeMenu", "ready-for-sale");
         model.addAttribute("hubMode", hub);
         model.addAttribute("vehicle", vehicle);
-        model.addAttribute("record", record);
+        model.addAttribute("certificate", certificate);
         model.addAttribute("saleCode", listing == null ? null : listing.getSaleCode());
         return "ready-for-sale/registration";
     }
@@ -73,13 +78,14 @@ public class VehicleRegistrationController {
     @PostMapping("/{chassisNo}")
     public String save(
             @PathVariable String chassisNo,
-            @ModelAttribute VehicleRegistration record,
+            @ModelAttribute("certificate") RegistrationCertificate certificate,
             @RequestParam(value = "hub", defaultValue = "false") boolean hub,
             RedirectAttributes redirectAttributes
     ) {
-        record.setChassisNo(chassisNo);
+        certificate.setChassisNo(chassisNo);
         try {
-            VehicleRegistration saved = vehicleRegistrationService.save(record);
+            registrationCertificateService.save(certificate);
+            VehicleRegistration saved = vehicleRegistrationService.save(saleRecord(chassisNo, certificate));
             if (vehicleRegistrationService.isComplete(saved.getChassisNo())) {
                 redirectAttributes.addFlashAttribute("successMessage", "Registration saved.");
             } else {
@@ -95,8 +101,50 @@ public class VehicleRegistrationController {
             );
         } catch (IllegalArgumentException ex) {
             redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
+            redirectAttributes.addFlashAttribute("certificate", certificate);
             return "redirect:/registration/" + encodeChassis(chassisNo) + (hub ? "?hub=1" : "");
         }
+    }
+
+    private VehicleRegistration saleRecord(String chassisNo, RegistrationCertificate certificate) {
+        VehicleRegistration record = vehicleRegistrationService.prepareForm(chassisNo);
+        if (record == null) {
+            record = new VehicleRegistration();
+            record.setChassisNo(chassisNo);
+        }
+        record.setRegistrationNo(trimTo(certificate.getRegistrationNo(), 40));
+        record.setRegisteredDate(trimTo(firstText(
+                certificate.getDateOfFirstRegistration(),
+                certificate.getPrintedDate()
+        ), 40));
+        record.setRegisteredOwner(trimTo(firstText(
+                certificate.getCurrentOwnerAddressIdNo(),
+                certificate.getAbsoluteOwner()
+        ), 120));
+        record.setRmvOffice(trimTo(certificate.getProvincialCouncil(), 80));
+        record.setFileNo(trimTo(certificate.getCrNo(), 40));
+        return record;
+    }
+
+    private static String firstText(String primary, String fallback) {
+        if (primary != null && !primary.trim().isEmpty()) {
+            return primary.trim();
+        }
+        if (fallback != null && !fallback.trim().isEmpty()) {
+            return fallback.trim();
+        }
+        return null;
+    }
+
+    private static String trimTo(String value, int max) {
+        if (value == null) {
+            return null;
+        }
+        String trimmed = value.trim();
+        if (trimmed.isEmpty()) {
+            return null;
+        }
+        return trimmed.length() <= max ? trimmed : trimmed.substring(0, max);
     }
 
     private String encodeChassis(String chassisNo) {

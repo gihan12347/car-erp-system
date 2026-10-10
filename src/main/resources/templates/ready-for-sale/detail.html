@@ -20,9 +20,6 @@
 
             <div class="import-view-actions">
                 <a th:href="@{/ready-for-sale/{s}(s=${saleCode}, tab=${tab})}" class="panel-btn ghost import-form-submit">Back to sale</a>
-                <a th:if="${canRegister}"
-                   th:href="@{/registration/{c}(c=${vehicle.chassisNo})}"
-                   class="panel-btn ghost import-form-submit">Register</a>
                 <a th:if="${canSell}"
                    th:href="@{/listing/{c}(c=${vehicle.chassisNo})}"
                    class="panel-btn import-form-submit">Sell</a>

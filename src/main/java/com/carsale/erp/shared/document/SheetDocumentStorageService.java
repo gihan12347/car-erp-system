@@ -26,6 +26,8 @@ public class SheetDocumentStorageService {
     private final Path standardsRoot;
     private final Path exportRoot;
     private final Path gradeSearchRoot;
+    private final Path registrationRoot;
+    private final Path idCardRoot;
     private final Path photoRoot;
 
     public SheetDocumentStorageService(
@@ -37,6 +39,8 @@ public class SheetDocumentStorageService {
             @Value("${app.documents.standardsUploadDir:uploads/standards-docs}") String standardsUploadDir,
             @Value("${app.documents.exportUploadDir:uploads/export-docs}") String exportUploadDir,
             @Value("${app.documents.gradeSearchUploadDir:uploads/grade-search-docs}") String gradeSearchUploadDir,
+            @Value("${app.documents.registrationUploadDir:uploads/registration-certificates}") String registrationUploadDir,
+            @Value("${app.documents.idCardUploadDir:uploads/id-cards}") String idCardUploadDir,
             @Value("${app.documents.photoUploadDir:uploads/vehicle-photos}") String photoUploadDir
     ) throws IOException {
         this.auctionRoot = Paths.get(uploadDir).toAbsolutePath().normalize();
@@ -47,6 +51,8 @@ public class SheetDocumentStorageService {
         this.standardsRoot = Paths.get(standardsUploadDir).toAbsolutePath().normalize();
         this.exportRoot = Paths.get(exportUploadDir).toAbsolutePath().normalize();
         this.gradeSearchRoot = Paths.get(gradeSearchUploadDir).toAbsolutePath().normalize();
+        this.registrationRoot = Paths.get(registrationUploadDir).toAbsolutePath().normalize();
+        this.idCardRoot = Paths.get(idCardUploadDir).toAbsolutePath().normalize();
         this.photoRoot = Paths.get(photoUploadDir).toAbsolutePath().normalize();
         Files.createDirectories(this.auctionRoot);
         Files.createDirectories(this.reshipRoot);
@@ -56,6 +62,8 @@ public class SheetDocumentStorageService {
         Files.createDirectories(this.standardsRoot);
         Files.createDirectories(this.exportRoot);
         Files.createDirectories(this.gradeSearchRoot);
+        Files.createDirectories(this.registrationRoot);
+        Files.createDirectories(this.idCardRoot);
         Files.createDirectories(this.photoRoot);
     }
 
@@ -89,6 +97,14 @@ public class SheetDocumentStorageService {
 
     public SheetUploadResult storeGradeSearch(MultipartFile file) throws IOException {
         return store(file, gradeSearchRoot, "/grade/documents/", "grade search document");
+    }
+
+    public SheetUploadResult storeRegistrationCertificate(MultipartFile file) throws IOException {
+        return store(file, registrationRoot, "/workshop-yard/documents/", "registration certificate");
+    }
+
+    public SheetUploadResult storeIdCard(MultipartFile file) throws IOException {
+        return store(file, idCardRoot, "/registered/documents/", "identity card");
     }
 
     public SheetUploadResult storePhoto(MultipartFile file) throws IOException {
@@ -184,6 +200,14 @@ public class SheetDocumentStorageService {
         return loadAsResource(storedName, gradeSearchRoot);
     }
 
+    public Resource loadRegistrationCertificateAsResource(String storedName) throws IOException {
+        return loadAsResource(storedName, registrationRoot);
+    }
+
+    public Resource loadIdCardAsResource(String storedName) throws IOException {
+        return loadAsResource(storedName, idCardRoot);
+    }
+
     public Resource loadPhotoAsResource(String storedName) throws IOException {
         return loadAsResource(storedName, photoRoot);
     }
@@ -240,6 +264,14 @@ public class SheetDocumentStorageService {
 
     public void deleteGradeSearchIfExists(String storedName) {
         deleteIfExists(storedName, gradeSearchRoot);
+    }
+
+    public void deleteRegistrationCertificateIfExists(String storedName) {
+        deleteIfExists(storedName, registrationRoot);
+    }
+
+    public void deleteIdCardIfExists(String storedName) {
+        deleteIfExists(storedName, idCardRoot);
     }
 
     public void deletePhotoIfExists(String storedName) {

@@ -34,18 +34,21 @@ public class OcrImagePreparer {
     //private final int pdfRenderDpi;
     private final OcrClientRouter ocrClients;
     private final DocumentAiClient documentAiClient;
+    private final AuctionSheetImagePreparer auctionSheetImagePreparer;
     private final String language;
 
     public OcrImagePreparer(
             OcrClientRouter ocrClients,
             @Value("${app.ocr.ocrspace.maxImageSide:2200}") int maxImageSide,
             @Value("${app.ocr.clearance.language:eng}") String language,
-            DocumentAiClient documentAiClient
+            DocumentAiClient documentAiClient,
+            AuctionSheetImagePreparer auctionSheetImagePreparer
     ) {
         this.ocrClients = ocrClients;
         this.maxImageSide = maxImageSide > 0 ? maxImageSide : 2200;
         this.language = language == null || language.trim().isEmpty() ? "eng" : language.trim();
         this.documentAiClient = documentAiClient;
+        this.auctionSheetImagePreparer = auctionSheetImagePreparer;
     }
 
     public AuctionParseResult parsePage(MultipartFile file, DocumentParser documentParser, String provider) {
@@ -105,28 +108,57 @@ public class OcrImagePreparer {
     }
 
     public AuctionParseResult readDocumentText(File file, String originalName, String language, String provider, DocumentParser parser) throws Exception {
-        AuctionParseResult documentAiResult = tryDocumentAi(file, originalName, parser);
-        if (documentAiResult != null && documentAiResult.isSuccess()) {
-            return documentAiResult;
-        }
-        OcrClient client = ocrClients.clientFor(provider);
-        BufferedImage image = ImageIO.read(file);
-        if (image == null) {
-            if (documentAiResult != null) {
+        File prepared = null;
+        File working = file;
+        String workingName = originalName;
+        try {
+            if (isAuctionSheet(parser)) {
+                prepared = auctionSheetImagePreparer.prepare(file);
+                if (prepared != null) {
+                    working = prepared;
+                    workingName = jpegName(originalName);
+                }
+            }
+            AuctionParseResult documentAiResult = tryDocumentAi(working, workingName, parser);
+            if (documentAiResult != null && documentAiResult.isSuccess()) {
                 return documentAiResult;
             }
-            throw new IOException("Unsupported image format.");
-        }
-        File imageTemp = writeUploadImage(prepare(image), client);
-        try {
-            AuctionParseResult ocrResult = parser.parsePage(client.recognize(imageTemp, language));
-            if (ocrResult != null && ocrResult.isSuccess()) {
-                return ocrResult;
+            OcrClient client = ocrClients.clientFor(provider);
+            BufferedImage image = ImageIO.read(working);
+            if (image == null) {
+                if (documentAiResult != null) {
+                    return documentAiResult;
+                }
+                throw new IOException("Unsupported image format.");
             }
-            return documentAiResult != null ? documentAiResult : ocrResult;
+            File imageTemp = writeUploadImage(isAuctionSheet(parser) ? image : prepare(image), client);
+            try {
+                AuctionParseResult ocrResult = parser.parsePage(client.recognize(imageTemp, language));
+                if (ocrResult != null && ocrResult.isSuccess()) {
+                    return ocrResult;
+                }
+                return documentAiResult != null ? documentAiResult : ocrResult;
+            } finally {
+                tryDelete(imageTemp);
+            }
         } finally {
-            tryDelete(imageTemp);
+            if (prepared != null) {
+                tryDelete(prepared);
+            }
         }
+    }
+
+    private static boolean isAuctionSheet(DocumentParser parser) {
+        return parser != null && "auction sheet".equals(parser.getDocumentName());
+    }
+
+    private static String jpegName(String originalName) {
+        if (originalName == null || originalName.trim().isEmpty()) {
+            return "auction-sheet.jpg";
+        }
+        int dot = originalName.lastIndexOf('.');
+        String base = dot > 0 ? originalName.substring(0, dot) : originalName;
+        return base + ".jpg";
     }
 
     private AuctionParseResult tryDocumentAi(File file, String originalName, DocumentParser parser) {
