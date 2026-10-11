@@ -6,7 +6,7 @@ import java.util.Collections;
 import java.util.List;
 
 import com.carsale.erp.shared.regex.RegexConstants;
-import com.carsale.erp.shared.utils.CustomsDocumentParserUtils;
+import com.carsale.erp.shared.utils.Utils;
 
 /**
  * Interior, exterior, and safety fields on the vehicle equipment condition sheet.
@@ -182,7 +182,7 @@ public final class EquipmentInspectionFields {
         if (trimmed.isEmpty()) {
             return "";
         }
-        return CustomsDocumentParserUtils.getNormalizedValue(trimmed.toUpperCase().replace(" ", ""));
+        return Utils.getNormalizedValue(trimmed.toUpperCase().replace(" ", ""));
     }
 
     private static List<FieldDef> list(FieldDef... fields) {

@@ -1,5 +1,8 @@
 package com.carsale.erp.preparationpipeline.model;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -13,6 +16,8 @@ import javax.persistence.OneToMany;
 import javax.persistence.OrderBy;
 import javax.persistence.Table;
 
+@Setter
+@Getter
 @Entity
 @Table(name = "vehicle_inspections")
 public class VehicleInspection {
@@ -36,56 +41,13 @@ public class VehicleInspection {
 
     @OneToMany(mappedBy = "inspection", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     @OrderBy("sortOrder ASC, id ASC")
-    private List<VehicleInspectionLine> lines = new ArrayList<VehicleInspectionLine>();
-
-    public String getChassisNo() {
-        return chassisNo;
-    }
-
-    public void setChassisNo(String chassisNo) {
-        this.chassisNo = chassisNo;
-    }
-
-    public String getInspector() {
-        return inspector;
-    }
-
-    public void setInspector(String inspector) {
-        this.inspector = inspector;
-    }
-
-    public String getInspectionDate() {
-        return inspectionDate;
-    }
-
-    public void setInspectionDate(String inspectionDate) {
-        this.inspectionDate = inspectionDate;
-    }
-
-    public String getNotes() {
-        return notes;
-    }
-
-    public void setNotes(String notes) {
-        this.notes = notes;
-    }
-
-    public boolean isCompleted() {
-        return completed;
-    }
-
-    public void setCompleted(boolean completed) {
-        this.completed = completed;
-    }
+    private List<VehicleInspectionLine> lines = new ArrayList<>();
 
     public List<VehicleInspectionLine> getLines() {
         if (lines == null) {
-            lines = new ArrayList<VehicleInspectionLine>();
+            lines = new ArrayList<>();
         }
         return lines;
     }
 
-    public void setLines(List<VehicleInspectionLine> lines) {
-        this.lines = lines;
-    }
 }

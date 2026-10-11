@@ -6,9 +6,9 @@ import java.util.Map;
 
 import com.carsale.erp.importpipeline.util.AuctionParseResult;
 import com.carsale.erp.shared.document.document.RegistrationCertificateParser;
+import com.carsale.erp.shared.dto.SaleProgress;
 import com.carsale.erp.shared.ocr.DocumentAiClient;
 import com.carsale.erp.shared.ocr.RegistrationCertificateDocumentAi;
-import com.carsale.erp.shared.ocr.dto.DocumentAiEntity;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -47,9 +47,9 @@ class RegistrationCertificateParserTest {
         DocumentAiClient.DocumentAiResult documentAi = new DocumentAiClient.DocumentAiResult(
                 "Make UNKNOWN",
                 Arrays.asList(
-                        new DocumentAiEntity("make", "HONDA", 0.94d),
-                        new DocumentAiEntity("chassis_no", "ZE3-1803941", 0.91d),
-                        new DocumentAiEntity("cr_no", "LOT FO 0642763", 0.88d)
+                        new SaleProgress.DocumentAiEntity("make", "HONDA", 0.94d),
+                        new SaleProgress.DocumentAiEntity("chassis_no", "ZE3-1803941", 0.91d),
+                        new SaleProgress.DocumentAiEntity("cr_no", "LOT FO 0642763", 0.88d)
                 )
         );
         AuctionParseResult result = parser.parsePage(documentAi);

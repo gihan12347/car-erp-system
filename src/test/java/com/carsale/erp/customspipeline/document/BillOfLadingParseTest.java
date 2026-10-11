@@ -2,8 +2,8 @@ package com.carsale.erp.customspipeline.document;
 
 import com.carsale.erp.importpipeline.util.AuctionParseResult;
 import com.carsale.erp.shared.document.document.BillOfLading;
+import com.carsale.erp.shared.dto.SaleProgress;
 import com.carsale.erp.shared.ocr.DocumentAiClient;
-import com.carsale.erp.shared.ocr.dto.DocumentAiEntity;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
@@ -28,7 +28,7 @@ class BillOfLadingParseTest {
 
     @Test
     void mapsDocumentAiEntities() {
-        List<DocumentAiEntity> entities = Arrays.asList(
+        List<SaleProgress.DocumentAiEntity> entities = Arrays.asList(
                 entity("bl_no", "NYK8182204251"),
                 entity("date_of_bl_issue", "14 MAR 2025")
         );
@@ -55,8 +55,8 @@ class BillOfLadingParseTest {
         assertEquals("NYK8182204251", BillOfLading.cleanValue("blNo", "NYK 8182204251"));
     }
 
-    private static DocumentAiEntity entity(String type, String value) {
-        return new DocumentAiEntity(type, value, 1.0d);
+    private static SaleProgress.DocumentAiEntity entity(String type, String value) {
+        return new SaleProgress.DocumentAiEntity(type, value, 1.0d);
     }
 
     private static final String SAMPLE_OCR =

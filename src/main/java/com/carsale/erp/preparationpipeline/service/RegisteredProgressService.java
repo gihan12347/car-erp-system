@@ -1,7 +1,7 @@
 package com.carsale.erp.preparationpipeline.service;
 
 import com.carsale.erp.importpipeline.service.VehiclePhotoService;
-import com.carsale.erp.shared.pipeline.SkippedStageService;
+import com.carsale.erp.shared.service.SkippedStageService;
 import com.carsale.erp.shared.vehicle.Vehicle;
 import com.carsale.erp.shared.vehicle.VehicleIntake;
 import com.carsale.erp.shared.vehicle.VehicleRepository;

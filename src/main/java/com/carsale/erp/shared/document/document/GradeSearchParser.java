@@ -6,10 +6,10 @@ import java.util.Map;
 
 import com.carsale.erp.importpipeline.util.AuctionParseResult;
 import com.carsale.erp.shared.document.DocumentParser;
+import com.carsale.erp.shared.dto.SaleProgress;
 import com.carsale.erp.shared.ocr.DocumentAiClient;
-import com.carsale.erp.shared.ocr.dto.DocumentAiEntity;
 import com.carsale.erp.shared.regex.RegexConstants;
-import com.carsale.erp.shared.utils.CustomsDocumentParserUtils;
+import com.carsale.erp.shared.utils.Utils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -56,20 +56,20 @@ public class GradeSearchParser implements DocumentParser {
             return result;
         }
         result.setRawText(documentAi.getText());
-        List<DocumentAiEntity> entities = documentAi.getEntities();
+        List<SaleProgress.DocumentAiEntity> entities = documentAi.getEntities();
         if (entities != null) {
-            for (DocumentAiEntity entity : entities) {
+            for (SaleProgress.DocumentAiEntity entity : entities) {
                 if (entity == null) {
                     continue;
                 }
-                String field = CustomsDocumentParserUtils.mapType(entity.getType(), TYPE_TO_FIELD);
+                String field = Utils.mapType(entity.getType(), TYPE_TO_FIELD);
                 if (field == null || result.getFields().containsKey(field)) {
                     continue;
                 }
                 result.put(field, cleanDocumentAiValue(entity.getValue()));
             }
         }
-        CustomsDocumentParserUtils.finish(result, "Document AI (grade search)");
+        Utils.finish(result, "Document AI (grade search)");
         return result;
     }
 

@@ -1,14 +1,51 @@
 package com.carsale.erp.shared.utils;
 
+import com.carsale.erp.shared.dto.CustomsProgress;
+import com.carsale.erp.shared.dto.ImportProgress;
 import com.carsale.erp.shared.pipeline.FlowPipeline;
-import com.carsale.erp.shared.pipeline.PipelineProgress;
-import com.carsale.erp.shared.pipeline.PipelineStage;
+import com.carsale.erp.shared.pipeline.FlowStage;
+import com.carsale.erp.shared.repository.PipelineProgress;
+import com.carsale.erp.shared.model.PipelineStage;
+import org.springframework.ui.Model;
 import org.springframework.web.util.UriUtils;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.List;
 
 public class PipelineStageUtils {
+
+     public static final List<String> IMPORT_STAGE_KEYS = Arrays.asList(
+            FlowStage.AUCTION.getStageKey(),
+            FlowStage.PRESHIP.getStageKey(),
+            FlowStage.EQUIPMENT.getStageKey(),
+            FlowStage.JEVIC.getStageKey(),
+            FlowStage.COI.getStageKey(),
+            FlowStage.STANDARDS.getStageKey(),
+            FlowStage.EXPORT.getStageKey(),
+            FlowStage.GRADE.getStageKey(),
+            FlowStage.PHOTOS.getStageKey(),
+            FlowStage.WORKSHEET.getStageKey()
+    );
+
+    public static final List<String> CUSTOMS_STAGE_KEYS = Arrays.asList(
+            FlowStage.BILL_OF_LADING.getStageKey(),
+            FlowStage.DECLARATION.getStageKey(),
+            FlowStage.ASSESSMENT.getStageKey(),
+            FlowStage.WORKSHEET.getStageKey()
+    );
+
+    public static final List<String> PREP_STAGE_KEYS = Arrays.asList(
+            FlowStage.INSPECTION.getStageKey(),
+            FlowStage.WORKSHOP.getStageKey(),
+            FlowStage.YARD.getStageKey()
+    );
+
+    public static final List<String> READY_STAGE_KEYS = Arrays.asList(
+            FlowStage.DETAILS.getStageKey(),
+            FlowStage.LISTING.getStageKey(),
+            FlowStage.REGISTRATION.getStageKey()
+    );
 
     public static String redirectAfterStageSave(
             String chassisNo,
@@ -118,5 +155,25 @@ public class PipelineStageUtils {
         } catch (NumberFormatException ex) {
             return null;
         }
+    }
+
+    public static void addPipelineFlags(Model model, CustomsProgress status) {
+        model.addAttribute("blReady", status.isBlReady());
+        model.addAttribute("declarationReady", status.isDeclarationReady());
+        model.addAttribute("assessmentReady", status.isAssessmentReady());
+        model.addAttribute("worksheetReady", status.isWorksheetReady());
+    }
+
+    public static void addPipelineFlags(Model model, ImportProgress status) {
+        model.addAttribute("auctionDocReady", status.isAuctionReady());
+        model.addAttribute("preshipReady", status.isPreshipReady());
+        model.addAttribute("equipmentReady", status.isEquipmentReady());
+        model.addAttribute("jevicReady", status.isJevicReady());
+        model.addAttribute("coiReady", status.isCoiReady());
+        model.addAttribute("standardsReady", status.isStandardsReady());
+        model.addAttribute("exportReady", status.isExportReady());
+        model.addAttribute("gradeReady", status.isGradeReady());
+        model.addAttribute("photosReady", status.isPhotosReady());
+        model.addAttribute("worksheetReady", status.isWorksheetReady());
     }
 }

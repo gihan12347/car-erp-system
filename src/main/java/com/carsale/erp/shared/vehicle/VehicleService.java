@@ -2,7 +2,7 @@ package com.carsale.erp.shared.vehicle;
 
 import com.carsale.erp.importpipeline.service.VehiclePhotoService;
 import com.carsale.erp.shared.document.SheetDocumentStorageService;
-import com.carsale.erp.shared.pipeline.PipelineStageService;
+import com.carsale.erp.shared.service.PipelineStageService;
 import java.util.List;
 
 import org.springframework.stereotype.Service;

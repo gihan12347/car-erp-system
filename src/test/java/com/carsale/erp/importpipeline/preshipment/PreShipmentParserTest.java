@@ -9,8 +9,8 @@ import java.util.List;
 
 import com.carsale.erp.importpipeline.util.AuctionParseResult;
 import com.carsale.erp.shared.document.document.PreShipmentParser;
+import com.carsale.erp.shared.dto.SaleProgress;
 import com.carsale.erp.shared.ocr.DocumentAiClient;
-import com.carsale.erp.shared.ocr.dto.DocumentAiEntity;
 import org.junit.jupiter.api.Test;
 
 class PreShipmentParserTest {
@@ -28,28 +28,28 @@ class PreShipmentParserTest {
 
     @Test
     void parsesDocumentAiEntitiesIntoFormFields() {
-        List<DocumentAiEntity> entities = new ArrayList<>();
-        entities.add(new DocumentAiEntity(
+        List<SaleProgress.DocumentAiEntity> entities = new ArrayList<>();
+        entities.add(new SaleProgress.DocumentAiEntity(
                 "applicant_name", "KAN-DE (NAGOYA) TRADING CO., LTD.", 0.98));
-        entities.add(new DocumentAiEntity(
+        entities.add(new SaleProgress.DocumentAiEntity(
                 "inspection_organization_name", "BUREAU VERITAS", 0.98));
-        entities.add(new DocumentAiEntity(
+        entities.add(new SaleProgress.DocumentAiEntity(
                 "make", "TOYOTA", 0.97));
-        entities.add(new DocumentAiEntity(
+        entities.add(new SaleProgress.DocumentAiEntity(
                 "chassis_no", "TRJ250-0025161", 0.99));
-        entities.add(new DocumentAiEntity(
+        entities.add(new SaleProgress.DocumentAiEntity(
                 "tyre_size", "265/65R18", 0.9));
-        entities.add(new DocumentAiEntity(
+        entities.add(new SaleProgress.DocumentAiEntity(
                 "tyre_size", "265/70R17", 0.9));
-        entities.add(new DocumentAiEntity(
+        entities.add(new SaleProgress.DocumentAiEntity(
                 "auction_grade", "4.5", 0.9));
-        entities.add(new DocumentAiEntity(
+        entities.add(new SaleProgress.DocumentAiEntity(
                 "commonly_called", "LAND CRUISER 250", 0.9));
-        entities.add(new DocumentAiEntity(
+        entities.add(new SaleProgress.DocumentAiEntity(
                 "marks_of_accident_on_chassis", "No", 0.9));
-        entities.add(new DocumentAiEntity(
+        entities.add(new SaleProgress.DocumentAiEntity(
                 "year_month_of_first_registration", "May-2025", 0.95));
-        entities.add(new DocumentAiEntity(
+        entities.add(new SaleProgress.DocumentAiEntity(
                 "vehicle_details", "ignored parent", 0.5));
 
         AuctionParseResult result = parser.parsePage(

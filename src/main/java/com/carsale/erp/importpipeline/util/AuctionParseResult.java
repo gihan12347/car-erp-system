@@ -10,8 +10,8 @@ public class AuctionParseResult {
     private boolean success;
     private String message;
     private String rawText;
-    private Map<String, String> fields = new LinkedHashMap<String, String>();
-    private List<String> warnings = new ArrayList<String>();
+    private Map<String, String> fields = new LinkedHashMap<>();
+    private List<String> warnings = new ArrayList<>();
 
     public AuctionParseResult(boolean success, String message) {
         this.success = success;
@@ -69,7 +69,7 @@ public class AuctionParseResult {
     }
 
     public void setWarnings(List<String> warnings) {
-        this.warnings = warnings == null ? new ArrayList<String>() : warnings;
+        this.warnings = warnings == null ? new ArrayList<>() : warnings;
     }
 
     public void addWarning(String warning) {

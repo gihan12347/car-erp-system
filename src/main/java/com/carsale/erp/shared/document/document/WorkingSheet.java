@@ -1,8 +1,9 @@
 package com.carsale.erp.shared.document.document;
 
+import com.carsale.erp.shared.dto.SaleProgress;
 import com.carsale.erp.shared.ocr.DocumentAiClient;
-import com.carsale.erp.shared.ocr.dto.DocumentAiEntity;
-import com.carsale.erp.shared.utils.CustomsDocumentParserUtils;
+import com.carsale.erp.shared.ocr.DocumentAiConstants;
+import com.carsale.erp.shared.utils.Utils;
 import com.carsale.erp.shared.regex.RegexConstants;
 import com.carsale.erp.importpipeline.util.AuctionParseResult;
 import com.carsale.erp.importpipeline.util.AuctionSheetEnglish;
@@ -94,9 +95,9 @@ public class WorkingSheet implements DocumentParser {
             return result;
         }
         result.setRawText(documentAi.getText());
-        List<DocumentAiEntity> entities = documentAi.getEntities();
+        List<SaleProgress.DocumentAiEntity> entities = documentAi.getEntities();
         if (entities != null) {
-            for (DocumentAiEntity entity : entities) {
+            for (SaleProgress.DocumentAiEntity entity : entities) {
                 if (entity == null) {
                     continue;
                 }
@@ -117,7 +118,7 @@ public class WorkingSheet implements DocumentParser {
                 result.put("worksheetBlFreightAmount", amount);
             }
         }
-        CustomsDocumentParserUtils.finish(result, "Document AI (working sheet)");
+        Utils.finish(result, "Document AI (working sheet)");
         return result;
     }
 
@@ -209,7 +210,7 @@ public class WorkingSheet implements DocumentParser {
 
     @Override
     public String getDocumentName() {
-        return "working sheet";
+        return DocumentAiConstants.Documents.WORKING_SHEET;
     }
 
     @Component
@@ -410,7 +411,7 @@ public class WorkingSheet implements DocumentParser {
 
         @Override
         public String getDocumentName() {
-            return "auction sheet";
+            return DocumentAiConstants.Documents.AUCTION_SHEET;
         }
 
         @Override
@@ -418,17 +419,17 @@ public class WorkingSheet implements DocumentParser {
             return language == null || language.trim().isEmpty() ? "jpn" : language.trim();
         }
 
-        private void applyEntities(AuctionParseResult result, java.util.List<DocumentAiEntity> entities) {
+        private void applyEntities(AuctionParseResult result, java.util.List<SaleProgress.DocumentAiEntity> entities) {
             if (entities == null) {
                 return;
             }
-            for (DocumentAiEntity entity : entities) {
+            for (SaleProgress.DocumentAiEntity entity : entities) {
                 String field = entityField(entity.getType());
                 if (field == null) {
                     continue;
                 }
                 Double confidence = entity.getConfidence();
-                if (confidence != null && confidence.doubleValue() < ENTITY_MIN_CONFIDENCE) {
+                if (confidence != null && confidence < ENTITY_MIN_CONFIDENCE) {
                     result.addWarning("Document AI left " + field + " unused because the reading was uncertain.");
                     continue;
                 }
@@ -458,7 +459,7 @@ public class WorkingSheet implements DocumentParser {
 
         private void finish(AuctionParseResult result) {
             keepFormFields(result);
-            java.util.List<String> warnings = new ArrayList<String>();
+            java.util.List<String> warnings = new ArrayList<>();
             if (result.getWarnings() != null) {
                 for (String warning : result.getWarnings()) {
                     if (warning.startsWith("Document AI")) {
@@ -491,7 +492,7 @@ public class WorkingSheet implements DocumentParser {
         }
 
         private java.util.List<String> validateFields(AuctionParseResult result) {
-            java.util.List<String> warnings = new ArrayList<String>();
+            java.util.List<String> warnings = new ArrayList<>();
             Map<String, String> fields = result.getFields();
             require(warnings, fields, "chassisNo", "chassis number");
             require(warnings, fields, "model", "model");
@@ -2071,6 +2072,20 @@ public class WorkingSheet implements DocumentParser {
                 return first;
             }
             return second;
+        }
+    }
+
+    /**
+     * Request options for the auction-sheet custom extractor.
+     * That processor rejects a call unless the request names at least one entity type.
+     */
+    public static final class AuctionSheetDocumentAi {
+
+        private AuctionSheetDocumentAi() {
+        }
+
+        public static Map<String, Object> processOptions() {
+            return DocumentAiConstants.customExtractorOptions(DocumentAiConstants.AUCTION_FIELDS);
         }
     }
 }

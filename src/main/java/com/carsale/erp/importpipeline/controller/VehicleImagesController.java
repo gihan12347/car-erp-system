@@ -9,6 +9,8 @@ import java.util.List;
 import com.carsale.erp.importpipeline.util.PhotoUploadResult;
 import com.carsale.erp.importpipeline.model.VehiclePhoto;
 import com.carsale.erp.importpipeline.service.VehiclePhotoService;
+import com.carsale.erp.shared.utils.PipelineStageUtils;
+import com.carsale.erp.shared.utils.Utils;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -29,8 +31,8 @@ import com.carsale.erp.shared.document.SheetUploadResult;
 import com.carsale.erp.shared.vehicle.Vehicle;
 import com.carsale.erp.customspipeline.service.CustomsProgressService;
 import com.carsale.erp.importpipeline.service.ImportProgressService;
-import com.carsale.erp.importpipeline.service.ImportProgressService.ImportProgress;
-import com.carsale.erp.shared.pipeline.PipelineStageService;
+import com.carsale.erp.shared.dto.ImportProgress;
+import com.carsale.erp.shared.service.PipelineStageService;
 import com.carsale.erp.shared.pipeline.FlowStage;
 import com.carsale.erp.shared.document.SheetDocumentStorageService;
 import com.carsale.erp.shared.vehicle.VehicleService;
@@ -149,7 +151,7 @@ public class VehicleImagesController {
         model.addAttribute("hubMode", hub);
         model.addAttribute("vehicle", vehicle);
         addPhotoModel(model, chassisNo);
-        addPipelineFlags(model, status);
+        PipelineStageUtils.addPipelineFlags(model, status);
         model.addAttribute("stageNav", ImportStageUrls.editLinks(
                 chassisNo,
                 pipelineStageService.indexOf(PipelineStageService.FLOW_IMPORT, FlowStage.PHOTOS.getStageKey()),
@@ -253,7 +255,7 @@ public class VehicleImagesController {
             );
         } catch (IllegalArgumentException ex) {
             redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
-            return "redirect:/photos/" + encodeChassis(chassisNo) + (hub ? "?hub=1" : "");
+            return "redirect:/photos/" + Utils.encodeChassis(chassisNo) + (hub ? "?hub=1" : "");
         }
     }
 
@@ -263,22 +265,5 @@ public class VehicleImagesController {
         model.addAttribute("photoCount", photos.size());
         model.addAttribute("maxPhotos", VehiclePhotoService.MAX_PHOTOS);
         model.addAttribute("photosRemaining", Math.max(0, VehiclePhotoService.MAX_PHOTOS - photos.size()));
-    }
-
-    private void addPipelineFlags(Model model, ImportProgress status) {
-        model.addAttribute("auctionDocReady", status.isAuctionReady());
-        model.addAttribute("preshipReady", status.isPreshipReady());
-        model.addAttribute("equipmentReady", status.isEquipmentReady());
-        model.addAttribute("jevicReady", status.isOdometerReady());
-        model.addAttribute("coiReady", status.isCoiReady());
-        model.addAttribute("standardsReady", status.isStandardsReady());
-        model.addAttribute("exportReady", status.isExportReady());
-        model.addAttribute("gradeReady", status.isGradeReady());
-        model.addAttribute("photosReady", status.isPhotosReady());
-        model.addAttribute("worksheetReady", status.isWorksheetReady());
-    }
-
-    private String encodeChassis(String chassisNo) {
-        return UriUtils.encodePathSegment(chassisNo, StandardCharsets.UTF_8);
     }
 }

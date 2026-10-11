@@ -21,7 +21,7 @@ import com.carsale.erp.importpipeline.service.EquipmentInspectionService;
 import com.carsale.erp.importpipeline.service.ExportCertificateService;
 import com.carsale.erp.importpipeline.service.GradeSearchService;
 import com.carsale.erp.importpipeline.service.ImportProgressService;
-import com.carsale.erp.importpipeline.service.ImportProgressService.ImportProgress;
+import com.carsale.erp.shared.dto.ImportProgress;
 import com.carsale.erp.importpipeline.service.PreShipmentService;
 import com.carsale.erp.importpipeline.service.StandardsCertificateService;
 import com.carsale.erp.importpipeline.service.VehiclePhotoService;
@@ -32,7 +32,7 @@ import com.carsale.erp.preparationpipeline.service.RegistrationCertificateServic
 import com.carsale.erp.readypipeline.model.SaleListing;
 import com.carsale.erp.readypipeline.service.SaleListingService;
 import com.carsale.erp.shared.pipeline.FlowStage;
-import com.carsale.erp.shared.pipeline.SkippedStageService;
+import com.carsale.erp.shared.service.SkippedStageService;
 import com.carsale.erp.shared.vehicle.VehicleSummary.DocumentCard;
 import com.carsale.erp.shared.vehicle.VehicleSummary.PhotoCard;
 import com.carsale.erp.shared.vehicle.VehicleSummary.PriceBuilder;

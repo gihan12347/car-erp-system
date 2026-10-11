@@ -16,8 +16,8 @@ import com.carsale.erp.shared.utils.PipelineStageUtils;
 import com.carsale.erp.shared.pipeline.FlowPipeline;
 import com.carsale.erp.shared.vehicle.Vehicle;
 import com.carsale.erp.shared.vehicle.VehicleIntake;
-import com.carsale.erp.importpipeline.service.ImportProgressService.ImportProgress;
-import com.carsale.erp.shared.pipeline.PipelineStageService;
+import com.carsale.erp.shared.dto.ImportProgress;
+import com.carsale.erp.shared.service.PipelineStageService;
 import com.carsale.erp.shared.vehicle.VehicleService;
 
 @Controller

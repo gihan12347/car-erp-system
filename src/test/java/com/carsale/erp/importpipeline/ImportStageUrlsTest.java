@@ -1,18 +1,17 @@
 package com.carsale.erp.importpipeline;
 
-import static com.carsale.erp.shared.pipeline.PipelineStageService.shortTitleFor;
+import static com.carsale.erp.shared.service.PipelineStageService.shortTitleFor;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Arrays;
 import java.util.List;
 
 import com.carsale.erp.importpipeline.util.ImportStageUrls;
-import com.carsale.erp.shared.pipeline.FlowStage;
 import com.carsale.erp.shared.utils.PipelineStageUtils;
 import org.junit.jupiter.api.Test;
 
-import com.carsale.erp.shared.pipeline.PipelineStage;
-import com.carsale.erp.importpipeline.service.ImportProgressService.ImportProgress;
+import com.carsale.erp.shared.model.PipelineStage;
+import com.carsale.erp.shared.dto.ImportProgress;
 
 class ImportStageUrlsTest {
 

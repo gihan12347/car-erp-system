@@ -1,11 +1,10 @@
 package com.carsale.erp.readypipeline.controller;
 
-import java.nio.charset.StandardCharsets;
-
 import com.carsale.erp.readypipeline.util.ReadyStageUrls;
 import com.carsale.erp.readypipeline.model.SaleListing;
 import com.carsale.erp.readypipeline.service.SaleListingService;
 import com.carsale.erp.readypipeline.service.SaleLocationService;
+import com.carsale.erp.shared.utils.Utils;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -15,7 +14,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import org.springframework.web.util.UriUtils;
 
 import com.carsale.erp.preparationpipeline.service.PreparationProgressService;
 import com.carsale.erp.shared.vehicle.Vehicle;
@@ -91,11 +89,7 @@ public class SaleListingController {
                     record.getSaleCode(), chassisNo, record.isSold());
         } catch (IllegalArgumentException ex) {
             redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
-            return "redirect:/listing/" + encodeChassis(chassisNo) + (hub ? "?hub=1" : "");
+            return "redirect:/listing/" + Utils.encodeChassis(chassisNo) + (hub ? "?hub=1" : "");
         }
-    }
-
-    private String encodeChassis(String chassisNo) {
-        return UriUtils.encodePathSegment(chassisNo, StandardCharsets.UTF_8);
     }
 }

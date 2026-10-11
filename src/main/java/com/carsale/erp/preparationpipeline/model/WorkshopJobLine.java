@@ -1,5 +1,8 @@
 package com.carsale.erp.preparationpipeline.model;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -11,6 +14,8 @@ import javax.persistence.Lob;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
+@Setter
+@Getter
 @Entity
 @Table(name = "workshop_job_lines")
 public class WorkshopJobLine {
@@ -57,110 +62,6 @@ public class WorkshopJobLine {
 
     @Column(name = "inspection_item_key", length = 80)
     private String inspectionItemKey;
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public WorkshopJob getJob() {
-        return job;
-    }
-
-    public void setJob(WorkshopJob job) {
-        this.job = job;
-    }
-
-    public String getJobStatus() {
-        return jobStatus;
-    }
-
-    public void setJobStatus(String jobStatus) {
-        this.jobStatus = jobStatus;
-    }
-
-    public String getJobSummary() {
-        return jobSummary;
-    }
-
-    public void setJobSummary(String jobSummary) {
-        this.jobSummary = jobSummary;
-    }
-
-    public String getTechnician() {
-        return technician;
-    }
-
-    public void setTechnician(String technician) {
-        this.technician = technician;
-    }
-
-    public String getPartsUsed() {
-        return partsUsed;
-    }
-
-    public void setPartsUsed(String partsUsed) {
-        this.partsUsed = partsUsed;
-    }
-
-    public String getLaborHours() {
-        return laborHours;
-    }
-
-    public void setLaborHours(String laborHours) {
-        this.laborHours = laborHours;
-    }
-
-    public String getEstimatedCost() {
-        return estimatedCost;
-    }
-
-    public void setEstimatedCost(String estimatedCost) {
-        this.estimatedCost = estimatedCost;
-    }
-
-    public String getActualCost() {
-        return actualCost;
-    }
-
-    public void setActualCost(String actualCost) {
-        this.actualCost = actualCost;
-    }
-
-    public String getStartedOn() {
-        return startedOn;
-    }
-
-    public void setStartedOn(String startedOn) {
-        this.startedOn = startedOn;
-    }
-
-    public String getCompletedOn() {
-        return completedOn;
-    }
-
-    public void setCompletedOn(String completedOn) {
-        this.completedOn = completedOn;
-    }
-
-    public String getNotes() {
-        return notes;
-    }
-
-    public void setNotes(String notes) {
-        this.notes = notes;
-    }
-
-    public String getInspectionItemKey() {
-        return inspectionItemKey;
-    }
-
-    public void setInspectionItemKey(String inspectionItemKey) {
-        this.inspectionItemKey = inspectionItemKey;
-    }
 
     public boolean isEmpty() {
         return isBlank(jobSummary)

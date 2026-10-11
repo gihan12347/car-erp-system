@@ -2,15 +2,13 @@ package com.carsale.erp.preparationpipeline.service;
 
 import com.carsale.erp.readypipeline.service.SaleListingService;
 import com.carsale.erp.customspipeline.service.CustomsProgressService;
-import com.carsale.erp.shared.pipeline.PipelineProgress;
+import com.carsale.erp.shared.dto.PreparationProgress;
 import com.carsale.erp.shared.pipeline.FlowStage;
-import com.carsale.erp.shared.pipeline.SkippedStageService;
+import com.carsale.erp.shared.service.SkippedStageService;
+import com.carsale.erp.shared.utils.PipelineStageUtils;
 import com.carsale.erp.shared.vehicle.VehicleService;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,18 +21,6 @@ import com.carsale.erp.shared.vehicle.VehicleRepository;
 
 @Service
 public class PreparationProgressService {
-
-    private static final List<String> PREP_STAGE_KEYS = Arrays.asList(
-            FlowStage.INSPECTION.getStageKey(),
-            FlowStage.WORKSHOP.getStageKey(),
-            FlowStage.YARD.getStageKey(),
-            FlowStage.SALE.getStageKey()
-    );
-    private static final List<String> REQUIRED_STAGE_KEYS = Arrays.asList(
-            FlowStage.INSPECTION.getStageKey(),
-            FlowStage.WORKSHOP.getStageKey(),
-            FlowStage.YARD.getStageKey()
-    );
 
     private final VehicleRepository vehicleRepository;
     private final VehicleService vehicleService;
@@ -83,7 +69,7 @@ public class PreparationProgressService {
                 vehicleInspectionService.isComplete(chassisNo),
                 workshopService.canEnterYard(chassisNo),
                 false,
-                skippedStageService.matching(vehicle, PREP_STAGE_KEYS)
+                skippedStageService.matching(vehicle, PipelineStageUtils.PREP_STAGE_KEYS)
         );
     }
 
@@ -94,7 +80,7 @@ public class PreparationProgressService {
     @Transactional
     public void skipStage(String chassisNo, String stageKey) {
         FlowStage stage = FlowStage.fromKey(stageKey);
-        if (stage == null || !PREP_STAGE_KEYS.contains(stage.getStageKey())) {
+        if (stage == null || !PipelineStageUtils.PREP_STAGE_KEYS.contains(stage.getStageKey())) {
             throw new IllegalArgumentException("That stage cannot be skipped.");
         }
         if (chassisNo == null || chassisNo.trim().isEmpty()) {
@@ -195,115 +181,5 @@ public class PreparationProgressService {
             }
         }
         return rows;
-    }
-
-    public static final class PreparationProgress implements PipelineProgress {
-        private final boolean workshopReady;
-        private final boolean yardReady;
-        private final boolean inspectionReady;
-        private final boolean canEnterYard;
-        private final boolean saleReady;
-        private final Set<String> skippedStages;
-
-        public PreparationProgress(boolean workshopReady, boolean yardReady, boolean inspectionReady, boolean canEnterYard, boolean saleReady) {
-            this(workshopReady, yardReady, inspectionReady, canEnterYard, saleReady, Collections.<String>emptySet());
-        }
-
-        public PreparationProgress(
-                boolean workshopReady,
-                boolean yardReady,
-                boolean inspectionReady,
-                boolean canEnterYard,
-                boolean saleReady,
-                Set<String> skippedStages
-        ) {
-            this.workshopReady = workshopReady;
-            this.yardReady = yardReady;
-            this.inspectionReady = inspectionReady;
-            this.canEnterYard = canEnterYard;
-            this.saleReady = saleReady;
-            this.skippedStages = skippedStages == null ? Collections.<String>emptySet() : skippedStages;
-        }
-
-        public boolean isWorkshopReady() {
-            return workshopReady;
-        }
-
-        public boolean isYardReady() {
-            return yardReady;
-        }
-
-        public boolean isInspectionReady() {
-            return inspectionReady;
-        }
-
-        public boolean isCanEnterYard() {
-            return canEnterYard;
-        }
-
-        public boolean isSaleReady() {
-            return saleReady;
-        }
-
-        @Override
-        public boolean hasAnyCompletedStage() {
-            return completedCount() > 0;
-        }
-
-        @Override
-        public int completedCount() {
-            int count = 0;
-            for (String key : REQUIRED_STAGE_KEYS) {
-                if (isStageComplete(key)) {
-                    count++;
-                }
-            }
-            return count;
-        }
-
-        public boolean isPipelineCompleted() {
-            for (String key : REQUIRED_STAGE_KEYS) {
-                if (!isStageComplete(key)) {
-                    return false;
-                }
-            }
-            return true;
-        }
-
-        public boolean isStageFilled(String stageKey) {
-            if (FlowStage.INSPECTION.getStageKey().equals(stageKey)) {
-                return inspectionReady;
-            }
-            if (FlowStage.WORKSHOP.getStageKey().equals(stageKey)) {
-                return workshopReady;
-            }
-            if (FlowStage.YARD.getStageKey().equals(stageKey)) {
-                return yardReady;
-            }
-            if (FlowStage.SALE.getStageKey().equals(stageKey)) {
-                return saleReady;
-            }
-            return false;
-        }
-
-        public boolean isStageSkipped(String stageKey) {
-            return stageKey != null && skippedStages.contains(stageKey) && !isStageFilled(stageKey);
-        }
-
-        public boolean isStageComplete(String stageKey) {
-            return isStageFilled(stageKey) || (stageKey != null && skippedStages.contains(stageKey));
-        }
-
-         public String firstIncompleteStageKey(List<String> keys) {
-            if (keys == null) {
-                return null;
-            }
-            for (String key : keys) {
-                if (!isStageComplete(key)) {
-                    return key;
-                }
-            }
-            return null;
-        }
     }
 }

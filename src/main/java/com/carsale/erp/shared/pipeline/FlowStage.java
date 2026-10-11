@@ -1,5 +1,10 @@
 package com.carsale.erp.shared.pipeline;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
+@Getter
+@AllArgsConstructor
 public enum FlowStage {
     AUCTION("auction", "/auction/", "Auction lot", "Auction"),
     PRESHIP("preshipment", "/shipping/", "Pre-shipment", "Pre-ship"),
@@ -27,24 +32,6 @@ public enum FlowStage {
     private final String title;
     private final String shortTitle;
 
-    FlowStage(String stageKey, String urlPath, String title, String shortTitle) {
-        this.stageKey = stageKey;
-        this.urlPath = urlPath;
-        this.title = title;
-        this.shortTitle = shortTitle;
-    }
-
-    public String getStageKey() {
-        return stageKey;
-    }
-
-    public String getTitle() {
-        return title;
-    }
-
-    public String getShortTitle() {
-        return shortTitle;
-    }
 
     public String editUrl(String encodedChassis) {
          return urlPath + encodedChassis + "?hub=1";

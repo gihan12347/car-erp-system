@@ -9,6 +9,7 @@ import java.nio.file.StandardCopyOption;
 import java.util.Locale;
 import java.util.UUID;
 
+import com.carsale.erp.shared.ocr.DocumentAiConstants;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
@@ -68,7 +69,7 @@ public class SheetDocumentStorageService {
     }
 
     public SheetUploadResult store(MultipartFile file) throws IOException {
-        return store(file, auctionRoot, "/auction/documents/", "auction sheet");
+        return store(file, auctionRoot, "/auction/documents/", DocumentAiConstants.Documents.AUCTION_SHEET);
     }
 
     public SheetUploadResult storePreShipment(MultipartFile file) throws IOException {
@@ -100,7 +101,8 @@ public class SheetDocumentStorageService {
     }
 
     public SheetUploadResult storeRegistrationCertificate(MultipartFile file) throws IOException {
-        return store(file, registrationRoot, "/workshop-yard/documents/", "registration certificate");
+        return store(file, registrationRoot, "/workshop-yard/documents/",
+                DocumentAiConstants.Documents.REGISTRATION_CERTIFICATE);
     }
 
     public SheetUploadResult storeIdCard(MultipartFile file) throws IOException {

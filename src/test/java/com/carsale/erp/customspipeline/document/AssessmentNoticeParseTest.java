@@ -2,8 +2,8 @@ package com.carsale.erp.customspipeline.document;
 
 import com.carsale.erp.importpipeline.util.AuctionParseResult;
 import com.carsale.erp.shared.document.document.AssessmentNotice;
+import com.carsale.erp.shared.dto.SaleProgress;
 import com.carsale.erp.shared.ocr.DocumentAiClient;
-import com.carsale.erp.shared.ocr.dto.DocumentAiEntity;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
@@ -30,7 +30,7 @@ class AssessmentNoticeParseTest {
 
     @Test
     void mapsDocumentAiItemTaxesAndTotals() {
-        List<DocumentAiEntity> entities = Arrays.asList(
+        List<SaleProgress.DocumentAiEntity> entities = Arrays.asList(
                 entity("item_tax", "CID Customs Import Duty 354,867"),
                 entity("tax_code", "CID"),
                 entity("tax_description", "Customs Import Duty"),
@@ -67,7 +67,7 @@ class AssessmentNoticeParseTest {
 
     @Test
     void mapsDocumentAiTaxValueBeforeTaxCode() {
-        List<DocumentAiEntity> entities = Arrays.asList(
+        List<SaleProgress.DocumentAiEntity> entities = Arrays.asList(
                 entity("item_tax", "CID 354,867"),
                 entity("tax_value", "354,867"),
                 entity("tax_code", "CID")
@@ -95,7 +95,7 @@ class AssessmentNoticeParseTest {
         assertTrue(result.getFields().isEmpty());
     }
 
-    private static DocumentAiEntity entity(String type, String value) {
-        return new DocumentAiEntity(type, value, 1.0d);
+    private static SaleProgress.DocumentAiEntity entity(String type, String value) {
+        return new SaleProgress.DocumentAiEntity(type, value, 1.0d);
     }
 }

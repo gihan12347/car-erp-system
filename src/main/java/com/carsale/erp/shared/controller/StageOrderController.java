@@ -1,5 +1,8 @@
-package com.carsale.erp.shared.pipeline;
+package com.carsale.erp.shared.controller;
 
+import com.carsale.erp.shared.pipeline.StageReorderRequest;
+import com.carsale.erp.shared.pipeline.StageReorderResult;
+import com.carsale.erp.shared.service.PipelineStageService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;

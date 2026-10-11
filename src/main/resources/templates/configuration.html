@@ -10,7 +10,7 @@
             <div class="dash-head">
                 <div>
                     <h1>Configuration</h1>
-                    <p class="form-lead">Set up pipelines, inspection checklists, yards, and sale locations.</p>
+                    <p class="form-lead">Set up pipelines, inspection checklists, yards, sale locations, and account settings.</p>
                 </div>
             </div>
 
@@ -57,6 +57,18 @@
                         <span class="config-tile-kicker">Showroom</span>
                         <h2>Sale configuration</h2>
                         <p>Set sale lots and capacity. Assigning a vehicle uses a space; selling it frees one.</p>
+                    </div>
+                    <span class="config-tile-go" aria-hidden="true">
+                        <i class="fa-solid fa-arrow-right"></i>
+                    </span>
+                </a>
+
+                <a th:href="@{/settings}" class="config-tile config-tile--settings">
+                    <img class="config-tile-art" th:src="@{/images/config/illu-settings.svg}" alt="">
+                    <div class="config-tile-copy">
+                        <span class="config-tile-kicker">Account</span>
+                        <h2>Settings</h2>
+                        <p>Update your profile and password. Admins can review access and document OCR.</p>
                     </div>
                     <span class="config-tile-go" aria-hidden="true">
                         <i class="fa-solid fa-arrow-right"></i>

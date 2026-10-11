@@ -7,7 +7,7 @@ import java.util.regex.Pattern;
 import com.carsale.erp.importpipeline.util.EquipmentInspectionFields;
 import com.carsale.erp.shared.document.DocumentParser;
 import com.carsale.erp.shared.ocr.DocumentAiClient;
-import com.carsale.erp.shared.utils.CustomsDocumentParserUtils;
+import com.carsale.erp.shared.utils.Utils;
 import org.springframework.stereotype.Service;
 
 import com.carsale.erp.importpipeline.util.AuctionParseResult;
@@ -33,20 +33,20 @@ public class EquipmentInspectionParser implements DocumentParser {
         String truckText = section(normalized, "Truck Body", "SAFETY EQUIPMENT", "Drivers Airbag", "Driver's Airbag");
 
         for (FieldDef field : EquipmentInspectionFields.interior()) {
-            result.put(field.getKey(), CustomsDocumentParserUtils.firstNonNull(
+            result.put(field.getKey(), Utils.firstNonNull(
                     extractValue(interiorText, field),
                     extractValue(normalized, field)
             ));
         }
         for (FieldDef field : EquipmentInspectionFields.exterior()) {
             String scoped = scopedText(field, exteriorText, bodyKitText, truckText, normalized);
-            result.put(field.getKey(), CustomsDocumentParserUtils.firstNonNull(
+            result.put(field.getKey(), Utils.firstNonNull(
                     extractValue(scoped, field),
                     extractValue(normalized, field)
             ));
         }
         for (FieldDef field : EquipmentInspectionFields.safety()) {
-            result.put(field.getKey(), CustomsDocumentParserUtils.firstNonNull(
+            result.put(field.getKey(), Utils.firstNonNull(
                     extractValue(safetyText, field),
                     extractValue(normalized, field)
             ));
@@ -152,7 +152,7 @@ public class EquipmentInspectionParser implements DocumentParser {
             return null;
         }
         String trimmed = value.trim().replaceAll(RegexConstants.Text.WHITESPACE, " ");
-        return CustomsDocumentParserUtils.getNormalizedValue(trimmed.toUpperCase().replace(" ", ""));
+        return Utils.getNormalizedValue(trimmed.toUpperCase().replace(" ", ""));
     }
 
     private static String firstNonEmpty(String... values) {

@@ -4,11 +4,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
+import com.carsale.erp.shared.model.PipelineStage;
 import com.carsale.erp.shared.pipeline.*;
+import com.carsale.erp.shared.repository.PipelineProgress;
+import com.carsale.erp.shared.service.PipelineStageService;
 import com.carsale.erp.shared.utils.PipelineStageUtils;
 
-import com.carsale.erp.importpipeline.service.ImportProgressService.ImportProgress;
-import static com.carsale.erp.shared.pipeline.PipelineStageService.viewLinks;
+import com.carsale.erp.shared.dto.ImportProgress;
+import static com.carsale.erp.shared.service.PipelineStageService.viewLinks;
 
 public final class ImportStageUrls {
 

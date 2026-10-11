@@ -7,8 +7,8 @@ import java.util.List;
 
 import com.carsale.erp.importpipeline.util.AuctionParseResult;
 import com.carsale.erp.shared.document.document.StandardsCertificateParser;
+import com.carsale.erp.shared.dto.SaleProgress;
 import com.carsale.erp.shared.ocr.DocumentAiClient;
-import com.carsale.erp.shared.ocr.dto.DocumentAiEntity;
 import org.junit.jupiter.api.Test;
 
 class StandardsCertificateParserTest {
@@ -17,7 +17,7 @@ class StandardsCertificateParserTest {
 
     @Test
     void parsePageMapsDocumentAiEntitiesAndCheckboxes() {
-        List<DocumentAiEntity> entities = new ArrayList<>();
+        List<SaleProgress.DocumentAiEntity> entities = new ArrayList<>();
         entities.add(entity("certificate_number", "LK1-S000705"));
         entities.add(entity("co", "1.15"));
         entities.add(entity("nmhc", "0.025"));
@@ -69,7 +69,7 @@ class StandardsCertificateParserTest {
         assertThat(result.getFields()).isEmpty();
     }
 
-    private static DocumentAiEntity entity(String type, String value) {
-        return new DocumentAiEntity(type, value, 0.99);
+    private static SaleProgress.DocumentAiEntity entity(String type, String value) {
+        return new SaleProgress.DocumentAiEntity(type, value, 0.99);
     }
 }

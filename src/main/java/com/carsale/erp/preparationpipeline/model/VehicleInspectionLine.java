@@ -1,5 +1,8 @@
 package com.carsale.erp.preparationpipeline.model;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -11,6 +14,8 @@ import javax.persistence.Lob;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
+@Setter
+@Getter
 @Entity
 @Table(name = "vehicle_inspection_lines")
 public class VehicleInspectionLine {
@@ -41,70 +46,6 @@ public class VehicleInspectionLine {
 
     @Column(name = "catalog_item", nullable = false)
     private boolean catalogItem;
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public VehicleInspection getInspection() {
-        return inspection;
-    }
-
-    public void setInspection(VehicleInspection inspection) {
-        this.inspection = inspection;
-    }
-
-    public String getItemKey() {
-        return itemKey;
-    }
-
-    public void setItemKey(String itemKey) {
-        this.itemKey = itemKey;
-    }
-
-    public String getItemTitle() {
-        return itemTitle;
-    }
-
-    public void setItemTitle(String itemTitle) {
-        this.itemTitle = itemTitle;
-    }
-
-    public String getResult() {
-        return result;
-    }
-
-    public void setResult(String result) {
-        this.result = result;
-    }
-
-    public String getNotes() {
-        return notes;
-    }
-
-    public void setNotes(String notes) {
-        this.notes = notes;
-    }
-
-    public int getSortOrder() {
-        return sortOrder;
-    }
-
-    public void setSortOrder(int sortOrder) {
-        this.sortOrder = sortOrder;
-    }
-
-    public boolean isCatalogItem() {
-        return catalogItem;
-    }
-
-    public void setCatalogItem(boolean catalogItem) {
-        this.catalogItem = catalogItem;
-    }
 
     public boolean isBlankCustom() {
         return !catalogItem

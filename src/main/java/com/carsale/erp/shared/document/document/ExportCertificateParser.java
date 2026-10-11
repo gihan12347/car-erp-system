@@ -8,10 +8,10 @@ import java.util.Set;
 import java.util.regex.Matcher;
 
 import com.carsale.erp.shared.document.DocumentParser;
+import com.carsale.erp.shared.dto.SaleProgress;
 import com.carsale.erp.shared.ocr.DocumentAiClient;
-import com.carsale.erp.shared.ocr.dto.DocumentAiEntity;
 import com.carsale.erp.shared.regex.RegexConstants;
-import com.carsale.erp.shared.utils.CustomsDocumentParserUtils;
+import com.carsale.erp.shared.utils.Utils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -84,20 +84,20 @@ public class ExportCertificateParser implements DocumentParser {
             return result;
         }
         result.setRawText(documentAi.getText());
-        List<DocumentAiEntity> entities = documentAi.getEntities();
+        List<SaleProgress.DocumentAiEntity> entities = documentAi.getEntities();
         if (entities != null) {
-            for (DocumentAiEntity entity : entities) {
+            for (SaleProgress.DocumentAiEntity entity : entities) {
                 if (entity == null) {
                     continue;
                 }
-                String field = CustomsDocumentParserUtils.mapType(entity.getType(), TYPE_TO_FIELD);
+                String field = Utils.mapType(entity.getType(), TYPE_TO_FIELD);
                 if (field == null || result.getFields().containsKey(field)) {
                     continue;
                 }
                 result.put(field, cleanDocumentAiValue(field, entity.getValue()));
             }
         }
-        CustomsDocumentParserUtils.finish(result, "Document AI (export certificate)");
+        Utils.finish(result, "Document AI (export certificate)");
         return result;
     }
 
@@ -151,7 +151,7 @@ public class ExportCertificateParser implements DocumentParser {
         }
         Matcher yearMonthDay = RegexConstants.Dates.YEAR_MONTH_DAY_NUMERIC_PATTERN.matcher(value);
         if (yearMonthDay.matches()) {
-            return CustomsDocumentParserUtils.formatDate(
+            return Utils.formatDate(
                     Integer.parseInt(yearMonthDay.group(1)),
                     Integer.parseInt(yearMonthDay.group(2)),
                     Integer.parseInt(yearMonthDay.group(3))
@@ -159,7 +159,7 @@ public class ExportCertificateParser implements DocumentParser {
         }
         Matcher dayMonthYear = RegexConstants.Dates.DAY_MONTH_YEAR_NUMERIC_PATTERN.matcher(value);
         if (dayMonthYear.matches()) {
-            return CustomsDocumentParserUtils.formatDate(
+            return Utils.formatDate(
                     Integer.parseInt(dayMonthYear.group(3)),
                     Integer.parseInt(dayMonthYear.group(2)),
                     Integer.parseInt(dayMonthYear.group(1))
@@ -167,7 +167,7 @@ public class ExportCertificateParser implements DocumentParser {
         }
         Matcher yearMonth = RegexConstants.Dates.YEAR_MONTH_ISO_PATTERN.matcher(value);
         if (yearMonth.matches()) {
-            return CustomsDocumentParserUtils.formatDate(
+            return Utils.formatDate(
                     Integer.parseInt(yearMonth.group(1)),
                     Integer.parseInt(yearMonth.group(2)),
                     1
@@ -175,7 +175,7 @@ public class ExportCertificateParser implements DocumentParser {
         }
         Matcher yearMonthNumeric = RegexConstants.Dates.YEAR_MONTH_NUMERIC_PATTERN.matcher(value);
         if (yearMonthNumeric.matches()) {
-            return CustomsDocumentParserUtils.formatDate(
+            return Utils.formatDate(
                     Integer.parseInt(yearMonthNumeric.group(1)),
                     Integer.parseInt(yearMonthNumeric.group(2)),
                     1
@@ -183,7 +183,7 @@ public class ExportCertificateParser implements DocumentParser {
         }
         Matcher monthYear = RegexConstants.Dates.MONTH_YEAR_NUMERIC_PATTERN.matcher(value);
         if (monthYear.matches()) {
-            return CustomsDocumentParserUtils.formatDate(
+            return Utils.formatDate(
                     Integer.parseInt(monthYear.group(2)),
                     Integer.parseInt(monthYear.group(1)),
                     1
@@ -218,35 +218,35 @@ public class ExportCertificateParser implements DocumentParser {
         }
         Matcher yearMonthIso = RegexConstants.Dates.YEAR_MONTH_ISO_PATTERN.matcher(value);
         if (yearMonthIso.matches()) {
-            return CustomsDocumentParserUtils.formatMonth(
+            return Utils.formatMonth(
                     Integer.parseInt(yearMonthIso.group(1)),
                     Integer.parseInt(yearMonthIso.group(2))
             );
         }
         Matcher yearMonth = RegexConstants.Dates.YEAR_MONTH_NUMERIC_PATTERN.matcher(value);
         if (yearMonth.matches()) {
-            return CustomsDocumentParserUtils.formatMonth(
+            return Utils.formatMonth(
                     Integer.parseInt(yearMonth.group(1)),
                     Integer.parseInt(yearMonth.group(2))
             );
         }
         Matcher monthYear = RegexConstants.Dates.MONTH_YEAR_NUMERIC_PATTERN.matcher(value);
         if (monthYear.matches()) {
-            return CustomsDocumentParserUtils.formatMonth(
+            return Utils.formatMonth(
                     Integer.parseInt(monthYear.group(2)),
                     Integer.parseInt(monthYear.group(1))
             );
         }
         Matcher yearMonthDay = RegexConstants.Dates.YEAR_MONTH_DAY_NUMERIC_PATTERN.matcher(value);
         if (yearMonthDay.matches()) {
-            return CustomsDocumentParserUtils.formatMonth(
+            return Utils.formatMonth(
                     Integer.parseInt(yearMonthDay.group(1)),
                     Integer.parseInt(yearMonthDay.group(2))
             );
         }
         Matcher dayMonthYear = RegexConstants.Dates.DAY_MONTH_YEAR_NUMERIC_PATTERN.matcher(value);
         if (dayMonthYear.matches()) {
-            return CustomsDocumentParserUtils.formatMonth(
+            return Utils.formatMonth(
                     Integer.parseInt(dayMonthYear.group(3)),
                     Integer.parseInt(dayMonthYear.group(2))
             );

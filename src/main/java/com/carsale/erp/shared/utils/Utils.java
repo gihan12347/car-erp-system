@@ -1,11 +1,13 @@
 package com.carsale.erp.shared.utils;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.Locale;
 import com.carsale.erp.importpipeline.util.AuctionParseResult;
 import com.carsale.erp.shared.regex.RegexConstants;
+import org.springframework.web.util.UriUtils;
 
-public class CustomsDocumentParserUtils {
+public class Utils {
 
     public static String firstNonNull(String... values) {
         if (values == null) {
@@ -110,5 +112,9 @@ public class CustomsDocumentParserUtils {
 
     public static String formatMonth(int year, int month) {
         return String.format(Locale.ROOT, "%04d-%02d", year, month);
+    }
+
+    public static String encodeChassis(String chassisNo) {
+        return UriUtils.encodePathSegment(chassisNo, StandardCharsets.UTF_8);
     }
 }

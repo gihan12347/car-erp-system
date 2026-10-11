@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 
+import com.carsale.erp.shared.utils.Utils;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -12,11 +13,10 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.util.UriUtils;
 
 import com.carsale.erp.shared.document.SheetDocumentStorageService;
 import com.carsale.erp.shared.pipeline.FlowStage;
-import com.carsale.erp.shared.pipeline.PipelineStageService;
+import com.carsale.erp.shared.service.PipelineStageService;
 
 /**
  * Legacy routes for customs documents and old edit URLs.
@@ -49,7 +49,7 @@ public class CustomsDocumentController {
     ) {
         String stageKey = FlowStage.BILL_OF_LADING.getStageKey();
         if (tab != null && tab == 1) {
-            return "redirect:/jevic/" + encodeChassis(chassisNo);
+            return "redirect:/jevic/" + Utils.encodeChassis(chassisNo);
         }
         if (tab != null && tab == 2) {
             stageKey = FlowStage.DECLARATION.getStageKey();
@@ -58,10 +58,6 @@ public class CustomsDocumentController {
         } else if (tab != null && tab == 4) {
             stageKey = FlowStage.WORKSHEET.getStageKey();
         }
-        return "redirect:" + PipelineStageService.editUrlFor(encodeChassis(chassisNo), stageKey);
-    }
-
-    private String encodeChassis(String chassisNo) {
-        return UriUtils.encodePathSegment(chassisNo, StandardCharsets.UTF_8);
+        return "redirect:" + PipelineStageService.editUrlFor(Utils.encodeChassis(chassisNo), stageKey);
     }
 }

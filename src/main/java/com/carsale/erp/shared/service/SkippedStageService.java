@@ -1,4 +1,4 @@
-package com.carsale.erp.shared.pipeline;
+package com.carsale.erp.shared.service;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
@@ -7,6 +7,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.carsale.erp.shared.pipeline.FlowStage;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.util.UriUtils;

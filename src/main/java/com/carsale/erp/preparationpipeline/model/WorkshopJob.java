@@ -1,5 +1,8 @@
 package com.carsale.erp.preparationpipeline.model;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -13,6 +16,8 @@ import javax.persistence.OneToMany;
 import javax.persistence.OrderBy;
 import javax.persistence.Table;
 
+@Setter
+@Getter
 @Entity
 @Table(name = "workshop_jobs")
 public class WorkshopJob {
@@ -24,7 +29,7 @@ public class WorkshopJob {
     @Column(length = 40)
     private String jobStatus = "PENDING";
 
-    @Column(length = 255)
+    @Column()
     private String jobSummary;
 
     @Column(length = 80)
@@ -58,112 +63,13 @@ public class WorkshopJob {
 
     @OneToMany(mappedBy = "job", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     @OrderBy("id ASC")
-    private List<WorkshopJobLine> lines = new ArrayList<WorkshopJobLine>();
-
-    public String getChassisNo() {
-        return chassisNo;
-    }
-
-    public void setChassisNo(String chassisNo) {
-        this.chassisNo = chassisNo;
-    }
-
-    public String getJobStatus() {
-        return jobStatus;
-    }
-
-    public void setJobStatus(String jobStatus) {
-        this.jobStatus = jobStatus;
-    }
-
-    public String getJobSummary() {
-        return jobSummary;
-    }
-
-    public void setJobSummary(String jobSummary) {
-        this.jobSummary = jobSummary;
-    }
-
-    public String getTechnician() {
-        return technician;
-    }
-
-    public void setTechnician(String technician) {
-        this.technician = technician;
-    }
-
-    public String getPartsUsed() {
-        return partsUsed;
-    }
-
-    public void setPartsUsed(String partsUsed) {
-        this.partsUsed = partsUsed;
-    }
-
-    public String getLaborHours() {
-        return laborHours;
-    }
-
-    public void setLaborHours(String laborHours) {
-        this.laborHours = laborHours;
-    }
-
-    public String getEstimatedCost() {
-        return estimatedCost;
-    }
-
-    public void setEstimatedCost(String estimatedCost) {
-        this.estimatedCost = estimatedCost;
-    }
-
-    public String getActualCost() {
-        return actualCost;
-    }
-
-    public void setActualCost(String actualCost) {
-        this.actualCost = actualCost;
-    }
-
-    public String getStartedOn() {
-        return startedOn;
-    }
-
-    public void setStartedOn(String startedOn) {
-        this.startedOn = startedOn;
-    }
-
-    public String getCompletedOn() {
-        return completedOn;
-    }
-
-    public void setCompletedOn(String completedOn) {
-        this.completedOn = completedOn;
-    }
-
-    public String getNotes() {
-        return notes;
-    }
-
-    public void setNotes(String notes) {
-        this.notes = notes;
-    }
-
-    public boolean isCompleted() {
-        return completed;
-    }
-
-    public void setCompleted(boolean completed) {
-        this.completed = completed;
-    }
+    private List<WorkshopJobLine> lines = new ArrayList<>();
 
     public List<WorkshopJobLine> getLines() {
         if (lines == null) {
-            lines = new ArrayList<WorkshopJobLine>();
+            lines = new ArrayList<>();
         }
         return lines;
     }
 
-    public void setLines(List<WorkshopJobLine> lines) {
-        this.lines = lines;
-    }
 }

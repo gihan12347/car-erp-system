@@ -8,6 +8,7 @@ import com.carsale.erp.preparationpipeline.dto.InspectionFailResult;
 import com.carsale.erp.preparationpipeline.dto.InspectionResults;
 import com.carsale.erp.preparationpipeline.service.VehicleInspectionService;
 import com.carsale.erp.preparationpipeline.model.VehicleInspection;
+import com.carsale.erp.shared.utils.Utils;
 import org.springframework.beans.propertyeditors.CustomNumberEditor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -26,10 +27,10 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.util.UriUtils;
 
 import com.carsale.erp.shared.vehicle.Vehicle;
-import com.carsale.erp.shared.pipeline.PipelineStageService;
+import com.carsale.erp.shared.service.PipelineStageService;
 import com.carsale.erp.shared.pipeline.FlowStage;
 import com.carsale.erp.preparationpipeline.service.PreparationProgressService;
-import com.carsale.erp.preparationpipeline.service.PreparationProgressService.PreparationProgress;
+import com.carsale.erp.shared.dto.PreparationProgress;
 import com.carsale.erp.preparationpipeline.service.WorkshopService;
 import com.carsale.erp.shared.vehicle.VehicleService;
 
@@ -113,7 +114,7 @@ public class VehicleInspectionController {
             if (!workshopService.hasJobs(chassisNo)) {
                 redirectAttributes.addFlashAttribute("successMessage",
                         "Inspection saved. No workshop jobs — workshop is complete. Continue with yard.");
-                return "redirect:/yard/" + encodeChassis(chassisNo) + (hub ? "?hub=1" : "");
+                return "redirect:/yard/" + Utils.encodeChassis(chassisNo) + (hub ? "?hub=1" : "");
             }
             redirectAttributes.addFlashAttribute("successMessage", "Inspection saved.");
             return "redirect:" + PreparationStageUrls.redirectAfterInspectionSave(
@@ -122,7 +123,7 @@ public class VehicleInspectionController {
             );
         } catch (IllegalArgumentException ex) {
             redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
-            return "redirect:/inspection/" + encodeChassis(chassisNo) + (hub ? "?hub=1" : "");
+            return "redirect:/inspection/" + Utils.encodeChassis(chassisNo) + (hub ? "?hub=1" : "");
         }
     }
 
@@ -165,9 +166,5 @@ public class VehicleInspectionController {
                 status,
                 pipelineStageService.list(PipelineStageService.FLOW_PREP)
         ));
-    }
-
-    private String encodeChassis(String chassisNo) {
-        return UriUtils.encodePathSegment(chassisNo, StandardCharsets.UTF_8);
     }
 }

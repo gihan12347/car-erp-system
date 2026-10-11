@@ -12,7 +12,8 @@ import java.util.Locale;
 import java.util.Map;
 
 import com.carsale.erp.shared.document.DocumentParser;
-import com.carsale.erp.shared.ocr.dto.DocumentAiEntity;
+import com.carsale.erp.shared.document.document.WorkingSheet;
+import com.carsale.erp.shared.dto.SaleProgress;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -96,9 +97,10 @@ public class  DocumentAiClient {
 
         Map<String, Object> body = new LinkedHashMap<>();
         body.put("rawDocument", rawDocument);
-        if (parser != null && "auction sheet".equals(parser.getDocumentName())) {
-            body.put("processOptions", AuctionSheetDocumentAi.processOptions(parser.getOcrLanguage()));
-        } else if (parser != null && "registration certificate".equals(parser.getDocumentName())) {
+        if (parser != null && DocumentAiConstants.Documents.AUCTION_SHEET.equals(parser.getDocumentName())) {
+            body.put("processOptions", WorkingSheet.AuctionSheetDocumentAi.processOptions());
+        } else if (parser != null
+                && DocumentAiConstants.Documents.REGISTRATION_CERTIFICATE.equals(parser.getDocumentName())) {
             body.put("processOptions", RegistrationCertificateDocumentAi.processOptions());
         }
 
@@ -168,7 +170,7 @@ public class  DocumentAiClient {
         if (text == null) {
             text = "";
         }
-        List<DocumentAiEntity> entities = new ArrayList<>();
+        List<SaleProgress.DocumentAiEntity> entities = new ArrayList<>();
         Object entitiesObj = document.get("entities");
         if (entitiesObj instanceof List) {
             for (Object item : (List<?>) entitiesObj) {
@@ -181,7 +183,7 @@ public class  DocumentAiClient {
     }
 
     @SuppressWarnings("unchecked")
-    private void collectEntities(Map<String, Object> entity, List<DocumentAiEntity> out) {
+    private void collectEntities(Map<String, Object> entity, List<SaleProgress.DocumentAiEntity> out) {
         String type = stringValue(entity.get("type"));
         String mention = stringValue(entity.get("mentionText"));
         String normalized = null;
@@ -203,7 +205,7 @@ public class  DocumentAiClient {
             confidence = ((Number) conf).doubleValue();
         }
         if (StringUtils.hasText(type) && StringUtils.hasText(value)) {
-            out.add(new DocumentAiEntity(type.trim(), value.trim(), confidence));
+            out.add(new SaleProgress.DocumentAiEntity(type.trim(), value.trim(), confidence));
         }
         Object properties = entity.get("properties");
         if (properties instanceof List) {
@@ -292,9 +294,9 @@ public class  DocumentAiClient {
 
     public static final class DocumentAiResult {
         private final String text;
-        private final List<DocumentAiEntity> entities;
+        private final List<SaleProgress.DocumentAiEntity> entities;
 
-        public DocumentAiResult(String text, List<DocumentAiEntity> entities) {
+        public DocumentAiResult(String text, List<SaleProgress.DocumentAiEntity> entities) {
             this.text = text == null ? "" : text;
             this.entities = entities == null
                     ? Collections.emptyList()
@@ -305,7 +307,7 @@ public class  DocumentAiClient {
             return text;
         }
 
-        public List<DocumentAiEntity> getEntities() {
+        public List<SaleProgress.DocumentAiEntity> getEntities() {
             return entities;
         }
     }

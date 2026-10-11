@@ -3,6 +3,7 @@ package com.carsale.erp.shared.ocr;
 import java.util.List;
 import java.util.Map;
 
+import com.carsale.erp.shared.document.document.WorkingSheet;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -13,7 +14,7 @@ class AuctionSheetDocumentAiTest {
     @Test
     @SuppressWarnings("unchecked")
     void requestIncludesEntityTypesAndJapaneseOcr() {
-        Map<String, Object> options = AuctionSheetDocumentAi.processOptions("jpn");
+        Map<String, Object> options = WorkingSheet.AuctionSheetDocumentAi.processOptions();
         assertFalse(options.containsKey("ocrConfig"));
 
         Map<String, Object> schema = (Map<String, Object>) options.get("schemaOverride");

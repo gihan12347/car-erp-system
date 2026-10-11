@@ -17,8 +17,9 @@ import com.carsale.erp.shared.document.document.IdCardParser;
 import com.carsale.erp.shared.ocr.OcrClient;
 import com.carsale.erp.shared.ocr.OcrImagePreparer;
 import com.carsale.erp.shared.pipeline.FlowStage;
-import com.carsale.erp.shared.pipeline.PipelineStage;
-import com.carsale.erp.shared.pipeline.PipelineStageService;
+import com.carsale.erp.shared.model.PipelineStage;
+import com.carsale.erp.shared.service.PipelineStageService;
+import com.carsale.erp.shared.service.SkippedStageService;
 import com.carsale.erp.shared.vehicle.Vehicle;
 import com.carsale.erp.shared.vehicle.VehicleIntake;
 import com.carsale.erp.shared.vehicle.VehicleService;
@@ -107,11 +108,11 @@ public class RegisteredPipelineController {
     }
 
     private String redirectAfterRegisteredSkip(String chassisNo, String stage) {
-        String key = com.carsale.erp.shared.pipeline.SkippedStageService.canonical(stage);
-        if (com.carsale.erp.shared.pipeline.SkippedStageService.REG_BOOK.equals(key)) {
+        String key = SkippedStageService.canonical(stage);
+        if (SkippedStageService.REG_BOOK.equals(key)) {
             return "/registered/" + encode(chassisNo) + "/photos";
         }
-        if (com.carsale.erp.shared.pipeline.SkippedStageService.REG_PHOTOS.equals(key)) {
+        if (SkippedStageService.REG_PHOTOS.equals(key)) {
             return "/registered/" + encode(chassisNo) + "/owner";
         }
         if (registeredProgressService.isComplete(chassisNo)) {
@@ -121,11 +122,11 @@ public class RegisteredPipelineController {
     }
 
     private String registeredStageUrl(String chassisNo, String stage) {
-        String key = com.carsale.erp.shared.pipeline.SkippedStageService.canonical(stage);
-        if (com.carsale.erp.shared.pipeline.SkippedStageService.REG_PHOTOS.equals(key)) {
+        String key = SkippedStageService.canonical(stage);
+        if (SkippedStageService.REG_PHOTOS.equals(key)) {
             return "/registered/" + encode(chassisNo) + "/photos";
         }
-        if (com.carsale.erp.shared.pipeline.SkippedStageService.REG_OWNER.equals(key)) {
+        if (SkippedStageService.REG_OWNER.equals(key)) {
             return "/registered/" + encode(chassisNo) + "/owner";
         }
         return "/workshop-yard/" + encode(chassisNo) + "/certificate";

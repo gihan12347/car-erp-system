@@ -9,9 +9,9 @@ import java.util.Map;
 
 import com.carsale.erp.importpipeline.util.AuctionParseResult;
 import com.carsale.erp.shared.document.document.WorkingSheet;
+import com.carsale.erp.shared.dto.SaleProgress;
 import com.carsale.erp.shared.ocr.AuctionSheetImagePreparer;
 import com.carsale.erp.shared.ocr.DocumentAiClient;
-import com.carsale.erp.shared.ocr.dto.DocumentAiEntity;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -49,8 +49,8 @@ class AuctionSheetPipelineTest {
                 + "外装\nB\n"
                 + "内装\nB\n";
         DocumentAiClient.DocumentAiResult document = new DocumentAiClient.DocumentAiResult(text, Arrays.asList(
-                new DocumentAiEntity("grade", "S", 0.93d),
-                new DocumentAiEntity("mileage", "1 km", 0.2d)
+                new SaleProgress.DocumentAiEntity("grade", "S", 0.93d),
+                new SaleProgress.DocumentAiEntity("mileage", "1 km", 0.2d)
         ));
 
         AuctionParseResult result = parser.parsePage(document);

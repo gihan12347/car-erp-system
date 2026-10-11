@@ -6,6 +6,7 @@ import java.nio.charset.StandardCharsets;
 import com.carsale.erp.preparationpipeline.service.YardBayService;
 import com.carsale.erp.preparationpipeline.model.YardRecord;
 import com.carsale.erp.preparationpipeline.service.YardService;
+import com.carsale.erp.shared.utils.Utils;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -18,10 +19,10 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.util.UriUtils;
 
 import com.carsale.erp.shared.vehicle.Vehicle;
-import com.carsale.erp.shared.pipeline.PipelineStageService;
+import com.carsale.erp.shared.service.PipelineStageService;
 import com.carsale.erp.shared.pipeline.FlowStage;
 import com.carsale.erp.preparationpipeline.service.PreparationProgressService;
-import com.carsale.erp.preparationpipeline.service.PreparationProgressService.PreparationProgress;
+import com.carsale.erp.shared.dto.PreparationProgress;
 import com.carsale.erp.shared.vehicle.VehicleService;
 
 @Controller
@@ -113,7 +114,7 @@ public class YardController {
                         "Preparation pipeline is complete. Open the yard to move the vehicle to sale.");
                 YardRecord saved = yardService.findByChassisNo(chassisNo);
                 if (saved != null && saved.getBayNo() != null && !saved.getBayNo().trim().isEmpty()) {
-                    return "redirect:/yards/" + encodeChassis(saved.getBayNo());
+                    return "redirect:/yards/" + Utils.encodeChassis(saved.getBayNo());
                 }
                 return "redirect:/yards";
             }
@@ -124,11 +125,7 @@ public class YardController {
             );
         } catch (IllegalArgumentException ex) {
             redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
-            return "redirect:/yard/" + encodeChassis(chassisNo) + (hub ? "?hub=1" : "");
+            return "redirect:/yard/" + Utils.encodeChassis(chassisNo) + (hub ? "?hub=1" : "");
         }
-    }
-
-    private String encodeChassis(String chassisNo) {
-        return UriUtils.encodePathSegment(chassisNo, StandardCharsets.UTF_8);
     }
 }

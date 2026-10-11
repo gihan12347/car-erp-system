@@ -7,16 +7,16 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.carsale.erp.shared.model.PipelineStage;
+import com.carsale.erp.shared.repository.PipelineFlowRepository;
+import com.carsale.erp.shared.repository.PipelineStageRepository;
+import com.carsale.erp.shared.service.PipelineStageService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.carsale.erp.shared.pipeline.PipelineFlow;
-import com.carsale.erp.shared.pipeline.PipelineStage;
-import com.carsale.erp.shared.pipeline.PipelineFlowGroup;
-import com.carsale.erp.shared.pipeline.PipelineFlowRepository;
-import com.carsale.erp.shared.pipeline.PipelineStageRepository;
+import com.carsale.erp.shared.model.PipelineFlow;
 
 @SpringBootTest
 class PipelineStageServiceTest {

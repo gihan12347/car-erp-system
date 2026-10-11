@@ -4,9 +4,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.carsale.erp.customspipeline.service.CustomsProgressService;
-import com.carsale.erp.customspipeline.util.CustomsStageUrls;
 import com.carsale.erp.customspipeline.service.CustomsDocumentService;
+import com.carsale.erp.shared.model.PipelineStage;
 import com.carsale.erp.shared.pipeline.*;
+import com.carsale.erp.shared.service.PipelineStageService;
 import com.carsale.erp.shared.utils.PipelineStageUtils;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -17,7 +18,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.carsale.erp.shared.vehicle.Vehicle;
-import com.carsale.erp.customspipeline.service.CustomsProgressService.CustomsProgress;
+import com.carsale.erp.shared.dto.CustomsProgress;
 import com.carsale.erp.shared.vehicle.VehicleService;
 
 
@@ -141,14 +142,11 @@ public class CustomsPipelineListController {
         model.addAttribute("activeMenu", "customs");
         model.addAttribute("vehicle", vehicle);
         model.addAttribute("clearance", customsDocumentService.findByChassisNo(chassisNo));
-        model.addAttribute("blReady", status.isBlReady());
-        model.addAttribute("declarationReady", status.isDeclarationReady());
-        model.addAttribute("assessmentReady", status.isAssessmentReady());
-        model.addAttribute("worksheetReady", status.isWorksheetReady());
         model.addAttribute("clearanceComplete", status.isPipelineCompleted());
         model.addAttribute("stageIndex", stageIndex);
         model.addAttribute("stageKey", stageKey);
         model.addAttribute("stageNav", nav);
+        PipelineStageUtils.addPipelineFlags(model, status);
         return "customs-pipeline/detail";
     }
 

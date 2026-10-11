@@ -1,4 +1,4 @@
-package com.carsale.erp.shared.pipeline;
+package com.carsale.erp.shared.model;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -13,7 +13,11 @@ import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import lombok.Getter;
+import lombok.Setter;
 
+@Setter
+@Getter
 @Entity
 @Table(
         name = "pipeline_stages",
@@ -50,51 +54,4 @@ public class PipelineStage {
     @Column(name = "sort_order", nullable = false)
     private int sortOrder;
 
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public PipelineFlow getFlow() {
-        return flow;
-    }
-
-    public void setFlow(PipelineFlow flow) {
-        this.flow = flow;
-    }
-
-    public String getStageKey() {
-        return stageKey;
-    }
-
-    public void setStageKey(String stageKey) {
-        this.stageKey = stageKey;
-    }
-
-    public String getTitle() {
-        return title;
-    }
-
-    public void setTitle(String title) {
-        this.title = title;
-    }
-
-    public String getSubtitle() {
-        return subtitle;
-    }
-
-    public void setSubtitle(String subtitle) {
-        this.subtitle = subtitle;
-    }
-
-    public int getSortOrder() {
-        return sortOrder;
-    }
-
-    public void setSortOrder(int sortOrder) {
-        this.sortOrder = sortOrder;
-    }
 }

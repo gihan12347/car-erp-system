@@ -1,8 +1,8 @@
 package com.carsale.erp.shared.document.document;
 
+import com.carsale.erp.shared.dto.SaleProgress;
 import com.carsale.erp.shared.ocr.DocumentAiClient;
-import com.carsale.erp.shared.ocr.dto.DocumentAiEntity;
-import com.carsale.erp.shared.utils.CustomsDocumentParserUtils;
+import com.carsale.erp.shared.utils.Utils;
 import com.carsale.erp.shared.regex.RegexConstants;
 import com.carsale.erp.importpipeline.util.AuctionParseResult;
 import com.carsale.erp.shared.document.DocumentParser;
@@ -86,11 +86,11 @@ public class AssessmentNotice implements DocumentParser {
             return result;
         }
         result.setRawText(documentAi.getText());
-        List<DocumentAiEntity> entities = documentAi.getEntities();
+        List<SaleProgress.DocumentAiEntity> entities = documentAi.getEntities();
         String pendingCode = null;
         String pendingValue = null;
         if (entities != null) {
-            for (DocumentAiEntity entity : entities) {
+            for (SaleProgress.DocumentAiEntity entity : entities) {
                 if (entity == null) {
                     continue;
                 }
@@ -113,7 +113,7 @@ public class AssessmentNotice implements DocumentParser {
                     pendingValue = taxResult.getPendingValue();
                     continue;
                 }
-                String field = CustomsDocumentParserUtils.mapType(entity.getType(), TYPE_TO_FIELD);
+                String field = Utils.mapType(entity.getType(), TYPE_TO_FIELD);
                 if (field != null) {
                     result.put(
                             field,
@@ -126,7 +126,7 @@ public class AssessmentNotice implements DocumentParser {
             flushTax(result, pendingCode, pendingValue);
         }
 
-        CustomsDocumentParserUtils.finish(result, "Document AI (assessment notice)");
+        Utils.finish(result, "Document AI (assessment notice)");
 
         return result;
     }
@@ -168,7 +168,7 @@ public class AssessmentNotice implements DocumentParser {
         if (intPart.isEmpty()) {
             return null;
         }
-        String formatted = CustomsDocumentParserUtils.formatThousands(intPart);
+        String formatted = Utils.formatThousands(intPart);
         if (decPart.isEmpty() || decPart.matches(RegexConstants.Amounts.ALL_ZEROS)) {
             return formatted;
         }
@@ -216,7 +216,7 @@ public class AssessmentNotice implements DocumentParser {
     }
 
     private static String leafType(String type) {
-        String key = CustomsDocumentParserUtils.typeKey(type);
+        String key = Utils.typeKey(type);
         int slash = key.lastIndexOf('/');
         if (slash >= 0 && slash + 1 < key.length()) {
             return key.substring(slash + 1);
@@ -226,7 +226,7 @@ public class AssessmentNotice implements DocumentParser {
 
     private TaxParseResult handleTaxType(
             String type,
-            DocumentAiEntity entity,
+            SaleProgress.DocumentAiEntity entity,
             AuctionParseResult result,
             String pendingCode,
             String pendingValue) {

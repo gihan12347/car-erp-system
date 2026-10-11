@@ -1,11 +1,16 @@
 package com.carsale.erp.importpipeline.model;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Lob;
 import javax.persistence.Table;
 
+@Setter
+@Getter
 @Entity
 @Table(name = "grade_searches")
 public class GradeSearch {
@@ -22,7 +27,7 @@ public class GradeSearch {
     @Column(columnDefinition = "TEXT")
     private String grade;
 
-    @Column(length = 255)
+    @Column()
     private String documentOriginalName;
 
     @Column(length = 120)
@@ -35,59 +40,4 @@ public class GradeSearch {
     @Column(columnDefinition = "TEXT")
     private String ocrText;
 
-    public String getChassisNo() {
-        return chassisNo;
-    }
-
-    public void setChassisNo(String chassisNo) {
-        this.chassisNo = chassisNo;
-    }
-
-    public String getChassisNumber() {
-        return chassisNumber;
-    }
-
-    public void setChassisNumber(String chassisNumber) {
-        this.chassisNumber = chassisNumber;
-    }
-
-    public String getGrade() {
-        return grade;
-    }
-
-    public void setGrade(String grade) {
-        this.grade = grade;
-    }
-
-    public String getDocumentOriginalName() {
-        return documentOriginalName;
-    }
-
-    public void setDocumentOriginalName(String documentOriginalName) {
-        this.documentOriginalName = documentOriginalName;
-    }
-
-    public String getDocumentStoredName() {
-        return documentStoredName;
-    }
-
-    public void setDocumentStoredName(String documentStoredName) {
-        this.documentStoredName = documentStoredName;
-    }
-
-    public String getDocumentContentType() {
-        return documentContentType;
-    }
-
-    public void setDocumentContentType(String documentContentType) {
-        this.documentContentType = documentContentType;
-    }
-
-    public String getOcrText() {
-        return ocrText;
-    }
-
-    public void setOcrText(String ocrText) {
-        this.ocrText = ocrText;
-    }
 }

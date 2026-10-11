@@ -1,7 +1,13 @@
-package com.carsale.erp.shared.pipeline;
+package com.carsale.erp.shared.service;
 
 import java.util.*;
 
+import com.carsale.erp.shared.model.PipelineFlow;
+import com.carsale.erp.shared.model.PipelineStage;
+import com.carsale.erp.shared.pipeline.*;
+import com.carsale.erp.shared.repository.PipelineFlowRepository;
+import com.carsale.erp.shared.repository.PipelineProgress;
+import com.carsale.erp.shared.repository.PipelineStageRepository;
 import com.carsale.erp.shared.utils.PipelineStageUtils;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.core.annotation.Order;

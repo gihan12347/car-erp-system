@@ -1,12 +1,11 @@
 package com.carsale.erp.readypipeline.controller;
 
-import java.nio.charset.StandardCharsets;
-
 import com.carsale.erp.readypipeline.model.SaleListing;
 import com.carsale.erp.readypipeline.model.VehicleRegistration;
 import com.carsale.erp.readypipeline.service.SaleListingService;
 import com.carsale.erp.readypipeline.service.VehicleRegistrationService;
 import com.carsale.erp.readypipeline.util.ReadyStageUrls;
+import com.carsale.erp.shared.utils.Utils;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,7 +15,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import org.springframework.web.util.UriUtils;
 
 import com.carsale.erp.preparationpipeline.model.RegistrationCertificate;
 import com.carsale.erp.preparationpipeline.service.PreparationProgressService;
@@ -102,7 +100,7 @@ public class VehicleRegistrationController {
         } catch (IllegalArgumentException ex) {
             redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
             redirectAttributes.addFlashAttribute("certificate", certificate);
-            return "redirect:/registration/" + encodeChassis(chassisNo) + (hub ? "?hub=1" : "");
+            return "redirect:/registration/" + Utils.encodeChassis(chassisNo) + (hub ? "?hub=1" : "");
         }
     }
 
@@ -145,9 +143,5 @@ public class VehicleRegistrationController {
             return null;
         }
         return trimmed.length() <= max ? trimmed : trimmed.substring(0, max);
-    }
-
-    private String encodeChassis(String chassisNo) {
-        return UriUtils.encodePathSegment(chassisNo, StandardCharsets.UTF_8);
     }
 }

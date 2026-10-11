@@ -22,7 +22,7 @@ public class SettingsController {
     @GetMapping("/settings")
     public String settings(Model model) {
         model.addAttribute("pageTitle", "Settings");
-        model.addAttribute("activeMenu", "settings");
+        model.addAttribute("activeMenu", "configuration");
         return "settings";
     }
 

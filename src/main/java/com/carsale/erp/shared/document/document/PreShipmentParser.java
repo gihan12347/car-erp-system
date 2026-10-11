@@ -8,9 +8,9 @@ import java.util.Map;
 import java.util.regex.Matcher;
 
 import com.carsale.erp.shared.document.DocumentParser;
+import com.carsale.erp.shared.dto.SaleProgress;
 import com.carsale.erp.shared.ocr.DocumentAiClient;
-import com.carsale.erp.shared.ocr.dto.DocumentAiEntity;
-import com.carsale.erp.shared.utils.CustomsDocumentParserUtils;
+import com.carsale.erp.shared.utils.Utils;
 import com.carsale.erp.shared.regex.RegexConstants;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -83,9 +83,9 @@ public class PreShipmentParser implements DocumentParser {
         }
         result.setRawText(documentAi.getText());
         Map<String, List<String>> multiValues = new LinkedHashMap<>();
-        List<DocumentAiEntity> entities = documentAi.getEntities();
+        List<SaleProgress.DocumentAiEntity> entities = documentAi.getEntities();
         if (entities != null) {
-            for (DocumentAiEntity entity : entities) {
+            for (SaleProgress.DocumentAiEntity entity : entities) {
                 if (entity == null) {
                     continue;
                 }
@@ -114,7 +114,7 @@ public class PreShipmentParser implements DocumentParser {
                 result.put(entry.getKey(), joinValues(entry.getValue()));
             }
         }
-        CustomsDocumentParserUtils.finish(result, "Document AI (pre-shipment certificate)");
+        Utils.finish(result, "Document AI (pre-shipment certificate)");
         return result;
     }
 

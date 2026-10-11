@@ -19,7 +19,7 @@ import javax.imageio.stream.ImageOutputStream;
 
 import com.carsale.erp.importpipeline.util.AuctionParseResult;
 import com.carsale.erp.shared.document.DocumentParser;
-import com.carsale.erp.shared.utils.CustomsDocumentParserUtils;
+import com.carsale.erp.shared.utils.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -65,8 +65,8 @@ public class OcrImagePreparer {
         }
         File temp = null;
         try {
-            String prefix = CustomsDocumentParserUtils.toSlug(documentName);
-            temp = File.createTempFile(prefix, CustomsDocumentParserUtils.suffix(file.getOriginalFilename()));
+            String prefix = Utils.toSlug(documentName);
+            temp = File.createTempFile(prefix, Utils.suffix(file.getOriginalFilename()));
             try (InputStream input = file.getInputStream()) {
                 Files.copy(input, temp.toPath(), StandardCopyOption.REPLACE_EXISTING);
             }
@@ -149,7 +149,7 @@ public class OcrImagePreparer {
     }
 
     private static boolean isAuctionSheet(DocumentParser parser) {
-        return parser != null && "auction sheet".equals(parser.getDocumentName());
+        return parser != null && DocumentAiConstants.Documents.AUCTION_SHEET.equals(parser.getDocumentName());
     }
 
     private static String jpegName(String originalName) {

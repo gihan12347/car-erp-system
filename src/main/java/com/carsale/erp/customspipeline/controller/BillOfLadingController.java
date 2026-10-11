@@ -5,6 +5,8 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 
 import com.carsale.erp.shared.document.document.BillOfLading;
+import com.carsale.erp.shared.utils.PipelineStageUtils;
+import com.carsale.erp.shared.utils.Utils;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -27,13 +29,13 @@ import com.carsale.erp.shared.ocr.OcrClient;
 import com.carsale.erp.shared.ocr.OcrImagePreparer;
 import com.carsale.erp.customspipeline.service.CustomsDocumentService;
 import com.carsale.erp.customspipeline.service.CustomsProgressService;
-import com.carsale.erp.customspipeline.service.CustomsProgressService.CustomsProgress;
+import com.carsale.erp.shared.dto.CustomsProgress;
 import com.carsale.erp.customspipeline.util.CustomsStageUrls;
 import com.carsale.erp.importpipeline.util.AuctionParseResult;
 import com.carsale.erp.shared.document.SheetDocumentStorageService;
 import com.carsale.erp.shared.document.SheetUploadResult;
 import com.carsale.erp.shared.pipeline.FlowStage;
-import com.carsale.erp.shared.pipeline.PipelineStageService;
+import com.carsale.erp.shared.service.PipelineStageService;
 import com.carsale.erp.shared.vehicle.Vehicle;
 import com.carsale.erp.shared.vehicle.VehicleService;
 
@@ -110,7 +112,7 @@ public class BillOfLadingController {
         model.addAttribute("hubMode", hub);
         model.addAttribute("vehicle", vehicle);
         model.addAttribute("record", record);
-        addPipelineFlags(model, status);
+        PipelineStageUtils.addPipelineFlags(model, status);
         if (hub) {
             model.addAttribute("stageNav", CustomsStageUrls.editLinks(
                     chassisNo,
@@ -165,18 +167,7 @@ public class BillOfLadingController {
             );
         } catch (IllegalArgumentException ex) {
             redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
-            return "redirect:/bl/" + encodeChassis(chassisNo) + (hub ? "?hub=1" : "");
+            return "redirect:/bl/" + Utils.encodeChassis(chassisNo) + (hub ? "?hub=1" : "");
         }
-    }
-
-    private void addPipelineFlags(Model model, CustomsProgress status) {
-        model.addAttribute("blReady", status.isBlReady());
-        model.addAttribute("declarationReady", status.isDeclarationReady());
-        model.addAttribute("assessmentReady", status.isAssessmentReady());
-        model.addAttribute("worksheetReady", status.isWorksheetReady());
-    }
-
-    private String encodeChassis(String chassisNo) {
-        return UriUtils.encodePathSegment(chassisNo, StandardCharsets.UTF_8);
     }
 }

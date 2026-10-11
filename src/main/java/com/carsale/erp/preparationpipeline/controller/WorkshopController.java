@@ -5,6 +5,7 @@ import java.nio.charset.StandardCharsets;
 
 import com.carsale.erp.preparationpipeline.model.WorkshopJob;
 import com.carsale.erp.preparationpipeline.service.WorkshopService;
+import com.carsale.erp.shared.utils.Utils;
 import org.springframework.beans.propertyeditors.CustomNumberEditor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -20,10 +21,10 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.util.UriUtils;
 
 import com.carsale.erp.shared.vehicle.Vehicle;
-import com.carsale.erp.shared.pipeline.PipelineStageService;
+import com.carsale.erp.shared.service.PipelineStageService;
 import com.carsale.erp.shared.pipeline.FlowStage;
 import com.carsale.erp.preparationpipeline.service.PreparationProgressService;
-import com.carsale.erp.preparationpipeline.service.PreparationProgressService.PreparationProgress;
+import com.carsale.erp.shared.dto.PreparationProgress;
 import com.carsale.erp.shared.vehicle.VehicleService;
 
 @Controller
@@ -81,7 +82,7 @@ public class WorkshopController {
             preparationProgressService.syncVehicleStage(chassisNo);
             redirectAttributes.addFlashAttribute("successMessage",
                     "No workshop jobs. Workshop is complete. Continue with yard.");
-            return "redirect:/yard/" + encodeChassis(chassisNo) + (hub ? "?hub=1" : "");
+            return "redirect:/yard/" + Utils.encodeChassis(chassisNo) + (hub ? "?hub=1" : "");
         }
         WorkshopJob record = workshopService.prepareForm(chassisNo);
         PreparationProgress status = preparationProgressService.progressFor(vehicle);
@@ -124,11 +125,7 @@ public class WorkshopController {
             );
         } catch (IllegalArgumentException ex) {
             redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
-            return "redirect:/workshop/" + encodeChassis(chassisNo) + (hub ? "?hub=1" : "");
+            return "redirect:/workshop/" + Utils.encodeChassis(chassisNo) + (hub ? "?hub=1" : "");
         }
-    }
-
-    private String encodeChassis(String chassisNo) {
-        return UriUtils.encodePathSegment(chassisNo, StandardCharsets.UTF_8);
     }
 }

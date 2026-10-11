@@ -8,6 +8,8 @@ import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 
+import com.carsale.erp.shared.utils.PipelineStageUtils;
+import com.carsale.erp.shared.utils.Utils;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -32,8 +34,8 @@ import com.carsale.erp.shared.ocr.OcrClient;
 import com.carsale.erp.shared.ocr.OcrImagePreparer;
 import com.carsale.erp.customspipeline.service.CustomsProgressService;
 import com.carsale.erp.importpipeline.service.ImportProgressService;
-import com.carsale.erp.importpipeline.service.ImportProgressService.ImportProgress;
-import com.carsale.erp.shared.pipeline.PipelineStageService;
+import com.carsale.erp.shared.dto.ImportProgress;
+import com.carsale.erp.shared.service.PipelineStageService;
 import com.carsale.erp.shared.pipeline.FlowStage;
 import com.carsale.erp.shared.document.SheetDocumentStorageService;
 import com.carsale.erp.shared.vehicle.VehicleService;
@@ -155,7 +157,7 @@ public class CertificateOfInspectionController {
         model.addAttribute("hubMode", hub);
         model.addAttribute("vehicle", vehicle);
         model.addAttribute("record", record);
-        addPipelineFlags(model, status);
+        PipelineStageUtils.addPipelineFlags(model, status);
         model.addAttribute("stageNav", ImportStageUrls.editLinks(
                 chassisNo,
                 pipelineStageService.indexOf(PipelineStageService.FLOW_IMPORT, FlowStage.COI.getStageKey()),
@@ -203,24 +205,7 @@ public class CertificateOfInspectionController {
             );
         } catch (IllegalArgumentException ex) {
             redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
-            return "redirect:/coi/" + encodeChassis(chassisNo) + (hub ? "?hub=1" : "");
+            return "redirect:/coi/" + Utils.encodeChassis(chassisNo) + (hub ? "?hub=1" : "");
         }
-    }
-
-    private void addPipelineFlags(Model model, ImportProgress status) {
-        model.addAttribute("auctionDocReady", status.isAuctionReady());
-        model.addAttribute("preshipReady", status.isPreshipReady());
-        model.addAttribute("equipmentReady", status.isEquipmentReady());
-        model.addAttribute("jevicReady", status.isOdometerReady());
-        model.addAttribute("coiReady", status.isCoiReady());
-        model.addAttribute("standardsReady", status.isStandardsReady());
-        model.addAttribute("exportReady", status.isExportReady());
-        model.addAttribute("gradeReady", status.isGradeReady());
-        model.addAttribute("photosReady", status.isPhotosReady());
-        model.addAttribute("worksheetReady", status.isWorksheetReady());
-    }
-
-    private String encodeChassis(String chassisNo) {
-        return UriUtils.encodePathSegment(chassisNo, StandardCharsets.UTF_8);
     }
 }

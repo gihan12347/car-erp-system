@@ -3,8 +3,7 @@ package com.carsale.erp.importpipeline;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
-
-import com.carsale.erp.importpipeline.service.ImportProgressService.ImportProgress;
+import com.carsale.erp.shared.dto.ImportProgress;
 
 class ImportProgressServiceTest {
 

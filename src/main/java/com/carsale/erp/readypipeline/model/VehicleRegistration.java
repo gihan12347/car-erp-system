@@ -1,11 +1,16 @@
 package com.carsale.erp.readypipeline.model;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Lob;
 import javax.persistence.Table;
 
+@Setter
+@Getter
 @Entity
 @Table(name = "vehicle_registrations")
 public class VehicleRegistration {
@@ -51,107 +56,4 @@ public class VehicleRegistration {
     @Column(nullable = false)
     private boolean completed;
 
-    public String getChassisNo() {
-        return chassisNo;
-    }
-
-    public void setChassisNo(String chassisNo) {
-        this.chassisNo = chassisNo;
-    }
-
-    public String getRegistrationNo() {
-        return registrationNo;
-    }
-
-    public void setRegistrationNo(String registrationNo) {
-        this.registrationNo = registrationNo;
-    }
-
-    public String getRegisteredOwner() {
-        return registeredOwner;
-    }
-
-    public void setRegisteredOwner(String registeredOwner) {
-        this.registeredOwner = registeredOwner;
-    }
-
-    public String getRegisteredDate() {
-        return registeredDate;
-    }
-
-    public void setRegisteredDate(String registeredDate) {
-        this.registeredDate = registeredDate;
-    }
-
-    public String getRmvOffice() {
-        return rmvOffice;
-    }
-
-    public void setRmvOffice(String rmvOffice) {
-        this.rmvOffice = rmvOffice;
-    }
-
-    public String getFileNo() {
-        return fileNo;
-    }
-
-    public void setFileNo(String fileNo) {
-        this.fileNo = fileNo;
-    }
-
-    public String getRevenueLicenseNo() {
-        return revenueLicenseNo;
-    }
-
-    public void setRevenueLicenseNo(String revenueLicenseNo) {
-        this.revenueLicenseNo = revenueLicenseNo;
-    }
-
-    public String getRevenueLicenseExpiry() {
-        return revenueLicenseExpiry;
-    }
-
-    public void setRevenueLicenseExpiry(String revenueLicenseExpiry) {
-        this.revenueLicenseExpiry = revenueLicenseExpiry;
-    }
-
-    public String getInsuranceCompany() {
-        return insuranceCompany;
-    }
-
-    public void setInsuranceCompany(String insuranceCompany) {
-        this.insuranceCompany = insuranceCompany;
-    }
-
-    public String getInsurancePolicyNo() {
-        return insurancePolicyNo;
-    }
-
-    public void setInsurancePolicyNo(String insurancePolicyNo) {
-        this.insurancePolicyNo = insurancePolicyNo;
-    }
-
-    public String getInsuranceExpiry() {
-        return insuranceExpiry;
-    }
-
-    public void setInsuranceExpiry(String insuranceExpiry) {
-        this.insuranceExpiry = insuranceExpiry;
-    }
-
-    public String getNotes() {
-        return notes;
-    }
-
-    public void setNotes(String notes) {
-        this.notes = notes;
-    }
-
-    public boolean isCompleted() {
-        return completed;
-    }
-
-    public void setCompleted(boolean completed) {
-        this.completed = completed;
-    }
 }

@@ -1,8 +1,9 @@
-package com.carsale.erp.shared.pipeline;
+package com.carsale.erp.shared.repository;
 
 import java.util.List;
 import java.util.Optional;
 
+import com.carsale.erp.shared.model.PipelineFlow;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

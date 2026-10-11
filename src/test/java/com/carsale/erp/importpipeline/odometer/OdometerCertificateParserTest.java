@@ -7,8 +7,8 @@ import java.util.List;
 
 import com.carsale.erp.importpipeline.util.AuctionParseResult;
 import com.carsale.erp.shared.document.document.OdometerCertificateParser;
+import com.carsale.erp.shared.dto.SaleProgress;
 import com.carsale.erp.shared.ocr.DocumentAiClient;
-import com.carsale.erp.shared.ocr.dto.DocumentAiEntity;
 import org.junit.jupiter.api.Test;
 
 class OdometerCertificateParserTest {
@@ -17,7 +17,7 @@ class OdometerCertificateParserTest {
 
     @Test
     void parsePageMapsDocumentAiEntitiesAndNormalizesDates() {
-        List<DocumentAiEntity> entities = new ArrayList<>();
+        List<SaleProgress.DocumentAiEntity> entities = new ArrayList<>();
         entities.add(entity("certificate_no", "LK1-A000705"));
         entities.add(entity("chassis_vin", "JF5-1141982"));
         entities.add(entity("current_odometer_reading", "5 km"));
@@ -51,7 +51,7 @@ class OdometerCertificateParserTest {
         assertThat(result.getFields()).isEmpty();
     }
 
-    private static DocumentAiEntity entity(String type, String value) {
-        return new DocumentAiEntity(type, value, 0.99);
+    private static SaleProgress.DocumentAiEntity entity(String type, String value) {
+        return new SaleProgress.DocumentAiEntity(type, value, 0.99);
     }
 }

@@ -91,7 +91,7 @@ public class YardBayService implements CommandLineRunner {
         for (YardBay bay : yardBayRepository.findAllByOrderBySortOrderAscIdAsc()) {
             boolean dirty = false;
             if (isBlank(bay.getYardName())) {
-                bay.setYardName(isBlank(bay.getSection()) ? bay.getBayCode() : bay.getSection().trim());
+                bay.setYardName(isBlank(bay.getLocation()) ? bay.getBayCode() : bay.getLocation().trim());
                 dirty = true;
             }
             if (bay.getCapacity() <= 0) {

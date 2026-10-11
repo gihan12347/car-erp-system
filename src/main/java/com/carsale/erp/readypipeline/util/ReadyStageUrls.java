@@ -2,15 +2,15 @@ package com.carsale.erp.readypipeline.util;
 
 import java.util.List;
 
-import com.carsale.erp.readypipeline.service.SaleListingService.SaleProgress;
+import com.carsale.erp.shared.dto.SaleProgress;
 import com.carsale.erp.shared.pipeline.FlowPipeline;
 import com.carsale.erp.shared.pipeline.FlowStage;
 import com.carsale.erp.shared.pipeline.NavLinks;
-import com.carsale.erp.shared.pipeline.PipelineStage;
-import com.carsale.erp.shared.pipeline.PipelineStageService;
+import com.carsale.erp.shared.model.PipelineStage;
+import com.carsale.erp.shared.service.PipelineStageService;
 import com.carsale.erp.shared.utils.PipelineStageUtils;
 
-import static com.carsale.erp.shared.pipeline.PipelineStageService.viewLinks;
+import static com.carsale.erp.shared.service.PipelineStageService.viewLinks;
 
 public final class ReadyStageUrls {
 

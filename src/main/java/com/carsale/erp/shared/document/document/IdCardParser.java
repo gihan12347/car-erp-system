@@ -8,10 +8,10 @@ import java.util.regex.Pattern;
 
 import com.carsale.erp.importpipeline.util.AuctionParseResult;
 import com.carsale.erp.shared.document.DocumentParser;
+import com.carsale.erp.shared.dto.SaleProgress;
 import com.carsale.erp.shared.ocr.DocumentAiClient;
-import com.carsale.erp.shared.ocr.dto.DocumentAiEntity;
 import com.carsale.erp.shared.regex.RegexConstants;
-import com.carsale.erp.shared.utils.CustomsDocumentParserUtils;
+import com.carsale.erp.shared.utils.Utils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -84,7 +84,7 @@ public class IdCardParser implements DocumentParser {
                 result.put("nicNo", nic.group(1).toUpperCase());
             }
         }
-        CustomsDocumentParserUtils.finish(result, "the identity card");
+        Utils.finish(result, "the identity card");
         return result;
     }
 
@@ -97,20 +97,20 @@ public class IdCardParser implements DocumentParser {
             return empty;
         }
         AuctionParseResult result = parsePage(documentAi.getText());
-        List<DocumentAiEntity> entities = documentAi.getEntities();
+        List<SaleProgress.DocumentAiEntity> entities = documentAi.getEntities();
         if (entities != null) {
-            for (DocumentAiEntity entity : entities) {
+            for (SaleProgress.DocumentAiEntity entity : entities) {
                 if (entity == null) {
                     continue;
                 }
-                String field = CustomsDocumentParserUtils.mapType(entity.getType(), TYPE_TO_FIELD);
+                String field = Utils.mapType(entity.getType(), TYPE_TO_FIELD);
                 String value = clean(entity.getValue());
                 if (field != null && value != null) {
                     result.put(field, value);
                 }
             }
         }
-        CustomsDocumentParserUtils.finish(result, "Document AI (identity card)");
+        Utils.finish(result, "Document AI (identity card)");
         return result;
     }
 

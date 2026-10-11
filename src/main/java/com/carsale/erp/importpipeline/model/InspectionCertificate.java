@@ -1,11 +1,16 @@
 package com.carsale.erp.importpipeline.model;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Lob;
 import javax.persistence.Table;
 
+@Setter
+@Getter
 @Entity
 @Table(name = "inspection_certificates")
 public class InspectionCertificate {
@@ -58,7 +63,7 @@ public class InspectionCertificate {
     @Column(columnDefinition = "TEXT")
     private String remarks;
 
-    @Column(length = 255)
+    @Column()
     private String documentOriginalName;
 
     @Column(length = 120)
@@ -71,131 +76,4 @@ public class InspectionCertificate {
     @Column(columnDefinition = "TEXT")
     private String ocrText;
 
-    public String getChassisNo() {
-        return chassisNo;
-    }
-
-    public void setChassisNo(String chassisNo) {
-        this.chassisNo = chassisNo;
-    }
-
-    public String getCertificateNo() {
-        return certificateNo;
-    }
-
-    public void setCertificateNo(String certificateNo) {
-        this.certificateNo = certificateNo;
-    }
-
-    public String getInspectionBranch() {
-        return inspectionBranch;
-    }
-
-    public void setInspectionBranch(String inspectionBranch) {
-        this.inspectionBranch = inspectionBranch;
-    }
-
-    public String getMake() {
-        return make;
-    }
-
-    public void setMake(String make) {
-        this.make = make;
-    }
-
-    public String getModel() {
-        return model;
-    }
-
-    public void setModel(String model) {
-        this.model = model;
-    }
-
-    public String getEngineCapacity() {
-        return engineCapacity;
-    }
-
-    public void setEngineCapacity(String engineCapacity) {
-        this.engineCapacity = engineCapacity;
-    }
-
-    public String getFirstRegistration() {
-        return firstRegistration;
-    }
-
-    public void setFirstRegistration(String firstRegistration) {
-        this.firstRegistration = firstRegistration;
-    }
-
-    public String getChassisVin() {
-        return chassisVin;
-    }
-
-    public void setChassisVin(String chassisVin) {
-        this.chassisVin = chassisVin;
-    }
-
-    public String getEngineNo() {
-        return engineNo;
-    }
-
-    public void setEngineNo(String engineNo) {
-        this.engineNo = engineNo;
-    }
-
-    public String getInspectedMileage() {
-        return inspectedMileage;
-    }
-
-    public void setInspectedMileage(String inspectedMileage) {
-        this.inspectedMileage = inspectedMileage;
-    }
-
-    public String getInspectionDate() {
-        return inspectionDate;
-    }
-
-    public void setInspectionDate(String inspectionDate) {
-        this.inspectionDate = inspectionDate;
-    }
-
-    public String getRemarks() {
-        return remarks;
-    }
-
-    public void setRemarks(String remarks) {
-        this.remarks = remarks;
-    }
-
-    public String getDocumentOriginalName() {
-        return documentOriginalName;
-    }
-
-    public void setDocumentOriginalName(String documentOriginalName) {
-        this.documentOriginalName = documentOriginalName;
-    }
-
-    public String getDocumentStoredName() {
-        return documentStoredName;
-    }
-
-    public void setDocumentStoredName(String documentStoredName) {
-        this.documentStoredName = documentStoredName;
-    }
-
-    public String getDocumentContentType() {
-        return documentContentType;
-    }
-
-    public void setDocumentContentType(String documentContentType) {
-        this.documentContentType = documentContentType;
-    }
-
-    public String getOcrText() {
-        return ocrText;
-    }
-
-    public void setOcrText(String ocrText) {
-        this.ocrText = ocrText;
-    }
 }

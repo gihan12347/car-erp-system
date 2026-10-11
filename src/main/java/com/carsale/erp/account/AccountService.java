@@ -21,7 +21,7 @@ public class AccountService {
     }
 
     @Transactional
-    public User updateProfile(
+    public void updateProfile(
             User current,
             String fullName,
             String email,
@@ -70,7 +70,6 @@ public class AccountService {
 
         User saved = userRepository.save(user);
         refreshAuthentication(saved);
-        return saved;
     }
 
     private void refreshAuthentication(User saved) {

@@ -9,9 +9,12 @@ import java.util.Map;
 
 import com.carsale.erp.importpipeline.util.AuctionParseResult;
 import com.carsale.erp.shared.document.document.WorkingSheet;
+import com.carsale.erp.shared.model.PipelineStage;
 import com.carsale.erp.shared.ocr.OcrImagePreparer;
 import com.carsale.erp.shared.pipeline.*;
+import com.carsale.erp.shared.service.PipelineStageService;
 import com.carsale.erp.shared.utils.PipelineStageUtils;
+import com.carsale.erp.shared.utils.Utils;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
@@ -44,7 +47,7 @@ import com.carsale.erp.customspipeline.service.CustomsDocumentService;
 import com.carsale.erp.importpipeline.util.EquipmentInspectionFields;
 import com.carsale.erp.importpipeline.service.EquipmentInspectionService;
 import com.carsale.erp.importpipeline.service.ImportProgressService;
-import com.carsale.erp.importpipeline.service.ImportProgressService.ImportProgress;
+import com.carsale.erp.shared.dto.ImportProgress;
 import com.carsale.erp.importpipeline.service.CertificateOfInspectionService;
 import com.carsale.erp.importpipeline.service.ExportCertificateService;
 import com.carsale.erp.importpipeline.model.GradeSearch;
@@ -194,7 +197,7 @@ public class AuctionLotController {
             Model model
     ) {
         if (hub) {
-            return "redirect:/auction/" + encodeChassis(chassisNo) + "/edit?hub=1";
+            return "redirect:/auction/" + Utils.encodeChassis(chassisNo) + "/edit?hub=1";
         }
         Vehicle vehicle = vehicleService.findByChassisNo(chassisNo);
         if (vehicle == null) {
@@ -218,7 +221,7 @@ public class AuctionLotController {
         model.addAttribute("preShipment", preShipmentService.findByChassisNo(chassisNo));
         model.addAttribute("equipmentReady", importStatus.isEquipmentReady());
         model.addAttribute("equipmentInspection", equipmentInspectionService.findByChassisNo(chassisNo));
-        model.addAttribute("jevicReady", importStatus.isOdometerReady());
+        model.addAttribute("jevicReady", importStatus.isJevicReady());
         model.addAttribute("coiReady", importStatus.isCoiReady());
         model.addAttribute("standardsReady", importStatus.isStandardsReady());
         model.addAttribute("exportReady", importStatus.isExportReady());
@@ -273,7 +276,7 @@ public class AuctionLotController {
         model.addAttribute("auctionDocReady", importStatus.isAuctionReady());
         model.addAttribute("preshipReady", importStatus.isPreshipReady());
         model.addAttribute("equipmentReady", importStatus.isEquipmentReady());
-        model.addAttribute("jevicReady", importStatus.isOdometerReady());
+        model.addAttribute("jevicReady", importStatus.isJevicReady());
         model.addAttribute("coiReady", importStatus.isCoiReady());
         model.addAttribute("standardsReady", importStatus.isStandardsReady());
         model.addAttribute("exportReady", importStatus.isExportReady());
@@ -354,7 +357,7 @@ public class AuctionLotController {
             if (vehicle.getChassisNo() == null || vehicle.getChassisNo().trim().isEmpty()) {
                 return "redirect:/auction/new";
             }
-            return "redirect:/auction/" + encodeChassis(vehicle.getChassisNo()) + "/edit?hub=1";
+            return "redirect:/auction/" + Utils.encodeChassis(vehicle.getChassisNo()) + "/edit?hub=1";
         } catch (IllegalArgumentException ex) {
             redirectAttributes.addFlashAttribute("error", ex.getMessage());
             redirectAttributes.addFlashAttribute("vehicle", vehicle);
@@ -362,7 +365,7 @@ public class AuctionLotController {
                 return "redirect:/auction/new";
             }
             if (editMode || vehicleService.existsByChassisNo(vehicle.getChassisNo())) {
-                return "redirect:/auction/" + encodeChassis(vehicle.getChassisNo()) + "/edit?hub=1";
+                return "redirect:/auction/" + Utils.encodeChassis(vehicle.getChassisNo()) + "/edit?hub=1";
             }
             return "redirect:/auction/new";
         }
@@ -376,10 +379,6 @@ public class AuctionLotController {
             redirectAttributes.addFlashAttribute("error", "Could not delete auction lot.");
         }
         return "redirect:/import";
-    }
-
-    private String encodeChassis(String chassisNo) {
-        return UriUtils.encodePathSegment(chassisNo, StandardCharsets.UTF_8);
     }
 
     private void prepareStartStageForm(Model model, String startStage) {

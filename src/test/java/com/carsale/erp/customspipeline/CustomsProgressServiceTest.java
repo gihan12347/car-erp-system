@@ -3,10 +3,8 @@ package com.carsale.erp.customspipeline;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
-
 import java.util.Collections;
-
-import com.carsale.erp.customspipeline.service.CustomsProgressService.CustomsProgress;
+import com.carsale.erp.shared.dto.CustomsProgress;
 
 class CustomsProgressServiceTest {
 

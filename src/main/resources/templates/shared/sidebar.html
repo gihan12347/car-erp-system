@@ -37,7 +37,7 @@
             <i class="fa-solid fa-tags"></i><span>Sale</span>
         </a>
         <a th:href="@{/configuration}"
-           th:classappend="${activeMenu == 'configuration' or activeMenu == 'stages' or activeMenu == 'inspection-items' or activeMenu == 'yard-bays' or activeMenu == 'sale-locations'} ? 'is-active' : ''">
+           th:classappend="${activeMenu == 'configuration' or activeMenu == 'settings' or activeMenu == 'stages' or activeMenu == 'inspection-items' or activeMenu == 'yard-bays' or activeMenu == 'sale-locations'} ? 'is-active' : ''">
             <i class="fa-solid fa-sliders"></i><span>Configuration</span>
         </a>
         <a th:href="@{/customers}" th:classappend="${activeMenu == 'customers'} ? 'is-active' : ''">
@@ -45,10 +45,6 @@
         </a>
         <a th:href="@{/reports}" th:classappend="${activeMenu == 'reports'} ? 'is-active' : ''">
             <i class="fa-solid fa-chart-column"></i><span>Reports</span>
-        </a>
-        <a th:href="@{/settings}"
-           th:classappend="${activeMenu == 'settings'} ? 'is-active' : ''">
-            <i class="fa-solid fa-gear"></i><span>Settings</span>
         </a>
     </nav>
     <div class="sidebar-user dropdown" data-dropdown>

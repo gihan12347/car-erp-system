@@ -9,11 +9,12 @@ import java.util.regex.Pattern;
 
 import com.carsale.erp.importpipeline.util.AuctionParseResult;
 import com.carsale.erp.shared.document.DocumentParser;
+import com.carsale.erp.shared.dto.SaleProgress;
 import com.carsale.erp.shared.ocr.DocumentAiClient;
+import com.carsale.erp.shared.ocr.DocumentAiConstants;
 import com.carsale.erp.shared.ocr.RegistrationCertificateDocumentAi;
-import com.carsale.erp.shared.ocr.dto.DocumentAiEntity;
 import com.carsale.erp.shared.regex.RegexConstants;
-import com.carsale.erp.shared.utils.CustomsDocumentParserUtils;
+import com.carsale.erp.shared.utils.Utils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -116,7 +117,7 @@ public class RegistrationCertificateParser implements DocumentParser {
                 result.put("registrationNo", registration.group(1).replaceAll("\\s+", " "));
             }
         }
-        CustomsDocumentParserUtils.finish(result, "the registration certificate");
+        Utils.finish(result, "the registration certificate");
         return result;
     }
 
@@ -129,13 +130,13 @@ public class RegistrationCertificateParser implements DocumentParser {
             return empty;
         }
         AuctionParseResult result = parsePage(documentAi.getText());
-        List<DocumentAiEntity> entities = documentAi.getEntities();
+        List<SaleProgress.DocumentAiEntity> entities = documentAi.getEntities();
         if (entities != null) {
-            for (DocumentAiEntity entity : entities) {
+            for (SaleProgress.DocumentAiEntity entity : entities) {
                 if (entity == null) {
                     continue;
                 }
-                String field = CustomsDocumentParserUtils.mapType(entity.getType(), TYPE_TO_FIELD);
+                String field = Utils.mapType(entity.getType(), TYPE_TO_FIELD);
                 if (field == null) {
                     continue;
                 }
@@ -145,7 +146,7 @@ public class RegistrationCertificateParser implements DocumentParser {
                 }
             }
         }
-        CustomsDocumentParserUtils.finish(result, "Document AI (registration certificate)");
+        Utils.finish(result, "Document AI (registration certificate)");
         return result;
     }
 
@@ -156,7 +157,7 @@ public class RegistrationCertificateParser implements DocumentParser {
 
     @Override
     public String getDocumentName() {
-        return "registration certificate";
+        return DocumentAiConstants.Documents.REGISTRATION_CERTIFICATE;
     }
 
     @Override

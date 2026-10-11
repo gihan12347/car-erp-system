@@ -4,9 +4,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.carsale.erp.preparationpipeline.service.PreparationProgressService;
-import com.carsale.erp.preparationpipeline.util.PreparationStageUrls;
+import com.carsale.erp.shared.model.PipelineStage;
 import com.carsale.erp.shared.pipeline.*;
+import com.carsale.erp.shared.service.PipelineStageService;
 import com.carsale.erp.shared.utils.PipelineStageUtils;
+import com.carsale.erp.shared.utils.Utils;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -23,14 +25,14 @@ import com.carsale.erp.preparationpipeline.service.RegistrationCertificateServic
 import com.carsale.erp.shared.vehicle.Vehicle;
 import com.carsale.erp.shared.vehicle.VehicleIntake;
 import com.carsale.erp.shared.vehicle.VehicleStage;
-import com.carsale.erp.preparationpipeline.service.PreparationProgressService.PreparationProgress;
+import com.carsale.erp.shared.dto.PreparationProgress;
 import com.carsale.erp.preparationpipeline.service.VehicleInspectionService;
 import com.carsale.erp.shared.vehicle.VehicleService;
 import com.carsale.erp.preparationpipeline.service.WorkshopService;
 import com.carsale.erp.preparationpipeline.service.YardService;
 import com.carsale.erp.readypipeline.service.SaleListingService;
 
-import static com.carsale.erp.shared.pipeline.PipelineStageService.viewLinks;
+import static com.carsale.erp.shared.service.PipelineStageService.viewLinks;
 
 @Controller
 public class PreparationPipelineListController {
@@ -113,7 +115,7 @@ public class PreparationPipelineListController {
                 if (existing.getIntake() == VehicleIntake.LOCAL_REGISTERED) {
                     redirectAttributes.addFlashAttribute("notice",
                             "This chassis is already in the registered vehicle pipeline.");
-                    return "redirect:/workshop-yard/" + encodeChassis(chassisNo) + "/certificate";
+                    return "redirect:/workshop-yard/" + Utils.encodeChassis(chassisNo) + "/certificate";
                 }
                 redirectAttributes.addFlashAttribute("errorMessage",
                         "Chassis number " + chassisNo + " is already in the import pipeline.");
@@ -129,28 +131,12 @@ public class PreparationPipelineListController {
             registrationCertificateService.save(certificate);
             redirectAttributes.addFlashAttribute("successMessage",
                     "Vehicle book saved. Add the vehicle images next.");
-            return "redirect:/registered/" + encodeChassis(saved.getChassisNo()) + "/photos";
+            return "redirect:/registered/" + Utils.encodeChassis(saved.getChassisNo()) + "/photos";
         } catch (IllegalArgumentException ex) {
             redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
             redirectAttributes.addFlashAttribute("certificate", certificate);
             return "redirect:/workshop-yard/new";
         }
-    }
-
-    private static String encodeChassis(String chassisNo) {
-        return UriUtils.encodePathSegment(chassisNo, java.nio.charset.StandardCharsets.UTF_8);
-    }
-
-    private String firstPreparationUrl(String chassisNo) {
-        List<PipelineStage> stages = pipelineStageService.list(PipelineStageService.FLOW_PREP);
-        String stageKey = stages.isEmpty()
-                ? FlowStage.INSPECTION.getStageKey()
-                : stages.get(0).getStageKey();
-        String url = PipelineStageService.editUrlFor(
-                UriUtils.encodePathSegment(chassisNo, java.nio.charset.StandardCharsets.UTF_8),
-                stageKey
-        );
-        return url == null ? "/workshop-yard" : url;
     }
 
     @PostMapping("/workshop-yard/{chassisNo}/skip")
@@ -170,7 +156,7 @@ public class PreparationPipelineListController {
             );
         } catch (IllegalArgumentException ex) {
             redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
-            String editUrl = PipelineStageService.editUrlFor(encodeChassis(chassisNo), stage);
+            String editUrl = PipelineStageService.editUrlFor(Utils.encodeChassis(chassisNo), stage);
             return "redirect:" + (editUrl != null ? editUrl : "/workshop-yard");
         }
     }

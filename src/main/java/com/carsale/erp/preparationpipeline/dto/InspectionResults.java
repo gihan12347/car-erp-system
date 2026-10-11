@@ -5,7 +5,7 @@ import java.util.Collections;
 import java.util.List;
 
 import com.carsale.erp.shared.regex.RegexConstants;
-import com.carsale.erp.shared.utils.CustomsDocumentParserUtils;
+import com.carsale.erp.shared.utils.Utils;
 
 /**
  * Workshop inspection checklist choices: OK, No, N/A.
@@ -54,7 +54,7 @@ public final class InspectionResults {
         if (trimmed.isEmpty()) {
             return "";
         }
-        return CustomsDocumentParserUtils.getNormalizedValue(trimmed.toUpperCase().replace(" ", ""));
+        return Utils.getNormalizedValue(trimmed.toUpperCase().replace(" ", ""));
     }
 
     public static String choiceDomId(String prefix, int index, String option) {
@@ -63,16 +63,16 @@ public final class InspectionResults {
 
     public static String cssClass(String option) {
         String canonical = canonical(option);
-        if (OK.equals(canonical)) {
-            return "OK";
+        switch (canonical) {
+            case OK:
+                return "OK";
+            case NO:
+                return "NO";
+            case NA:
+                return "NA";
+            default:
+                String suffix = canonical.replaceAll(RegexConstants.Text.ALNUM_ONLY, "");
+                return suffix.isEmpty() ? "choice" : suffix;
         }
-        if (NO.equals(canonical)) {
-            return "NO";
-        }
-        if (NA.equals(canonical)) {
-            return "NA";
-        }
-        String suffix = canonical.replaceAll(RegexConstants.Text.ALNUM_ONLY, "");
-        return suffix.isEmpty() ? "choice" : suffix;
     }
 }

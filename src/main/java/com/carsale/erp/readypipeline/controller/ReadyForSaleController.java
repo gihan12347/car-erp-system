@@ -1,8 +1,5 @@
 package com.carsale.erp.readypipeline.controller;
 
-import java.time.DayOfWeek;
-import java.time.LocalDate;
-import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -26,9 +23,9 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import com.carsale.erp.importpipeline.model.VehiclePhoto;
 import com.carsale.erp.importpipeline.service.VehiclePhotoService;
 import com.carsale.erp.preparationpipeline.service.PreparationProgressService;
-import com.carsale.erp.readypipeline.service.SaleListingService.SaleProgress;
+import com.carsale.erp.shared.dto.SaleProgress;
 import com.carsale.erp.shared.pipeline.FlowStage;
-import com.carsale.erp.shared.pipeline.PipelineStageService;
+import com.carsale.erp.shared.service.PipelineStageService;
 import com.carsale.erp.shared.utils.PipelineStageUtils;
 import com.carsale.erp.shared.vehicle.Vehicle;
 import com.carsale.erp.shared.vehicle.VehicleService;
@@ -167,7 +164,7 @@ public class ReadyForSaleController {
         if (index >= 0 && index < keys.size() - 1) {
             String nextKey = keys.get(index + 1);
             if (!FlowStage.DETAILS.getStageKey().equals(nextKey)
-                    && !saleListingService.isStageSatisfied(chassisNo, nextKey)) {
+                    && saleListingService.isStageSatisfied(chassisNo, nextKey)) {
                 String editUrl = PipelineStageService.editUrlFor(PipelineStageUtils.encode(chassisNo), nextKey);
                 if (editUrl != null) {
                     return editUrl;

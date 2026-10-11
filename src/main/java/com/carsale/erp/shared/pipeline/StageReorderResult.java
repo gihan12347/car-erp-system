@@ -1,8 +1,14 @@
 package com.carsale.erp.shared.pipeline;
 
+import com.carsale.erp.shared.model.PipelineStage;
+import lombok.Getter;
+import lombok.Setter;
+
 import java.util.ArrayList;
 import java.util.List;
 
+@Setter
+@Getter
 public class StageReorderResult {
 
     private boolean success;
@@ -24,27 +30,4 @@ public class StageReorderResult {
         return result;
     }
 
-    public boolean isSuccess() {
-        return success;
-    }
-
-    public void setSuccess(boolean success) {
-        this.success = success;
-    }
-
-    public String getMessage() {
-        return message;
-    }
-
-    public void setMessage(String message) {
-        this.message = message;
-    }
-
-    public List<PipelineStage> getStages() {
-        return stages;
-    }
-
-    public void setStages(List<PipelineStage> stages) {
-        this.stages = stages;
-    }
 }

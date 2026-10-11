@@ -3,29 +3,20 @@ package com.carsale.erp.readypipeline.service;
 import com.carsale.erp.readypipeline.model.SaleLocation;
 import com.carsale.erp.readypipeline.model.SaleListing;
 import com.carsale.erp.readypipeline.repository.SaleListingRepository;
+import com.carsale.erp.shared.dto.SaleProgress;
+import com.carsale.erp.shared.utils.PipelineStageUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.carsale.erp.shared.pipeline.FlowStage;
-import com.carsale.erp.shared.pipeline.SkippedStageService;
+import com.carsale.erp.shared.service.SkippedStageService;
 import com.carsale.erp.shared.vehicle.Vehicle;
 import com.carsale.erp.shared.vehicle.VehicleRepository;
 import com.carsale.erp.shared.vehicle.VehicleStage;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
-
 @Service
 public class SaleListingService {
-
-    private static final List<String> READY_STAGE_KEYS = Arrays.asList(
-            FlowStage.DETAILS.getStageKey(),
-            FlowStage.LISTING.getStageKey(),
-            FlowStage.REGISTRATION.getStageKey()
-    );
 
     private final VehicleRepository vehicleRepository;
     private final SaleListingRepository saleListingRepository;
@@ -73,22 +64,6 @@ public class SaleListingService {
         return record != null && !isBlank(record.getSaleCode());
     }
 
-    public boolean isListed(String chassisNo) {
-        SaleListing record = findByChassisNo(chassisNo);
-        return record != null && record.isListed() && !record.isSold();
-    }
-
-    public boolean isAssignmentComplete(String chassisNo) {
-        SaleListing record = findByChassisNo(chassisNo);
-        if (record == null) {
-            return false;
-        }
-        if (record.isAssignmentComplete()) {
-            return true;
-        }
-        return !isBlank(record.getSaleCode()) && !isBlank(record.getListedOn());
-    }
-
     public SaleProgress progressFor(String chassisNo) {
         SaleListing record = findByChassisNo(chassisNo);
         boolean listed = record != null && record.isListed() && !record.isSold();
@@ -102,18 +77,18 @@ public class SaleListingService {
                 listed || sold,
                 registrationReady,
                 sold,
-                skippedStageService.matching(vehicle, READY_STAGE_KEYS)
+                skippedStageService.matching(vehicle, PipelineStageUtils.READY_STAGE_KEYS)
         );
     }
 
     public boolean isStageSatisfied(String chassisNo, String stageKey) {
-        return progressFor(chassisNo).isStageComplete(stageKey);
+        return !progressFor(chassisNo).isStageComplete(stageKey);
     }
 
     @Transactional
     public void skipStage(String chassisNo, String stageKey) {
         FlowStage stage = FlowStage.fromKey(stageKey);
-        if (stage == null || !READY_STAGE_KEYS.contains(stage.getStageKey())) {
+        if (stage == null || !PipelineStageUtils.READY_STAGE_KEYS.contains(stage.getStageKey())) {
             throw new IllegalArgumentException("That stage cannot be skipped.");
         }
         if (chassisNo == null || chassisNo.trim().isEmpty()) {
@@ -226,104 +201,5 @@ public class SaleListingService {
 
     private static boolean isBlank(String value) {
         return value == null || value.trim().isEmpty();
-    }
-
-    public static final class SaleProgress implements com.carsale.erp.shared.pipeline.PipelineProgress {
-        private final boolean detailsReady;
-        private final boolean listingReady;
-        private final boolean registrationReady;
-        private final boolean sold;
-        private final Set<String> skippedStages;
-
-        public SaleProgress(boolean detailsReady, boolean listingReady, boolean registrationReady, boolean sold) {
-            this(detailsReady, listingReady, registrationReady, sold, Collections.<String>emptySet());
-        }
-
-        public SaleProgress(
-                boolean detailsReady,
-                boolean listingReady,
-                boolean registrationReady,
-                boolean sold,
-                Set<String> skippedStages
-        ) {
-            this.detailsReady = detailsReady;
-            this.listingReady = listingReady;
-            this.registrationReady = registrationReady;
-            this.sold = sold;
-            this.skippedStages = skippedStages == null ? Collections.<String>emptySet() : skippedStages;
-        }
-
-        public boolean isDetailsReady() {
-            return detailsReady;
-        }
-
-        public boolean isListingReady() {
-            return listingReady;
-        }
-
-        public boolean isRegistrationReady() {
-            return registrationReady;
-        }
-
-        public boolean isSold() {
-            return sold;
-        }
-
-        @Override
-        public boolean hasAnyCompletedStage() {
-            return completedCount() > 0;
-        }
-
-        @Override
-        public int completedCount() {
-            int count = 0;
-            for (String key : READY_STAGE_KEYS) {
-                if (isStageComplete(key)) {
-                    count++;
-                }
-            }
-            return count;
-        }
-
-        @Override
-        public boolean isPipelineCompleted() {
-            for (String key : READY_STAGE_KEYS) {
-                if (!isStageComplete(key)) {
-                    return false;
-                }
-            }
-            return true;
-        }
-
-        public boolean isStageFilled(String stageKey) {
-            if (FlowStage.DETAILS.getStageKey().equals(stageKey)) {
-                return detailsReady;
-            }
-            if (FlowStage.LISTING.getStageKey().equals(stageKey)) {
-                return listingReady;
-            }
-            return FlowStage.REGISTRATION.getStageKey().equals(stageKey) && registrationReady;
-        }
-
-        public boolean isStageSkipped(String stageKey) {
-            return stageKey != null && skippedStages.contains(stageKey) && !isStageFilled(stageKey);
-        }
-
-        @Override
-        public boolean isStageComplete(String stageKey) {
-            return isStageFilled(stageKey) || (stageKey != null && skippedStages.contains(stageKey));
-        }
-
-        public String firstIncompleteStageKey(java.util.List<String> keys) {
-            if (keys == null) {
-                return null;
-            }
-            for (String key : keys) {
-                if (!isStageComplete(key)) {
-                    return key;
-                }
-            }
-            return null;
-        }
     }
 }

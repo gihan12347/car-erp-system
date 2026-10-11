@@ -1,8 +1,8 @@
 package com.carsale.erp.shared.document.document;
 
+import com.carsale.erp.shared.dto.SaleProgress;
 import com.carsale.erp.shared.ocr.DocumentAiClient;
-import com.carsale.erp.shared.ocr.dto.DocumentAiEntity;
-import com.carsale.erp.shared.utils.CustomsDocumentParserUtils;
+import com.carsale.erp.shared.utils.Utils;
 import com.carsale.erp.shared.regex.RegexConstants;
 import com.carsale.erp.importpipeline.util.AuctionParseResult;
 import com.carsale.erp.shared.document.DocumentParser;
@@ -60,13 +60,13 @@ public class CustomsDeclaration implements DocumentParser {
             return result;
         }
         result.setRawText(documentAi.getText());
-        List<DocumentAiEntity> entities = documentAi.getEntities();
+        List<SaleProgress.DocumentAiEntity> entities = documentAi.getEntities();
         if (entities != null) {
-            for (DocumentAiEntity entity : entities) {
+            for (SaleProgress.DocumentAiEntity entity : entities) {
                 if (entity == null) {
                     continue;
                 }
-                String field = CustomsDocumentParserUtils.mapType(entity.getType(), TYPE_TO_FIELD);
+                String field = Utils.mapType(entity.getType(), TYPE_TO_FIELD);
                 if (field == null) {
                     continue;
                 }
@@ -74,7 +74,7 @@ public class CustomsDeclaration implements DocumentParser {
                 result.put(field, value);
             }
         }
-        CustomsDocumentParserUtils.finish(result, "Document AI (customs declaration)");
+        Utils.finish(result, "Document AI (customs declaration)");
         return result;
     }
 
