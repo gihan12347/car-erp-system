@@ -3,33 +3,23 @@ package com.carsale.erp.preparationpipeline.service;
 import com.carsale.erp.preparationpipeline.model.RegistrationCertificate;
 import com.carsale.erp.preparationpipeline.repository.RegistrationCertificateRepository;
 import com.carsale.erp.shared.document.SheetDocumentStorageService;
+import com.carsale.erp.shared.utils.Utils;
 import com.carsale.erp.shared.vehicle.Vehicle;
 import com.carsale.erp.shared.vehicle.VehicleRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@RequiredArgsConstructor
 public class RegistrationCertificateService {
 
     private final VehicleRepository vehicleRepository;
     private final RegistrationCertificateRepository certificateRepository;
     private final SheetDocumentStorageService documentStorageService;
 
-    public RegistrationCertificateService(
-            VehicleRepository vehicleRepository,
-            RegistrationCertificateRepository certificateRepository,
-            SheetDocumentStorageService documentStorageService
-    ) {
-        this.vehicleRepository = vehicleRepository;
-        this.certificateRepository = certificateRepository;
-        this.documentStorageService = documentStorageService;
-    }
-
     public RegistrationCertificate findByChassisNo(String chassisNo) {
-        if (chassisNo == null || chassisNo.trim().isEmpty()) {
-            return null;
-        }
-        return certificateRepository.findById(chassisNo.trim()).orElse(null);
+        return Utils.findByChassisNo(chassisNo, certificateRepository, null);
     }
 
     public RegistrationCertificate prepareForm(String chassisNo) {
@@ -55,7 +45,7 @@ public class RegistrationCertificateService {
         vehicle.setChassisNo(chassisNo);
         setIfPresent(vehicle::setMake, certificate.getMake());
         setIfPresent(vehicle::setModel, certificate.getModel());
-        setIfPresent(vehicle::setYear, firstPresent(certificate.getYearOfManufacture(), null));
+        setIfPresent(vehicle::setYear, firstPresent(certificate.getYearOfManufacture()));
         setIfPresent(vehicle::setColor, certificate.getColour());
         setIfPresent(vehicle::setMileage, certificate.getMileage());
     }
@@ -146,10 +136,10 @@ public class RegistrationCertificateService {
         }
     }
 
-    private static String firstPresent(String value, String fallback) {
+    private static String firstPresent(String value) {
         if (value != null && !value.trim().isEmpty()) {
             return value;
         }
-        return fallback;
+        return null;
     }
 }

@@ -3,6 +3,8 @@ package com.carsale.erp.shared.dto;
 import com.carsale.erp.shared.pipeline.FlowStage;
 import com.carsale.erp.shared.repository.PipelineProgress;
 import com.carsale.erp.shared.utils.PipelineStageUtils;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 
 import java.util.Collections;
@@ -10,6 +12,8 @@ import java.util.List;
 import java.util.Set;
 
 @Getter
+@Builder
+@AllArgsConstructor
 public class ImportProgress implements PipelineProgress {
     private final boolean auctionReady;
     private final boolean preshipReady;
@@ -48,34 +52,6 @@ public class ImportProgress implements PipelineProgress {
                 worksheetReady,
                 Collections.emptySet()
         );
-    }
-
-    public ImportProgress(
-            boolean auctionReady,
-            boolean preshipReady,
-            boolean equipmentReady,
-            boolean jevicReady,
-            boolean coiReady,
-            boolean standardsReady,
-            boolean exportReady,
-            boolean photosReady,
-            boolean gradeReady,
-            boolean worksheetReady,
-            Set<String> skippedStages
-    ) {
-        this.auctionReady = auctionReady;
-        this.preshipReady = preshipReady;
-        this.equipmentReady = equipmentReady;
-        this.jevicReady = jevicReady;
-        this.coiReady = coiReady;
-        this.standardsReady = standardsReady;
-        this.exportReady = exportReady;
-        this.photosReady = photosReady;
-        this.gradeReady = gradeReady;
-        this.worksheetReady = worksheetReady;
-        this.skippedStages = skippedStages == null
-                ? Collections.emptySet()
-                : skippedStages;
     }
 
     @Override

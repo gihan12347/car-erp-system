@@ -11,6 +11,7 @@ import com.carsale.erp.preparationpipeline.service.YardService;
 import com.carsale.erp.preparationpipeline.util.Yard;
 import com.carsale.erp.readypipeline.util.Period;
 import com.carsale.erp.shared.utils.PipelineStageUtils;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -31,6 +32,7 @@ import com.carsale.erp.shared.vehicle.VehicleSummary;
 import com.carsale.erp.shared.vehicle.VehicleSummaryService;
 
 @Controller
+@RequiredArgsConstructor
 @RequestMapping("/yards")
 public class YardHubController {
 
@@ -40,22 +42,6 @@ public class YardHubController {
     private final VehicleSummaryService vehicleSummaryService;
     private final SaleListingService saleListingService;
     private final SaleLocationService saleLocationService;
-
-    public YardHubController(
-            YardBayService yardBayService,
-            YardService yardService,
-            VehicleService vehicleService,
-            VehicleSummaryService vehicleSummaryService,
-            SaleListingService saleListingService,
-            SaleLocationService saleLocationService
-    ) {
-        this.yardBayService = yardBayService;
-        this.yardService = yardService;
-        this.vehicleService = vehicleService;
-        this.vehicleSummaryService = vehicleSummaryService;
-        this.saleListingService = saleListingService;
-        this.saleLocationService = saleLocationService;
-    }
 
     @GetMapping
     public String yards(Model model) {

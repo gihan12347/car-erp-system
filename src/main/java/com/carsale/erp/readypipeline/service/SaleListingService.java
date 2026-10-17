@@ -5,17 +5,20 @@ import com.carsale.erp.readypipeline.model.SaleListing;
 import com.carsale.erp.readypipeline.repository.SaleListingRepository;
 import com.carsale.erp.shared.dto.SaleProgress;
 import com.carsale.erp.shared.utils.PipelineStageUtils;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.carsale.erp.shared.pipeline.FlowStage;
 import com.carsale.erp.shared.service.SkippedStageService;
+import com.carsale.erp.shared.utils.Utils;
 import com.carsale.erp.shared.vehicle.Vehicle;
 import com.carsale.erp.shared.vehicle.VehicleRepository;
 import com.carsale.erp.shared.vehicle.VehicleStage;
 
 @Service
+@RequiredArgsConstructor
 public class SaleListingService {
 
     private final VehicleRepository vehicleRepository;
@@ -24,25 +27,8 @@ public class SaleListingService {
     private final VehicleRegistrationService vehicleRegistrationService;
     private final SkippedStageService skippedStageService;
 
-    public SaleListingService(
-            VehicleRepository vehicleRepository,
-            SaleListingRepository saleListingRepository,
-            SaleLocationService saleLocationService,
-            VehicleRegistrationService vehicleRegistrationService,
-            SkippedStageService skippedStageService
-    ) {
-        this.vehicleRepository = vehicleRepository;
-        this.saleListingRepository = saleListingRepository;
-        this.saleLocationService = saleLocationService;
-        this.vehicleRegistrationService = vehicleRegistrationService;
-        this.skippedStageService = skippedStageService;
-    }
-
     public SaleListing findByChassisNo(String chassisNo) {
-        if (chassisNo == null || chassisNo.trim().isEmpty()) {
-            return null;
-        }
-        return saleListingRepository.findById(chassisNo.trim()).orElse(null);
+        return Utils.findByChassisNo(chassisNo, saleListingRepository, null);
     }
 
     public SaleListing prepareForm(String chassisNo) {
@@ -56,6 +42,14 @@ public class SaleListingService {
             record.setChassisNo(chassisNo);
             record.setSold(vehicle.getStage() == VehicleStage.SOLD);
         }
+        String listedOn = SaleListing.toIsoDate(record.getListedOn());
+        if (listedOn != null) {
+            record.setListedOn(listedOn);
+        }
+        String dateOfBirth = SaleListing.toIsoDate(record.getBuyerDateOfBirth());
+        if (dateOfBirth != null) {
+            record.setBuyerDateOfBirth(dateOfBirth);
+        }
         return record;
     }
 
@@ -68,13 +62,17 @@ public class SaleListingService {
         SaleListing record = findByChassisNo(chassisNo);
         boolean listed = record != null && record.isListed() && !record.isSold();
         boolean sold = record != null && record.isSold();
+        boolean saleRecorded = record != null
+                && !isBlank(record.getAskingPrice())
+                && !isBlank(record.getListedOn())
+                && (!isBlank(record.getBuyerFullName()) || !isBlank(record.getBuyerNicNo()));
         boolean registrationReady = vehicleRegistrationService.isComplete(chassisNo);
         Vehicle vehicle = chassisNo == null || chassisNo.trim().isEmpty()
                 ? null
                 : vehicleRepository.findById(chassisNo.trim()).orElse(null);
         return new SaleProgress(
                 true,
-                listed || sold,
+                listed || sold || saleRecorded,
                 registrationReady,
                 sold,
                 skippedStageService.matching(vehicle, PipelineStageUtils.READY_STAGE_KEYS)
@@ -147,8 +145,32 @@ public class SaleListingService {
         Vehicle vehicle = vehicleRepository.findById(chassisNo)
                 .orElseThrow(() -> new IllegalArgumentException("Vehicle not found for chassis " + chassisNo));
 
+        if (isBlank(incoming.getAskingPrice())) {
+            throw new IllegalArgumentException("Enter the selling price.");
+        }
+        incoming.setAskingPrice(incoming.getAskingPrice().trim());
+        String sellingDate = SaleListing.toIsoDate(incoming.getListedOn());
+        if (sellingDate == null) {
+            throw new IllegalArgumentException("Enter the selling date.");
+        }
+        incoming.setListedOn(sellingDate);
+        if (!isBlank(incoming.getBuyerDateOfBirth()) && SaleListing.toIsoDate(incoming.getBuyerDateOfBirth()) == null) {
+            throw new IllegalArgumentException("Enter the buyer's date of birth as a date.");
+        }
+        incoming.setBuyerDateOfBirth(SaleListing.toIsoDate(incoming.getBuyerDateOfBirth()));
+        incoming.setBuyerFullName(trimToNull(incoming.getBuyerFullName()));
+        incoming.setBuyerNicNo(trimToNull(incoming.getBuyerNicNo()));
+        incoming.setBuyerAddress(trimToNull(incoming.getBuyerAddress()));
+        incoming.setBuyerGender(trimToNull(incoming.getBuyerGender()));
+        if (incoming.getBuyerFullName() == null && incoming.getBuyerNicNo() == null) {
+            throw new IllegalArgumentException("Enter the buyer name or NIC number.");
+        }
+
+        SaleListing existing = saleListingRepository.findById(chassisNo).orElse(null);
         if (incoming.isSold()) {
             incoming.setListed(false);
+        } else if (existing != null) {
+            incoming.setListed(existing.isListed());
         } else if (incoming.isListed() && isBlank(incoming.getSaleCode())) {
             throw new IllegalArgumentException("Select a sale location before listing the vehicle.");
         }
@@ -165,7 +187,13 @@ public class SaleListingService {
             }
         }
 
-        SaleListing existing = saleListingRepository.findById(chassisNo).orElse(null);
+        if (existing != null) {
+            incoming.setAdvertisedPrice(existing.getAdvertisedPrice());
+            incoming.setSaleCondition(existing.getSaleCondition());
+            incoming.setListingNotes(existing.getListingNotes());
+            incoming.setNotes(existing.getNotes());
+        }
+
         if (!isBlank(incoming.getSaleCode()) && !isBlank(incoming.getListedOn())) {
             incoming.setAssignmentComplete(true);
         } else if (existing != null && existing.isAssignmentComplete() && !isBlank(incoming.getSaleCode())) {
@@ -201,5 +229,13 @@ public class SaleListingService {
 
     private static boolean isBlank(String value) {
         return value == null || value.trim().isEmpty();
+    }
+
+    private static String trimToNull(String value) {
+        if (value == null) {
+            return null;
+        }
+        String trimmed = value.trim();
+        return trimmed.isEmpty() ? null : trimmed;
     }
 }

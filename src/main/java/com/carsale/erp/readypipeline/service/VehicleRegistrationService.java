@@ -2,31 +2,23 @@ package com.carsale.erp.readypipeline.service;
 
 import com.carsale.erp.readypipeline.model.VehicleRegistration;
 import com.carsale.erp.readypipeline.repository.VehicleRegistrationRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.carsale.erp.shared.utils.Utils;
 import com.carsale.erp.shared.vehicle.Vehicle;
 import com.carsale.erp.shared.vehicle.VehicleRepository;
 
 @Service
+@RequiredArgsConstructor
 public class VehicleRegistrationService {
 
     private final VehicleRepository vehicleRepository;
     private final VehicleRegistrationRepository vehicleRegistrationRepository;
 
-    public VehicleRegistrationService(
-            VehicleRepository vehicleRepository,
-            VehicleRegistrationRepository vehicleRegistrationRepository
-    ) {
-        this.vehicleRepository = vehicleRepository;
-        this.vehicleRegistrationRepository = vehicleRegistrationRepository;
-    }
-
     public VehicleRegistration findByChassisNo(String chassisNo) {
-        if (chassisNo == null || chassisNo.trim().isEmpty()) {
-            return null;
-        }
-        return vehicleRegistrationRepository.findById(chassisNo.trim()).orElse(null);
+        return Utils.findByChassisNo(chassisNo, vehicleRegistrationRepository, null);
     }
 
     public VehicleRegistration prepareForm(String chassisNo) {

@@ -22,6 +22,7 @@ import com.carsale.erp.shared.utils.PipelineStageUtils;
 import com.carsale.erp.shared.utils.Utils;
 import com.carsale.erp.shared.vehicle.Vehicle;
 import com.carsale.erp.shared.vehicle.VehicleService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -40,6 +41,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.util.UriUtils;
 
 @Controller
+@RequiredArgsConstructor
 @RequestMapping("/grade")
 public class GradeSearchController {
 
@@ -51,26 +53,6 @@ public class GradeSearchController {
     private final PipelineStageService pipelineStageService;
     private final GradeSearchParser parser;
     private final OcrImagePreparer imagePreparer;
-
-    public GradeSearchController(
-            GradeSearchService gradeSearchService,
-            VehicleService vehicleService,
-            SheetDocumentStorageService documentStorageService,
-            ImportProgressService importProgressService,
-            CustomsProgressService customsProgressService,
-            PipelineStageService pipelineStageService,
-            GradeSearchParser parser,
-            OcrImagePreparer imagePreparer
-    ) {
-        this.gradeSearchService = gradeSearchService;
-        this.vehicleService = vehicleService;
-        this.documentStorageService = documentStorageService;
-        this.importProgressService = importProgressService;
-        this.customsProgressService = customsProgressService;
-        this.pipelineStageService = pipelineStageService;
-        this.parser = parser;
-        this.imagePreparer = imagePreparer;
-    }
 
     @GetMapping
     public String list(@RequestParam(value = "q", required = false) String query) {

@@ -68,7 +68,7 @@
                     </span>
                 </a>
                 <a th:unless="${isView}"
-                   th:href="@{/listing/{chassisNo}(chassisNo=${chassisNo}, hub=1)}"
+                   th:href="@{/sell/{chassisNo}(chassisNo=${chassisNo}, hub=1)}"
                    class="import-pipeline-step">
                     <span class="import-pipeline-step-icon">
                         <i th:if="${listingDone}" class="fa-solid fa-check"></i>

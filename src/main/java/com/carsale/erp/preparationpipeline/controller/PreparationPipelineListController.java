@@ -9,6 +9,9 @@ import com.carsale.erp.shared.pipeline.*;
 import com.carsale.erp.shared.service.PipelineStageService;
 import com.carsale.erp.shared.utils.PipelineStageUtils;
 import com.carsale.erp.shared.utils.Utils;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -35,6 +38,7 @@ import com.carsale.erp.readypipeline.service.SaleListingService;
 import static com.carsale.erp.shared.service.PipelineStageService.viewLinks;
 
 @Controller
+@RequiredArgsConstructor
 public class PreparationPipelineListController {
 
     private final VehicleService vehicleService;
@@ -46,28 +50,6 @@ public class PreparationPipelineListController {
     private final PipelineStageService pipelineStageService;
     private final RegistrationCertificateService registrationCertificateService;
     private final RegisteredProgressService registeredProgressService;
-
-    public PreparationPipelineListController(
-            VehicleService vehicleService,
-            PreparationProgressService preparationProgressService,
-            WorkshopService workshopService,
-            YardService yardService,
-            VehicleInspectionService vehicleInspectionService,
-            SaleListingService saleListingService,
-            PipelineStageService pipelineStageService,
-            RegistrationCertificateService registrationCertificateService,
-            RegisteredProgressService registeredProgressService
-    ) {
-        this.vehicleService = vehicleService;
-        this.preparationProgressService = preparationProgressService;
-        this.workshopService = workshopService;
-        this.yardService = yardService;
-        this.vehicleInspectionService = vehicleInspectionService;
-        this.saleListingService = saleListingService;
-        this.pipelineStageService = pipelineStageService;
-        this.registrationCertificateService = registrationCertificateService;
-        this.registeredProgressService = registeredProgressService;
-    }
 
     @GetMapping("/workshop-yard")
     public String list(@RequestParam(value = "q", required = false) String query, Model model) {
@@ -209,7 +191,7 @@ public class PreparationPipelineListController {
         if (stageKey == null) {
             return "redirect:/workshop-yard";
         }
-        if (FlowStage.WORKSHOP.getStageKey().equals(stageKey) && !workshopService.hasJobs(chassisNo)) {
+        if (FlowStage.WORKSHOP.getStageKey().equals(stageKey) && workshopService.hasJobs(chassisNo)) {
             preparationProgressService.syncVehicleStage(chassisNo);
             redirectAttributes.addFlashAttribute("successMessage",
                     "No workshop jobs. Workshop is complete. Continue with yard.");
@@ -236,21 +218,11 @@ public class PreparationPipelineListController {
         return "preparation-pipeline/detail";
     }
 
+    @Getter
+    @AllArgsConstructor
     public static final class PreparationListRow {
         private final Vehicle vehicle;
         private final PreparationProgress status;
 
-        public PreparationListRow(Vehicle vehicle, PreparationProgress status) {
-            this.vehicle = vehicle;
-            this.status = status;
-        }
-
-        public Vehicle getVehicle() {
-            return vehicle;
-        }
-
-        public PreparationProgress getStatus() {
-            return status;
-        }
     }
 }

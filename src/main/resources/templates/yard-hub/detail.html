@@ -47,7 +47,7 @@
                             </select>
                         </label>
                         <label>Location
-                            <input type="text" id="saleLocationDisplay" readonly class="readonly-field"
+                            <input type="text" id="saleLocationDisplay" readonly required class="readonly-field"
                                    th:value="${record.saleLocation}">
                         </label>
                         <label>Selling price
@@ -63,7 +63,8 @@
 
                 <div class="import-view-actions">
                     <a th:href="@{/yards/{code}(code=${yard.bayCode})}" class="panel-btn ghost import-form-submit">Back to yard</a>
-                    <button type="submit" class="panel-btn import-form-submit">Move to sale</button>
+                    <button type="submit" id="moveToSaleBtn" class="panel-btn import-form-submit"
+                            th:disabled="${#strings.isEmpty(record.listedOn) or #strings.isEmpty(record.saleCode) or #strings.isEmpty(record.saleLocation) or #strings.isEmpty(record.askingPrice)}">Move to sale</button>
                 </div>
             </form>
         </main>
@@ -81,6 +82,92 @@
         valueId: "saleLocationValue",
         hintId: "saleCapacityHint"
     });
+
+    (function () {
+        var form = document.querySelector(".summary-move");
+        var button = document.getElementById("moveToSaleBtn");
+        if (!form || !button) {
+            return;
+        }
+        var date = form.querySelector("[name='listedOn']");
+        var sale = document.getElementById("saleLocationSelect");
+        var location = document.getElementById("saleLocationValue");
+        var price = form.querySelector("[name='askingPrice']");
+
+        function text(el) {
+            return el ? String(el.value || "").trim() : "";
+        }
+
+        function formatPrice(raw) {
+            var cleaned = String(raw || "").replace(/,/g, "").replace(/[^\d.]/g, "");
+            if (!cleaned) {
+                return "";
+            }
+            var dot = cleaned.indexOf(".");
+            var whole = dot === -1 ? cleaned : cleaned.slice(0, dot);
+            var fraction = dot === -1 ? null : cleaned.slice(dot + 1).replace(/\./g, "").slice(0, 2);
+            whole = whole.replace(/^0+(?=\d)/, "");
+            if (!whole) {
+                whole = fraction === null ? "" : "0";
+            }
+            var grouped = whole.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+            if (fraction === null) {
+                return grouped;
+            }
+            return grouped + "." + fraction;
+        }
+
+        function caretAfterDigits(formatted, count) {
+            if (count <= 0) {
+                return 0;
+            }
+            var seen = 0;
+            var i;
+            for (i = 0; i < formatted.length; i++) {
+                var ch = formatted.charAt(i);
+                if ((ch >= "0" && ch <= "9") || ch === ".") {
+                    seen++;
+                    if (seen >= count) {
+                        return i + 1;
+                    }
+                }
+            }
+            return formatted.length;
+        }
+
+        function priceReady() {
+            var raw = text(price).replace(/,/g, "");
+            if (!raw || raw === ".") {
+                return false;
+            }
+            var amount = Number(raw);
+            return isFinite(amount) && amount > 0;
+        }
+
+        if (price) {
+            price.addEventListener("input", function () {
+                var start = price.selectionStart || 0;
+                var before = price.value.slice(0, start).replace(/[^\d.]/g, "").length;
+                var formatted = formatPrice(price.value);
+                if (price.value !== formatted) {
+                    price.value = formatted;
+                    var next = caretAfterDigits(formatted, before);
+                    price.setSelectionRange(next, next);
+                }
+            });
+            if (price.value) {
+                price.value = formatPrice(price.value);
+            }
+        }
+
+        function sync() {
+            button.disabled = !(text(date) && text(sale) && text(location) && priceReady());
+        }
+
+        form.addEventListener("input", sync);
+        form.addEventListener("change", sync);
+        sync();
+    })();
 </script>
 </body>
 </html>

@@ -6,6 +6,7 @@ import java.util.Locale;
 
 import com.carsale.erp.preparationpipeline.model.InspectionItem;
 import com.carsale.erp.preparationpipeline.repository.InspectionItemRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Service;
@@ -15,6 +16,7 @@ import com.carsale.erp.shared.regex.RegexConstants;
 
 @Service
 @Order(4)
+@RequiredArgsConstructor
 public class InspectionItemService implements CommandLineRunner {
 
     private static final List<String> DEFAULT_TITLES = Arrays.asList(
@@ -34,10 +36,6 @@ public class InspectionItemService implements CommandLineRunner {
     );
 
     private final InspectionItemRepository inspectionItemRepository;
-
-    public InspectionItemService(InspectionItemRepository inspectionItemRepository) {
-        this.inspectionItemRepository = inspectionItemRepository;
-    }
 
     @Override
     public void run(String... args) {

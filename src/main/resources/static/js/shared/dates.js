@@ -38,7 +38,7 @@
     }
 
     function isDateInput(input) {
-        if (!input || input.classList.contains("slash-date-picker")) {
+        if (!input || input.classList.contains("slash-date-picker") || input.classList.contains("native-date")) {
             return false;
         }
         if (input.closest && input.closest(".slash-date")) {
@@ -118,18 +118,38 @@
         input.inputMode = "numeric";
         input.value = slash;
 
-        var icon = document.createElement("i");
-        icon.className = "fa-regular fa-calendar";
-        icon.setAttribute("aria-hidden", "true");
+        var icon = document.createElement("button");
+        icon.type = "button";
+        icon.className = "slash-date-open";
+        icon.setAttribute("aria-label", "Open calendar");
+        icon.innerHTML = "<i class=\"fa-regular fa-calendar\" aria-hidden=\"true\"></i>";
         wrap.appendChild(icon);
 
         var picker = document.createElement("input");
         picker.type = "date";
-        picker.className = "slash-date-picker";
+        picker.className = "slash-date-picker native-date";
         picker.tabIndex = -1;
         picker.setAttribute("aria-label", "Choose date");
         picker.value = slash ? slash.replace(/\//g, "-") : "";
         wrap.appendChild(picker);
+
+        function openPicker() {
+            try {
+                if (typeof picker.showPicker === "function") {
+                    picker.showPicker();
+                    return;
+                }
+            } catch (err) {
+                // The browser may already be showing the calendar.
+            }
+            picker.focus();
+        }
+
+        icon.addEventListener("click", function (event) {
+            event.preventDefault();
+            event.stopPropagation();
+            openPicker();
+        });
         bindText(input, picker);
     }
 

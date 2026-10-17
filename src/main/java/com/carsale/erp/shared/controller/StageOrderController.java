@@ -3,6 +3,7 @@ package com.carsale.erp.shared.controller;
 import com.carsale.erp.shared.pipeline.StageReorderRequest;
 import com.carsale.erp.shared.pipeline.StageReorderResult;
 import com.carsale.erp.shared.service.PipelineStageService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -12,13 +13,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 @Controller
+@RequiredArgsConstructor
 public class StageOrderController {
 
     private final PipelineStageService pipelineStageService;
-
-    public StageOrderController(PipelineStageService pipelineStageService) {
-        this.pipelineStageService = pipelineStageService;
-    }
 
     @GetMapping("/stages")
     public String page(Model model) {

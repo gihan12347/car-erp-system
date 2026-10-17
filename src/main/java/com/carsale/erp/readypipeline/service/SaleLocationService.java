@@ -13,6 +13,7 @@ import com.carsale.erp.readypipeline.model.SaleListing;
 import com.carsale.erp.readypipeline.model.SaleLocation;
 import com.carsale.erp.readypipeline.repository.SaleListingRepository;
 import com.carsale.erp.readypipeline.repository.SaleLocationRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Service;
@@ -22,6 +23,7 @@ import com.carsale.erp.shared.regex.RegexConstants;
 
 @Service
 @Order(6)
+@RequiredArgsConstructor
 public class SaleLocationService implements CommandLineRunner {
 
     private static final String[][] DEFAULT_SALES = {
@@ -32,14 +34,6 @@ public class SaleLocationService implements CommandLineRunner {
 
     private final SaleLocationRepository saleLocationRepository;
     private final SaleListingRepository saleListingRepository;
-
-    public SaleLocationService(
-            SaleLocationRepository saleLocationRepository,
-            SaleListingRepository saleListingRepository
-    ) {
-        this.saleLocationRepository = saleLocationRepository;
-        this.saleListingRepository = saleListingRepository;
-    }
 
     @Override
     public void run(String... args) {

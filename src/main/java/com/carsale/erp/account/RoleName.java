@@ -1,5 +1,8 @@
 package com.carsale.erp.account;
 
+import lombok.Getter;
+
+@Getter
 public enum RoleName {
     ROLE_USER("User"),
     ROLE_ADMIN("Admin"),
@@ -11,7 +14,4 @@ public enum RoleName {
         this.displayName = displayName;
     }
 
-    public String getDisplayName() {
-        return displayName;
-    }
 }

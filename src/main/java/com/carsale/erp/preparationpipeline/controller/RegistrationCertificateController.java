@@ -17,6 +17,7 @@ import com.carsale.erp.shared.ocr.OcrImagePreparer;
 import com.carsale.erp.shared.vehicle.Vehicle;
 import com.carsale.erp.shared.vehicle.VehicleIntake;
 import com.carsale.erp.shared.vehicle.VehicleService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -35,6 +36,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.util.UriUtils;
 
 @Controller
+@RequiredArgsConstructor
 @RequestMapping("/workshop-yard")
 public class RegistrationCertificateController {
 
@@ -44,22 +46,6 @@ public class RegistrationCertificateController {
     private final SheetDocumentStorageService documentStorageService;
     private final RegistrationCertificateParser parser;
     private final OcrImagePreparer imagePreparer;
-
-    public RegistrationCertificateController(
-            VehicleService vehicleService,
-            RegistrationCertificateService certificateService,
-            RegisteredProgressService registeredProgressService,
-            SheetDocumentStorageService documentStorageService,
-            RegistrationCertificateParser parser,
-            OcrImagePreparer imagePreparer
-    ) {
-        this.vehicleService = vehicleService;
-        this.certificateService = certificateService;
-        this.registeredProgressService = registeredProgressService;
-        this.documentStorageService = documentStorageService;
-        this.parser = parser;
-        this.imagePreparer = imagePreparer;
-    }
 
     @GetMapping("/documents/{storedName:.+}")
     public ResponseEntity<Resource> serveDocument(@PathVariable String storedName) throws IOException {

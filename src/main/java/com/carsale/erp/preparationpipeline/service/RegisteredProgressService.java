@@ -5,6 +5,7 @@ import com.carsale.erp.shared.service.SkippedStageService;
 import com.carsale.erp.shared.vehicle.Vehicle;
 import com.carsale.erp.shared.vehicle.VehicleIntake;
 import com.carsale.erp.shared.vehicle.VehicleRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -12,6 +13,7 @@ import java.util.Arrays;
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class RegisteredProgressService {
 
     private static final List<String> REGISTERED_KEYS = Arrays.asList(
@@ -25,20 +27,6 @@ public class RegisteredProgressService {
     private final PreviousOwnerService previousOwnerService;
     private final SkippedStageService skippedStageService;
     private final VehicleRepository vehicleRepository;
-
-    public RegisteredProgressService(
-            RegistrationCertificateService registrationCertificateService,
-            VehiclePhotoService vehiclePhotoService,
-            PreviousOwnerService previousOwnerService,
-            SkippedStageService skippedStageService,
-            VehicleRepository vehicleRepository
-    ) {
-        this.registrationCertificateService = registrationCertificateService;
-        this.vehiclePhotoService = vehiclePhotoService;
-        this.previousOwnerService = previousOwnerService;
-        this.skippedStageService = skippedStageService;
-        this.vehicleRepository = vehicleRepository;
-    }
 
     public boolean isBookFilled(String chassisNo) {
         return registrationCertificateService.findByChassisNo(chassisNo) != null;

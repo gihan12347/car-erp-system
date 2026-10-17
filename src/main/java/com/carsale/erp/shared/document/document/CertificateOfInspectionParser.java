@@ -54,7 +54,7 @@ public class CertificateOfInspectionParser implements DocumentParser {
 
     @Override
     public AuctionParseResult parsePage(DocumentAiClient.DocumentAiResult documentAi) {
-        AuctionParseResult result = new AuctionParseResult();
+        AuctionParseResult result = AuctionParseResult.builder().build();
         if (documentAi == null) {
             result.setSuccess(false);
             result.setMessage("Document AI returned no result.");

@@ -7,6 +7,7 @@ import com.carsale.erp.preparationpipeline.service.YardBayService;
 import com.carsale.erp.preparationpipeline.model.YardRecord;
 import com.carsale.erp.preparationpipeline.service.YardService;
 import com.carsale.erp.shared.utils.Utils;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -26,6 +27,7 @@ import com.carsale.erp.shared.dto.PreparationProgress;
 import com.carsale.erp.shared.vehicle.VehicleService;
 
 @Controller
+@RequiredArgsConstructor
 @RequestMapping("/yard")
 public class YardController {
 
@@ -34,20 +36,6 @@ public class YardController {
     private final VehicleService vehicleService;
     private final PreparationProgressService preparationProgressService;
     private final PipelineStageService pipelineStageService;
-
-    public YardController(
-            YardService yardService,
-            YardBayService yardBayService,
-            VehicleService vehicleService,
-            PreparationProgressService preparationProgressService,
-            PipelineStageService pipelineStageService
-    ) {
-        this.yardService = yardService;
-        this.yardBayService = yardBayService;
-        this.vehicleService = vehicleService;
-        this.preparationProgressService = preparationProgressService;
-        this.pipelineStageService = pipelineStageService;
-    }
 
     @GetMapping
     public String list(@RequestParam(value = "q", required = false) String query) {

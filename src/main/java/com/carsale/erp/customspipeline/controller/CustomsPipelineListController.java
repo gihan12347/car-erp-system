@@ -9,6 +9,7 @@ import com.carsale.erp.shared.model.PipelineStage;
 import com.carsale.erp.shared.pipeline.*;
 import com.carsale.erp.shared.service.PipelineStageService;
 import com.carsale.erp.shared.utils.PipelineStageUtils;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -23,24 +24,13 @@ import com.carsale.erp.shared.vehicle.VehicleService;
 
 
 @Controller
+@RequiredArgsConstructor
 public class CustomsPipelineListController {
 
     private final VehicleService vehicleService;
     private final CustomsProgressService customsProgressService;
     private final CustomsDocumentService customsDocumentService;
     private final PipelineStageService pipelineStageService;
-
-    public CustomsPipelineListController(
-            VehicleService vehicleService,
-            CustomsProgressService customsProgressService,
-            CustomsDocumentService customsDocumentService,
-            PipelineStageService pipelineStageService
-    ) {
-        this.vehicleService = vehicleService;
-        this.customsProgressService = customsProgressService;
-        this.customsDocumentService = customsDocumentService;
-        this.pipelineStageService = pipelineStageService;
-    }
 
     @GetMapping("/customs")
     public String list(@RequestParam(value = "q", required = false) String query, Model model) {

@@ -11,6 +11,7 @@
     var errorEl;
     var applyBtn;
     var activeInput = null;
+    var activeButton = null;
     var drag = null;
     var MIN_SIZE = 28;
 
@@ -74,8 +75,23 @@
         });
     }
 
-    function previewImage() {
+    function sideOf(node) {
+        return node && node.closest ? node.closest(".id-card-side") : null;
+    }
+
+    function previewImageFor(node) {
+        var side = sideOf(node);
+        if (side) {
+            var image = side.querySelector("[id^='sheetPreviewImage']");
+            if (image) {
+                return image;
+            }
+        }
         return document.getElementById("sheetPreviewImage");
+    }
+
+    function previewImage() {
+        return previewImageFor(activeButton);
     }
 
     function imageReady(img) {
@@ -83,16 +99,18 @@
     }
 
     function syncCropButtons() {
-        var ready = imageReady(previewImage());
         var filling = document.body.classList.contains("is-filling");
         var buttons = document.querySelectorAll("[id^='cropSheetBtn']");
         Array.prototype.forEach.call(buttons, function (button) {
-            button.disabled = !ready || filling;
+            button.disabled = !imageReady(previewImageFor(button)) || filling;
         });
     }
 
     function fileNameFromPage() {
-        var label = document.getElementById("sheetFileName");
+        var side = sideOf(activeButton);
+        var label = side
+            ? side.querySelector("[id^='sheetFileName']")
+            : document.getElementById("sheetFileName");
         var name = label ? label.textContent.trim() : "";
         if (!name || /no file/i.test(name)) {
             var stored = document.getElementById("documentOriginalName");
@@ -158,8 +176,9 @@
         placeBox(insetX, insetY, width - insetX * 2, height - insetY * 2);
     }
 
-    function openModal(input) {
-        var img = previewImage();
+    function openModal(input, button) {
+        activeButton = button || null;
+        var img = previewImageFor(button);
         if (!imageReady(img)) {
             return;
         }
@@ -190,6 +209,7 @@
         modal.hidden = true;
         drag = null;
         activeInput = null;
+        activeButton = null;
         if (imageEl) {
             imageEl.onload = null;
             imageEl.onerror = null;
@@ -320,16 +340,18 @@
             }
             button.setAttribute("data-crop-bound", "1");
             button.addEventListener("click", function () {
-                openModal(fileInputFor(button));
+                openModal(fileInputFor(button), button);
             });
         });
     }
 
     function watchPreview() {
-        var img = previewImage();
-        if (img && window.MutationObserver) {
-            var observer = new MutationObserver(syncCropButtons);
-            observer.observe(img, { attributes: true, attributeFilter: ["hidden", "src"] });
+        if (window.MutationObserver) {
+            var images = document.querySelectorAll("[id^='sheetPreviewImage']");
+            Array.prototype.forEach.call(images, function (img) {
+                var observer = new MutationObserver(syncCropButtons);
+                observer.observe(img, { attributes: true, attributeFilter: ["hidden", "src"] });
+            });
         }
         if (window.MutationObserver) {
             var bodyObserver = new MutationObserver(syncCropButtons);

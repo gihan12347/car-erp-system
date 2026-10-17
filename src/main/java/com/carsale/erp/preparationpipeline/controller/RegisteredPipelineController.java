@@ -23,6 +23,8 @@ import com.carsale.erp.shared.service.SkippedStageService;
 import com.carsale.erp.shared.vehicle.Vehicle;
 import com.carsale.erp.shared.vehicle.VehicleIntake;
 import com.carsale.erp.shared.vehicle.VehicleService;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -40,6 +42,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.util.UriUtils;
 
 @Controller
+@RequiredArgsConstructor
 public class RegisteredPipelineController {
 
     private final VehicleService vehicleService;
@@ -51,29 +54,9 @@ public class RegisteredPipelineController {
     private final OcrImagePreparer imagePreparer;
     private final PipelineStageService pipelineStageService;
 
-    public RegisteredPipelineController(
-            VehicleService vehicleService,
-            VehiclePhotoService photoService,
-            PreviousOwnerService previousOwnerService,
-            RegisteredProgressService registeredProgressService,
-            SheetDocumentStorageService documentStorageService,
-            IdCardParser parser,
-            OcrImagePreparer imagePreparer,
-            PipelineStageService pipelineStageService
-    ) {
-        this.vehicleService = vehicleService;
-        this.photoService = photoService;
-        this.previousOwnerService = previousOwnerService;
-        this.registeredProgressService = registeredProgressService;
-        this.documentStorageService = documentStorageService;
-        this.parser = parser;
-        this.imagePreparer = imagePreparer;
-        this.pipelineStageService = pipelineStageService;
-    }
-
     @GetMapping("/registered")
     public String list(@RequestParam(value = "q", required = false) String query, Model model) {
-        List<RegisteredRow> rows = new ArrayList<RegisteredRow>();
+        List<RegisteredRow> rows = new ArrayList<>();
         for (Vehicle vehicle : vehicleService.search(query)) {
             if (vehicle.getIntake() != VehicleIntake.LOCAL_REGISTERED) {
                 continue;
@@ -268,6 +251,7 @@ public class RegisteredPipelineController {
         return UriUtils.encodePathSegment(chassisNo, StandardCharsets.UTF_8);
     }
 
+    @Getter
     public static final class RegisteredRow {
         private final Vehicle vehicle;
         private final boolean bookReady;
@@ -283,28 +267,24 @@ public class RegisteredPipelineController {
 
         public RegisteredRow(Vehicle vehicle, RegisteredProgressService progress) {
             this.vehicle = vehicle;
+
             String chassis = vehicle.getChassisNo();
+
             this.bookFilled = progress.isBookFilled(chassis);
             this.photosFilled = progress.isPhotosFilled(chassis);
             this.ownerFilled = progress.isOwnerFilled(chassis);
+
             this.bookSkipped = progress.isBookSkipped(chassis);
             this.photosSkipped = progress.isPhotosSkipped(chassis);
             this.ownerSkipped = progress.isOwnerSkipped(chassis);
+
             this.bookReady = bookFilled || bookSkipped;
             this.photosReady = photosFilled || photosSkipped;
             this.ownerReady = ownerFilled || ownerSkipped;
         }
 
-        public Vehicle getVehicle() { return vehicle; }
-        public boolean isBookReady() { return bookReady; }
-        public boolean isPhotosReady() { return photosReady; }
-        public boolean isOwnerReady() { return ownerReady; }
-        public boolean isBookFilled() { return bookFilled; }
-        public boolean isPhotosFilled() { return photosFilled; }
-        public boolean isOwnerFilled() { return ownerFilled; }
-        public boolean isBookSkipped() { return bookSkipped; }
-        public boolean isPhotosSkipped() { return photosSkipped; }
-        public boolean isOwnerSkipped() { return ownerSkipped; }
-        public boolean isComplete() { return bookReady && photosReady && ownerReady; }
+        public boolean isComplete() {
+            return bookReady && photosReady && ownerReady;
+        }
     }
 }

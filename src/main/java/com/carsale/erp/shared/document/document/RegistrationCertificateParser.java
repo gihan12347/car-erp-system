@@ -76,7 +76,7 @@ public class RegistrationCertificateParser implements DocumentParser {
 
     @Override
     public AuctionParseResult parsePage(String text) {
-        AuctionParseResult result = new AuctionParseResult();
+        AuctionParseResult result = AuctionParseResult.builder().build();
         result.setRawText(text);
         if (text == null || text.trim().isEmpty()) {
             result.setSuccess(false);
@@ -124,7 +124,7 @@ public class RegistrationCertificateParser implements DocumentParser {
     @Override
     public AuctionParseResult parsePage(DocumentAiClient.DocumentAiResult documentAi) {
         if (documentAi == null) {
-            AuctionParseResult empty = new AuctionParseResult();
+            AuctionParseResult empty = AuctionParseResult.builder().build();
             empty.setSuccess(false);
             empty.setMessage("Document AI returned no result.");
             return empty;

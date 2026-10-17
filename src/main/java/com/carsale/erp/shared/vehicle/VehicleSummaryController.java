@@ -21,7 +21,7 @@ public class VehicleSummaryController {
             return "redirect:/import";
         }
         model.addAttribute("pageTitle", summary.getVehicle().getChassisNo());
-        model.addAttribute("activeMenu", "");
+        model.addAttribute("activeMenu", summary.getVehicle().getStage() == VehicleStage.SOLD ? "sold" : "");
         model.addAttribute("summary", summary);
         return "vehicle/summary";
     }

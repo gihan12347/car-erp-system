@@ -7,6 +7,7 @@ import java.nio.charset.StandardCharsets;
 import com.carsale.erp.shared.document.document.WorkingSheet;
 import com.carsale.erp.shared.utils.PipelineStageUtils;
 import com.carsale.erp.shared.utils.Utils;
+import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -41,6 +42,7 @@ import com.carsale.erp.shared.vehicle.Vehicle;
 import com.carsale.erp.shared.vehicle.VehicleService;
 
 @Controller
+@RequiredArgsConstructor
 @RequestMapping("/worksheet")
 public class WorksheetController {
 
@@ -52,25 +54,6 @@ public class WorksheetController {
     private final ImportProgressService importProgressService;
     private final PipelineStageService pipelineStageService;
     private final WorkingSheet workingSheet;
-
-    public WorksheetController(
-            CustomsDocumentService customsDocumentService,
-            VehicleService vehicleService,
-            OcrImagePreparer ocrService,
-            SheetDocumentStorageService documentStorageService,
-            CustomsProgressService customsProgressService,
-            ImportProgressService importProgressService,
-            PipelineStageService pipelineStageService, WorkingSheet workingSheet
-    ) {
-        this.customsDocumentService = customsDocumentService;
-        this.vehicleService = vehicleService;
-        this.ocrService = ocrService;
-        this.documentStorageService = documentStorageService;
-        this.customsProgressService = customsProgressService;
-        this.importProgressService = importProgressService;
-        this.pipelineStageService = pipelineStageService;
-        this.workingSheet = workingSheet;
-    }
 
     @GetMapping
     public String list(@RequestParam(value = "q", required = false) String query) {

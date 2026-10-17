@@ -18,7 +18,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class IdCardParser implements DocumentParser {
 
-    private static final Map<String, String> TYPE_TO_FIELD = new LinkedHashMap<String, String>();
+    private static final Map<String, String> TYPE_TO_FIELD = new LinkedHashMap<>();
     private static final Pattern NIC = Pattern.compile("\\b(\\d{9}[VvXx]|\\d{12})\\b");
     private static final Pattern[][] LINE_LABELS = {
             line("fullName", "(?:Full\\s+name|Name)"),
@@ -50,7 +50,7 @@ public class IdCardParser implements DocumentParser {
 
     @Override
     public AuctionParseResult parsePage(String text) {
-        AuctionParseResult result = new AuctionParseResult();
+        AuctionParseResult result = AuctionParseResult.builder().build();
         result.setRawText(text);
         if (text == null || text.trim().isEmpty()) {
             result.setSuccess(false);
@@ -91,7 +91,7 @@ public class IdCardParser implements DocumentParser {
     @Override
     public AuctionParseResult parsePage(DocumentAiClient.DocumentAiResult documentAi) {
         if (documentAi == null) {
-            AuctionParseResult empty = new AuctionParseResult();
+            AuctionParseResult empty = AuctionParseResult.builder().build();
             empty.setSuccess(false);
             empty.setMessage("Document AI returned no result.");
             return empty;

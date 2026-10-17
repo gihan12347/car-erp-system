@@ -15,6 +15,7 @@ import com.carsale.erp.shared.pipeline.*;
 import com.carsale.erp.shared.service.PipelineStageService;
 import com.carsale.erp.shared.utils.PipelineStageUtils;
 import com.carsale.erp.shared.utils.Utils;
+import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
@@ -59,6 +60,7 @@ import com.carsale.erp.shared.document.SheetDocumentStorageService;
 import com.carsale.erp.shared.vehicle.VehicleService;
 
 @Controller
+@RequiredArgsConstructor
 @RequestMapping("/auction")
 public class AuctionLotController {
 
@@ -77,38 +79,6 @@ public class AuctionLotController {
     private final PipelineStageService pipelineStageService;
     private final OcrImagePreparer imagePreparer;
     private final WorkingSheet.AuctionSheetParser parser;
-
-    public AuctionLotController(
-            VehicleService vehicleService,
-            SheetDocumentStorageService documentStorageService,
-            PreShipmentService preShipmentService,
-            EquipmentInspectionService equipmentInspectionService,
-            ImportProgressService importProgressService,
-            CustomsProgressService customsProgressService,
-            CustomsDocumentService customsDocumentService,
-            CertificateOfInspectionService certificateOfInspectionService,
-            StandardsCertificateService standardsCertificateService,
-            ExportCertificateService exportCertificateService,
-            GradeSearchService gradeSearchService,
-            VehiclePhotoService vehiclePhotoService,
-            PipelineStageService pipelineStageService, WorkingSheet.AuctionSheetParser parser, OcrImagePreparer imagePreparer
-    ) {
-        this.vehicleService = vehicleService;
-        this.documentStorageService = documentStorageService;
-        this.preShipmentService = preShipmentService;
-        this.equipmentInspectionService = equipmentInspectionService;
-        this.importProgressService = importProgressService;
-        this.customsProgressService = customsProgressService;
-        this.customsDocumentService = customsDocumentService;
-        this.certificateOfInspectionService = certificateOfInspectionService;
-        this.standardsCertificateService = standardsCertificateService;
-        this.exportCertificateService = exportCertificateService;
-        this.gradeSearchService = gradeSearchService;
-        this.vehiclePhotoService = vehiclePhotoService;
-        this.pipelineStageService = pipelineStageService;
-        this.imagePreparer = imagePreparer;
-        this.parser = parser;
-    }
 
     @GetMapping
     public String list(@RequestParam(value = "q", required = false) String query) {

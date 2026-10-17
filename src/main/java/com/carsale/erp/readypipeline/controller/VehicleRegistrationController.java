@@ -6,6 +6,7 @@ import com.carsale.erp.readypipeline.service.SaleListingService;
 import com.carsale.erp.readypipeline.service.VehicleRegistrationService;
 import com.carsale.erp.readypipeline.util.ReadyStageUrls;
 import com.carsale.erp.shared.utils.Utils;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -23,6 +24,7 @@ import com.carsale.erp.shared.vehicle.Vehicle;
 import com.carsale.erp.shared.vehicle.VehicleService;
 
 @Controller
+@RequiredArgsConstructor
 @RequestMapping("/registration")
 public class VehicleRegistrationController {
 
@@ -31,20 +33,6 @@ public class VehicleRegistrationController {
     private final VehicleRegistrationService vehicleRegistrationService;
     private final RegistrationCertificateService registrationCertificateService;
     private final SaleListingService saleListingService;
-
-    public VehicleRegistrationController(
-            VehicleService vehicleService,
-            PreparationProgressService preparationProgressService,
-            VehicleRegistrationService vehicleRegistrationService,
-            RegistrationCertificateService registrationCertificateService,
-            SaleListingService saleListingService
-    ) {
-        this.vehicleService = vehicleService;
-        this.preparationProgressService = preparationProgressService;
-        this.vehicleRegistrationService = vehicleRegistrationService;
-        this.registrationCertificateService = registrationCertificateService;
-        this.saleListingService = saleListingService;
-    }
 
     @GetMapping("/{chassisNo}")
     public String form(

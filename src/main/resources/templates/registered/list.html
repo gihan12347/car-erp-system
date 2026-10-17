@@ -70,8 +70,7 @@
                         <tr th:each="row : ${rows}"
                             th:with="bookHref=@{/workshop-yard/{c}/certificate(c=${row.vehicle.chassisNo})},
                                      photosHref=@{/registered/{c}/photos(c=${row.vehicle.chassisNo})},
-                                     ownerHref=@{/registered/{c}/owner(c=${row.vehicle.chassisNo})},
-                                     viewHref=${row.complete ? '/workshop-yard/' + #uris.escapePathSegment(row.vehicle.chassisNo) : (!row.bookReady ? '/workshop-yard/' + #uris.escapePathSegment(row.vehicle.chassisNo) + '/certificate' : (!row.photosReady ? '/registered/' + #uris.escapePathSegment(row.vehicle.chassisNo) + '/photos' : '/registered/' + #uris.escapePathSegment(row.vehicle.chassisNo) + '/owner'))}"
+                                     ownerHref=@{/registered/{c}/owner(c=${row.vehicle.chassisNo})}"
                             th:classappend="${row.complete} ? ' pipeline-row-complete' : ''">
                             <td class="pipeline-vehicle-cell">
                                 <strong th:text="${row.vehicle.model != null ? row.vehicle.model : '—'}"
@@ -126,7 +125,7 @@
                             </td>
                             <td class="pipeline-actions-cell">
                                 <div class="table-row-actions">
-                                    <a th:href="${viewHref}" class="table-btn view">
+                                    <a th:href="${bookHref}" class="table-btn view">
                                         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12S6 6.5 12 6.5 21.5 12 21.5 12 18 17.5 12 17.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="2.4"/></svg>
                                         <span>View</span>
                                     </a>

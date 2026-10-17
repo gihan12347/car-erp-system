@@ -172,6 +172,42 @@
                         </div>
                         <p class="summary-doc-empty" id="summaryDocEmpty" hidden>Nothing to show in this view.</p>
                     </article>
+
+                    <article class="panel summary-block" id="placement">
+                        <div class="summary-block-head">
+                            <div>
+                                <h2>Yard and sale</h2>
+                                <p>Where this vehicle is stored, and the sale it is assigned to.</p>
+                            </div>
+                        </div>
+                        <div class="summary-places">
+                            <article class="summary-place" th:each="place : ${summary.places}" th:classappend="${place.present} ? ' is-present' : ' is-empty'">
+                                <span class="summary-place-photo">
+                                    <img th:src="@{${place.image}}" alt="">
+                                </span>
+                                <span class="summary-place-body">
+                                    <span class="summary-place-top">
+                                        <span class="summary-place-kicker" th:text="${place.title}">Yard</span>
+                                        <em class="pill" th:if="${place.present}" th:classappend="${place.statusTone}" th:text="${place.statusLabel}">In yard</em>
+                                    </span>
+                                    <strong class="summary-place-name" th:if="${place.present}" th:text="${place.name}">Main yard</strong>
+                                    <span class="summary-place-location" th:if="${place.present}">
+                                        <i class="fa-solid fa-location-dot" aria-hidden="true"></i>
+                                        <span th:text="${place.location}">Ranna</span>
+                                        <span class="summary-place-code" th:text="${place.code}">YD-01</span>
+                                    </span>
+                                    <dl class="summary-place-facts" th:if="${place.present and !place.lines.isEmpty()}">
+                                        <div th:each="line : ${place.lines}">
+                                            <dt th:text="${line.label}">Arrived</dt>
+                                            <dd th:text="${line.value}">2026-09-01</dd>
+                                        </div>
+                                    </dl>
+                                    <p class="summary-place-empty" th:unless="${place.present}" th:text="${place.emptyText}">Not in a yard yet.</p>
+                                    <a class="summary-text-link" th:if="${place.present}" th:href="${place.openUrl}" th:text="${place.openLabel}">Open yard</a>
+                                </span>
+                            </article>
+                        </div>
+                    </article>
                 </div>
 
                 <aside class="summary-side">

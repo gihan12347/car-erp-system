@@ -3,35 +3,25 @@ package com.carsale.erp.importpipeline.service;
 import com.carsale.erp.importpipeline.model.EquipmentInspection;
 import com.carsale.erp.importpipeline.repository.EquipmentInspectionRepository;
 import com.carsale.erp.shared.document.SheetDocumentStorageService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.BeanWrapperImpl;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.carsale.erp.shared.utils.Utils;
 import com.carsale.erp.shared.vehicle.Vehicle;
 import com.carsale.erp.shared.vehicle.VehicleRepository;
 
 @Service
+@RequiredArgsConstructor
 public class EquipmentInspectionService {
 
     private final VehicleRepository vehicleRepository;
     private final EquipmentInspectionRepository equipmentRepository;
     private final SheetDocumentStorageService documentStorageService;
 
-    public EquipmentInspectionService(
-            VehicleRepository vehicleRepository,
-            EquipmentInspectionRepository equipmentRepository,
-            SheetDocumentStorageService documentStorageService
-    ) {
-        this.vehicleRepository = vehicleRepository;
-        this.equipmentRepository = equipmentRepository;
-        this.documentStorageService = documentStorageService;
-    }
-
     public EquipmentInspection findByChassisNo(String chassisNo) {
-        if (chassisNo == null || chassisNo.trim().isEmpty()) {
-            return null;
-        }
-        return equipmentRepository.findById(chassisNo.trim()).orElse(null);
+        return Utils.findByChassisNo(chassisNo, equipmentRepository, null);
     }
 
     public EquipmentInspection prepareForm(String chassisNo) {

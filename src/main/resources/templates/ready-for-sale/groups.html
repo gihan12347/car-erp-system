@@ -18,48 +18,51 @@
             <p th:if="${successMessage}" class="alert alert-ok" th:text="${successMessage}"></p>
             <p th:if="${error}" class="alert alert-error" th:text="${error}"></p>
 
-            <section class="yard-bay-grid sale-group-hub" th:if="${groups != null and !groups.isEmpty()}">
-                <a class="yard-bay-card sale-group-card"
-                   th:each="group, stat : ${groups}"
+            <p class="place-summary"
+               th:if="${groups != null and !groups.isEmpty()}"
+               th:with="used=${#aggregates.sum(groups.![vehicleCount])}">
+                <span><strong th:text="${#lists.size(groups)}">4</strong> sale locations</span>
+                <span>
+                    <strong th:text="${used}">0</strong>
+                    <th:block th:text="${used == 1} ? 'vehicle' : 'vehicles'">vehicles</th:block>
+                </span>
+            </p>
+
+            <section class="place-grid" th:if="${groups != null and !groups.isEmpty()}">
+                <a class="place-card"
+                   th:each="group : ${groups}"
                    th:href="@{/ready-for-sale/{code}(code=${group.saleCode})}"
-                   th:style="|--i: ${stat.index}|"
-                   th:classappend="${group.unassigned ? ' is-unassigned' : group.fillState}">
-                    <span class="sale-group-art" aria-hidden="true">
-                        <th:block th:replace="shared/hub-art :: saleCardArt"></th:block>
+                   th:classappend="${group.unassigned ? 'is-unassigned' : (group.fillState == 'is-full' ? 'is-full' : (group.fillState == 'is-low' ? 'is-low' : (group.vehicleCount == 0 ? 'is-empty' : 'is-open')))}">
+                    <span class="place-photo is-sale">
+                        <img th:src="@{/images/hub/sale.png(v=20261017a)}" alt="">
                     </span>
-                    <span class="sale-group-body">
-                        <span class="sale-group-card-top">
-                            <span class="yard-bay-chip" th:text="${group.unassigned ? 'Unassigned' : group.saleCode}">SL-01</span>
-                            <span class="sale-group-count" th:text="${group.vehicleCount}">12</span>
+                    <span class="place-body">
+                        <span class="place-card-top">
+                            <span class="place-code" th:text="${group.unassigned ? 'Unassigned' : group.saleCode}">SL-01</span>
+                            <em class="pill gold" th:if="${group.unassigned}">Unassigned</em>
+                            <em class="pill rust" th:if="${!group.unassigned and group.fillState == 'is-full'}">Full</em>
+                            <em class="pill gold" th:if="${!group.unassigned and group.fillState == 'is-low'}">Low</em>
+                            <em class="pill leaf" th:if="${!group.unassigned and group.vehicleCount == 0}">Empty</em>
+                            <em class="pill sea" th:if="${!group.unassigned and group.vehicleCount > 0 and group.fillState != 'is-full' and group.fillState != 'is-low'}">Available</em>
                         </span>
-                        <h2 th:text="${group.title}">Showroom</h2>
-                        <span class="hub-location">
+                        <strong class="place-title" th:text="${group.title}">Showroom</strong>
+                        <span class="place-location">
                             <i class="fa-solid fa-location-dot" aria-hidden="true"></i>
                             <span th:text="${group.location != null and !#strings.isEmpty(group.location) ? group.location : '—'}">Front showroom</span>
                         </span>
-                        <div class="hub-capacity" th:if="${group.capacity != null}"
-                             th:classappend="${group.vehicleCount == 0} ? ' is-vacant'"
-                             th:style="|--fill: ${group.capacity > 0 ? (group.remaining * 100.0 / group.capacity) : 0}%;|">
-                            <div class="hub-capacity-meta">
-                                <span class="hub-capacity-left">
-                                    <strong th:text="${group.remaining}">14</strong>
-                                    <em>spaces left</em>
+                        <span class="place-foot">
+                            <span class="place-count">
+                                <b th:text="${group.vehicleCount}">0</b>
+                                <span th:text="${group.vehicleCount == 1} ? 'vehicle' : 'vehicles'">vehicles</span>
+                            </span>
+                            <span class="place-meter" th:if="${group.capacity != null}">
+                                <span class="place-meter-label"><b th:text="${group.remaining}">14</b> left of <b th:text="${group.capacity}">15</b></span>
+                                <span class="place-meter-track" role="progressbar"
+                                      th:attr="aria-valuenow=${group.fillPercent}, aria-valuemin=0, aria-valuemax=100, aria-label=|${group.occupied} of ${group.capacity} spaces used|">
+                                    <span class="place-meter-fill" th:style="|width: ${group.fillPercent}%|"></span>
                                 </span>
-                                <span class="hub-capacity-right">
-                                    <span class="hub-empty-chip" th:if="${group.vehicleCount == 0}">Empty</span>
-                                    <span class="hub-full-chip" th:if="${group.remaining != null and group.remaining <= 0}">Full</span>
-                                    <span class="hub-capacity-total">of <b th:text="${group.capacity}">15</b></span>
-                                </span>
-                            </div>
-                            <div class="hub-capacity-track" role="progressbar"
-                                 th:attr="aria-valuenow=${group.fillPercent}, aria-valuemin=0, aria-valuemax=100, aria-label=|${group.remaining} of ${group.capacity} spaces left|">
-                                <span class="hub-capacity-fill"></span>
-                            </div>
-                        </div>
-                        <span class="hub-empty-chip" th:if="${group.capacity == null and group.vehicleCount == 0}">No vehicles yet</span>
-                    </span>
-                    <span class="config-tile-go" aria-hidden="true">
-                        <i class="fa-solid fa-arrow-right"></i>
+                            </span>
+                        </span>
                     </span>
                 </a>
             </section>

@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="shared/head :: head(${pageTitle})"></head>
+<body>
+<div class="app-shell">
+    <aside th:replace="shared/sidebar :: sidebar(${activeMenu})"></aside>
+    <div class="app-main">
+        <header th:replace="shared/topbar :: topbar"></header>
+        <main class="page-content">
+            <div class="dash-head">
+                <div>
+                    <h1>Sold</h1>
+                    <p class="form-lead">Vehicles marked as sold. Open a row from its engine number.</p>
+                </div>
+            </div>
+
+            <article class="panel">
+                <div class="table-wrap" th:if="${!rows.isEmpty()}">
+                    <table>
+                        <thead>
+                        <tr>
+                            <th>Engine number</th>
+                            <th>Chassis</th>
+                            <th>Vehicle</th>
+                            <th>Buyer</th>
+                            <th>Selling price</th>
+                            <th>Selling date</th>
+                            <th>Location</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="row : ${rows}">
+                            <td data-label="Engine number">
+                                <a class="chassis-link"
+                                   th:href="@{/vehicle/{c}(c=${row.chassisNo})}"
+                                   th:text="${row.engineNo != null and !#strings.isEmpty(row.engineNo) ? row.engineNo : '—'}"
+                                   title="Open the vehicle summary">LEA-MF6</a>
+                            </td>
+                            <td data-label="Chassis" th:text="${row.chassisNo}">M900A-1122703</td>
+                            <td data-label="Vehicle" th:text="${row.vehicleName}">Honda Insight</td>
+                            <td data-label="Buyer" th:text="${row.buyerName}">—</td>
+                            <td data-label="Selling price" th:text="${row.sellingPrice}">—</td>
+                            <td data-label="Selling date" th:text="${row.sellingDate}">—</td>
+                            <td data-label="Location" th:text="${row.location}">—</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p class="muted" th:if="${rows.isEmpty()}">No sold vehicles yet.</p>
+            </article>
+        </main>
+    </div>
+</div>
+<script th:src="@{/js/shared/app.js(v=20260905k)}"></script>
+</body>
+</html>

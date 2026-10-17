@@ -142,9 +142,19 @@ public class PipelineStageService implements CommandLineRunner {
             PipelineStage listing = pipelineStageRepository
                     .findByFlowIdAndStageKey(ready.getId(), FlowStage.LISTING.getStageKey())
                     .orElse(null);
-            if (listing != null && blankOrOneOf(listing.getTitle(), "Sale listing")) {
-                listing.setTitle("Listing");
-                pipelineStageRepository.save(listing);
+            if (listing != null) {
+                boolean changed = false;
+                if (blankOrOneOf(listing.getTitle(), "Sale listing", "Listing")) {
+                    listing.setTitle("Sell");
+                    changed = true;
+                }
+                if (blankOrOneOf(listing.getSubtitle(), "Price and list the vehicle")) {
+                    listing.setSubtitle("Buyer, selling price, and date");
+                    changed = true;
+                }
+                if (changed) {
+                    pipelineStageRepository.save(listing);
+                }
             }
         }
         PipelineFlow prep = pipelineFlowRepository.findByFlowKey(FLOW_PREP).orElse(null);
@@ -590,7 +600,7 @@ public class PipelineStageService implements CommandLineRunner {
     private static List<DefaultStage> defaultReady() {
         return Arrays.asList(
                 new DefaultStage(FlowStage.DETAILS.getStageKey(), "Details", "Vehicle details and images"),
-                new DefaultStage(FlowStage.LISTING.getStageKey(), "Listing", "Price and list the vehicle"),
+                new DefaultStage(FlowStage.LISTING.getStageKey(), "Sell", "Buyer, selling price, and date"),
                 new DefaultStage(FlowStage.REGISTRATION.getStageKey(), "Registration", "Local plate and RMV details")
         );
     }

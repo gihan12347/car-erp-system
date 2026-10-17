@@ -6,15 +6,18 @@ import com.carsale.erp.preparationpipeline.model.YardBay;
 import com.carsale.erp.preparationpipeline.model.YardRecord;
 import com.carsale.erp.preparationpipeline.repository.YardRecordRepository;
 import com.carsale.erp.preparationpipeline.util.Yard;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.carsale.erp.shared.utils.Utils;
 import com.carsale.erp.shared.vehicle.Vehicle;
 import com.carsale.erp.shared.vehicle.VehicleRepository;
 
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class YardService {
 
     private final VehicleRepository vehicleRepository;
@@ -22,22 +25,8 @@ public class YardService {
     private final YardBayService yardBayService;
     private final VehiclePhotoService vehiclePhotoService;
 
-    public YardService(
-            VehicleRepository vehicleRepository,
-            YardRecordRepository yardRecordRepository,
-            YardBayService yardBayService, VehiclePhotoService vehiclePhotoService
-    ) {
-        this.vehicleRepository = vehicleRepository;
-        this.yardRecordRepository = yardRecordRepository;
-        this.yardBayService = yardBayService;
-        this.vehiclePhotoService = vehiclePhotoService;
-    }
-
     public YardRecord findByChassisNo(String chassisNo) {
-        if (chassisNo == null || chassisNo.trim().isEmpty()) {
-            return null;
-        }
-        return yardRecordRepository.findById(chassisNo.trim()).orElse(null);
+        return Utils.findByChassisNo(chassisNo, yardRecordRepository, null);
     }
 
     public YardRecord prepareForm(String chassisNo) {

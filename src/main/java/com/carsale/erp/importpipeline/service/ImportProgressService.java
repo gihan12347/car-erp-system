@@ -5,6 +5,7 @@ import com.carsale.erp.shared.dto.ImportProgress;
 import com.carsale.erp.shared.pipeline.FlowStage;
 import com.carsale.erp.shared.service.SkippedStageService;
 import com.carsale.erp.shared.utils.PipelineStageUtils;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -13,6 +14,7 @@ import com.carsale.erp.shared.vehicle.VehicleStage;
 import com.carsale.erp.shared.vehicle.VehicleRepository;
 
 @Service
+@RequiredArgsConstructor
 public class ImportProgressService {
 
     private final VehicleRepository vehicleRepository;
@@ -26,33 +28,20 @@ public class ImportProgressService {
     private final VehiclePhotoService vehiclePhotoService;
     private final SkippedStageService skippedStageService;
 
-    public ImportProgressService(
-            VehicleRepository vehicleRepository,
-            PreShipmentService preShipmentService,
-            EquipmentInspectionService equipmentInspectionService,
-            CustomsDocumentService customsDocumentService,
-            CertificateOfInspectionService certificateOfInspectionService,
-            StandardsCertificateService standardsCertificateService,
-            ExportCertificateService exportCertificateService,
-            GradeSearchService gradeSearchService,
-            VehiclePhotoService vehiclePhotoService,
-            SkippedStageService skippedStageService
-    ) {
-        this.vehicleRepository = vehicleRepository;
-        this.preShipmentService = preShipmentService;
-        this.equipmentInspectionService = equipmentInspectionService;
-        this.customsDocumentService = customsDocumentService;
-        this.certificateOfInspectionService = certificateOfInspectionService;
-        this.standardsCertificateService = standardsCertificateService;
-        this.exportCertificateService = exportCertificateService;
-        this.gradeSearchService = gradeSearchService;
-        this.vehiclePhotoService = vehiclePhotoService;
-        this.skippedStageService = skippedStageService;
-    }
-
     public ImportProgress progressFor(Vehicle vehicle) {
         if (vehicle == null) {
-            return new ImportProgress(false, false, false, false, false, false, false, false, false, false);
+            return ImportProgress.builder()
+                    .auctionReady(false)
+                    .preshipReady(false)
+                    .equipmentReady(false)
+                    .jevicReady(false)
+                    .coiReady(false)
+                    .standardsReady(false)
+                    .exportReady(false)
+                    .photosReady(false)
+                    .gradeReady(false)
+                    .worksheetReady(false)
+                    .build();
         }
         String chassisNo = vehicle.getChassisNo();
         return new ImportProgress(

@@ -3,17 +3,20 @@ package com.carsale.erp.customspipeline.service;
 import com.carsale.erp.customspipeline.model.CustomsDocument;
 import com.carsale.erp.customspipeline.repository.CustomsDocumentRepository;
 import com.carsale.erp.shared.document.SheetDocumentStorageService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.BeanWrapperImpl;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.carsale.erp.shared.utils.Utils;
 import com.carsale.erp.shared.vehicle.Vehicle;
 import com.carsale.erp.shared.vehicle.VehicleRepository;
 import com.carsale.erp.shared.regex.RegexConstants;
 
 @Service
+@RequiredArgsConstructor
 public class CustomsDocumentService {
 
     private static final String[] DECLARATION_FIELDS = {
@@ -56,21 +59,8 @@ public class CustomsDocumentService {
     private final CustomsDocumentRepository customsDocumentRepository;
     private final SheetDocumentStorageService documentStorageService;
 
-    public CustomsDocumentService(
-            VehicleRepository vehicleRepository,
-            CustomsDocumentRepository customsDocumentRepository,
-            SheetDocumentStorageService documentStorageService
-    ) {
-        this.vehicleRepository = vehicleRepository;
-        this.customsDocumentRepository = customsDocumentRepository;
-        this.documentStorageService = documentStorageService;
-    }
-
     public CustomsDocument findByChassisNo(String chassisNo) {
-        if (chassisNo == null || chassisNo.trim().isEmpty()) {
-            return null;
-        }
-        return customsDocumentRepository.findById(chassisNo.trim()).orElse(null);
+        return Utils.findByChassisNo(chassisNo, customsDocumentRepository, null);
     }
 
     public CustomsDocument prepareForm(String chassisNo) {

@@ -55,6 +55,7 @@ public class DatabaseSchemaUpdater implements CommandLineRunner {
         createSaleLocationsTable();
         addSaleListingSaleColumns();
         addSaleListingAssignmentCompleteColumn();
+        addSaleListingBuyerColumns();
         createVehicleRegistrationsTable();
         createVehicleInspectionsTable();
         createVehicleInspectionLinesTable();
@@ -203,6 +204,46 @@ public class DatabaseSchemaUpdater implements CommandLineRunner {
         } catch (Exception ex) {
             log.warn("Could not backfill sale_listings.assignment_complete: {}", ex.getMessage());
         }
+    }
+
+    private void addSaleListingBuyerColumns() {
+        addSaleListingColumn("buyer_full_name", "ALTER TABLE sale_listings ADD COLUMN buyer_full_name TEXT NULL");
+        addSaleListingColumn("buyer_nic_no", "ALTER TABLE sale_listings ADD COLUMN buyer_nic_no VARCHAR(40) NULL");
+        addSaleListingColumn("buyer_address", "ALTER TABLE sale_listings ADD COLUMN buyer_address TEXT NULL");
+        addSaleListingColumn(
+                "buyer_date_of_birth",
+                "ALTER TABLE sale_listings ADD COLUMN buyer_date_of_birth VARCHAR(40) NULL"
+        );
+        addSaleListingColumn("buyer_gender", "ALTER TABLE sale_listings ADD COLUMN buyer_gender VARCHAR(40) NULL");
+        addSaleListingColumn(
+                "buyer_document_original_name",
+                "ALTER TABLE sale_listings ADD COLUMN buyer_document_original_name VARCHAR(255) NULL"
+        );
+        addSaleListingColumn(
+                "buyer_document_stored_name",
+                "ALTER TABLE sale_listings ADD COLUMN buyer_document_stored_name VARCHAR(120) NULL"
+        );
+        addSaleListingColumn(
+                "buyer_document_content_type",
+                "ALTER TABLE sale_listings ADD COLUMN buyer_document_content_type VARCHAR(80) NULL"
+        );
+        addSaleListingColumn("buyer_ocr_text", "ALTER TABLE sale_listings ADD COLUMN buyer_ocr_text TEXT NULL");
+        addSaleListingColumn(
+                "buyer_back_document_original_name",
+                "ALTER TABLE sale_listings ADD COLUMN buyer_back_document_original_name VARCHAR(255) NULL"
+        );
+        addSaleListingColumn(
+                "buyer_back_document_stored_name",
+                "ALTER TABLE sale_listings ADD COLUMN buyer_back_document_stored_name VARCHAR(120) NULL"
+        );
+        addSaleListingColumn(
+                "buyer_back_document_content_type",
+                "ALTER TABLE sale_listings ADD COLUMN buyer_back_document_content_type VARCHAR(80) NULL"
+        );
+        addSaleListingColumn(
+                "buyer_back_ocr_text",
+                "ALTER TABLE sale_listings ADD COLUMN buyer_back_ocr_text TEXT NULL"
+        );
     }
 
     private void addSaleListingColumn(String column, String sql) {

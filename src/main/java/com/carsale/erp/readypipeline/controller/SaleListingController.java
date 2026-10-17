@@ -1,46 +1,60 @@
 package com.carsale.erp.readypipeline.controller;
 
-import com.carsale.erp.readypipeline.util.ReadyStageUrls;
+import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+
+import com.carsale.erp.importpipeline.util.AuctionParseResult;
+import com.carsale.erp.preparationpipeline.service.PreparationProgressService;
 import com.carsale.erp.readypipeline.model.SaleListing;
 import com.carsale.erp.readypipeline.service.SaleListingService;
 import com.carsale.erp.readypipeline.service.SaleLocationService;
+import com.carsale.erp.readypipeline.util.ReadyStageUrls;
+import com.carsale.erp.shared.document.SheetDocumentStorageService;
+import com.carsale.erp.shared.document.SheetUploadResult;
+import com.carsale.erp.shared.document.document.IdCardParser;
+import com.carsale.erp.shared.ocr.OcrClient;
+import com.carsale.erp.shared.ocr.OcrImagePreparer;
 import com.carsale.erp.shared.utils.Utils;
+import com.carsale.erp.shared.vehicle.Vehicle;
+import com.carsale.erp.shared.vehicle.VehicleService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import com.carsale.erp.preparationpipeline.service.PreparationProgressService;
-import com.carsale.erp.shared.vehicle.Vehicle;
-import com.carsale.erp.shared.vehicle.VehicleService;
-
 @Controller
-@RequestMapping("/listing")
+@RequiredArgsConstructor
 public class SaleListingController {
 
     private final VehicleService vehicleService;
     private final PreparationProgressService preparationProgressService;
     private final SaleListingService saleListingService;
     private final SaleLocationService saleLocationService;
+    private final SheetDocumentStorageService documentStorageService;
+    private final IdCardParser parser;
+    private final OcrImagePreparer imagePreparer;
 
-    public SaleListingController(
-            VehicleService vehicleService,
-            PreparationProgressService preparationProgressService,
-            SaleListingService saleListingService,
-            SaleLocationService saleLocationService
+    @GetMapping("/listing/{chassisNo}")
+    public String legacyListing(
+            @PathVariable String chassisNo,
+            @RequestParam(value = "hub", defaultValue = "false") boolean hub
     ) {
-        this.vehicleService = vehicleService;
-        this.preparationProgressService = preparationProgressService;
-        this.saleListingService = saleListingService;
-        this.saleLocationService = saleLocationService;
+        return "redirect:/sell/" + Utils.encodeChassis(chassisNo) + (hub ? "?hub=1" : "");
     }
 
-    @GetMapping("/{chassisNo}")
+    @GetMapping("/sell/{chassisNo}")
     public String form(
             @PathVariable String chassisNo,
             @RequestParam(value = "hub", defaultValue = "false") boolean hub,
@@ -56,17 +70,18 @@ public class SaleListingController {
                     "Move this vehicle from the yard to an available sale first.");
             return "redirect:/yards";
         }
-        SaleListing record = saleListingService.prepareForm(chassisNo);
+        if (!model.containsAttribute("record")) {
+            model.addAttribute("record", saleListingService.prepareForm(chassisNo));
+        }
         model.addAttribute("pageTitle", "Sell");
         model.addAttribute("activeMenu", "ready-for-sale");
         model.addAttribute("hubMode", hub);
         model.addAttribute("vehicle", vehicle);
-        model.addAttribute("record", record);
         model.addAttribute("saleLocations", saleLocationService.listActive());
         return "ready-for-sale/form";
     }
 
-    @PostMapping("/{chassisNo}")
+    @PostMapping("/sell/{chassisNo}")
     public String save(
             @PathVariable String chassisNo,
             @ModelAttribute SaleListing record,
@@ -79,17 +94,45 @@ public class SaleListingController {
             if (record.isSold()) {
                 redirectAttributes.addFlashAttribute("successMessage",
                         "Vehicle sold. Sale capacity was freed.");
-            } else if (record.isListed()) {
-                redirectAttributes.addFlashAttribute("successMessage",
-                        "Vehicle is listed. Sale capacity was reduced.");
             } else {
-                redirectAttributes.addFlashAttribute("successMessage", "Sale listing saved.");
+                redirectAttributes.addFlashAttribute("successMessage", "Sale saved.");
             }
             return "redirect:" + ReadyStageUrls.redirectAfterListingSave(
                     record.getSaleCode(), chassisNo, record.isSold());
         } catch (IllegalArgumentException ex) {
             redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
-            return "redirect:/listing/" + Utils.encodeChassis(chassisNo) + (hub ? "?hub=1" : "");
+            redirectAttributes.addFlashAttribute("record", record);
+            return "redirect:/sell/" + Utils.encodeChassis(chassisNo) + (hub ? "?hub=1" : "");
         }
+    }
+
+    @GetMapping("/sell/documents/{storedName:.+}")
+    public ResponseEntity<Resource> serveDocument(@PathVariable String storedName) throws IOException {
+        Resource resource = documentStorageService.loadIdCardAsResource(storedName);
+        String contentType = documentStorageService.resolveContentType(storedName, null);
+        String encodedName = URLEncoder.encode(storedName, StandardCharsets.UTF_8.name()).replace("+", "%20");
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + encodedName + "\"")
+                .contentType(MediaType.parseMediaType(contentType))
+                .body(resource);
+    }
+
+    @PostMapping("/sell/upload-document")
+    @ResponseBody
+    public SheetUploadResult uploadDocument(@RequestParam("file") MultipartFile file) {
+        try {
+            return documentStorageService.storeBuyerIdCard(file);
+        } catch (IOException ex) {
+            SheetUploadResult failed = new SheetUploadResult();
+            failed.setSuccess(false);
+            failed.setMessage("Could not save the identity card. " + ex.getMessage());
+            return failed;
+        }
+    }
+
+    @PostMapping("/sell/parse-id")
+    @ResponseBody
+    public AuctionParseResult parseId(@RequestParam("file") MultipartFile file) {
+        return imagePreparer.parsePage(file, parser, OcrClient.GOOGLE);
     }
 }

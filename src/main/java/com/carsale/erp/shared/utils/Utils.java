@@ -3,8 +3,11 @@ package com.carsale.erp.shared.utils;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.Locale;
+import java.util.function.Consumer;
+
 import com.carsale.erp.importpipeline.util.AuctionParseResult;
 import com.carsale.erp.shared.regex.RegexConstants;
+import org.springframework.data.repository.CrudRepository;
 import org.springframework.web.util.UriUtils;
 
 public class Utils {
@@ -116,5 +119,31 @@ public class Utils {
 
     public static String encodeChassis(String chassisNo) {
         return UriUtils.encodePathSegment(chassisNo, StandardCharsets.UTF_8);
+    }
+
+    public static String trimToNull(String value) {
+        if (value == null) {
+            return null;
+        }
+        String trimmed = value.trim();
+        return trimmed.isEmpty() ? null : trimmed;
+    }
+
+    public static boolean isBlank(String value) {
+        return value == null || value.trim().isEmpty();
+    }
+
+    public static <T> T findByChassisNo(
+            String chassisNo,
+            CrudRepository<T, String> repository,
+            Consumer<T> afterFind) {
+        if (chassisNo == null || chassisNo.trim().isEmpty()) {
+            return null;
+        }
+        T record = repository.findById(chassisNo.trim()).orElse(null);
+        if (record != null && afterFind != null) {
+            afterFind.accept(record);
+        }
+        return record;
     }
 }

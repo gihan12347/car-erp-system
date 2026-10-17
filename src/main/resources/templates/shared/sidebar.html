@@ -36,6 +36,9 @@
         <a th:href="@{/ready-for-sale}" th:classappend="${activeMenu == 'ready-for-sale'} ? 'is-active' : ''">
             <i class="fa-solid fa-tags"></i><span>Sale</span>
         </a>
+        <a th:href="@{/sold}" th:classappend="${activeMenu == 'sold'} ? 'is-active' : ''">
+            <i class="fa-solid fa-circle-check"></i><span>Sold</span>
+        </a>
         <a th:href="@{/configuration}"
            th:classappend="${activeMenu == 'configuration' or activeMenu == 'settings' or activeMenu == 'stages' or activeMenu == 'inspection-items' or activeMenu == 'yard-bays' or activeMenu == 'sale-locations'} ? 'is-active' : ''">
             <i class="fa-solid fa-sliders"></i><span>Configuration</span>

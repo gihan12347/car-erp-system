@@ -1,6 +1,7 @@
 package com.carsale.erp.shared.vehicle;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -22,6 +23,8 @@ public class VehicleSummary {
     private final List<DocumentCard> documents;
     private final List<PriceGroup> priceGroups;
     private final List<String> notes;
+    private final PlaceCard yard;
+    private final PlaceCard sale;
 
     public VehicleSummary(
             Vehicle vehicle,
@@ -39,7 +42,9 @@ public class VehicleSummary {
             List<PhotoCard> photos,
             List<DocumentCard> documents,
             List<PriceGroup> priceGroups,
-            List<String> notes
+            List<String> notes,
+            PlaceCard yard,
+            PlaceCard sale
     ) {
         this.vehicle = vehicle;
         this.title = title;
@@ -57,6 +62,8 @@ public class VehicleSummary {
         this.documents = documents;
         this.priceGroups = priceGroups;
         this.notes = notes;
+        this.yard = yard;
+        this.sale = sale;
     }
 
     public Vehicle getVehicle() {
@@ -125,6 +132,18 @@ public class VehicleSummary {
 
     public List<String> getNotes() {
         return notes;
+    }
+
+    public PlaceCard getYard() {
+        return yard;
+    }
+
+    public PlaceCard getSale() {
+        return sale;
+    }
+
+    public List<PlaceCard> getPlaces() {
+        return Arrays.asList(yard, sale);
     }
 
     public boolean isPricesEmpty() {
@@ -299,6 +318,101 @@ public class VehicleSummary {
                 return null;
             }
             return new PriceGroup(title, lines);
+        }
+    }
+
+    public static final class PlaceCard {
+        private final String title;
+        private final boolean present;
+        private final String code;
+        private final String name;
+        private final String location;
+        private final String statusLabel;
+        private final String statusTone;
+        private final String image;
+        private final String openUrl;
+        private final String openLabel;
+        private final String emptyText;
+        private final List<SpecLine> lines;
+
+        public PlaceCard(
+                String title,
+                boolean present,
+                String code,
+                String name,
+                String location,
+                String statusLabel,
+                String statusTone,
+                String image,
+                String openUrl,
+                String openLabel,
+                String emptyText,
+                List<SpecLine> lines
+        ) {
+            this.title = title;
+            this.present = present;
+            this.code = code;
+            this.name = name;
+            this.location = location;
+            this.statusLabel = statusLabel;
+            this.statusTone = statusTone;
+            this.image = image;
+            this.openUrl = openUrl;
+            this.openLabel = openLabel;
+            this.emptyText = emptyText;
+            this.lines = lines == null ? Collections.<SpecLine>emptyList() : lines;
+        }
+
+        public static PlaceCard empty(String title, String image, String emptyText) {
+            return new PlaceCard(title, false, null, null, null, null, null, image, null, null, emptyText, null);
+        }
+
+        public String getTitle() {
+            return title;
+        }
+
+        public boolean isPresent() {
+            return present;
+        }
+
+        public String getCode() {
+            return code;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public String getLocation() {
+            return location;
+        }
+
+        public String getStatusLabel() {
+            return statusLabel;
+        }
+
+        public String getStatusTone() {
+            return statusTone;
+        }
+
+        public String getImage() {
+            return image;
+        }
+
+        public String getOpenUrl() {
+            return openUrl;
+        }
+
+        public String getOpenLabel() {
+            return openLabel;
+        }
+
+        public String getEmptyText() {
+            return emptyText;
+        }
+
+        public List<SpecLine> getLines() {
+            return lines;
         }
     }
 }

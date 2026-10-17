@@ -3,6 +3,7 @@ package com.carsale.erp.shared.vehicle;
 import com.carsale.erp.importpipeline.service.VehiclePhotoService;
 import com.carsale.erp.shared.document.SheetDocumentStorageService;
 import com.carsale.erp.shared.service.PipelineStageService;
+import com.carsale.erp.shared.utils.Utils;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
@@ -92,10 +93,7 @@ public class VehicleService {
     }
 
     public Vehicle findByChassisNo(String chassisNo) {
-        if (chassisNo == null || chassisNo.trim().isEmpty()) {
-            return null;
-        }
-        return vehicleRepository.findByChassisNo(chassisNo.trim()).orElse(null);
+        return Utils.findByChassisNo(chassisNo, vehicleRepository, null);
     }
 
     public boolean existsByChassisNo(String chassisNo) {

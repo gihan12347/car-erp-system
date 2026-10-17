@@ -109,6 +109,10 @@ public class SheetDocumentStorageService {
         return store(file, idCardRoot, "/registered/documents/", "identity card");
     }
 
+    public SheetUploadResult storeBuyerIdCard(MultipartFile file) throws IOException {
+        return store(file, idCardRoot, "/sell/documents/", "identity card");
+    }
+
     public SheetUploadResult storePhoto(MultipartFile file) throws IOException {
         SheetUploadResult rejected = new SheetUploadResult();
         if (file == null || file.isEmpty()) {

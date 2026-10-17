@@ -27,14 +27,23 @@ import com.carsale.erp.importpipeline.service.StandardsCertificateService;
 import com.carsale.erp.importpipeline.service.VehiclePhotoService;
 import com.carsale.erp.preparationpipeline.model.PreviousOwner;
 import com.carsale.erp.preparationpipeline.model.RegistrationCertificate;
+import com.carsale.erp.preparationpipeline.model.YardBay;
+import com.carsale.erp.preparationpipeline.model.YardRecord;
 import com.carsale.erp.preparationpipeline.service.PreviousOwnerService;
 import com.carsale.erp.preparationpipeline.service.RegistrationCertificateService;
+import com.carsale.erp.preparationpipeline.service.YardBayService;
+import com.carsale.erp.preparationpipeline.service.YardService;
 import com.carsale.erp.readypipeline.model.SaleListing;
+import com.carsale.erp.readypipeline.model.SaleLocation;
 import com.carsale.erp.readypipeline.service.SaleListingService;
+import com.carsale.erp.readypipeline.service.SaleLocationService;
+import com.carsale.erp.readypipeline.util.ReadyStageUrls;
 import com.carsale.erp.shared.pipeline.FlowStage;
 import com.carsale.erp.shared.service.SkippedStageService;
+import com.carsale.erp.shared.utils.PipelineStageUtils;
 import com.carsale.erp.shared.vehicle.VehicleSummary.DocumentCard;
 import com.carsale.erp.shared.vehicle.VehicleSummary.PhotoCard;
+import com.carsale.erp.shared.vehicle.VehicleSummary.PlaceCard;
 import com.carsale.erp.shared.vehicle.VehicleSummary.PriceBuilder;
 import com.carsale.erp.shared.vehicle.VehicleSummary.PriceGroup;
 import com.carsale.erp.shared.vehicle.VehicleSummary.SpecLine;
@@ -53,6 +62,9 @@ public class VehicleSummaryService {
     private final VehiclePhotoService vehiclePhotoService;
     private final CustomsDocumentService customsDocumentService;
     private final SaleListingService saleListingService;
+    private final SaleLocationService saleLocationService;
+    private final YardService yardService;
+    private final YardBayService yardBayService;
     private final RegistrationCertificateService registrationCertificateService;
     private final PreviousOwnerService previousOwnerService;
     private final SkippedStageService skippedStageService;
@@ -69,6 +81,9 @@ public class VehicleSummaryService {
             VehiclePhotoService vehiclePhotoService,
             CustomsDocumentService customsDocumentService,
             SaleListingService saleListingService,
+            SaleLocationService saleLocationService,
+            YardService yardService,
+            YardBayService yardBayService,
             RegistrationCertificateService registrationCertificateService,
             PreviousOwnerService previousOwnerService,
             SkippedStageService skippedStageService
@@ -84,6 +99,9 @@ public class VehicleSummaryService {
         this.vehiclePhotoService = vehiclePhotoService;
         this.customsDocumentService = customsDocumentService;
         this.saleListingService = saleListingService;
+        this.saleLocationService = saleLocationService;
+        this.yardService = yardService;
+        this.yardBayService = yardBayService;
         this.registrationCertificateService = registrationCertificateService;
         this.previousOwnerService = previousOwnerService;
         this.skippedStageService = skippedStageService;
@@ -137,7 +155,90 @@ public class VehicleSummaryService {
                 photos,
                 documents,
                 priceGroups,
-                notesFor(vehicle, listing)
+                notesFor(vehicle, listing),
+                yardPlace(chassis, listing),
+                salePlace(chassis, listing)
+        );
+    }
+
+    private PlaceCard yardPlace(String chassis, SaleListing listing) {
+        YardRecord record = yardService.findByChassisNo(chassis);
+        String bayCode = record == null ? null : text(record.getBayNo());
+        if (bayCode == null) {
+            return PlaceCard.empty("Yard", "/images/hub/yard.jpg", "Not in a yard yet.");
+        }
+        boolean moved = listing != null && text(listing.getSaleCode()) != null;
+        YardBay yard = yardBayService.findByCode(bayCode);
+        String code = yard != null && text(yard.getBayCode()) != null ? yard.getBayCode() : bayCode;
+        String name = yard != null && text(yard.getYardName()) != null ? yard.getYardName() : code;
+        String location = yard != null ? text(yard.getLocation()) : null;
+        if (location == null && record != null) {
+            location = text(record.getYardSection());
+        }
+        List<SpecLine> lines = new ArrayList<SpecLine>();
+        String arrived = record == null ? null : text(record.getArrivalDate());
+        if (arrived != null) {
+            lines.add(new SpecLine("Arrived", arrived));
+        }
+        String encoded = PipelineStageUtils.encode(code);
+        String url = moved
+                ? "/yards/" + encoded
+                : "/yards/" + encoded + "/" + PipelineStageUtils.encode(chassis);
+        return new PlaceCard(
+                "Yard",
+                true,
+                code,
+                name,
+                location == null ? "—" : location,
+                moved ? "Moved to sale" : "In yard",
+                moved ? "gold" : "sea",
+                "/images/hub/yard.jpg",
+                url,
+                "Open yard",
+                null,
+                lines
+        );
+    }
+
+    private PlaceCard salePlace(String chassis, SaleListing listing) {
+        String saleCode = listing == null ? null : text(listing.getSaleCode());
+        if (saleCode == null) {
+            return PlaceCard.empty("Sale", "/images/hub/sale.png", "Not assigned to a sale yet.");
+        }
+        SaleLocation sale = saleLocationService.findByCode(saleCode);
+        String code = sale != null && text(sale.getSaleCode()) != null ? sale.getSaleCode() : saleCode;
+        String name = sale != null && text(sale.getSaleName()) != null ? sale.getSaleName() : code;
+        String location = text(listing.getSaleLocation());
+        if (location == null && sale != null) {
+            location = text(sale.getLocation());
+        }
+        List<SpecLine> lines = new ArrayList<SpecLine>();
+        String price = askingHighlight(listing);
+        if (price != null) {
+            lines.add(new SpecLine("Selling price", price));
+        }
+        String sellingDate = text(listing.getListedOn());
+        if (sellingDate != null) {
+            lines.add(new SpecLine("Selling date", sellingDate));
+        }
+        String buyer = text(listing.getBuyerFullName());
+        if (buyer != null) {
+            lines.add(new SpecLine("Buyer", buyer));
+        }
+        boolean sold = listing.isSold();
+        return new PlaceCard(
+                "Sale",
+                true,
+                code,
+                name,
+                location == null ? "—" : location,
+                sold ? "Sold" : "On sale",
+                sold ? "rust" : "sea",
+                "/images/hub/sale.png",
+                ReadyStageUrls.saleVehicle(code, chassis),
+                "Open sale",
+                null,
+                lines
         );
     }
 
@@ -489,7 +590,7 @@ public class VehicleSummaryService {
 
         sale.add("Recycle fee", vehicle.getRecycleFee());
         if (listing != null) {
-            sale.add("Asking price", listing.getAskingPrice());
+            sale.add("Selling price", listing.getAskingPrice());
             sale.add("Advertised price", listing.getAdvertisedPrice());
         }
 

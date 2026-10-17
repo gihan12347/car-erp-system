@@ -11,6 +11,7 @@ import com.carsale.erp.importpipeline.model.VehiclePhoto;
 import com.carsale.erp.importpipeline.service.VehiclePhotoService;
 import com.carsale.erp.shared.utils.PipelineStageUtils;
 import com.carsale.erp.shared.utils.Utils;
+import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -38,6 +39,7 @@ import com.carsale.erp.shared.document.SheetDocumentStorageService;
 import com.carsale.erp.shared.vehicle.VehicleService;
 
 @Controller
+@RequiredArgsConstructor
 @RequestMapping("/photos")
 public class VehicleImagesController {
 
@@ -47,22 +49,6 @@ public class VehicleImagesController {
     private final ImportProgressService importProgressService;
     private final CustomsProgressService customsProgressService;
     private final PipelineStageService pipelineStageService;
-
-    public VehicleImagesController(
-            VehiclePhotoService photoService,
-            VehicleService vehicleService,
-            SheetDocumentStorageService documentStorageService,
-            ImportProgressService importProgressService,
-            CustomsProgressService customsProgressService,
-            PipelineStageService pipelineStageService
-    ) {
-        this.photoService = photoService;
-        this.vehicleService = vehicleService;
-        this.documentStorageService = documentStorageService;
-        this.importProgressService = importProgressService;
-        this.customsProgressService = customsProgressService;
-        this.pipelineStageService = pipelineStageService;
-    }
 
     @GetMapping
     public String list(@RequestParam(value = "q", required = false) String query) {

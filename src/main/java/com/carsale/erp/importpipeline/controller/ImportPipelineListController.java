@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.carsale.erp.importpipeline.service.ImportProgressService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,21 +22,12 @@ import com.carsale.erp.shared.service.PipelineStageService;
 import com.carsale.erp.shared.vehicle.VehicleService;
 
 @Controller
+@RequiredArgsConstructor
 public class ImportPipelineListController {
 
     private final VehicleService vehicleService;
     private final ImportProgressService importProgressService;
     private final PipelineStageService pipelineStageService;
-
-    public ImportPipelineListController(
-            VehicleService vehicleService,
-            ImportProgressService importProgressService,
-            PipelineStageService pipelineStageService
-    ) {
-        this.vehicleService = vehicleService;
-        this.importProgressService = importProgressService;
-        this.pipelineStageService = pipelineStageService;
-    }
 
     @GetMapping("/import")
     public String list(@RequestParam(value = "q", required = false) String query, Model model) {

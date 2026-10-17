@@ -12,6 +12,7 @@ import com.carsale.erp.shared.ocr.OcrClient;
 import com.carsale.erp.shared.ocr.OcrImagePreparer;
 import com.carsale.erp.shared.utils.PipelineStageUtils;
 import com.carsale.erp.shared.utils.Utils;
+import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -41,6 +42,7 @@ import com.carsale.erp.shared.document.SheetDocumentStorageService;
 import com.carsale.erp.shared.vehicle.VehicleService;
 
 @Controller
+@RequiredArgsConstructor
 @RequestMapping("/standards")
 public class StandardsCertificateController {
 
@@ -52,24 +54,6 @@ public class StandardsCertificateController {
     private final PipelineStageService pipelineStageService;
     private final StandardsCertificateParser parser;
     private final OcrImagePreparer imagePreparer;
-
-    public StandardsCertificateController(
-            StandardsCertificateService certificateService,
-            VehicleService vehicleService,
-            SheetDocumentStorageService documentStorageService,
-            ImportProgressService importProgressService,
-            CustomsProgressService customsProgressService,
-            PipelineStageService pipelineStageService, StandardsCertificateParser parser, OcrImagePreparer imagePreparer
-    ) {
-        this.certificateService = certificateService;
-        this.vehicleService = vehicleService;
-        this.documentStorageService = documentStorageService;
-        this.importProgressService = importProgressService;
-        this.customsProgressService = customsProgressService;
-        this.pipelineStageService = pipelineStageService;
-        this.parser = parser;
-        this.imagePreparer = imagePreparer;
-    }
 
     @GetMapping
     public String list(@RequestParam(value = "q", required = false) String query) {

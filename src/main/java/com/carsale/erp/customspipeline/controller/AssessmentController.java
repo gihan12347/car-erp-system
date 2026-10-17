@@ -7,6 +7,7 @@ import java.nio.charset.StandardCharsets;
 import com.carsale.erp.shared.document.document.AssessmentNotice;
 import com.carsale.erp.shared.utils.PipelineStageUtils;
 import com.carsale.erp.shared.utils.Utils;
+import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -41,6 +42,7 @@ import com.carsale.erp.shared.vehicle.VehicleService;
 
 @Controller
 @RequestMapping("/assessment")
+@RequiredArgsConstructor
 public class AssessmentController {
 
     private final CustomsDocumentService customsDocumentService;
@@ -51,22 +53,6 @@ public class AssessmentController {
     private final PipelineStageService pipelineStageService;
     private final AssessmentNotice assessmentNotice;
 
-    public AssessmentController(
-            CustomsDocumentService customsDocumentService,
-            VehicleService vehicleService,
-            OcrImagePreparer ocrService,
-            SheetDocumentStorageService documentStorageService,
-            CustomsProgressService customsProgressService,
-            PipelineStageService pipelineStageService, AssessmentNotice assessmentNotice
-    ) {
-        this.customsDocumentService = customsDocumentService;
-        this.vehicleService = vehicleService;
-        this.ocrService = ocrService;
-        this.documentStorageService = documentStorageService;
-        this.customsProgressService = customsProgressService;
-        this.pipelineStageService = pipelineStageService;
-        this.assessmentNotice = assessmentNotice;
-    }
 
     @GetMapping
     public String list(@RequestParam(value = "q", required = false) String query) {

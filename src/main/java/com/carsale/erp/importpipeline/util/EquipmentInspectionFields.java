@@ -7,6 +7,8 @@ import java.util.List;
 
 import com.carsale.erp.shared.regex.RegexConstants;
 import com.carsale.erp.shared.utils.Utils;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
 /**
  * Interior, exterior, and safety fields on the vehicle equipment condition sheet.
@@ -199,33 +201,12 @@ public final class EquipmentInspectionFields {
         return new FieldDef(key, label, group, aliases);
     }
 
+    @Getter
+    @AllArgsConstructor
     public static final class FieldDef {
         private final String key;
         private final String label;
         private final String group;
         private final String[] aliases;
-
-        private FieldDef(String key, String label, String group, String[] aliases) {
-            this.key = key;
-            this.label = label;
-            this.group = group;
-            this.aliases = aliases == null ? new String[0] : aliases;
-        }
-
-        public String getKey() {
-            return key;
-        }
-
-        public String getLabel() {
-            return label;
-        }
-
-        public String getGroup() {
-            return group;
-        }
-
-        public String[] getAliases() {
-            return aliases;
-        }
     }
 }

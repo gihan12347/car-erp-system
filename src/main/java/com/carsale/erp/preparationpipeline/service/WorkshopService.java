@@ -7,35 +7,28 @@ import java.util.*;
 import com.carsale.erp.preparationpipeline.model.WorkshopJob;
 import com.carsale.erp.preparationpipeline.model.WorkshopJobLine;
 import com.carsale.erp.preparationpipeline.repository.WorkshopJobRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.carsale.erp.shared.utils.Utils;
 import com.carsale.erp.shared.vehicle.Vehicle;
 import com.carsale.erp.shared.vehicle.VehicleRepository;
 import com.carsale.erp.shared.regex.RegexConstants;
 
 @Service
+@RequiredArgsConstructor
 public class WorkshopService {
 
     private final VehicleRepository vehicleRepository;
     private final WorkshopJobRepository workshopJobRepository;
 
-    public WorkshopService(VehicleRepository vehicleRepository, WorkshopJobRepository workshopJobRepository) {
-        this.vehicleRepository = vehicleRepository;
-        this.workshopJobRepository = workshopJobRepository;
-    }
-
     @Transactional(readOnly = true)
     public WorkshopJob findByChassisNo(String chassisNo) {
-        if (chassisNo == null || chassisNo.trim().isEmpty()) {
-            return null;
-        }
-        WorkshopJob record = workshopJobRepository.findById(chassisNo.trim()).orElse(null);
-        if (record != null) {
+        return Utils.findByChassisNo(chassisNo, workshopJobRepository, record -> {
             migrateLegacyLine(record);
             normalizeLineDates(record);
-        }
-        return record;
+        });
     }
 
     @Transactional(readOnly = true)
@@ -68,14 +61,14 @@ public class WorkshopService {
     public boolean hasJobs(String chassisNo) {
         WorkshopJob record = findByChassisNo(chassisNo);
         if (record == null || record.getLines() == null) {
-            return false;
+            return true;
         }
         for (WorkshopJobLine line : record.getLines()) {
             if (line != null && !line.isEmpty()) {
-                return true;
+                return false;
             }
         }
-        return false;
+        return true;
     }
 
     public boolean hasOpenJobs(String chassisNo) {

@@ -7,6 +7,7 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 
 import com.carsale.erp.shared.utils.Utils;
+import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -40,6 +41,7 @@ import com.carsale.erp.shared.document.SheetDocumentStorageService;
 import com.carsale.erp.shared.vehicle.VehicleService;
 
 @Controller
+@RequiredArgsConstructor
 @RequestMapping("/jevic")
 public class OdometerCertificateController {
 
@@ -51,26 +53,6 @@ public class OdometerCertificateController {
     private final CustomsProgressService customsProgressService;
     private final PipelineStageService pipelineStageService;
     private final OdometerCertificateParser odometerCertificateParser;
-
-    public OdometerCertificateController(
-            CustomsDocumentService customsDocumentService,
-            VehicleService vehicleService,
-            OcrImagePreparer ocrService,
-            SheetDocumentStorageService documentStorageService,
-            ImportProgressService importProgressService,
-            CustomsProgressService customsProgressService,
-            PipelineStageService pipelineStageService,
-            OdometerCertificateParser odometerCertificateParser
-    ) {
-        this.customsDocumentService = customsDocumentService;
-        this.vehicleService = vehicleService;
-        this.ocrService = ocrService;
-        this.documentStorageService = documentStorageService;
-        this.importProgressService = importProgressService;
-        this.customsProgressService = customsProgressService;
-        this.pipelineStageService = pipelineStageService;
-        this.odometerCertificateParser = odometerCertificateParser;
-    }
 
     @GetMapping
     public String list(@RequestParam(value = "q", required = false) String query) {

@@ -1,5 +1,6 @@
 package com.carsale.erp.account;
 
+import com.carsale.erp.shared.utils.Utils;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -35,11 +36,11 @@ public class AccountService {
         User user = userRepository.findById(current.getId())
                 .orElseThrow(() -> new IllegalArgumentException("Account not found."));
 
-        String name = trimToNull(fullName);
+        String name = Utils.trimToNull(fullName);
         if (name == null) {
             throw new IllegalArgumentException("Full name is required.");
         }
-        String mail = trimToNull(email);
+        String mail = Utils.trimToNull(email);
         if (mail == null) {
             throw new IllegalArgumentException("Email is required.");
         }
@@ -54,12 +55,12 @@ public class AccountService {
         user.setFullName(name);
         user.setEmail(mail);
 
-        boolean changingPassword = !isBlank(newPassword) || !isBlank(confirmPassword);
+        boolean changingPassword = !Utils.isBlank(newPassword) || !Utils.isBlank(confirmPassword);
         if (changingPassword) {
-            if (isBlank(currentPassword) || !passwordEncoder.matches(currentPassword, user.getPassword())) {
+            if (Utils.isBlank(currentPassword) || !passwordEncoder.matches(currentPassword, user.getPassword())) {
                 throw new IllegalArgumentException("Current password is incorrect.");
             }
-            if (isBlank(newPassword) || newPassword.length() < 8) {
+            if (Utils.isBlank(newPassword) || newPassword.length() < 8) {
                 throw new IllegalArgumentException("New password must be at least 8 characters.");
             }
             if (!newPassword.equals(confirmPassword)) {
@@ -82,17 +83,5 @@ public class AccountService {
                 details, current.getCredentials(), details.getAuthorities());
         token.setDetails(current.getDetails());
         SecurityContextHolder.getContext().setAuthentication(token);
-    }
-
-    private static String trimToNull(String value) {
-        if (value == null) {
-            return null;
-        }
-        String trimmed = value.trim();
-        return trimmed.isEmpty() ? null : trimmed;
-    }
-
-    private static boolean isBlank(String value) {
-        return value == null || value.trim().isEmpty();
     }
 }

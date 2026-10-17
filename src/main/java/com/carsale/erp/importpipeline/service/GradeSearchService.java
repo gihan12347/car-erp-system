@@ -3,33 +3,23 @@ package com.carsale.erp.importpipeline.service;
 import com.carsale.erp.importpipeline.model.GradeSearch;
 import com.carsale.erp.importpipeline.repository.GradeSearchRepository;
 import com.carsale.erp.shared.document.SheetDocumentStorageService;
+import com.carsale.erp.shared.utils.Utils;
 import com.carsale.erp.shared.vehicle.Vehicle;
 import com.carsale.erp.shared.vehicle.VehicleRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@RequiredArgsConstructor
 public class GradeSearchService {
 
     private final VehicleRepository vehicleRepository;
     private final GradeSearchRepository gradeSearchRepository;
     private final SheetDocumentStorageService documentStorageService;
 
-    public GradeSearchService(
-            VehicleRepository vehicleRepository,
-            GradeSearchRepository gradeSearchRepository,
-            SheetDocumentStorageService documentStorageService
-    ) {
-        this.vehicleRepository = vehicleRepository;
-        this.gradeSearchRepository = gradeSearchRepository;
-        this.documentStorageService = documentStorageService;
-    }
-
     public GradeSearch findByChassisNo(String chassisNo) {
-        if (chassisNo == null || chassisNo.trim().isEmpty()) {
-            return null;
-        }
-        return gradeSearchRepository.findById(chassisNo.trim()).orElse(null);
+        return Utils.findByChassisNo(chassisNo, gradeSearchRepository, null);
     }
 
     public GradeSearch prepareForm(String chassisNo) {

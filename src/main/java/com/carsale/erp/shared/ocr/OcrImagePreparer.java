@@ -56,7 +56,7 @@ public class OcrImagePreparer {
     }
 
     public AuctionParseResult parsePage(MultipartFile file, DocumentParser documentParser, String provider, String language) {
-        AuctionParseResult failed = new AuctionParseResult();
+        AuctionParseResult failed = AuctionParseResult.builder().build();
         String documentName = documentParser.getDocumentName();
         if (file == null || file.isEmpty()) {
             failed.setSuccess(false);

@@ -1,6 +1,7 @@
 package com.carsale.erp.preparationpipeline.controller;
 
 import com.carsale.erp.preparationpipeline.service.YardBayService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -11,14 +12,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
+@RequiredArgsConstructor
 @RequestMapping("/yard-bays")
 public class YardBayController {
 
     private final YardBayService yardBayService;
-
-    public YardBayController(YardBayService yardBayService) {
-        this.yardBayService = yardBayService;
-    }
 
     @GetMapping
     public String list(Model model) {

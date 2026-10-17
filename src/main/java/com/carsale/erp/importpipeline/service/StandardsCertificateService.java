@@ -3,34 +3,24 @@ package com.carsale.erp.importpipeline.service;
 import com.carsale.erp.importpipeline.model.StandardsCertificate;
 import com.carsale.erp.importpipeline.repository.StandardsCertificateRepository;
 import com.carsale.erp.shared.document.SheetDocumentStorageService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.carsale.erp.shared.utils.Utils;
 import com.carsale.erp.shared.vehicle.Vehicle;
 import com.carsale.erp.shared.vehicle.VehicleRepository;
 
 @Service
+@RequiredArgsConstructor
 public class StandardsCertificateService {
 
     private final VehicleRepository vehicleRepository;
     private final StandardsCertificateRepository certificateRepository;
     private final SheetDocumentStorageService documentStorageService;
 
-    public StandardsCertificateService(
-            VehicleRepository vehicleRepository,
-            StandardsCertificateRepository certificateRepository,
-            SheetDocumentStorageService documentStorageService
-    ) {
-        this.vehicleRepository = vehicleRepository;
-        this.certificateRepository = certificateRepository;
-        this.documentStorageService = documentStorageService;
-    }
-
     public StandardsCertificate findByChassisNo(String chassisNo) {
-        if (chassisNo == null || chassisNo.trim().isEmpty()) {
-            return null;
-        }
-        return certificateRepository.findById(chassisNo.trim()).orElse(null);
+        return Utils.findByChassisNo(chassisNo, certificateRepository, null);
     }
 
     public StandardsCertificate prepareForm(String chassisNo) {

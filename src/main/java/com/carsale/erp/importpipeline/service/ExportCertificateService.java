@@ -4,35 +4,23 @@ import com.carsale.erp.importpipeline.model.ExportCertificate;
 import com.carsale.erp.importpipeline.repository.ExportCertificateRepository;
 import com.carsale.erp.shared.document.SheetDocumentStorageService;
 import com.carsale.erp.shared.document.document.ExportCertificateParser;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.carsale.erp.shared.utils.Utils;
 import com.carsale.erp.shared.vehicle.Vehicle;
 import com.carsale.erp.shared.vehicle.VehicleRepository;
 
 @Service
+@RequiredArgsConstructor
 public class ExportCertificateService {
 
     private final VehicleRepository vehicleRepository;
     private final ExportCertificateRepository certificateRepository;
     private final SheetDocumentStorageService documentStorageService;
 
-    public ExportCertificateService(
-            VehicleRepository vehicleRepository,
-            ExportCertificateRepository certificateRepository,
-            SheetDocumentStorageService documentStorageService
-    ) {
-        this.vehicleRepository = vehicleRepository;
-        this.certificateRepository = certificateRepository;
-        this.documentStorageService = documentStorageService;
-    }
-
     public ExportCertificate findByChassisNo(String chassisNo) {
-        if (chassisNo == null || chassisNo.trim().isEmpty()) {
-            return null;
-        }
-        ExportCertificate record = certificateRepository.findById(chassisNo.trim()).orElse(null);
-        formatDisplayDates(record);
-        return record;
+        return Utils.findByChassisNo(chassisNo, certificateRepository, this::formatDisplayDates);
     }
 
     public ExportCertificate prepareForm(String chassisNo) {

@@ -11,6 +11,9 @@ import com.carsale.erp.readypipeline.service.VehicleRegistrationService;
 import com.carsale.erp.readypipeline.util.Period;
 import com.carsale.erp.readypipeline.util.ReadyStageUrls;
 import com.carsale.erp.readypipeline.util.SaleGroup;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -34,6 +37,7 @@ import com.carsale.erp.shared.vehicle.VehicleSummary;
 import com.carsale.erp.shared.vehicle.VehicleSummaryService;
 
 @Controller
+@RequiredArgsConstructor
 @RequestMapping("/ready-for-sale")
 public class ReadyForSaleController {
 
@@ -46,29 +50,9 @@ public class ReadyForSaleController {
     private final VehicleSummaryService vehicleSummaryService;
     private final PipelineStageService pipelineStageService;
 
-    public ReadyForSaleController(
-            VehicleService vehicleService,
-            PreparationProgressService preparationProgressService,
-            SaleListingService saleListingService,
-            SaleLocationService saleLocationService,
-            VehicleRegistrationService vehicleRegistrationService,
-            VehiclePhotoService vehiclePhotoService,
-            VehicleSummaryService vehicleSummaryService,
-            PipelineStageService pipelineStageService
-    ) {
-        this.vehicleService = vehicleService;
-        this.preparationProgressService = preparationProgressService;
-        this.saleListingService = saleListingService;
-        this.saleLocationService = saleLocationService;
-        this.vehicleRegistrationService = vehicleRegistrationService;
-        this.vehiclePhotoService = vehiclePhotoService;
-        this.vehicleSummaryService = vehicleSummaryService;
-        this.pipelineStageService = pipelineStageService;
-    }
-
     @GetMapping
     public String hub(Model model) {
-        List<SaleGroup> groups = SaleGroup.group(saleLocationService.listAll(), rows(null, ReadyStageUrls.PERIOD_ALL));
+        List<SaleGroup> groups = SaleGroup.group(saleLocationService.listAll(), rows());
         model.addAttribute("pageTitle", "Sale");
         model.addAttribute("activeMenu", "ready-for-sale");
         model.addAttribute("groups", groups);
@@ -247,11 +231,11 @@ public class ReadyForSaleController {
         return cards;
     }
 
-    private List<SaleRow> rows(String query, String period) {
+    private List<SaleRow> rows() {
         List<SaleRow> rows = new ArrayList<>();
-        for (Vehicle vehicle : preparationProgressService.listReadyForSale(query)) {
+        for (Vehicle vehicle : preparationProgressService.listReadyForSale(null)) {
             SaleListing listing = saleListingService.findByChassisNo(vehicle.getChassisNo());
-            if (Period.matchesPeriod(listing == null ? null : listing.getListedOn(), period)) {
+            if (Period.matchesPeriod(listing == null ? null : listing.getListedOn(), ReadyStageUrls.PERIOD_ALL)) {
                 continue;
             }
             SaleProgress status = saleListingService.progressFor(vehicle.getChassisNo());
@@ -320,58 +304,22 @@ public class ReadyForSaleController {
         return vehicle.getChassisNo();
     }
 
+    @Getter
+    @AllArgsConstructor
     public static final class SaleVehicleCard {
         private final Vehicle vehicle;
         private final SaleListing listing;
         private final VehiclePhoto photo;
         private final String tab;
 
-        public SaleVehicleCard(Vehicle vehicle, SaleListing listing, VehiclePhoto photo, String tab) {
-            this.vehicle = vehicle;
-            this.listing = listing;
-            this.photo = photo;
-            this.tab = tab;
-        }
-
-        public Vehicle getVehicle() {
-            return vehicle;
-        }
-
-        public SaleListing getListing() {
-            return listing;
-        }
-
-        public VehiclePhoto getPhoto() {
-            return photo;
-        }
-
-        public String getTab() {
-            return tab;
-        }
     }
 
+    @Getter
+    @AllArgsConstructor
     public static final class SaleRow {
         private final Vehicle vehicle;
         private final SaleProgress status;
         private final SaleListing listing;
-
-        public SaleRow(Vehicle vehicle, SaleProgress status, SaleListing listing) {
-            this.vehicle = vehicle;
-            this.status = status;
-            this.listing = listing;
-        }
-
-        public Vehicle getVehicle() {
-            return vehicle;
-        }
-
-        public SaleProgress getStatus() {
-            return status;
-        }
-
-        public SaleListing getListing() {
-            return listing;
-        }
 
         public boolean isListed() {
             return listing != null && listing.isListed() && !isSold();

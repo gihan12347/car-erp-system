@@ -9,6 +9,7 @@ import com.carsale.erp.preparationpipeline.dto.InspectionResults;
 import com.carsale.erp.preparationpipeline.service.VehicleInspectionService;
 import com.carsale.erp.preparationpipeline.model.VehicleInspection;
 import com.carsale.erp.shared.utils.Utils;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.propertyeditors.CustomNumberEditor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -35,6 +36,7 @@ import com.carsale.erp.preparationpipeline.service.WorkshopService;
 import com.carsale.erp.shared.vehicle.VehicleService;
 
 @Controller
+@RequiredArgsConstructor
 @RequestMapping("/inspection")
 public class VehicleInspectionController {
 
@@ -43,20 +45,6 @@ public class VehicleInspectionController {
     private final PreparationProgressService preparationProgressService;
     private final PipelineStageService pipelineStageService;
     private final WorkshopService workshopService;
-
-    public VehicleInspectionController(
-            VehicleInspectionService vehicleInspectionService,
-            VehicleService vehicleService,
-            PreparationProgressService preparationProgressService,
-            PipelineStageService pipelineStageService,
-            WorkshopService workshopService
-    ) {
-        this.vehicleInspectionService = vehicleInspectionService;
-        this.vehicleService = vehicleService;
-        this.preparationProgressService = preparationProgressService;
-        this.pipelineStageService = pipelineStageService;
-        this.workshopService = workshopService;
-    }
 
     @GetMapping
     public String list(@RequestParam(value = "q", required = false) String query) {
@@ -111,7 +99,7 @@ public class VehicleInspectionController {
         try {
             vehicleInspectionService.save(record);
             preparationProgressService.syncVehicleStage(chassisNo);
-            if (!workshopService.hasJobs(chassisNo)) {
+            if (workshopService.hasJobs(chassisNo)) {
                 redirectAttributes.addFlashAttribute("successMessage",
                         "Inspection saved. No workshop jobs — workshop is complete. Continue with yard.");
                 return "redirect:/yard/" + Utils.encodeChassis(chassisNo) + (hub ? "?hub=1" : "");

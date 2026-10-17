@@ -13,6 +13,7 @@ import com.carsale.erp.preparationpipeline.model.YardBay;
 import com.carsale.erp.preparationpipeline.repository.YardBayRepository;
 import com.carsale.erp.preparationpipeline.model.YardRecord;
 import com.carsale.erp.preparationpipeline.repository.YardRecordRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Service;
@@ -23,6 +24,7 @@ import com.carsale.erp.shared.regex.RegexConstants;
 
 @Service
 @Order(5)
+@RequiredArgsConstructor
 public class YardBayService implements CommandLineRunner {
 
     private static final String[][] DEFAULT_YARDS = {
@@ -38,16 +40,6 @@ public class YardBayService implements CommandLineRunner {
     private final YardBayRepository yardBayRepository;
     private final YardRecordRepository yardRecordRepository;
     private final SaleListingRepository saleListingRepository;
-
-    public YardBayService(
-            YardBayRepository yardBayRepository,
-            YardRecordRepository yardRecordRepository,
-            SaleListingRepository saleListingRepository
-    ) {
-        this.yardBayRepository = yardBayRepository;
-        this.yardRecordRepository = yardRecordRepository;
-        this.saleListingRepository = saleListingRepository;
-    }
 
     @Override
     public void run(String... args) {

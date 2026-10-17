@@ -3,32 +3,22 @@ package com.carsale.erp.preparationpipeline.service;
 import com.carsale.erp.preparationpipeline.model.PreviousOwner;
 import com.carsale.erp.preparationpipeline.repository.PreviousOwnerRepository;
 import com.carsale.erp.shared.document.SheetDocumentStorageService;
+import com.carsale.erp.shared.utils.Utils;
 import com.carsale.erp.shared.vehicle.VehicleRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@RequiredArgsConstructor
 public class PreviousOwnerService {
 
     private final VehicleRepository vehicleRepository;
     private final PreviousOwnerRepository previousOwnerRepository;
     private final SheetDocumentStorageService documentStorageService;
 
-    public PreviousOwnerService(
-            VehicleRepository vehicleRepository,
-            PreviousOwnerRepository previousOwnerRepository,
-            SheetDocumentStorageService documentStorageService
-    ) {
-        this.vehicleRepository = vehicleRepository;
-        this.previousOwnerRepository = previousOwnerRepository;
-        this.documentStorageService = documentStorageService;
-    }
-
     public PreviousOwner findByChassisNo(String chassisNo) {
-        if (chassisNo == null || chassisNo.trim().isEmpty()) {
-            return null;
-        }
-        return previousOwnerRepository.findById(chassisNo.trim()).orElse(null);
+        return Utils.findByChassisNo(chassisNo, previousOwnerRepository, null);
     }
 
     public PreviousOwner prepareForm(String chassisNo) {

@@ -12,6 +12,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,9 +20,11 @@ import com.carsale.erp.preparationpipeline.model.InspectionItem;
 import com.carsale.erp.shared.vehicle.Vehicle;
 import com.carsale.erp.preparationpipeline.model.WorkshopJob;
 import com.carsale.erp.preparationpipeline.model.WorkshopJobLine;
+import com.carsale.erp.shared.utils.Utils;
 import com.carsale.erp.shared.vehicle.VehicleRepository;
 
 @Service
+@RequiredArgsConstructor
 public class VehicleInspectionService {
 
     private final VehicleRepository vehicleRepository;
@@ -29,24 +32,9 @@ public class VehicleInspectionService {
     private final InspectionItemService inspectionItemService;
     private final WorkshopService workshopService;
 
-    public VehicleInspectionService(
-            VehicleRepository vehicleRepository,
-            VehicleInspectionRepository vehicleInspectionRepository,
-            InspectionItemService inspectionItemService,
-            WorkshopService workshopService
-    ) {
-        this.vehicleRepository = vehicleRepository;
-        this.vehicleInspectionRepository = vehicleInspectionRepository;
-        this.inspectionItemService = inspectionItemService;
-        this.workshopService = workshopService;
-    }
-
     @Transactional(readOnly = true)
     public VehicleInspection findByChassisNo(String chassisNo) {
-        if (chassisNo == null || chassisNo.trim().isEmpty()) {
-            return null;
-        }
-        return vehicleInspectionRepository.findById(chassisNo.trim()).orElse(null);
+        return Utils.findByChassisNo(chassisNo, vehicleInspectionRepository, null);
     }
 
     @Transactional(readOnly = true)

@@ -4,37 +4,25 @@ import com.carsale.erp.importpipeline.model.PreShipmentInspection;
 import com.carsale.erp.importpipeline.repository.PreShipmentInspectionRepository;
 import com.carsale.erp.shared.document.document.PreShipmentParser;
 import com.carsale.erp.shared.document.SheetDocumentStorageService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.carsale.erp.shared.utils.Utils;
 import com.carsale.erp.shared.vehicle.Vehicle;
 import com.carsale.erp.shared.vehicle.VehicleRepository;
 import com.carsale.erp.shared.regex.RegexConstants;
 
 @Service
+@RequiredArgsConstructor
 public class PreShipmentService {
 
     private final VehicleRepository vehicleRepository;
     private final PreShipmentInspectionRepository preShipmentRepository;
     private final SheetDocumentStorageService documentStorageService;
 
-    public PreShipmentService(
-            VehicleRepository vehicleRepository,
-            PreShipmentInspectionRepository preShipmentRepository,
-            SheetDocumentStorageService documentStorageService
-    ) {
-        this.vehicleRepository = vehicleRepository;
-        this.preShipmentRepository = preShipmentRepository;
-        this.documentStorageService = documentStorageService;
-    }
-
     public PreShipmentInspection findByChassisNo(String chassisNo) {
-        if (chassisNo == null || chassisNo.trim().isEmpty()) {
-            return null;
-        }
-        PreShipmentInspection record = preShipmentRepository.findById(chassisNo.trim()).orElse(null);
-        normalizeDateFields(record);
-        return record;
+        return Utils.findByChassisNo(chassisNo, preShipmentRepository, this::normalizeDateFields);
     }
 
     public PreShipmentInspection prepareForm(String chassisNo) {

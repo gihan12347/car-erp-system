@@ -7,6 +7,7 @@ import java.nio.charset.StandardCharsets;
 import com.carsale.erp.shared.document.document.BillOfLading;
 import com.carsale.erp.shared.utils.PipelineStageUtils;
 import com.carsale.erp.shared.utils.Utils;
+import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -41,6 +42,7 @@ import com.carsale.erp.shared.vehicle.VehicleService;
 
 @Controller
 @RequestMapping("/bl")
+@RequiredArgsConstructor
 public class BillOfLadingController {
 
     private final CustomsDocumentService customsDocumentService;
@@ -50,24 +52,6 @@ public class BillOfLadingController {
     private final CustomsProgressService customsProgressService;
     private final PipelineStageService pipelineStageService;
     private final BillOfLading billOfLading;
-
-    public BillOfLadingController(
-            CustomsDocumentService customsDocumentService,
-            VehicleService vehicleService,
-            OcrImagePreparer ocrService,
-            SheetDocumentStorageService documentStorageService,
-            CustomsProgressService customsProgressService,
-            PipelineStageService pipelineStageService,
-            BillOfLading billOfLading
-    ) {
-        this.customsDocumentService = customsDocumentService;
-        this.vehicleService = vehicleService;
-        this.ocrService = ocrService;
-        this.documentStorageService = documentStorageService;
-        this.customsProgressService = customsProgressService;
-        this.pipelineStageService = pipelineStageService;
-        this.billOfLading = billOfLading;
-    }
 
     @GetMapping
     public String list(@RequestParam(value = "q", required = false) String query) {

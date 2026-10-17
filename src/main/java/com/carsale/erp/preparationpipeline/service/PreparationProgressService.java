@@ -10,6 +10,7 @@ import com.carsale.erp.shared.vehicle.VehicleService;
 import java.util.ArrayList;
 import java.util.List;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,6 +21,7 @@ import com.carsale.erp.shared.vehicle.VehicleStage;
 import com.carsale.erp.shared.vehicle.VehicleRepository;
 
 @Service
+@RequiredArgsConstructor
 public class PreparationProgressService {
 
     private final VehicleRepository vehicleRepository;
@@ -30,26 +32,6 @@ public class PreparationProgressService {
     private final VehicleInspectionService vehicleInspectionService;
     private final SaleListingService saleListingService;
     private final SkippedStageService skippedStageService;
-
-    public PreparationProgressService(
-            VehicleRepository vehicleRepository,
-            VehicleService vehicleService,
-            CustomsProgressService customsProgressService,
-            WorkshopService workshopService,
-            YardService yardService,
-            VehicleInspectionService vehicleInspectionService,
-            SaleListingService saleListingService,
-            SkippedStageService skippedStageService
-    ) {
-        this.vehicleRepository = vehicleRepository;
-        this.vehicleService = vehicleService;
-        this.customsProgressService = customsProgressService;
-        this.workshopService = workshopService;
-        this.yardService = yardService;
-        this.vehicleInspectionService = vehicleInspectionService;
-        this.saleListingService = saleListingService;
-        this.skippedStageService = skippedStageService;
-    }
 
     public PreparationProgress progressFor(Vehicle vehicle) {
         if (vehicle == null) {

@@ -5,36 +5,24 @@ import com.carsale.erp.importpipeline.repository.InspectionCertificateRepository
 import com.carsale.erp.shared.document.SheetDocumentStorageService;
 import com.carsale.erp.shared.document.document.CertificateOfInspectionParser;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.carsale.erp.shared.utils.Utils;
 import com.carsale.erp.shared.vehicle.Vehicle;
 import com.carsale.erp.shared.vehicle.VehicleRepository;
 
 @Service
+@RequiredArgsConstructor
 public class CertificateOfInspectionService {
 
     private final VehicleRepository vehicleRepository;
     private final InspectionCertificateRepository certificateRepository;
     private final SheetDocumentStorageService documentStorageService;
 
-    public CertificateOfInspectionService(
-            VehicleRepository vehicleRepository,
-            InspectionCertificateRepository certificateRepository,
-            SheetDocumentStorageService documentStorageService
-    ) {
-        this.vehicleRepository = vehicleRepository;
-        this.certificateRepository = certificateRepository;
-        this.documentStorageService = documentStorageService;
-    }
-
     public InspectionCertificate findByChassisNo(String chassisNo) {
-        if (chassisNo == null || chassisNo.trim().isEmpty()) {
-            return null;
-        }
-        InspectionCertificate record = certificateRepository.findById(chassisNo.trim()).orElse(null);
-        normalizeInspectionDate(record);
-        return record;
+        return Utils.findByChassisNo(chassisNo, certificateRepository, this::normalizeInspectionDate);
     }
 
     public InspectionCertificate prepareForm(String chassisNo) {

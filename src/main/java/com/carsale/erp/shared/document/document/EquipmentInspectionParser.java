@@ -18,7 +18,7 @@ import com.carsale.erp.shared.regex.RegexConstants;
 public class EquipmentInspectionParser implements DocumentParser {
 
     public AuctionParseResult parsePage(String text) {
-        AuctionParseResult result = new AuctionParseResult(text);
+        AuctionParseResult result = AuctionParseResult.builder().rawText(text).build();
         if (text == null || text.trim().isEmpty()) {
             result.setSuccess(false);
             result.setMessage("The equipment condition document was empty.");

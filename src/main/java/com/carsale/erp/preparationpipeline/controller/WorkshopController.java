@@ -6,6 +6,7 @@ import java.nio.charset.StandardCharsets;
 import com.carsale.erp.preparationpipeline.model.WorkshopJob;
 import com.carsale.erp.preparationpipeline.service.WorkshopService;
 import com.carsale.erp.shared.utils.Utils;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.propertyeditors.CustomNumberEditor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -28,6 +29,7 @@ import com.carsale.erp.shared.dto.PreparationProgress;
 import com.carsale.erp.shared.vehicle.VehicleService;
 
 @Controller
+@RequiredArgsConstructor
 @RequestMapping("/workshop")
 public class WorkshopController {
 
@@ -35,18 +37,6 @@ public class WorkshopController {
     private final VehicleService vehicleService;
     private final PreparationProgressService preparationProgressService;
     private final PipelineStageService pipelineStageService;
-
-    public WorkshopController(
-            WorkshopService workshopService,
-            VehicleService vehicleService,
-            PreparationProgressService preparationProgressService,
-            PipelineStageService pipelineStageService
-    ) {
-        this.workshopService = workshopService;
-        this.vehicleService = vehicleService;
-        this.preparationProgressService = preparationProgressService;
-        this.pipelineStageService = pipelineStageService;
-    }
 
     @GetMapping
     public String list(@RequestParam(value = "q", required = false) String query) {
@@ -78,7 +68,7 @@ public class WorkshopController {
                     preparationProgressService.ineligibleNotice(vehicle));
             return "redirect:" + preparationProgressService.redirectWhenNotEligible(vehicle);
         }
-        if (!workshopService.hasJobs(chassisNo)) {
+        if (workshopService.hasJobs(chassisNo)) {
             preparationProgressService.syncVehicleStage(chassisNo);
             redirectAttributes.addFlashAttribute("successMessage",
                     "No workshop jobs. Workshop is complete. Continue with yard.");

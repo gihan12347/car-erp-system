@@ -88,7 +88,7 @@ public class WorkingSheet implements DocumentParser {
 
     @Override
     public AuctionParseResult parsePage(DocumentAiClient.DocumentAiResult documentAi) {
-        AuctionParseResult result = new AuctionParseResult();
+        AuctionParseResult result = AuctionParseResult.builder().build();
         if (documentAi == null) {
             result.setSuccess(false);
             result.setMessage("Document AI returned no result.");
@@ -328,7 +328,7 @@ public class WorkingSheet implements DocumentParser {
         }
 
         public AuctionParseResult parsePage(String rawText) {
-            AuctionParseResult result = new AuctionParseResult();
+            AuctionParseResult result = AuctionParseResult.builder().build();
             if (rawText == null || rawText.trim().isEmpty()) {
                 result.setSuccess(false);
                 result.setMessage("No text was read from the auction sheet.");
@@ -390,7 +390,7 @@ public class WorkingSheet implements DocumentParser {
         @Override
         public AuctionParseResult parsePage(DocumentAiClient.DocumentAiResult documentAi) {
             if (documentAi == null) {
-                AuctionParseResult failed = new AuctionParseResult();
+                AuctionParseResult failed = AuctionParseResult.builder().build();
                 failed.setSuccess(false);
                 failed.setMessage("Document AI returned no result.");
                 return failed;

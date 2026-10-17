@@ -5,6 +5,7 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 
 import com.carsale.erp.shared.utils.Utils;
+import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -23,13 +24,10 @@ import com.carsale.erp.shared.service.PipelineStageService;
  * Stage edit/save/upload lives on bl / declaration / assessment / worksheet controllers.
  */
 @Controller
+@RequiredArgsConstructor
 public class CustomsDocumentController {
 
     private final SheetDocumentStorageService documentStorageService;
-
-    public CustomsDocumentController(SheetDocumentStorageService documentStorageService) {
-        this.documentStorageService = documentStorageService;
-    }
 
     @GetMapping("/customs/documents/{storedName:.+}")
     public ResponseEntity<Resource> serveDocument(@PathVariable String storedName) throws IOException {

@@ -1,26 +1,21 @@
 package com.carsale.erp.preparationpipeline.controller;
 
-import java.nio.charset.StandardCharsets;
-
 import com.carsale.erp.shared.utils.PipelineStageUtils;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.util.UriUtils;
 
 import com.carsale.erp.preparationpipeline.model.YardRecord;
 import com.carsale.erp.preparationpipeline.service.YardService;
 
 @Controller
 @RequestMapping("/sale")
+@RequiredArgsConstructor
 public class PrepSaleController {
 
     private final YardService yardService;
-
-    public PrepSaleController(YardService yardService) {
-        this.yardService = yardService;
-    }
 
     @GetMapping
     public String list() {

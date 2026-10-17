@@ -1,5 +1,6 @@
 package com.carsale.erp.account;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -11,13 +12,10 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import com.carsale.erp.security.CustomUserDetails;
 
 @Controller
+@RequiredArgsConstructor
 public class SettingsController {
 
     private final AccountService accountService;
-
-    public SettingsController(AccountService accountService) {
-        this.accountService = accountService;
-    }
 
     @GetMapping("/settings")
     public String settings(Model model) {

@@ -1,6 +1,7 @@
 package com.carsale.erp.readypipeline.controller;
 
 import com.carsale.erp.readypipeline.service.SaleLocationService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -11,14 +12,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
+@RequiredArgsConstructor
 @RequestMapping("/sale-locations")
 public class SaleLocationController {
 
     private final SaleLocationService saleLocationService;
-
-    public SaleLocationController(SaleLocationService saleLocationService) {
-        this.saleLocationService = saleLocationService;
-    }
 
     @GetMapping
     public String list(Model model) {

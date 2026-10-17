@@ -1,6 +1,7 @@
 package com.carsale.erp.preparationpipeline.controller;
 
 import com.carsale.erp.preparationpipeline.service.InspectionItemService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -11,14 +12,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
+@RequiredArgsConstructor
 @RequestMapping("/inspection-items")
 public class InspectionChecklistController {
 
     private final InspectionItemService inspectionItemService;
-
-    public InspectionChecklistController(InspectionItemService inspectionItemService) {
-        this.inspectionItemService = inspectionItemService;
-    }
 
     @GetMapping
     public String list(Model model) {

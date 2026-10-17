@@ -6,6 +6,8 @@ import com.carsale.erp.shared.utils.Utils;
 import com.carsale.erp.shared.regex.RegexConstants;
 import com.carsale.erp.importpipeline.util.AuctionParseResult;
 import com.carsale.erp.shared.document.DocumentParser;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -79,7 +81,7 @@ public class AssessmentNotice implements DocumentParser {
 
     @Override
     public AuctionParseResult parsePage(DocumentAiClient.DocumentAiResult documentAi) {
-        AuctionParseResult result = new AuctionParseResult();
+        AuctionParseResult result = AuctionParseResult.builder().build();
         if (documentAi == null) {
             result.setSuccess(false);
             result.setMessage("Document AI returned no result.");
@@ -264,28 +266,12 @@ public class AssessmentNotice implements DocumentParser {
         }
     }
 
+    @Getter
+    @AllArgsConstructor
     private static class TaxParseResult {
 
         private final boolean handled;
         private final String pendingCode;
         private final String pendingValue;
-
-        TaxParseResult(boolean handled, String pendingCode, String pendingValue) {
-            this.handled = handled;
-            this.pendingCode = pendingCode;
-            this.pendingValue = pendingValue;
-        }
-
-        public boolean isHandled() {
-            return handled;
-        }
-
-        public String getPendingCode() {
-            return pendingCode;
-        }
-
-        public String getPendingValue() {
-            return pendingValue;
-        }
     }
 }

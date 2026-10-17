@@ -10,6 +10,7 @@ import java.nio.charset.StandardCharsets;
 
 import com.carsale.erp.shared.utils.PipelineStageUtils;
 import com.carsale.erp.shared.utils.Utils;
+import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -41,6 +42,7 @@ import com.carsale.erp.shared.document.SheetDocumentStorageService;
 import com.carsale.erp.shared.vehicle.VehicleService;
 
 @Controller
+@RequiredArgsConstructor
 @RequestMapping("/coi")
 public class CertificateOfInspectionController {
 
@@ -52,26 +54,6 @@ public class CertificateOfInspectionController {
     private final CustomsProgressService customsProgressService;
     private final PipelineStageService pipelineStageService;
     private final CertificateOfInspectionParser certificateOfInspectionParser;
-
-    public CertificateOfInspectionController(
-            CertificateOfInspectionService certificateService,
-            VehicleService vehicleService,
-            OcrImagePreparer ocrService,
-            SheetDocumentStorageService documentStorageService,
-            ImportProgressService importProgressService,
-            CustomsProgressService customsProgressService,
-            PipelineStageService pipelineStageService,
-            CertificateOfInspectionParser certificateOfInspectionParser
-    ) {
-        this.certificateService = certificateService;
-        this.vehicleService = vehicleService;
-        this.ocrService = ocrService;
-        this.documentStorageService = documentStorageService;
-        this.importProgressService = importProgressService;
-        this.customsProgressService = customsProgressService;
-        this.pipelineStageService = pipelineStageService;
-        this.certificateOfInspectionParser = certificateOfInspectionParser;
-    }
 
     @GetMapping
     public String list(@RequestParam(value = "q", required = false) String query) {

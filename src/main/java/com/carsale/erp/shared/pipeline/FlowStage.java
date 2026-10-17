@@ -24,7 +24,7 @@ public enum FlowStage {
     YARD("yard", "/yard/", "Yard", "Yard"),
     SALE("sale", "/sale/", "Sale", "Sale"),
     DETAILS("details", "/ready-for-sale/", "Details", "Details"),
-    LISTING("listing", "/listing/", "Listing", "Listing"),
+    LISTING("listing", "/sell/", "Sell", "Sell"),
     REGISTRATION("registration", "/registration/", "Registration", "Reg");
 
     private final String stageKey;
