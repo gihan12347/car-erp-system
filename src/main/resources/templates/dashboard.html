@@ -45,7 +45,7 @@
             </section>
 
             <section class="fleet-top">
-                <article class="fleet-card fleet-table-card">
+                <article class="fleet-card fleet-table-card" id="vehicles">
                     <div class="fleet-card-head">
                         <h2>Vehicles</h2>
                         <a th:href="@{/reports}">View all</a>
@@ -82,6 +82,25 @@
                         </table>
                     </div>
                     <p class="fleet-empty" th:if="${dash.stock.isEmpty()}">No vehicles match this period.</p>
+                    <div class="fleet-pager" th:if="${dash.stockPages > 1}">
+                        <span class="fleet-pager-range" th:text="${dash.stockRange}">1–4 of 8</span>
+                        <nav aria-label="Vehicle pages">
+                            <a th:if="${dash.stockPage > 1}"
+                               th:href="@{/dashboard(period=${dash.period}, page=${dash.stockPage - 1})} + '#vehicles'">Previous</a>
+                            <span th:if="${dash.stockPage <= 1}" class="is-off">Previous</span>
+                            <th:block th:each="n : ${dash.stockPageNumbers}">
+                                <span th:if="${n == 0}" class="is-gap" aria-hidden="true">…</span>
+                                <a th:if="${n > 0}"
+                                   th:href="@{/dashboard(period=${dash.period}, page=${n})} + '#vehicles'"
+                                   th:text="${n}"
+                                   th:classappend="${n == dash.stockPage} ? ' is-on'"
+                                   th:aria-current="${n == dash.stockPage} ? 'page' : null">1</a>
+                            </th:block>
+                            <a th:if="${dash.stockPage < dash.stockPages}"
+                               th:href="@{/dashboard(period=${dash.period}, page=${dash.stockPage + 1})} + '#vehicles'">Next</a>
+                            <span th:if="${dash.stockPage >= dash.stockPages}" class="is-off">Next</span>
+                        </nav>
+                    </div>
                 </article>
 
                 <article class="fleet-card">

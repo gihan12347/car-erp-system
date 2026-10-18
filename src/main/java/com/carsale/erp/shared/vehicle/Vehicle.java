@@ -150,6 +150,9 @@ public class Vehicle {
     @Column(length = 32)
     private VehicleIntake intake;
 
+    @Column(name = "selected_pipelines", length = 40)
+    private String selectedPipelines;
+
     public String getChassisNo() {
         return chassisNo;
     }
@@ -500,5 +503,13 @@ public class Vehicle {
 
     public void setIntake(VehicleIntake intake) {
         this.intake = intake;
+    }
+
+    public String getSelectedPipelines() {
+        return selectedPipelines;
+    }
+
+    public void setSelectedPipelines(String selectedPipelines) {
+        this.selectedPipelines = selectedPipelines;
     }
 }

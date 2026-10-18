@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="shared/head :: head(${pageTitle})"></head>
+<body class="sheet-page import-form-page">
+<div class="app-shell">
+    <aside th:replace="shared/sidebar :: sidebar(${activeMenu})"></aside>
+    <div class="app-main">
+        <header th:replace="shared/topbar :: topbar"></header>
+        <main class="page-content">
+            <div class="dash-head">
+                <div>
+                    <h1>Personal import</h1>
+                    <p class="form-lead">Upload the front and back of the customer's identity card. After you save, the import pipeline opens. The chassis number you enter there links this customer, and the same card appears in Sell without a selling price or date.</p>
+                </div>
+                <a class="panel-btn ghost" th:href="@{/customers}">All customers</a>
+            </div>
+            <p th:if="${successMessage}" class="alert alert-ok" th:text="${successMessage}"></p>
+            <p th:if="${errorMessage}" class="alert alert-error" th:text="${errorMessage}"></p>
+            <form th:action="@{/customers/new}"
+                  th:object="${customer}" method="post" class="vehicle-form clearance-form" id="customerForm"
+                  data-upload-url="/customers/upload-document"
+                  data-parse-url="/customers/parse-id"
+                  data-document-base="/customers/documents/">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                <input type="hidden" name="ocrText" id="ocrText" th:value="*{ocrText}">
+                <input type="hidden" name="documentOriginalName" id="documentOriginalName" th:value="*{documentOriginalName}">
+                <input type="hidden" name="documentStoredName" id="documentStoredName" th:value="*{documentStoredName}">
+                <input type="hidden" name="documentContentType" id="documentContentType" th:value="*{documentContentType}">
+                <input type="hidden" name="backOcrText" id="ocrTextBack" th:value="*{backOcrText}">
+                <input type="hidden" name="backDocumentOriginalName" id="documentOriginalNameBack" th:value="*{backDocumentOriginalName}">
+                <input type="hidden" name="backDocumentStoredName" id="documentStoredNameBack" th:value="*{backDocumentStoredName}">
+                <input type="hidden" name="backDocumentContentType" id="documentContentTypeBack" th:value="*{backDocumentContentType}">
+                <div class="sheet-layout preship-layout">
+                    <div class="sheet-document-col">
+                        <div class="id-card-side">
+                            <aside class="panel sheet-document" id="sheetPreview"
+                                   th:classappend="${customer.documentStoredName != null and !#strings.isEmpty(customer.documentStoredName)} ? ' has-file' : ''">
+                                <div class="panel-head"><h2>Front</h2></div>
+                                <div class="sheet-preview-frame" id="sheetPreviewFrame"
+                                     th:with="hasDoc=${customer.documentStoredName != null and !#strings.isEmpty(customer.documentStoredName)},
+                                              isPdf=${customer.documentStoredName != null and #strings.endsWith(customer.documentStoredName, '.pdf')}">
+                                    <div class="sheet-preview-empty" id="sheetPreviewEmpty" th:hidden="${hasDoc}">
+                                        <i class="fa-solid fa-file-circle-plus"></i>
+                                        <strong>No preview yet</strong>
+                                        <span>Use <strong>Choose file</strong> to upload the front of the identity card.</span>
+                                    </div>
+                                    <img id="sheetPreviewImage" alt="Front of identity card" th:hidden="${!hasDoc or isPdf}"
+                                         th:src="${hasDoc and !isPdf} ? @{/customers/documents/{name}(name=${customer.documentStoredName})} : null">
+                                    <iframe id="sheetPreviewPdf" title="Front of identity card" th:hidden="${!hasDoc or !isPdf}"
+                                            th:src="${hasDoc and isPdf} ? @{/customers/documents/{name}(name=${customer.documentStoredName})} : null"></iframe>
+                                </div>
+                            </aside>
+                            <div th:replace="shared/document-upload-toolbar :: documentUploadToolbar(
+                                    'Front', '', ${customer.documentOriginalName},
+                                    'Choose a JPG, PNG, or PDF of the front.', 'google-only')"></div>
+                        </div>
+                        <div class="id-card-side">
+                            <aside class="panel sheet-document" id="sheetPreviewBack"
+                                   th:classappend="${customer.backDocumentStoredName != null and !#strings.isEmpty(customer.backDocumentStoredName)} ? ' has-file' : ''">
+                                <div class="panel-head"><h2>Back</h2></div>
+                                <div class="sheet-preview-frame" id="sheetPreviewFrameBack"
+                                     th:with="hasDoc=${customer.backDocumentStoredName != null and !#strings.isEmpty(customer.backDocumentStoredName)},
+                                              isPdf=${customer.backDocumentStoredName != null and #strings.endsWith(customer.backDocumentStoredName, '.pdf')}">
+                                    <div class="sheet-preview-empty" id="sheetPreviewEmptyBack" th:hidden="${hasDoc}">
+                                        <i class="fa-solid fa-file-circle-plus"></i>
+                                        <strong>No preview yet</strong>
+                                        <span>Use <strong>Choose file</strong> to upload the back of the identity card.</span>
+                                    </div>
+                                    <img id="sheetPreviewImageBack" alt="Back of identity card" th:hidden="${!hasDoc or isPdf}"
+                                         th:src="${hasDoc and !isPdf} ? @{/customers/documents/{name}(name=${customer.backDocumentStoredName})} : null">
+                                    <iframe id="sheetPreviewPdfBack" title="Back of identity card" th:hidden="${!hasDoc or !isPdf}"
+                                            th:src="${hasDoc and isPdf} ? @{/customers/documents/{name}(name=${customer.backDocumentStoredName})} : null"></iframe>
+                                </div>
+                            </aside>
+                            <div th:replace="shared/document-upload-toolbar :: documentUploadToolbar(
+                                    'Back', 'Back', ${customer.backDocumentOriginalName},
+                                    'Choose a JPG, PNG, or PDF of the back.', 'google-only')"></div>
+                        </div>
+                    </div>
+                    <div class="sheet-fields preship-fields">
+                        <article class="panel">
+                            <div class="panel-head"><h2>Customer</h2></div>
+                            <div class="field-grid">
+                                <label class="span-2">Full name<input type="text" name="fullName" id="buyerFullName" th:value="*{fullName}"></label>
+                                <label>NIC number<input type="text" name="nicNo" id="buyerNicNo" th:value="*{nicNo}"></label>
+                                <label>Date of birth<input type="date" class="native-date" name="dateOfBirth" id="buyerDateOfBirth" th:value="*{dateOfBirth}"></label>
+                                <label>Gender<input type="text" name="gender" id="gender" th:value="*{gender}"></label>
+                                <label class="span-2">Address<textarea name="address" id="buyerAddress" rows="3" th:text="*{address}"></textarea></label>
+                            </div>
+                            <div class="import-view-actions">
+                                <a class="panel-btn ghost" th:href="@{/customers}">Cancel</a>
+                                <button type="submit" class="panel-btn">Save and open import</button>
+                            </div>
+                        </article>
+                    </div>
+                </div>
+            </form>
+        </main>
+    </div>
+</div>
+<div id="sheetViewer" class="sheet-viewer" hidden>
+    <div class="sheet-viewer-toolbar">
+        <strong id="sheetViewerTitle">Identity card</strong>
+        <div class="sheet-viewer-tools">
+            <button type="button" class="panel-btn ghost" id="sheetViewerClose">Close</button>
+        </div>
+    </div>
+    <div class="sheet-viewer-body" id="sheetViewerBody">
+        <img id="sheetViewerImage" alt="Identity card">
+        <iframe id="sheetViewerPdf" title="Identity card PDF" hidden></iframe>
+    </div>
+</div>
+<div th:replace="shared/app-loader :: appLoader('fillLoader', 'Reading the identity card and filling fields...')"></div>
+<script th:src="@{/js/shared/app.js(v=20260905k)}"></script>
+<script th:src="@{/js/shared/document-viewer.js(v=20260826d)}"></script>
+<script th:src="@{/js/ready-for-sale/sell.js(v=20261018b)}"></script>
+</body>
+</html>

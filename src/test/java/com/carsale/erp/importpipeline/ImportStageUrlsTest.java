@@ -193,7 +193,7 @@ class ImportStageUrlsTest {
 
         String url = ImportStageUrls.redirectAfterExportSave("ABC123", keys);
 
-        assertEquals("/auction/ABC123?stage=grade", url);
+        assertEquals("/import/ABC123?stage=grade", url);
     }
 
     @Test
@@ -212,7 +212,7 @@ class ImportStageUrlsTest {
 
         String url = ImportStageUrls.redirectAfterGradeSave("ABC123", keys);
 
-        assertEquals("/auction/ABC123?stage=photos", url);
+        assertEquals("/import/ABC123?stage=photos", url);
     }
 
     private static PipelineStage stage(String key, int sortOrder) {

@@ -28,6 +28,7 @@ import com.carsale.erp.shared.vehicle.VehicleService;
 public class DashboardService {
 
     private static final int TABLE_LIMIT = 8;
+    static final int STOCK_PAGE_SIZE = 4;
 
     private final ReportService reportService;
     private final SaleLocationService saleLocationService;
@@ -48,6 +49,11 @@ public class DashboardService {
 
     @Transactional(readOnly = true)
     public DashboardPage build(String rawPeriod) {
+        return build(rawPeriod, 1);
+    }
+
+    @Transactional(readOnly = true)
+    public DashboardPage build(String rawPeriod, int rawPage) {
         final String period = normalizePeriod(rawPeriod);
         ReportService.ReportPage report = reportService.build(null, ReportService.ALL);
         List<SaleLocation> locations = saleLocationService.listAll();
@@ -272,7 +278,12 @@ public class DashboardService {
             shownMakes++;
         }
 
-        List<StockRow> stock = stockRows(periodRows, vehiclesByChassis, !"all".equals(period));
+        List<StockRow> allStock = stockRows(periodRows, vehiclesByChassis, !"all".equals(period));
+        int stockTotal = allStock.size();
+        int stockPages = stockPageCount(stockTotal);
+        int stockPage = clampStockPage(rawPage, stockPages);
+        List<StockRow> stock = stockPageSlice(allStock, stockPage);
+        List<Integer> stockPageNumbers = stockPageNumbers(stockPage, stockPages);
         List<PlaceOption> places = placeOptions(locations);
 
         int available = readyCount + listedCount;
@@ -379,6 +390,10 @@ public class DashboardService {
                 soldTotal,
                 makes,
                 stock,
+                stockPage,
+                stockPages,
+                stockTotal,
+                stockPageNumbers,
                 places
         );
     }
@@ -424,11 +439,73 @@ public class DashboardService {
                     row.getSection(),
                     place
             ));
-            if (stock.size() >= TABLE_LIMIT) {
-                break;
-            }
         }
         return stock;
+    }
+
+    static int stockPageCount(int total) {
+        if (total <= 0) {
+            return 0;
+        }
+        return (total + STOCK_PAGE_SIZE - 1) / STOCK_PAGE_SIZE;
+    }
+
+    static int clampStockPage(int page, int pages) {
+        if (pages <= 0) {
+            return 1;
+        }
+        if (page < 1) {
+            return 1;
+        }
+        if (page > pages) {
+            return pages;
+        }
+        return page;
+    }
+
+    static <T> List<T> stockPageSlice(List<T> rows, int page) {
+        int total = rows.size();
+        if (total == 0) {
+            return rows;
+        }
+        int safePage = clampStockPage(page, stockPageCount(total));
+        int from = (safePage - 1) * STOCK_PAGE_SIZE;
+        int to = Math.min(from + STOCK_PAGE_SIZE, total);
+        return new ArrayList<T>(rows.subList(from, to));
+    }
+
+    static List<Integer> stockPageNumbers(int page, int pages) {
+        List<Integer> numbers = new ArrayList<Integer>();
+        if (pages <= 1) {
+            return numbers;
+        }
+        if (pages <= 7) {
+            for (int number = 1; number <= pages; number++) {
+                numbers.add(Integer.valueOf(number));
+            }
+            return numbers;
+        }
+        numbers.add(Integer.valueOf(1));
+        int start = Math.max(2, page - 1);
+        int end = Math.min(pages - 1, page + 1);
+        if (page <= 3) {
+            start = 2;
+            end = 4;
+        } else if (page >= pages - 2) {
+            start = pages - 3;
+            end = pages - 1;
+        }
+        if (start > 2) {
+            numbers.add(Integer.valueOf(0));
+        }
+        for (int number = start; number <= end; number++) {
+            numbers.add(Integer.valueOf(number));
+        }
+        if (end < pages - 1) {
+            numbers.add(Integer.valueOf(0));
+        }
+        numbers.add(Integer.valueOf(pages));
+        return numbers;
     }
 
     private List<PlaceOption> placeOptions(List<SaleLocation> locations) {
@@ -722,6 +799,10 @@ public class DashboardService {
         private final int soldTotal;
         private final List<MakeBar> makes;
         private final List<StockRow> stock;
+        private final int stockPage;
+        private final int stockPages;
+        private final int stockTotal;
+        private final List<Integer> stockPageNumbers;
         private final List<PlaceOption> places;
 
         public DashboardPage(
@@ -747,6 +828,10 @@ public class DashboardService {
                 int soldTotal,
                 List<MakeBar> makes,
                 List<StockRow> stock,
+                int stockPage,
+                int stockPages,
+                int stockTotal,
+                List<Integer> stockPageNumbers,
                 List<PlaceOption> places
         ) {
             this.summary = summary;
@@ -771,6 +856,10 @@ public class DashboardService {
             this.soldTotal = soldTotal;
             this.makes = makes;
             this.stock = stock;
+            this.stockPage = stockPage;
+            this.stockPages = stockPages;
+            this.stockTotal = stockTotal;
+            this.stockPageNumbers = stockPageNumbers;
             this.places = places;
         }
 
@@ -796,6 +885,21 @@ public class DashboardService {
         public int getSoldTotal() { return soldTotal; }
         public List<MakeBar> getMakes() { return makes; }
         public List<StockRow> getStock() { return stock; }
+        public int getStockPage() { return stockPage; }
+        public int getStockPages() { return stockPages; }
+        public int getStockTotal() { return stockTotal; }
+        public int getStockPageSize() { return STOCK_PAGE_SIZE; }
+        public List<Integer> getStockPageNumbers() { return stockPageNumbers; }
+
+        public String getStockRange() {
+            if (stock.isEmpty() || stockTotal <= 0) {
+                return "";
+            }
+            int from = (stockPage - 1) * STOCK_PAGE_SIZE + 1;
+            int to = from + stock.size() - 1;
+            return from + "–" + to + " of " + stockTotal;
+        }
+
         public List<PlaceOption> getPlaces() { return places; }
     }
 

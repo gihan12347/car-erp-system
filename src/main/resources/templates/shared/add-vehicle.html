@@ -19,8 +19,8 @@
         </div>
         <div class="add-vehicle-lanes">
             <section class="add-vehicle-lane" aria-labelledby="addVehicleImport">
-                <h3 id="addVehicleImport">Import pipeline</h3>
-                <a class="add-vehicle-choice" th:href="@{/auction/new}">
+                <h3 id="addVehicleImport">Unregistered vehicle</h3>
+                <button type="button" class="add-vehicle-choice" data-intake-choice="company">
                     <span class="add-vehicle-icon is-company" aria-hidden="true">
                         <svg viewBox="0 0 24 24">
                             <path d="M5.4 19.6h13.2V8.6L12 4.6 5.4 8.6z"/>
@@ -32,8 +32,8 @@
                         <em>Auction or overseas stock for the company</em>
                     </span>
                     <svg class="add-vehicle-go" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg>
-                </a>
-                <a class="add-vehicle-choice" th:href="@{/auction/new}">
+                </button>
+                <button type="button" class="add-vehicle-choice" data-intake-choice="personal">
                     <span class="add-vehicle-icon is-personal" aria-hidden="true">
                         <svg viewBox="0 0 24 24">
                             <circle class="av-head" cx="12" cy="8" r="3"/>
@@ -45,8 +45,8 @@
                         <em>Bought for a named owner</em>
                     </span>
                     <svg class="add-vehicle-go" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg>
-                </a>
-                <a class="add-vehicle-choice" th:href="@{/auction/new}">
+                </button>
+                <button type="button" class="add-vehicle-choice" data-intake-choice="local">
                     <span class="add-vehicle-icon is-local" aria-hidden="true">
                         <svg viewBox="0 0 24 24">
                             <path class="av-body" d="M3.8 14.2 6.2 9h11.6l2.4 5.2v3.4H3.8z"/>
@@ -59,10 +59,10 @@
                         <em>Local buy that still enters import</em>
                     </span>
                     <svg class="add-vehicle-go" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg>
-                </a>
+                </button>
             </section>
             <section class="add-vehicle-lane is-prep" aria-labelledby="addVehiclePrep">
-                <h3 id="addVehiclePrep">Preparation pipeline</h3>
+                <h3 id="addVehiclePrep">Registered vehicle</h3>
                 <a class="add-vehicle-choice is-prep" th:href="@{/workshop-yard/new}">
                     <span class="add-vehicle-icon is-registered" aria-hidden="true">
                         <svg viewBox="0 0 24 24">
@@ -80,37 +80,136 @@
         </div>
     </div>
 </div>
+<div class="add-vehicle-modal" id="pipelineChoiceModal" hidden>
+    <button type="button" class="add-vehicle-backdrop" data-pipeline-back aria-label="Back"></button>
+    <div class="add-vehicle-dialog" role="dialog" aria-modal="true" aria-labelledby="pipelineChoiceTitle">
+        <div class="add-vehicle-head">
+            <span class="add-vehicle-mark" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="M4 16.5h16"/><path d="M6 16.5V9.2L12 5.4l6 3.8v7.3"/><path d="M9.2 16.5v-3.2h5.6v3.2"/></svg>
+            </span>
+            <div class="add-vehicle-title">
+                <p class="add-vehicle-kicker" id="pipelineChoiceKicker">Company import</p>
+                <h2 id="pipelineChoiceTitle">Choose pipelines</h2>
+                <p>Select the pipelines to use. Anything left out is skipped, and those stages can be filled later.</p>
+            </div>
+            <button type="button" class="add-vehicle-close" data-pipeline-back aria-label="Back">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7l10 10M17 7 7 17"/></svg>
+            </button>
+        </div>
+        <div class="add-vehicle-lanes">
+            <section class="add-vehicle-lane" aria-labelledby="pipelineChoiceList">
+                <h3 id="pipelineChoiceList">Pipelines</h3>
+                <button type="button" class="add-vehicle-choice is-picked" data-pipeline="importPipeline" aria-pressed="true">
+                    <span class="add-vehicle-icon is-company" aria-hidden="true">
+                        <svg viewBox="0 0 24 24"><path d="M4 7.2h16v3.2H4z"/><path d="M6.2 10.4h11.6V18H6.2z"/></svg>
+                    </span>
+                    <span class="add-vehicle-copy">
+                        <strong>Import</strong>
+                        <em>Auction sheet through certificates and the working sheet</em>
+                    </span>
+                    <svg class="add-vehicle-go" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 12.5 10 16.5 18 8"/></svg>
+                </button>
+                <button type="button" class="add-vehicle-choice is-picked" data-pipeline="customs" aria-pressed="true">
+                    <span class="add-vehicle-icon is-personal" aria-hidden="true">
+                        <svg viewBox="0 0 24 24"><path d="M7 3.6h7.2L18.4 8v12.4H7z"/><path d="M9.2 12.2h6.4M9.2 15.4h6.4"/></svg>
+                    </span>
+                    <span class="add-vehicle-copy">
+                        <strong>Custom clearance</strong>
+                        <em>Bill of lading, CUSDEC, and assessment</em>
+                    </span>
+                    <svg class="add-vehicle-go" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 12.5 10 16.5 18 8"/></svg>
+                </button>
+                <button type="button" class="add-vehicle-choice is-picked" data-pipeline="prep" aria-pressed="true">
+                    <span class="add-vehicle-icon is-local" aria-hidden="true">
+                        <svg viewBox="0 0 24 24"><path d="M14.2 4.2 16.6 6.6 8.4 14.8 4.6 16.2 6 12.4z"/><path d="M13.2 5.2 15.6 7.6"/></svg>
+                    </span>
+                    <span class="add-vehicle-copy">
+                        <strong>Preparation</strong>
+                        <em>Inspection, workshop, and yard</em>
+                    </span>
+                    <svg class="add-vehicle-go" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 12.5 10 16.5 18 8"/></svg>
+                </button>
+            </section>
+        </div>
+        <div class="add-vehicle-actions">
+            <button type="button" class="panel-btn ghost" data-pipeline-back>Back</button>
+            <button type="button" class="panel-btn" id="pipelineChoiceContinue">Continue</button>
+        </div>
+    </div>
+</div>
 <script>
 (function () {
     var modal = document.getElementById("addVehicleModal");
-    if (!modal) {
+    var pipelineModal = document.getElementById("pipelineChoiceModal");
+    if (!modal || !pipelineModal) {
         return;
     }
     var lastTrigger = null;
+    var intakeKind = "company";
+    var intakeLabels = {
+        company: "Company import",
+        personal: "Personal import",
+        local: "Local purchase (Unregister)"
+    };
+
+    function show(dialog) {
+        dialog.hidden = false;
+        dialog.classList.remove("is-shown");
+        void dialog.offsetWidth;
+        dialog.classList.add("is-shown");
+        document.body.classList.add("add-vehicle-open");
+    }
+
+    function hide(dialog) {
+        dialog.hidden = true;
+        dialog.classList.remove("is-shown");
+    }
 
     function openModal(trigger) {
         lastTrigger = trigger || null;
-        modal.hidden = false;
-        modal.classList.remove("is-shown");
-        void modal.offsetWidth;
-        modal.classList.add("is-shown");
-        document.body.classList.add("add-vehicle-open");
+        hide(pipelineModal);
+        show(modal);
         var closeBtn = modal.querySelector(".add-vehicle-close");
         if (closeBtn) {
             closeBtn.focus();
         }
     }
 
-    function closeModal() {
-        if (modal.hidden) {
+    function closeAll() {
+        var wasOpen = !modal.hidden || !pipelineModal.hidden;
+        hide(modal);
+        hide(pipelineModal);
+        if (!wasOpen) {
             return;
         }
-        modal.hidden = true;
-        modal.classList.remove("is-shown");
         document.body.classList.remove("add-vehicle-open");
         if (lastTrigger && typeof lastTrigger.focus === "function") {
             lastTrigger.focus();
         }
+    }
+
+    function openPipeline(kind) {
+        intakeKind = kind || "company";
+        var kicker = document.getElementById("pipelineChoiceKicker");
+        if (kicker) {
+            kicker.textContent = intakeLabels[intakeKind] || intakeLabels.company;
+        }
+        var choices = pipelineModal.querySelectorAll("[data-pipeline]");
+        for (var i = 0; i < choices.length; i++) {
+            choices[i].classList.add("is-picked");
+            choices[i].setAttribute("aria-pressed", "true");
+        }
+        hide(modal);
+        show(pipelineModal);
+        var back = pipelineModal.querySelector(".add-vehicle-close");
+        if (back) {
+            back.focus();
+        }
+    }
+
+    function backToIntake() {
+        hide(pipelineModal);
+        show(modal);
     }
 
     document.addEventListener("click", function (event) {
@@ -120,17 +219,55 @@
             openModal(openBtn);
             return;
         }
+        var intakeBtn = event.target.closest ? event.target.closest("[data-intake-choice]") : null;
+        if (intakeBtn && modal.contains(intakeBtn)) {
+            event.preventDefault();
+            openPipeline(intakeBtn.getAttribute("data-intake-choice"));
+            return;
+        }
+        var pipelineBtn = event.target.closest ? event.target.closest("[data-pipeline]") : null;
+        if (pipelineBtn && pipelineModal.contains(pipelineBtn)) {
+            event.preventDefault();
+            var picked = pipelineBtn.classList.toggle("is-picked");
+            pipelineBtn.setAttribute("aria-pressed", picked ? "true" : "false");
+            return;
+        }
+        var backBtn = event.target.closest ? event.target.closest("[data-pipeline-back]") : null;
+        if (backBtn && pipelineModal.contains(backBtn)) {
+            event.preventDefault();
+            backToIntake();
+            return;
+        }
         var closeBtn = event.target.closest ? event.target.closest("[data-add-vehicle-close]") : null;
         if (closeBtn && modal.contains(closeBtn)) {
             event.preventDefault();
-            closeModal();
+            closeAll();
+            return;
+        }
+        if (event.target.id === "pipelineChoiceContinue") {
+            event.preventDefault();
+            var params = ["intake=" + encodeURIComponent(intakeKind)];
+            var choices = pipelineModal.querySelectorAll("[data-pipeline]");
+            for (var i = 0; i < choices.length; i++) {
+                var name = choices[i].getAttribute("data-pipeline");
+                params.push(name + "=" + (choices[i].classList.contains("is-picked") ? "1" : "0"));
+            }
+            window.location.href = "/intake/start?" + params.join("&");
         }
     });
 
     document.addEventListener("keydown", function (event) {
-        if (event.key === "Escape" && !modal.hidden) {
+        if (event.key !== "Escape") {
+            return;
+        }
+        if (!pipelineModal.hidden) {
             event.stopPropagation();
-            closeModal();
+            backToIntake();
+            return;
+        }
+        if (!modal.hidden) {
+            event.stopPropagation();
+            closeAll();
         }
     });
 })();

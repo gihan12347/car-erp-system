@@ -617,7 +617,7 @@ public class PipelineStageService implements CommandLineRunner {
         }
     }
 
-    public static NavLinks viewLinks(String chassisNo, int stageIndex, PipelineProgress status, List<PipelineStage> stages, FlowPipeline flowPipeline) {
+    public static NavLinks viewLinks(String chassisNo, int stageIndex, PipelineProgress progress, List<PipelineStage> stages, FlowPipeline flowPipeline) {
         String encoded = PipelineStageUtils.encode(chassisNo);
         String viewBase = flowPipeline.getCurrentBase() + encoded;
         FlowPipeline pipeline = FlowPipeline.findPipelineBySortOrder(flowPipeline.getSortOrder() + 1);
@@ -629,7 +629,7 @@ public class PipelineStageService implements CommandLineRunner {
         String nextLabel = "Next";
         if (stageIndex < stages.size() - 1) {
             String nextKey = stageKeyAt(stages, stageIndex + 1);
-            if (isStageComplete(nextKey, status)) {
+            if (isStageComplete(nextKey, progress)) {
                 nextUrl = PipelineStageUtils.viewUrl(viewBase, nextKey);
                 nextLabel = labeled("Next · ", titleFor(nextKey), "Next");
             } else {
@@ -638,10 +638,10 @@ public class PipelineStageService implements CommandLineRunner {
                         ? labeled("Continue ", lower(titleFor(nextKey)), "Continue")
                         : "Next";
             }
-        } else if (flowPipeline == FlowPipeline.PREP && status.isPipelineCompleted()) {
+        } else if (flowPipeline == FlowPipeline.PREP && progress.isPipelineCompleted()) {
             nextUrl = "/yards";
             nextLabel = "Yard";
-        } else if (pipeline != null && status.isPipelineCompleted()) {
+        } else if (pipeline != null && progress.isPipelineCompleted()) {
             nextUrl = pipeline.getCurrentBase() + encoded;
             nextLabel = pipeline.getTitle();
         } else {

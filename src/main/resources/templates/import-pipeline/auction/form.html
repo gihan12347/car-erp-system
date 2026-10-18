@@ -26,7 +26,12 @@
                         th:text="${'Step ' + @pipelineStageService.displayNumber('IMPORT', 'auction') + ' · Edit auction lot'}">Step 1 · Edit auction lot</h1>
                     <h1 th:unless="${editMode}"
                         th:text="${'Step ' + @pipelineStageService.displayNumber('IMPORT', currentStage) + ' · ' + @pipelineStageService.title('IMPORT', currentStage)}">Step 1 · Add auction lot</h1>
-                    <p class="form-lead" th:if="${editMode or currentStage == 'auction'}">
+                    <p class="form-lead" th:if="${personalCustomer != null}">
+                        Personal import for
+                        <strong th:text="${personalCustomer.fullName != null ? personalCustomer.fullName : personalCustomer.nicNo}">customer</strong>.
+                        Enter the chassis number and save to link this customer to the vehicle.
+                    </p>
+                    <p class="form-lead" th:if="${personalCustomer == null and (editMode or currentStage == 'auction')}">
                         Upload the Japanese auction sheet. The document saves immediately and links when you save the lot.
                         <th:block th:if="${!editMode and continueTarget != null and !#strings.isEmpty(continueTarget)}">
                             Then continue to <span th:text="${@pipelineStageService.title('IMPORT', continueTarget)}">pre-shipment</span>.

@@ -136,7 +136,7 @@
                             <td>
                                 <div class="table-row-actions">
                                     <a class="table-btn view"
-                                       th:href="${row.section == 'customs'} ? @{/customs/{c}(c=${row.chassisNo})} : (${row.section == 'preparation'} ? @{/workshop-yard/{c}(c=${row.chassisNo})} : (${row.section == 'import'} ? @{/auction/{c}(c=${row.chassisNo})} : @{/ready-for-sale/{c}(c=${row.chassisNo})}))">
+                                       th:href="${row.section == 'customs'} ? @{/customs/{c}(c=${row.chassisNo})} : (${row.section == 'preparation'} ? @{/workshop-yard/{c}(c=${row.chassisNo})} : (${row.section == 'import'} ? @{/import/{c}(c=${row.chassisNo})} : @{/ready-for-sale/{c}(c=${row.chassisNo})}))">
                                         <i class="fa-solid fa-eye"></i>
                                         <span>View</span>
                                     </a>

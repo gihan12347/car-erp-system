@@ -1,5 +1,7 @@
 package com.carsale.erp.readypipeline.service;
 
+import com.carsale.erp.customer.Customer;
+import com.carsale.erp.customer.CustomerRepository;
 import com.carsale.erp.readypipeline.model.SaleLocation;
 import com.carsale.erp.readypipeline.model.SaleListing;
 import com.carsale.erp.readypipeline.repository.SaleListingRepository;
@@ -23,6 +25,7 @@ public class SaleListingService {
 
     private final VehicleRepository vehicleRepository;
     private final SaleListingRepository saleListingRepository;
+    private final CustomerRepository customerRepository;
     private final SaleLocationService saleLocationService;
     private final VehicleRegistrationService vehicleRegistrationService;
     private final SkippedStageService skippedStageService;
@@ -50,7 +53,85 @@ public class SaleListingService {
         if (dateOfBirth != null) {
             record.setBuyerDateOfBirth(dateOfBirth);
         }
+        rememberCustomerIdentity(record);
         return record;
+    }
+
+    @Transactional
+    public SaleListing listingForView(String chassisNo) {
+        SaleListing listing = findByChassisNo(chassisNo);
+        Customer customer = customerRepository.findFirstByChassisNo(chassisNo).orElse(null);
+        if (!hasCustomerIdentity(customer)) {
+            return listing;
+        }
+        if (listing == null) {
+            listing = new SaleListing();
+            listing.setChassisNo(chassisNo);
+        }
+        if (copyBuyerIdentity(listing, customer)) {
+            listing = saleListingRepository.save(listing);
+        }
+        return listing;
+    }
+
+    private void rememberCustomerIdentity(SaleListing record) {
+        if (record == null || isBlank(record.getChassisNo())) {
+            return;
+        }
+        Customer customer = customerRepository.findFirstByChassisNo(record.getChassisNo().trim()).orElse(null);
+        if (!hasCustomerIdentity(customer)) {
+            return;
+        }
+        if (copyBuyerIdentity(record, customer)) {
+            saleListingRepository.save(record);
+        }
+    }
+
+    static boolean copyBuyerIdentity(SaleListing listing, Customer customer) {
+        if (listing == null || !hasCustomerIdentity(customer)) {
+            return false;
+        }
+        boolean changed = false;
+        changed = fill(listing.getBuyerFullName(), customer.getFullName(), listing::setBuyerFullName) || changed;
+        changed = fill(listing.getBuyerNicNo(), customer.getNicNo(), listing::setBuyerNicNo) || changed;
+        changed = fill(listing.getBuyerAddress(), customer.getAddress(), listing::setBuyerAddress) || changed;
+        changed = fill(listing.getBuyerGender(), customer.getGender(), listing::setBuyerGender) || changed;
+        String dob = SaleListing.toIsoDate(customer.getDateOfBirth());
+        if (dob == null) {
+            dob = textOrNull(customer.getDateOfBirth());
+        }
+        changed = fill(listing.getBuyerDateOfBirth(), dob, listing::setBuyerDateOfBirth) || changed;
+        changed = fill(listing.getBuyerOcrText(), customer.getOcrText(), listing::setBuyerOcrText) || changed;
+        changed = fill(listing.getBuyerDocumentOriginalName(), customer.getDocumentOriginalName(), listing::setBuyerDocumentOriginalName) || changed;
+        changed = fill(listing.getBuyerDocumentStoredName(), customer.getDocumentStoredName(), listing::setBuyerDocumentStoredName) || changed;
+        changed = fill(listing.getBuyerDocumentContentType(), customer.getDocumentContentType(), listing::setBuyerDocumentContentType) || changed;
+        changed = fill(listing.getBuyerBackOcrText(), customer.getBackOcrText(), listing::setBuyerBackOcrText) || changed;
+        changed = fill(listing.getBuyerBackDocumentOriginalName(), customer.getBackDocumentOriginalName(), listing::setBuyerBackDocumentOriginalName) || changed;
+        changed = fill(listing.getBuyerBackDocumentStoredName(), customer.getBackDocumentStoredName(), listing::setBuyerBackDocumentStoredName) || changed;
+        changed = fill(listing.getBuyerBackDocumentContentType(), customer.getBackDocumentContentType(), listing::setBuyerBackDocumentContentType) || changed;
+        return changed;
+    }
+
+    private static boolean hasCustomerIdentity(Customer customer) {
+        if (customer == null) {
+            return false;
+        }
+        return !isBlank(customer.getFullName())
+                || !isBlank(customer.getNicNo())
+                || !isBlank(customer.getDocumentStoredName())
+                || !isBlank(customer.getBackDocumentStoredName());
+    }
+
+    private static boolean fill(String current, String incoming, java.util.function.Consumer<String> setter) {
+        if (!isBlank(current) || isBlank(incoming)) {
+            return false;
+        }
+        setter.accept(incoming.trim());
+        return true;
+    }
+
+    private static String textOrNull(String value) {
+        return isBlank(value) ? null : value.trim();
     }
 
     public boolean isAssignedToSale(String chassisNo) {

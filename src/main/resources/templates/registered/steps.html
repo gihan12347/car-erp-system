@@ -37,7 +37,8 @@
             th:style="'--pipeline-cols: ' + (${registeredComplete} ? 4 : 3)">
             <li data-registered-step="book"
                 th:classappend="${(currentStep == 'book' ? ' is-current' : '') + (bookFilled ? ' is-done' : (bookSkipped ? ' is-skipped' : ' is-pending'))}">
-                <a th:href="@{/workshop-yard/{c}/certificate(c=${chassisNo})}" class="import-pipeline-step">
+                <a th:if="${chassisNo != null and !#strings.isEmpty(chassisNo)}"
+                   th:href="@{/workshop-yard/{c}/certificate(c=${chassisNo})}" class="import-pipeline-step">
                     <span class="import-pipeline-step-icon">
                         <i th:if="${bookFilled}" class="fa-solid fa-check"></i>
                         <span th:unless="${bookFilled}">1</span>
@@ -49,10 +50,19 @@
                             th:text="${bookFilled} ? 'Complete' : 'Pending'">Pending</em>
                     </span>
                 </a>
+                <span th:unless="${chassisNo != null and !#strings.isEmpty(chassisNo)}" class="import-pipeline-step is-static">
+                    <span class="import-pipeline-step-icon"><span>1</span></span>
+                    <span class="import-pipeline-step-copy">
+                        <strong>Vehicle book</strong>
+                        <small>Certificate of registration</small>
+                        <em class="pipeline-step-status pending">Pending</em>
+                    </span>
+                </span>
             </li>
             <li data-registered-step="photos"
                 th:classappend="${(currentStep == 'photos' ? ' is-current' : '') + (photosFilled ? ' is-done' : (photosSkipped ? ' is-skipped' : ' is-pending'))}">
-                <a th:href="@{/registered/{c}/photos(c=${chassisNo})}" class="import-pipeline-step">
+                <a th:if="${chassisNo != null and !#strings.isEmpty(chassisNo)}"
+                   th:href="@{/registered/{c}/photos(c=${chassisNo})}" class="import-pipeline-step">
                     <span class="import-pipeline-step-icon">
                         <i th:if="${photosFilled}" class="fa-solid fa-check"></i>
                         <span th:unless="${photosFilled}">2</span>
@@ -64,10 +74,19 @@
                             th:text="${photosFilled} ? 'Complete' : 'Pending'">Pending</em>
                     </span>
                 </a>
+                <span th:unless="${chassisNo != null and !#strings.isEmpty(chassisNo)}" class="import-pipeline-step is-static">
+                    <span class="import-pipeline-step-icon"><span>2</span></span>
+                    <span class="import-pipeline-step-copy">
+                        <strong>Images</strong>
+                        <small>Save the vehicle book first</small>
+                        <em class="pipeline-step-status pending">Pending</em>
+                    </span>
+                </span>
             </li>
             <li data-registered-step="owner"
                 th:classappend="${(currentStep == 'owner' ? ' is-current' : '') + (ownerFilled ? ' is-done' : (ownerSkipped ? ' is-skipped' : ' is-pending'))}">
-                <a th:href="@{/registered/{c}/owner(c=${chassisNo})}" class="import-pipeline-step">
+                <a th:if="${chassisNo != null and !#strings.isEmpty(chassisNo)}"
+                   th:href="@{/registered/{c}/owner(c=${chassisNo})}" class="import-pipeline-step">
                     <span class="import-pipeline-step-icon">
                         <i th:if="${ownerFilled}" class="fa-solid fa-check"></i>
                         <span th:unless="${ownerFilled}">3</span>
@@ -79,6 +98,14 @@
                             th:text="${ownerFilled} ? 'Complete' : 'Pending'">Pending</em>
                     </span>
                 </a>
+                <span th:unless="${chassisNo != null and !#strings.isEmpty(chassisNo)}" class="import-pipeline-step is-static">
+                    <span class="import-pipeline-step-icon"><span>3</span></span>
+                    <span class="import-pipeline-step-copy">
+                        <strong>Previous owner</strong>
+                        <small>Save the vehicle book first</small>
+                        <em class="pipeline-step-status pending">Pending</em>
+                    </span>
+                </span>
             </li>
             <li th:if="${registeredComplete}" class="is-workshop-next">
                 <a th:href="@{/workshop-yard/{c}(c=${chassisNo})}"

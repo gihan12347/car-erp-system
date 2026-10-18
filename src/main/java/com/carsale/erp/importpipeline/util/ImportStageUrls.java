@@ -21,12 +21,12 @@ public final class ImportStageUrls {
     public static String pipelineHubUrl(String chassisNo, ImportProgress status, List<String> keys) {
         String encoded = PipelineStageUtils.encode(chassisNo);
         if (status.isPipelineCompleted()) {
-            return "/auction/" + encoded;
+            return hubUrl(encoded);
         }
         if (!status.hasAnyCompletedStage()) {
             return firstIncompleteEditUrl(encoded, status, keys);
         }
-        return "/auction/" + encoded;
+        return hubUrl(encoded);
     }
 
     public static String redirectAfterNewVehicle(String chassisNo, ImportProgress status, List<String> keys) {
@@ -136,7 +136,11 @@ public final class ImportStageUrls {
                 }
             }
         }
-        return "/auction/" + encoded;
+        return hubUrl(encoded);
+    }
+
+    private static String hubUrl(String encoded) {
+        return FlowPipeline.IMPORT.getCurrentBase() + encoded;
     }
 
 }

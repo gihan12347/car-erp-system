@@ -136,6 +136,13 @@ class AuctionSheetPipelineTest {
     }
 
     @Test
+    void textWithoutVehicleNameDoesNotThrow() {
+        AuctionParseResult result = parser.parsePage("Auction sheet with no identity labels.");
+        assertTrue(result.getFields() != null);
+        assertTrue(result.getMessage() != null && !result.getMessage().isEmpty());
+    }
+
+    @Test
     void emptyDocumentAiResultDoesNotThrow() {
         AuctionParseResult result = parser.parsePage(
                 new DocumentAiClient.DocumentAiResult(" ", Collections.emptyList()));

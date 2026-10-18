@@ -45,6 +45,7 @@ public class DatabaseSchemaUpdater implements CommandLineRunner {
         addStandardsCertificateColumns();
         addVehicleSkippedStagesColumn();
         addVehicleIntakeColumn();
+        addVehicleSelectedPipelinesColumn();
         createExportCertificatesTable();
         addExportCertificateColumns();
         createGradeSearchesTable();
@@ -56,6 +57,7 @@ public class DatabaseSchemaUpdater implements CommandLineRunner {
         addSaleListingSaleColumns();
         addSaleListingAssignmentCompleteColumn();
         addSaleListingBuyerColumns();
+        addCustomerIdBackColumns();
         createVehicleRegistrationsTable();
         createVehicleInspectionsTable();
         createVehicleInspectionLinesTable();
@@ -246,6 +248,37 @@ public class DatabaseSchemaUpdater implements CommandLineRunner {
         );
     }
 
+    private void addCustomerIdBackColumns() {
+        addCustomerColumn(
+                "back_document_original_name",
+                "ALTER TABLE customers ADD COLUMN back_document_original_name VARCHAR(255) NULL"
+        );
+        addCustomerColumn(
+                "back_document_stored_name",
+                "ALTER TABLE customers ADD COLUMN back_document_stored_name VARCHAR(120) NULL"
+        );
+        addCustomerColumn(
+                "back_document_content_type",
+                "ALTER TABLE customers ADD COLUMN back_document_content_type VARCHAR(80) NULL"
+        );
+        addCustomerColumn(
+                "back_ocr_text",
+                "ALTER TABLE customers ADD COLUMN back_ocr_text TEXT NULL"
+        );
+    }
+
+    private void addCustomerColumn(String column, String sql) {
+        if (hasTableColumn("customers", column)) {
+            return;
+        }
+        try {
+            jdbcTemplate.execute(sql);
+            log.info("Added customers.{}", column);
+        } catch (Exception ex) {
+            log.warn("Could not add customers.{}: {}", column, ex.getMessage());
+        }
+    }
+
     private void addSaleListingColumn(String column, String sql) {
         if (hasTableColumn("sale_listings", column)) {
             return;
@@ -427,6 +460,18 @@ public class DatabaseSchemaUpdater implements CommandLineRunner {
             log.info("Added vehicles.intake");
         } catch (Exception ex) {
             log.warn("Could not add vehicles.intake: {}", ex.getMessage());
+        }
+    }
+
+    private void addVehicleSelectedPipelinesColumn() {
+        if (hasTableColumn("vehicles", "selected_pipelines")) {
+            return;
+        }
+        try {
+            jdbcTemplate.execute("ALTER TABLE vehicles ADD COLUMN selected_pipelines VARCHAR(40) NULL");
+            log.info("Added vehicles.selected_pipelines");
+        } catch (Exception ex) {
+            log.warn("Could not add vehicles.selected_pipelines: {}", ex.getMessage());
         }
     }
 

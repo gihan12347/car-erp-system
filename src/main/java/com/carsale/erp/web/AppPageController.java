@@ -23,10 +23,14 @@ public class AppPageController {
     }
 
     @GetMapping("/dashboard")
-    public String dashboard(@RequestParam(value = "period", required = false) String period, Model model) {
+    public String dashboard(
+            @RequestParam(value = "period", required = false) String period,
+            @RequestParam(value = "page", defaultValue = "1") int page,
+            Model model
+    ) {
         model.addAttribute("pageTitle", "Dashboard");
         model.addAttribute("activeMenu", "dashboard");
-        model.addAttribute("dash", dashboardService.build(period));
+        model.addAttribute("dash", dashboardService.build(period, page));
         return "dashboard";
     }
 
@@ -44,7 +48,7 @@ public class AppPageController {
 
     @GetMapping("/vehicles/{id}")
     public String legacyVehicleDetail(@PathVariable Long id) {
-        return "redirect:/auction/" + id;
+        return "redirect:/import/" + id;
     }
 
     @GetMapping("/vehicles/{id}/edit")
@@ -61,12 +65,6 @@ public class AppPageController {
     public String sales(Model model) {
         return module(model, "Sales", "sales", "fa-tags",
                 "Quotations, invoices, and completed vehicle sales.");
-    }
-
-    @GetMapping("/customers")
-    public String customers(Model model) {
-        return module(model, "Customers", "customers", "fa-users",
-                "Buyer profiles, inquiries, and communication history.");
     }
 
     @GetMapping("/finance")

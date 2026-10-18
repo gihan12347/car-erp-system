@@ -91,13 +91,13 @@
                                             th:classappend="${(skipped ? ' is-skipped' : (ready ? ' is-done' : (current ? ' is-current' : ' is-pending'))) + ((ready or skipped) and (nextReady or nextSkipped) ? ' is-linked' : '')}"
                                             th:style="'--step:' + ${iter.index}">
                                             <a th:if="${ready}"
-                                               th:href="@{/auction/{c}(c=${row.vehicle.chassisNo}, stage=${stage.stageKey})}"
+                                               th:href="@{/import/{c}(c=${row.vehicle.chassisNo}, stage=${stage.stageKey})}"
                                                class="list-pipeline-node"
                                                th:title="${stage.title + ' — complete'}">
                                                 <th:block th:replace="~{import-pipeline/fragments/stage-icon :: icon(${stage.stageKey})}"></th:block>
                                             </a>
                                             <a th:if="${skipped}"
-                                               th:href="@{/auction/{c}(c=${row.vehicle.chassisNo}, stage=${stage.stageKey})}"
+                                               th:href="@{/import/{c}(c=${row.vehicle.chassisNo}, stage=${stage.stageKey})}"
                                                class="list-pipeline-node"
                                                th:title="${stage.title + ' — skipped'}">
                                                 <th:block th:replace="~{import-pipeline/fragments/stage-icon :: icon(${stage.stageKey})}"></th:block>
@@ -130,7 +130,7 @@
                             </td>
                             <td class="pipeline-actions-cell">
                                 <div class="table-row-actions">
-                                    <a th:href="@{/auction/{c}(c=${row.vehicle.chassisNo})}" class="table-btn view">
+                                    <a th:href="@{/import/{c}(c=${row.vehicle.chassisNo})}" class="table-btn view">
                                         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12S6 6.5 12 6.5 21.5 12 21.5 12 18 17.5 12 17.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="2.4"/></svg>
                                         <span>View</span>
                                     </a>

@@ -176,7 +176,7 @@ public class OcrImagePreparer {
             }
             return parser.parsePage(documentAi);
         } catch (Exception ex) {
-            log.warn("Document AI failed for {}: {}", parser.getDocumentName(), ex.getMessage());
+            log.warn("Document AI failed for {}: {}", parser.getDocumentName(), ex.toString());
             return null;
         }
     }

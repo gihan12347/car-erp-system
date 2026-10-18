@@ -6,7 +6,7 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public enum FlowPipeline {
-    IMPORT("IMPORT", "Import pipeline", "Auction, pre-shipment, equipment, JEVIC, inspection, standards, export, grade, photos, and working sheet", "fa-route", 0, "/auction/"),
+    IMPORT("IMPORT", "Import pipeline", "Auction, pre-shipment, equipment, JEVIC, inspection, standards, export, grade, photos, and working sheet", "fa-route", 0, "/import/"),
     CUSTOMS("CUSTOMS", "Customs clearance pipeline", "Bill of lading, CUSDEC, and assessment notice", "fa-passport", 1, "/customs/"),
     PREP("PREP", "Preparation pipeline", "Inspection, workshop, and yard", "fa-wrench", 2, "/workshop-yard/"),
     READY("READY", "Sale", "Unregistered, registered, and sold vehicles", "fa-tags", 3, "/ready-for-sale/");

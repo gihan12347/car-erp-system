@@ -12,11 +12,13 @@
                     <h1>Vehicle book</h1>
                     <p class="form-lead">Upload the certificate of registration. Auto fill reads it with Document AI. Images and the previous owner come next, then preparation.</p>
                 </div>
-                <div th:if="${editing}" th:replace="shared/pipeline-delete :: pipelineDeleteBtn(
-                        @{/registered/{c}/delete(c=${certificate.chassisNo})},
-                        'Delete this registered vehicle and all of its data? This cannot be undone.')"></div>
+                <th:block th:if="${editing}">
+                    <div th:replace="shared/pipeline-delete :: pipelineDeleteBtn(
+                            @{/registered/{c}/delete(c=${certificate.chassisNo})},
+                            'Delete this registered vehicle and all of its data? This cannot be undone.')"></div>
+                </th:block>
             </div>
-            <div th:if="${editing}" th:replace="registered/steps :: steps('book', ${certificate.chassisNo}, ${progress})"></div>
+            <div th:replace="registered/steps :: steps('book', ${editing ? certificate.chassisNo : ''}, ${progress})"></div>
 
             <p th:if="${notice}" class="alert alert-ok" th:text="${notice}"></p>
             <p th:if="${errorMessage}" class="alert alert-error" th:text="${errorMessage}"></p>

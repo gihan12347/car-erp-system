@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="shared/head :: head(${pageTitle})"></head>
+<body class="sheet-page import-form-page photos-page">
+<div class="app-shell">
+    <aside th:replace="shared/sidebar :: sidebar(${activeMenu})"></aside>
+    <div class="app-main">
+        <header th:replace="shared/topbar :: topbar"></header>
+        <main class="page-content">
+            <div class="dash-head">
+                <div>
+                    <h1>Vehicle details</h1>
+                    <p class="form-lead" th:if="${personalCustomer != null}">
+                        Personal import for
+                        <strong th:text="${personalCustomer.fullName != null ? personalCustomer.fullName : personalCustomer.nicNo}">customer</strong>.
+                        Enter the chassis number and up to 5 images. Skipped pipeline stages stay available to fill later.
+                    </p>
+                    <p class="form-lead" th:if="${personalCustomer == null}">
+                        Enter the chassis number and up to 5 images. Pipelines left out are skipped, and those stages can be filled later.
+                    </p>
+                </div>
+            </div>
+            <p th:if="${successMessage}" class="alert alert-ok" th:text="${successMessage}"></p>
+            <p th:if="${errorMessage}" class="alert alert-error" th:text="${errorMessage}"></p>
+
+            <div th:replace="import-pipeline/fragments/pipeline :: importPipelineSteps(
+                    'basics',
+                    ${editing ? vehicle.chassisNo : ''},
+                    ${editing ? auctionDocReady : false},
+                    ${editing ? preshipReady : false},
+                    ${editing ? equipmentReady : false},
+                    ${editing ? jevicReady : false},
+                    ${editing ? coiReady : false},
+                    ${editing ? standardsReady : false},
+                    ${editing ? exportReady : false},
+                    ${editing ? gradeReady : false},
+                    ${editing ? photosReady : false},
+                    ${editing ? worksheetReady : false},
+                    ${editing ? vehicle.model : ''},
+                    false,
+                    false)"></div>
+
+            <form th:action="${editing} ? @{/vehicle/basics/{c}(c=${vehicle.chassisNo})} : @{/vehicle/basics}"
+                  method="post" class="vehicle-form" id="basicsForm">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                <div id="pendingPhotoFields"></div>
+                <article class="panel">
+                    <div class="panel-head"><h2>Vehicle</h2></div>
+                    <div class="field-grid">
+                        <label>Chassis number
+                            <input type="text" name="chassisNo" id="chassisNo" maxlength="40" required
+                                   th:value="${vehicle.chassisNo}" th:readonly="${editing}">
+                        </label>
+                        <label>Vehicle name
+                            <input type="text" name="model" id="model" maxlength="120" th:value="${vehicle.model}">
+                        </label>
+                    </div>
+                </article>
+                <article class="panel">
+                    <div class="panel-head">
+                        <h2>Vehicle images</h2>
+                        <span class="photo-count" id="photoCountLabel" th:text="|${#lists.size(photos)} / ${maxPhotos}|">0 / 5</span>
+                    </div>
+                    <div class="photo-gallery" id="photoGallery" th:data-max="${maxPhotos}"
+                         th:data-chassis="${vehicle.chassisNo}">
+                        <div class="photo-card" th:each="photo : ${photos}"
+                             th:data-photo-id="${photo.id}" th:data-stored="${photo.storedName}">
+                            <img th:src="@{/photos/documents/{name}(name=${photo.storedName})}" alt="Vehicle image">
+                            <button type="button" class="photo-remove" title="Remove image">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </div>
+                        <label class="photo-add" id="photoAdd">
+                            <input type="file" id="photoFile" accept="image/jpeg,image/png,image/webp" multiple>
+                            <i class="fa-solid fa-plus"></i>
+                            <strong>Add image</strong>
+                            <span>JPG, PNG, or WEBP · up to 5</span>
+                        </label>
+                    </div>
+                    <p class="upload-status" id="uploadStatus"></p>
+                </article>
+                <div class="import-view-actions">
+                    <a class="panel-btn ghost" th:href="@{/import}">Cancel</a>
+                    <button type="submit" class="panel-btn">Save vehicle</button>
+                </div>
+            </form>
+        </main>
+    </div>
+</div>
+<script th:src="@{/js/shared/app.js(v=20260905k)}"></script>
+<script th:src="@{/js/import-pipeline/photos.js(v=20260905b)}"></script>
+</body>
+</html>

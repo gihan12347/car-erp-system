@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="shared/head :: head(${pageTitle})"></head>
+<body>
+<div class="app-shell">
+    <aside th:replace="shared/sidebar :: sidebar(${activeMenu})"></aside>
+    <div class="app-main">
+        <header th:replace="shared/topbar :: topbar"></header>
+        <main class="page-content">
+            <div class="dash-head">
+                <div>
+                    <h1>Customers</h1>
+                    <p class="form-lead">Identity cards for buyers, previous owners, and personal imports. A personal import stays here until a chassis number links it to a vehicle.</p>
+                </div>
+            </div>
+
+            <form method="get" th:action="@{/customers}" class="import-toolbar">
+                <label class="import-search">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <circle cx="11" cy="11" r="6.5"/>
+                        <path d="M16 16.5 20 20.5"/>
+                    </svg>
+                    <input type="search" name="q" th:value="${searchQuery}"
+                           placeholder="Search name, NIC, or chassis">
+                </label>
+                <button type="submit" class="import-tool">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <circle cx="11" cy="11" r="6.5"/>
+                        <path d="M16 16.5 20 20.5"/>
+                    </svg>
+                    <span>Search</span>
+                </button>
+                <a th:if="${searchQuery != null and !#strings.isEmpty(searchQuery)}"
+                   th:href="@{/customers}" class="import-tool is-quiet">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M6 6l12 12M18 6 6 18"/>
+                    </svg>
+                    <span>Clear</span>
+                </a>
+            </form>
+
+            <article class="panel">
+                <div class="table-wrap" th:if="${!rows.isEmpty()}">
+                    <table>
+                        <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>NIC</th>
+                            <th>Role</th>
+                            <th>Chassis</th>
+                            <th>Vehicle</th>
+                            <th>Date of birth</th>
+                            <th></th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="row : ${rows}">
+                            <td data-label="Name">
+                                <a th:if="${row.id != null}" class="chassis-link"
+                                   th:href="@{/customers/personal/{id}(id=${row.id})}"
+                                   th:text="${row.fullName != null ? row.fullName : '—'}">Name</a>
+                                <a th:unless="${row.id != null}" class="chassis-link"
+                                   th:href="@{/customers/{role}/{c}(role=${row.roleKey}, c=${row.chassisNo})}"
+                                   th:text="${row.fullName != null ? row.fullName : '—'}">Name</a>
+                            </td>
+                            <td data-label="NIC" th:text="${row.nicNo != null ? row.nicNo : '—'}">NIC</td>
+                            <td data-label="Role" th:text="${row.roleLabel}">Buyer</td>
+                            <td data-label="Chassis">
+                                <a th:if="${row.chassisNo != null}" class="chassis-link"
+                                   th:href="@{/vehicle/{c}(c=${row.chassisNo})}"
+                                   th:text="${row.chassisNo}">CHASSIS</a>
+                                <span th:if="${row.chassisNo == null}">Not linked</span>
+                            </td>
+                            <td data-label="Vehicle" th:text="${row.vehicleName != null ? row.vehicleName : '—'}">Vehicle</td>
+                            <td data-label="Date of birth" th:text="${row.dateOfBirth != null ? row.dateOfBirth : '—'}">—</td>
+                            <td data-label="Import">
+                                <a th:if="${row.awaitingVehicle}" class="panel-btn is-inline"
+                                   th:href="@{/auction/new(customer=${row.id})}">Import pipeline</a>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p class="muted" th:if="${rows.isEmpty() and (searchQuery == null or #strings.isEmpty(searchQuery))}">
+                    No identity cards yet. Start a personal import from Add vehicle, or save a buyer or previous owner card.
+                </p>
+                <p class="muted" th:if="${rows.isEmpty() and searchQuery != null and !#strings.isEmpty(searchQuery)}">
+                    No customers match this search.
+                </p>
+            </article>
+        </main>
+    </div>
+</div>
+<script th:src="@{/js/shared/app.js(v=20260905k)}"></script>
+</body>
+</html>

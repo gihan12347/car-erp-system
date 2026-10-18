@@ -283,7 +283,7 @@ public class ReportService {
         if (READY.equals(place) || LISTED.equals(place) || SOLD.equals(place)) {
             return "/ready-for-sale/" + encoded;
         }
-        return "/auction/" + encoded;
+        return "/import/" + encoded;
     }
 
     private static String vehicleLabel(Vehicle vehicle) {

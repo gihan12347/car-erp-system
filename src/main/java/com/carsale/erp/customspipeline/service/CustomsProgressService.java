@@ -115,6 +115,6 @@ public class CustomsProgressService {
         if (vehicle == null || vehicle.getChassisNo() == null) {
             return "/import";
         }
-        return "/auction/" + UriUtils.encodePathSegment(vehicle.getChassisNo().trim(), java.nio.charset.StandardCharsets.UTF_8);
+        return "/import/" + UriUtils.encodePathSegment(vehicle.getChassisNo().trim(), java.nio.charset.StandardCharsets.UTF_8);
     }
 }

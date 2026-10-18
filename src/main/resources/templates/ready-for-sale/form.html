@@ -15,7 +15,8 @@
                         Sale
                     </a>
                     <h1>Sell</h1>
-                    <p class="form-lead">Upload the front and back of the buyer's identity card. Enter the name, NIC, address, and date of birth, then the selling price and selling date. Marking the vehicle sold frees one space at the sale location.</p>
+                    <p class="form-lead" th:if="${record.buyerDocumentStoredName == null or #strings.isEmpty(record.buyerDocumentStoredName)}">Upload the front and back of the buyer's identity card. Enter the name, NIC, address, and date of birth, then the selling price and selling date. Marking the vehicle sold frees one space at the sale location.</p>
+                    <p class="form-lead" th:if="${record.buyerDocumentStoredName != null and !#strings.isEmpty(record.buyerDocumentStoredName)}">This buyer's identity card is already on file. Add the selling price and selling date when you are ready. Marking the vehicle sold frees one space at the sale location.</p>
                 </div>
             </div>
 
@@ -157,6 +158,6 @@
 <div th:replace="shared/app-loader :: appLoader('fillLoader', 'Reading the identity card and filling fields...')"></div>
 <script th:src="@{/js/shared/app.js(v=20260905k)}"></script>
 <script th:src="@{/js/shared/document-viewer.js(v=20260826d)}"></script>
-<script th:src="@{/js/ready-for-sale/sell.js(v=20261017d)}"></script>
+<script th:src="@{/js/ready-for-sale/sell.js(v=20261018b)}"></script>
 </body>
 </html>

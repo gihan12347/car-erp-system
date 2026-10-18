@@ -289,7 +289,7 @@ public class VehicleSummaryService {
                 FlowStage.AUCTION.getStageKey(),
                 text(vehicle.getSheetStoredName()) != null,
                 vehicle.getSheetOriginalName(), vehicle.getSheetContentType(), vehicle.getSheetStoredName(),
-                "/auction/documents/", "/auction/", chassis
+                "/auction/documents/", "/import/", chassis
         );
         addDocument(
                 documents, progress, "Pre-shipment certificate", "Import", "fa-solid fa-ship",

@@ -3,6 +3,10 @@
     var viewerClose = document.getElementById("sheetViewerClose");
     var prevEmptyBtn = document.getElementById("sheetPrevEmptyField");
     var nextEmptyBtn = document.getElementById("sheetNextEmptyField");
+    var form = document.getElementById("sellForm") || document.getElementById("customerForm");
+    var uploadUrl = (form && form.getAttribute("data-upload-url")) || "/sell/upload-document";
+    var parseUrl = (form && form.getAttribute("data-parse-url")) || "/sell/parse-id";
+    var documentBase = (form && form.getAttribute("data-document-base")) || "/sell/documents/";
     var FIELD_ORDER = [
         "buyerFullName",
         "buyerNicNo",
@@ -112,7 +116,7 @@
         if (!storedName) {
             return null;
         }
-        return "/sell/documents/" + encodeURIComponent(storedName);
+        return documentBase + encodeURIComponent(storedName);
     }
 
     function hideSavedPreviewElements() {
@@ -217,7 +221,7 @@
         var token = document.querySelector('meta[name="_csrf"]');
         var header = document.querySelector('meta[name="_csrf_header"]');
         var xhr = new XMLHttpRequest();
-        xhr.open("POST", "/sell/upload-document");
+        xhr.open("POST", uploadUrl);
         xhr.timeout = 120000;
         if (token && header) {
             xhr.setRequestHeader(header.content, token.content);
@@ -426,7 +430,7 @@
             var token = document.querySelector('meta[name="_csrf"]');
             var header = document.querySelector('meta[name="_csrf_header"]');
             var xhr = new XMLHttpRequest();
-            xhr.open("POST", "/sell/parse-id");
+            xhr.open("POST", parseUrl);
             xhr.timeout = 180000;
             if (token && header) {
                 xhr.setRequestHeader(header.content, token.content);

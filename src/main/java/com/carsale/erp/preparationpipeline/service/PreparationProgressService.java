@@ -91,7 +91,7 @@ public class PreparationProgressService {
         if (customsProgressService.isEligible(vehicle)) {
             return "/customs/" + encoded;
         }
-        return "/auction/" + encoded;
+        return "/import/" + encoded;
     }
 
     public String ineligibleNotice(Vehicle vehicle) {

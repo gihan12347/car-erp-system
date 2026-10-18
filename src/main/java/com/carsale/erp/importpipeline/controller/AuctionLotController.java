@@ -1,6 +1,8 @@
 package com.carsale.erp.importpipeline.controller;
 
+import com.carsale.erp.customer.PersonalImportLinker;
 import com.carsale.erp.importpipeline.util.ImportStageUrls;
+import com.carsale.erp.shared.service.IntakePlanService;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -9,11 +11,9 @@ import java.util.Map;
 
 import com.carsale.erp.importpipeline.util.AuctionParseResult;
 import com.carsale.erp.shared.document.document.WorkingSheet;
-import com.carsale.erp.shared.model.PipelineStage;
 import com.carsale.erp.shared.ocr.OcrImagePreparer;
 import com.carsale.erp.shared.pipeline.*;
 import com.carsale.erp.shared.service.PipelineStageService;
-import com.carsale.erp.shared.utils.PipelineStageUtils;
 import com.carsale.erp.shared.utils.Utils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -44,18 +44,11 @@ import com.carsale.erp.importpipeline.model.PreShipmentInspection;
 import com.carsale.erp.shared.vehicle.Vehicle;
 import com.carsale.erp.shared.vehicle.VehicleStage;
 import com.carsale.erp.customspipeline.service.CustomsProgressService;
-import com.carsale.erp.customspipeline.service.CustomsDocumentService;
 import com.carsale.erp.importpipeline.util.EquipmentInspectionFields;
-import com.carsale.erp.importpipeline.service.EquipmentInspectionService;
 import com.carsale.erp.importpipeline.service.ImportProgressService;
 import com.carsale.erp.shared.dto.ImportProgress;
 import com.carsale.erp.importpipeline.service.CertificateOfInspectionService;
-import com.carsale.erp.importpipeline.service.ExportCertificateService;
 import com.carsale.erp.importpipeline.model.GradeSearch;
-import com.carsale.erp.importpipeline.service.GradeSearchService;
-import com.carsale.erp.importpipeline.service.VehiclePhotoService;
-import com.carsale.erp.importpipeline.service.StandardsCertificateService;
-import com.carsale.erp.importpipeline.service.PreShipmentService;
 import com.carsale.erp.shared.document.SheetDocumentStorageService;
 import com.carsale.erp.shared.vehicle.VehicleService;
 
@@ -66,19 +59,14 @@ public class AuctionLotController {
 
     private final VehicleService vehicleService;
     private final SheetDocumentStorageService documentStorageService;
-    private final PreShipmentService preShipmentService;
-    private final EquipmentInspectionService equipmentInspectionService;
     private final ImportProgressService importProgressService;
     private final CustomsProgressService customsProgressService;
-    private final CustomsDocumentService customsDocumentService;
     private final CertificateOfInspectionService certificateOfInspectionService;
-    private final StandardsCertificateService standardsCertificateService;
-    private final ExportCertificateService exportCertificateService;
-    private final GradeSearchService gradeSearchService;
-    private final VehiclePhotoService vehiclePhotoService;
     private final PipelineStageService pipelineStageService;
     private final OcrImagePreparer imagePreparer;
     private final WorkingSheet.AuctionSheetParser parser;
+    private final PersonalImportLinker personalImportLinker;
+    private final IntakePlanService intakePlanService;
 
     @GetMapping
     public String list(@RequestParam(value = "q", required = false) String query) {
@@ -89,7 +77,17 @@ public class AuctionLotController {
     }
 
     @GetMapping("/new")
-    public String createForm(Model model) {
+    public String createForm(
+            @RequestParam(value = "customer", required = false) Long customerId,
+            @RequestParam(value = "intake", required = false) String intake,
+            Model model
+    ) {
+        if (customerId != null) {
+            personalImportLinker.remember(customerId);
+        } else if (intake != null && !intake.trim().isEmpty()) {
+            personalImportLinker.clear();
+        }
+        model.addAttribute("personalCustomer", personalImportLinker.current());
         Map<Integer, String> StageKeys = ImportStageUrls.getStageKeyBySortOrder(
                 pipelineStageService.list(PipelineStageService.FLOW_IMPORT));
         String startStage = StageKeys.isEmpty()
@@ -163,62 +161,16 @@ public class AuctionLotController {
     public String detail(
             @PathVariable String chassisNo,
             @RequestParam(value = "stage", required = false) String stage,
-            @RequestParam(value = "hub", defaultValue = "false") boolean hub,
-            Model model
+            @RequestParam(value = "hub", defaultValue = "false") boolean hub
     ) {
         if (hub) {
             return "redirect:/auction/" + Utils.encodeChassis(chassisNo) + "/edit?hub=1";
         }
-        Vehicle vehicle = vehicleService.findByChassisNo(chassisNo);
-        if (vehicle == null) {
-            return "redirect:/import";
+        String target = FlowPipeline.IMPORT.getCurrentBase() + Utils.encodeChassis(chassisNo);
+        if (stage != null && !stage.trim().isEmpty()) {
+            target += "?stage=" + UriUtils.encodeQueryParam(stage.trim(), StandardCharsets.UTF_8);
         }
-        ImportProgress importStatus = importProgressService.progressFor(vehicle);
-        List<String> keys = pipelineStageService.keys(PipelineStageService.FLOW_IMPORT);
-        int stageIndex = PipelineStageUtils.clampStageIndex(
-                PipelineStageUtils.parseStageIndex(keys, stage),
-                importStatus,
-                keys
-        );
-
-        List<PipelineStage> importKeys = pipelineStageService.list(PipelineStageService.FLOW_IMPORT);
-        String stageKey = PipelineStageUtils.stageKeyAt(importKeys, stageIndex);
-        NavLinks nav = PipelineStageService.viewLinks(chassisNo, stageIndex, importStatus, importKeys, FlowPipeline.IMPORT);
-        model.addAttribute("pageTitle", nav.getStageLabel());
-        model.addAttribute("activeMenu", "import");
-        model.addAttribute("vehicle", vehicle);
-        model.addAttribute("preShipmentReady", importStatus.isPreshipReady());
-        model.addAttribute("preShipment", preShipmentService.findByChassisNo(chassisNo));
-        model.addAttribute("equipmentReady", importStatus.isEquipmentReady());
-        model.addAttribute("equipmentInspection", equipmentInspectionService.findByChassisNo(chassisNo));
-        model.addAttribute("jevicReady", importStatus.isJevicReady());
-        model.addAttribute("coiReady", importStatus.isCoiReady());
-        model.addAttribute("standardsReady", importStatus.isStandardsReady());
-        model.addAttribute("exportReady", importStatus.isExportReady());
-        model.addAttribute("gradeReady", importStatus.isGradeReady());
-        model.addAttribute("photosReady", importStatus.isPhotosReady());
-        model.addAttribute("worksheetReady", importStatus.isWorksheetReady());
-        model.addAttribute("clearance", customsDocumentService.findByChassisNo(chassisNo));
-        model.addAttribute("inspectionCertificate", certificateOfInspectionService.findByChassisNo(chassisNo));
-        model.addAttribute("standardsCertificate", standardsCertificateService.findByChassisNo(chassisNo));
-        model.addAttribute("exportCertificate", exportCertificateService.findByChassisNo(chassisNo));
-        model.addAttribute("gradeSearch", gradeSearchService.findByChassisNo(chassisNo));
-        model.addAttribute("vehiclePhotos", vehiclePhotoService.list(chassisNo));
-        model.addAttribute("interiorFields", EquipmentInspectionFields.interior());
-        model.addAttribute("exteriorFields", EquipmentInspectionFields.ungrouped(EquipmentInspectionFields.exterior()));
-        model.addAttribute("bodyKitFields", EquipmentInspectionFields.group(
-                EquipmentInspectionFields.exterior(), EquipmentInspectionFields.GROUP_BODY_KIT));
-        model.addAttribute("truckBodyFields", EquipmentInspectionFields.group(
-                EquipmentInspectionFields.exterior(), EquipmentInspectionFields.GROUP_TRUCK_BODY));
-        model.addAttribute("safetyFields", EquipmentInspectionFields.safety());
-        model.addAttribute("stages", VehicleStage.values());
-        model.addAttribute("auctionDocReady", importStatus.isAuctionReady());
-        model.addAttribute("importComplete", importStatus.isPipelineCompleted());
-        model.addAttribute("importDoneCount", importStatus.completedCount());
-        model.addAttribute("stageIndex", stageIndex);
-        model.addAttribute("stageKey", stageKey);
-        model.addAttribute("stageNav", nav);
-        return "import-pipeline/auction/detail";
+        return "redirect:" + target;
     }
 
     @GetMapping("/{chassisNo}/edit")
@@ -305,6 +257,7 @@ public class AuctionLotController {
                 return "redirect:" + ImportStageUrls.pipelineHubUrl(chassisNo, status, importKeys);
             }
             Vehicle saved = vehicleService.save(vehicle);
+            intakePlanService.applyIfPending(saved.getChassisNo());
             importProgressService.syncVehicleStage(saved.getChassisNo());
             customsProgressService.syncVehicleStage(saved.getChassisNo());
             redirectAttributes.addFlashAttribute("successMessage", "Auction lot saved.");

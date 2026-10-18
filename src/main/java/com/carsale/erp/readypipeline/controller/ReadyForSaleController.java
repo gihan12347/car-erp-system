@@ -194,7 +194,7 @@ public class ReadyForSaleController {
             return "redirect:" + ReadyStageUrls.saleLocation(saleCode);
         }
         SaleProgress status = saleListingService.progressFor(chassisNo);
-        SaleListing listing = saleListingService.findByChassisNo(chassisNo);
+        SaleListing listing = saleListingService.listingForView(chassisNo);
         SaleRow row = new SaleRow(vehicle, status, listing);
         String tab = row.getTab();
         SaleLocation sale = saleLocationService.findByCode(saleCode);

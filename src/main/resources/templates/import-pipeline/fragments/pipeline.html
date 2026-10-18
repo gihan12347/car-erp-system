@@ -19,7 +19,7 @@
             </p>
         </div>
         <a th:if="${chassisNo != null and !#strings.isEmpty(chassisNo) and !isView}"
-           th:href="@{/auction/{chassisNo}(chassisNo=${chassisNo})}"
+           th:href="@{/import/{chassisNo}(chassisNo=${chassisNo})}"
            class="import-pipeline-hub-link">
             <i class="fa-solid fa-gauge-high"></i> Vehicle hub
         </a>
@@ -32,12 +32,34 @@
 
     <div class="import-pipeline-scroller">
     <ol class="import-pipeline-steps"
-        th:style="'--pipeline-cols: ' + (${orderedStages.size()} + (${importComplete} ? 1 : 0))">
+        th:with="showBasics=${(basicsStage != null and basicsStage) or (chassisNo != null and !#strings.isEmpty(chassisNo) and @intakePlanService.usesBasics(chassisNo))}"
+        th:style="'--pipeline-cols: ' + (${orderedStages.size()} + (${importComplete} ? 1 : 0) + (${showBasics} ? 1 : 0))">
+        <li th:if="${showBasics}"
+            th:classappend="${currentStep == 'basics' ? ' is-current is-done' : ' is-done'}">
+            <a th:if="${chassisNo != null and !#strings.isEmpty(chassisNo)}"
+               th:href="@{/vehicle/basics/{chassisNo}(chassisNo=${chassisNo})}"
+               class="import-pipeline-step">
+                <span class="import-pipeline-step-icon"><i class="fa-solid fa-car"></i></span>
+                <span class="import-pipeline-step-copy">
+                    <strong>Vehicle details</strong>
+                    <small>Chassis and 5 images</small>
+                    <em class="pipeline-step-status done">Saved</em>
+                </span>
+            </a>
+            <span th:unless="${chassisNo != null and !#strings.isEmpty(chassisNo)}" class="import-pipeline-step is-static">
+                <span class="import-pipeline-step-icon"><i class="fa-solid fa-car"></i></span>
+                <span class="import-pipeline-step-copy">
+                    <strong>Vehicle details</strong>
+                    <small>Chassis and 5 images</small>
+                    <em class="pipeline-step-status pending">In progress</em>
+                </span>
+            </span>
+        </li>
         <th:block th:each="stage, iter : ${orderedStages}">
             <li th:if="${stage.stageKey == 'auction'}"
                 th:classappend="${(currentStep == 'auction' ? ' is-current' : '') + (auctionReady ? ' is-done' : (#strings.contains(stageSkipped, '|auction|') ? ' is-skipped' : ' is-pending'))}">
                 <a th:if="${chassisNo != null and !#strings.isEmpty(chassisNo) and isView}"
-                   th:href="@{/auction/{chassisNo}(chassisNo=${chassisNo}, stage=${stage.stageKey})}"
+                   th:href="@{/import/{chassisNo}(chassisNo=${chassisNo}, stage=${stage.stageKey})}"
                    class="import-pipeline-step">
                     <span class="import-pipeline-step-icon">
                         <i th:if="${auctionReady}" class="fa-solid fa-check"></i>
@@ -78,7 +100,7 @@
             <li th:if="${stage.stageKey == 'preshipment'}"
                 th:classappend="${(currentStep == 'preshipment' ? ' is-current' : '') + (preshipReady ? ' is-done' : (#strings.contains(stageSkipped, '|preshipment|') ? ' is-skipped' : ' is-pending'))}">
                 <a th:if="${chassisNo != null and !#strings.isEmpty(chassisNo) and isView}"
-                   th:href="@{/auction/{chassisNo}(chassisNo=${chassisNo}, stage=${stage.stageKey})}"
+                   th:href="@{/import/{chassisNo}(chassisNo=${chassisNo}, stage=${stage.stageKey})}"
                    class="import-pipeline-step">
                     <span class="import-pipeline-step-icon">
                         <i th:if="${preshipReady}" class="fa-solid fa-check"></i>
@@ -119,7 +141,7 @@
             <li th:if="${stage.stageKey == 'equipment'}"
                 th:classappend="${(currentStep == 'equipment' ? ' is-current' : '') + (equipmentDone ? ' is-done' : (#strings.contains(stageSkipped, '|equipment|') ? ' is-skipped' : ' is-pending'))}">
                 <a th:if="${chassisNo != null and !#strings.isEmpty(chassisNo) and isView}"
-                   th:href="@{/auction/{chassisNo}(chassisNo=${chassisNo}, stage=${stage.stageKey})}"
+                   th:href="@{/import/{chassisNo}(chassisNo=${chassisNo}, stage=${stage.stageKey})}"
                    class="import-pipeline-step">
                     <span class="import-pipeline-step-icon">
                         <i th:if="${equipmentDone}" class="fa-solid fa-check"></i>
@@ -160,7 +182,7 @@
             <li th:if="${stage.stageKey == 'jevic'}"
                 th:classappend="${(currentStep == 'jevic' ? ' is-current' : '') + (jevicDone ? ' is-done' : (#strings.contains(stageSkipped, '|jevic|') ? ' is-skipped' : ' is-pending'))}">
                 <a th:if="${chassisNo != null and !#strings.isEmpty(chassisNo) and isView}"
-                   th:href="@{/auction/{chassisNo}(chassisNo=${chassisNo}, stage=${stage.stageKey})}"
+                   th:href="@{/import/{chassisNo}(chassisNo=${chassisNo}, stage=${stage.stageKey})}"
                    class="import-pipeline-step">
                     <span class="import-pipeline-step-icon">
                         <i th:if="${jevicDone}" class="fa-solid fa-check"></i>
@@ -201,7 +223,7 @@
             <li th:if="${stage.stageKey == 'coi'}"
                 th:classappend="${(currentStep == 'coi' ? ' is-current' : '') + (coiDone ? ' is-done' : (#strings.contains(stageSkipped, '|coi|') ? ' is-skipped' : ' is-pending'))}">
                 <a th:if="${chassisNo != null and !#strings.isEmpty(chassisNo) and isView}"
-                   th:href="@{/auction/{chassisNo}(chassisNo=${chassisNo}, stage=${stage.stageKey})}"
+                   th:href="@{/import/{chassisNo}(chassisNo=${chassisNo}, stage=${stage.stageKey})}"
                    class="import-pipeline-step">
                     <span class="import-pipeline-step-icon">
                         <i th:if="${coiDone}" class="fa-solid fa-check"></i>
@@ -242,7 +264,7 @@
             <li th:if="${stage.stageKey == 'standards'}"
                 th:classappend="${(currentStep == 'standards' ? ' is-current' : '') + (standardsDone ? ' is-done' : (#strings.contains(stageSkipped, '|standards|') ? ' is-skipped' : ' is-pending'))}">
                 <a th:if="${chassisNo != null and !#strings.isEmpty(chassisNo) and isView}"
-                   th:href="@{/auction/{chassisNo}(chassisNo=${chassisNo}, stage=${stage.stageKey})}"
+                   th:href="@{/import/{chassisNo}(chassisNo=${chassisNo}, stage=${stage.stageKey})}"
                    class="import-pipeline-step">
                     <span class="import-pipeline-step-icon">
                         <i th:if="${standardsDone}" class="fa-solid fa-check"></i>
@@ -283,7 +305,7 @@
             <li th:if="${stage.stageKey == 'export'}"
                 th:classappend="${(currentStep == 'export' ? ' is-current' : '') + (exportDone ? ' is-done' : (#strings.contains(stageSkipped, '|export|') ? ' is-skipped' : ' is-pending'))}">
                 <a th:if="${chassisNo != null and !#strings.isEmpty(chassisNo) and isView}"
-                   th:href="@{/auction/{chassisNo}(chassisNo=${chassisNo}, stage=${stage.stageKey})}"
+                   th:href="@{/import/{chassisNo}(chassisNo=${chassisNo}, stage=${stage.stageKey})}"
                    class="import-pipeline-step">
                     <span class="import-pipeline-step-icon">
                         <i th:if="${exportDone}" class="fa-solid fa-check"></i>
@@ -324,7 +346,7 @@
             <li th:if="${stage.stageKey == 'grade'}"
                 th:classappend="${(currentStep == 'grade' ? ' is-current' : '') + (gradeDone ? ' is-done' : (#strings.contains(stageSkipped, '|grade|') ? ' is-skipped' : ' is-pending'))}">
                 <a th:if="${chassisNo != null and !#strings.isEmpty(chassisNo) and isView}"
-                   th:href="@{/auction/{chassisNo}(chassisNo=${chassisNo}, stage=${stage.stageKey})}"
+                   th:href="@{/import/{chassisNo}(chassisNo=${chassisNo}, stage=${stage.stageKey})}"
                    class="import-pipeline-step">
                     <span class="import-pipeline-step-icon">
                         <i th:if="${gradeDone}" class="fa-solid fa-check"></i>
@@ -365,7 +387,7 @@
             <li th:if="${stage.stageKey == 'photos'}"
                 th:classappend="${(currentStep == 'photos' ? ' is-current' : '') + (photosDone ? ' is-done' : (#strings.contains(stageSkipped, '|photos|') ? ' is-skipped' : ' is-pending'))}">
                 <a th:if="${chassisNo != null and !#strings.isEmpty(chassisNo) and isView}"
-                   th:href="@{/auction/{chassisNo}(chassisNo=${chassisNo}, stage=${stage.stageKey})}"
+                   th:href="@{/import/{chassisNo}(chassisNo=${chassisNo}, stage=${stage.stageKey})}"
                    class="import-pipeline-step">
                     <span class="import-pipeline-step-icon">
                         <i th:if="${photosDone}" class="fa-solid fa-check"></i>
@@ -406,7 +428,7 @@
             <li th:if="${stage.stageKey == 'worksheet'}"
                 th:classappend="${(currentStep == 'worksheet' ? ' is-current' : '') + (worksheetDone ? ' is-done' : (#strings.contains(stageSkipped, '|worksheet|') ? ' is-skipped' : ' is-pending'))}">
                 <a th:if="${chassisNo != null and !#strings.isEmpty(chassisNo) and isView}"
-                   th:href="@{/auction/{chassisNo}(chassisNo=${chassisNo}, stage=${stage.stageKey})}"
+                   th:href="@{/import/{chassisNo}(chassisNo=${chassisNo}, stage=${stage.stageKey})}"
                    class="import-pipeline-step">
                     <span class="import-pipeline-step-icon">
                         <i th:if="${worksheetDone}" class="fa-solid fa-check"></i>

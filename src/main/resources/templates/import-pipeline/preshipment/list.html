@@ -64,7 +64,7 @@
                                         <i class="fa-solid" th:classappend="${row.preShipmentReady} ? ' fa-eye' : ' fa-file-circle-plus'"></i>
                                         <span th:text="${row.preShipmentReady} ? 'View' : 'Prepare'">Prepare</span>
                                     </a>
-                                    <a th:href="@{/auction/{chassisNo}(chassisNo=${row.vehicle.chassisNo})}" class="table-btn view" title="Auction lot">
+                                    <a th:href="@{/import/{chassisNo}(chassisNo=${row.vehicle.chassisNo})}" class="table-btn view" title="Auction lot">
                                         <i class="fa-solid fa-gavel"></i>
                                         <span>Lot</span>
                                     </a>

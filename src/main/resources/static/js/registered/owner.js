@@ -17,6 +17,10 @@
     var documentOriginalNameInput = document.getElementById("documentOriginalName");
     var documentStoredNameInput = document.getElementById("documentStoredName");
     var documentContentTypeInput = document.getElementById("documentContentType");
+    var form = document.getElementById("customerForm") || document.getElementById("registrationForm");
+    var uploadUrl = (form && form.getAttribute("data-upload-url")) || "/registered/upload-document";
+    var parseUrl = (form && form.getAttribute("data-parse-url")) || "/registered/parse-id";
+    var documentBase = (form && form.getAttribute("data-document-base")) || "/registered/documents/";
     var selectedFile = null;
     var previewUrl = null;
     var previewIsPdf = false;
@@ -101,7 +105,7 @@
         if (!storedName) {
             return null;
         }
-        return "/registered/documents/" + encodeURIComponent(storedName);
+        return documentBase + encodeURIComponent(storedName);
     }
 
     function hideSavedPreviewElements() {
@@ -212,7 +216,7 @@
         var token = document.querySelector('meta[name="_csrf"]');
         var header = document.querySelector('meta[name="_csrf_header"]');
         var xhr = new XMLHttpRequest();
-        xhr.open("POST", "/registered/upload-document");
+        xhr.open("POST", uploadUrl);
         xhr.timeout = 120000;
         if (token && header) {
             xhr.setRequestHeader(header.content, token.content);
@@ -434,7 +438,7 @@
             var token = document.querySelector('meta[name="_csrf"]');
             var header = document.querySelector('meta[name="_csrf_header"]');
             var xhr = new XMLHttpRequest();
-            xhr.open("POST", "/registered/parse-id");
+            xhr.open("POST", parseUrl);
             xhr.timeout = 180000;
             if (token && header) {
                 xhr.setRequestHeader(header.content, token.content);
