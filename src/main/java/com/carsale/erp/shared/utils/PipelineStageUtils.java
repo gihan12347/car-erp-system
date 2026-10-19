@@ -12,8 +12,63 @@ import org.springframework.web.util.UriUtils;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Function;
 
 public class PipelineStageUtils {
+
+    private static Function<String, String> selectedPipelinesLookup = chassis -> null;
+
+    public static void setSelectedPipelinesLookup(Function<String, String> lookup) {
+        selectedPipelinesLookup = lookup == null ? chassis -> null : lookup;
+    }
+
+    public static String selectedPipelinesOf(String chassisNo) {
+        if (chassisNo == null || chassisNo.trim().isEmpty()) {
+            return null;
+        }
+        return selectedPipelinesLookup.apply(chassisNo.trim());
+    }
+
+    /**
+     * Next pipeline after the current one. A null selection keeps the original order.
+     * An explicit selection skips pipelines that were left out.
+     */
+    public static FlowPipeline nextSelectedPipeline(FlowPipeline current, String selectedPipelines) {
+        if (current == null || current == FlowPipeline.PREP) {
+            return null;
+        }
+        boolean legacy = selectedPipelines == null;
+        boolean customs = legacy || containsToken(selectedPipelines, "customs");
+        boolean prep = legacy || containsToken(selectedPipelines, "prep");
+        if (current == FlowPipeline.IMPORT) {
+            if (customs) {
+                return FlowPipeline.CUSTOMS;
+            }
+            if (prep) {
+                return FlowPipeline.PREP;
+            }
+            return null;
+        }
+        if (current == FlowPipeline.CUSTOMS) {
+            if (prep) {
+                return FlowPipeline.PREP;
+            }
+            return null;
+        }
+        return FlowPipeline.findPipelineBySortOrder(current.getSortOrder() + 1);
+    }
+
+    public static boolean containsToken(String selected, String token) {
+        if (selected == null || token == null || "-".equals(selected)) {
+            return false;
+        }
+        for (String part : selected.split(",")) {
+            if (token.equals(part.trim())) {
+                return true;
+            }
+        }
+        return false;
+    }
 
      public static final List<String> IMPORT_STAGE_KEYS = Arrays.asList(
             FlowStage.AUCTION.getStageKey(),
@@ -75,9 +130,11 @@ public class PipelineStageUtils {
             if (currentFlowPipeline == FlowPipeline.PREP) {
                 return "/yards";
             }
-            FlowPipeline nextFlowPipeline = FlowPipeline.findPipelineBySortOrder(currentFlowPipeline.getSortOrder() + 1);
+            String rawChassis = UriUtils.decode(encoded, StandardCharsets.UTF_8);
+            FlowPipeline nextFlowPipeline = nextSelectedPipeline(
+                    currentFlowPipeline, selectedPipelinesOf(rawChassis));
             if (nextFlowPipeline == null) {
-                return viewUrl(viewBase(basePath, encoded), currentKey);
+                return viewBase(basePath, encoded);
             }
             return viewBase(nextFlowPipeline.getCurrentBase(), encoded);
         }

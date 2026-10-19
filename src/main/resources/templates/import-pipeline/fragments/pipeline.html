@@ -4,7 +4,7 @@
 
 <nav th:fragment="importPipelineSteps(currentStep, chassisNo, auctionReady, preshipReady, equipmentReady, jevicReady, coiReady, standardsReady, exportReady, gradeReady, photosReady, worksheetReady, vehicleLabel, compact, viewMode)"
      class="import-pipeline panel"
-     th:with="isView=${viewMode != null and viewMode}, isCompact=${compact != null and compact}, stageSkipped=${chassisNo != null and !#strings.isEmpty(chassisNo) ? @importProgressService.skippedToken(chassisNo) : '|'}, equipmentDone=${equipmentReady != null and equipmentReady}, jevicDone=${jevicReady != null and jevicReady}, coiDone=${coiReady != null and coiReady}, standardsDone=${standardsReady != null and standardsReady}, exportDone=${exportReady != null and exportReady}, gradeDone=${gradeReady != null and gradeReady}, photosDone=${photosReady != null and photosReady}, worksheetDone=${worksheetReady != null and worksheetReady}, importComplete=${(auctionReady or #strings.contains(stageSkipped, '|auction|')) and (preshipReady or #strings.contains(stageSkipped, '|preshipment|')) and (equipmentDone or #strings.contains(stageSkipped, '|equipment|')) and (jevicDone or #strings.contains(stageSkipped, '|jevic|')) and (coiDone or #strings.contains(stageSkipped, '|coi|')) and (standardsDone or #strings.contains(stageSkipped, '|standards|')) and (exportDone or #strings.contains(stageSkipped, '|export|')) and (gradeDone or #strings.contains(stageSkipped, '|grade|')) and (photosDone or #strings.contains(stageSkipped, '|photos|')) and (worksheetDone or #strings.contains(stageSkipped, '|worksheet|'))}, orderedStages=${@pipelineStageService.list('IMPORT')}"
+     th:with="isView=${viewMode != null and viewMode}, isCompact=${compact != null and compact}, stageSkipped=${chassisNo != null and !#strings.isEmpty(chassisNo) ? @importProgressService.skippedToken(chassisNo) : '|'}, equipmentDone=${equipmentReady != null and equipmentReady}, jevicDone=${jevicReady != null and jevicReady}, coiDone=${coiReady != null and coiReady}, standardsDone=${standardsReady != null and standardsReady}, exportDone=${exportReady != null and exportReady}, gradeDone=${gradeReady != null and gradeReady}, photosDone=${photosReady != null and photosReady}, worksheetDone=${worksheetReady != null and worksheetReady}, importComplete=${(auctionReady or #strings.contains(stageSkipped, '|auction|')) and (preshipReady or #strings.contains(stageSkipped, '|preshipment|')) and (equipmentDone or #strings.contains(stageSkipped, '|equipment|')) and (jevicDone or #strings.contains(stageSkipped, '|jevic|')) and (coiDone or #strings.contains(stageSkipped, '|coi|')) and (standardsDone or #strings.contains(stageSkipped, '|standards|')) and (exportDone or #strings.contains(stageSkipped, '|export|')) and (gradeDone or #strings.contains(stageSkipped, '|grade|')) and (photosDone or #strings.contains(stageSkipped, '|photos|')) and (worksheetDone or #strings.contains(stageSkipped, '|worksheet|'))}, customsOn=${@intakePlanService.pipelineSelected(chassisNo, 'customs')}, prepOn=${@intakePlanService.pipelineSelected(chassisNo, 'prep')}, showNext=${importComplete and (customsOn or prepOn)}, orderedStages=${@pipelineStageService.list('IMPORT')}"
      th:classappend="${(isCompact ? ' is-compact' : '') + (importComplete ? ' is-import-complete' : '')}"
      aria-label="Import pipeline">
     <div class="import-pipeline-head" th:unless="${isCompact}">
@@ -33,7 +33,7 @@
     <div class="import-pipeline-scroller">
     <ol class="import-pipeline-steps"
         th:with="showBasics=${(basicsStage != null and basicsStage) or (chassisNo != null and !#strings.isEmpty(chassisNo) and @intakePlanService.usesBasics(chassisNo))}"
-        th:style="'--pipeline-cols: ' + (${orderedStages.size()} + (${importComplete} ? 1 : 0) + (${showBasics} ? 1 : 0))">
+        th:style="'--pipeline-cols: ' + (${orderedStages.size()} + (${showNext} ? 1 : 0) + (${showBasics} ? 1 : 0))">
         <li th:if="${showBasics}"
             th:classappend="${currentStep == 'basics' ? ' is-current is-done' : ' is-done'}">
             <a th:if="${chassisNo != null and !#strings.isEmpty(chassisNo)}"
@@ -467,15 +467,15 @@
                 </span>
             </li>
         </th:block>
-        <li th:if="${importComplete}" class="is-workshop-next">
-            <a th:href="@{/customs/{chassisNo}(chassisNo=${chassisNo})}"
+        <li th:if="${showNext}" class="is-workshop-next">
+            <a th:href="${customsOn} ? @{/customs/{chassisNo}(chassisNo=${chassisNo})} : @{/workshop-yard/{chassisNo}(chassisNo=${chassisNo})}"
                class="import-pipeline-step import-pipeline-step-workshop">
                 <span class="import-pipeline-step-icon">
-                    <i class="fa-solid fa-passport"></i>
+                    <i class="fa-solid" th:classappend="${customsOn} ? ' fa-passport' : ' fa-wrench'"></i>
                 </span>
                 <span class="import-pipeline-step-copy">
-                    <strong>Customs clearance pipeline</strong>
-                    <small>Bill of lading, CUSDEC, and assessment</small>
+                    <strong th:text="${customsOn} ? 'Customs clearance pipeline' : 'Preparation pipeline'">Customs clearance pipeline</strong>
+                    <small th:text="${customsOn} ? 'Bill of lading, CUSDEC, and assessment' : 'Inspection, workshop, and yard'">Bill of lading, CUSDEC, and assessment</small>
                     <em class="pipeline-step-status workshop-next">
                         Continue <i class="fa-solid fa-arrow-right"></i>
                     </em>

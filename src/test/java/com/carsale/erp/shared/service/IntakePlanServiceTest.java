@@ -2,10 +2,12 @@ package com.carsale.erp.shared.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
 
+import com.carsale.erp.shared.pipeline.FlowPipeline;
 import com.carsale.erp.shared.pipeline.FlowStage;
 import com.carsale.erp.shared.utils.PipelineStageUtils;
 import com.carsale.erp.shared.vehicle.Vehicle;
@@ -42,5 +44,20 @@ class IntakePlanServiceTest {
         Vehicle withImport = new Vehicle();
         withImport.setSelectedPipelines("import,prep");
         assertFalse(IntakePlanService.usesBasics(withImport));
+    }
+
+    @Test
+    void unselectedCustomsSkipsTheCustomsPipeline() {
+        assertEquals(FlowPipeline.CUSTOMS, PipelineStageUtils.nextSelectedPipeline(FlowPipeline.IMPORT, null));
+        assertEquals(FlowPipeline.PREP, PipelineStageUtils.nextSelectedPipeline(FlowPipeline.CUSTOMS, null));
+
+        assertEquals(FlowPipeline.CUSTOMS, PipelineStageUtils.nextSelectedPipeline(FlowPipeline.IMPORT, "import,customs,prep"));
+        assertEquals(FlowPipeline.PREP, PipelineStageUtils.nextSelectedPipeline(FlowPipeline.CUSTOMS, "customs,prep"));
+
+        assertEquals(FlowPipeline.PREP, PipelineStageUtils.nextSelectedPipeline(FlowPipeline.IMPORT, "import,prep"));
+        assertEquals(FlowPipeline.PREP, PipelineStageUtils.nextSelectedPipeline(FlowPipeline.CUSTOMS, "import,prep"));
+        assertNull(PipelineStageUtils.nextSelectedPipeline(FlowPipeline.CUSTOMS, "import,customs"));
+        assertNull(PipelineStageUtils.nextSelectedPipeline(FlowPipeline.IMPORT, "import"));
+        assertNull(PipelineStageUtils.nextSelectedPipeline(FlowPipeline.IMPORT, "-"));
     }
 }

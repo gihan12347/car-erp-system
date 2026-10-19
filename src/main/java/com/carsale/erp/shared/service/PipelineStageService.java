@@ -620,7 +620,8 @@ public class PipelineStageService implements CommandLineRunner {
     public static NavLinks viewLinks(String chassisNo, int stageIndex, PipelineProgress progress, List<PipelineStage> stages, FlowPipeline flowPipeline) {
         String encoded = PipelineStageUtils.encode(chassisNo);
         String viewBase = flowPipeline.getCurrentBase() + encoded;
-        FlowPipeline pipeline = FlowPipeline.findPipelineBySortOrder(flowPipeline.getSortOrder() + 1);
+        FlowPipeline pipeline = PipelineStageUtils.nextSelectedPipeline(
+                flowPipeline, PipelineStageUtils.selectedPipelinesOf(chassisNo));
         String key = stageKeyAt(stages, stageIndex);
         String prevUrl = stageIndex > 0
                 ? PipelineStageUtils.viewUrl(viewBase, stageKeyAt(stages, stageIndex - 1))

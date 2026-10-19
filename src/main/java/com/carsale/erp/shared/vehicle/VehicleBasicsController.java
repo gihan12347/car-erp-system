@@ -3,8 +3,11 @@ package com.carsale.erp.shared.vehicle;
 import java.util.List;
 
 import com.carsale.erp.customer.PersonalImportLinker;
+import com.carsale.erp.customspipeline.service.CustomsProgressService;
 import com.carsale.erp.importpipeline.service.ImportProgressService;
 import com.carsale.erp.importpipeline.service.VehiclePhotoService;
+import com.carsale.erp.preparationpipeline.service.PreparationProgressService;
+import com.carsale.erp.shared.dto.PreparationProgress;
 import com.carsale.erp.shared.service.IntakePlanService;
 import com.carsale.erp.shared.utils.PipelineStageUtils;
 import com.carsale.erp.shared.utils.Utils;
@@ -26,6 +29,8 @@ public class VehicleBasicsController {
     private final PersonalImportLinker personalImportLinker;
     private final IntakePlanService intakePlanService;
     private final ImportProgressService importProgressService;
+    private final CustomsProgressService customsProgressService;
+    private final PreparationProgressService preparationProgressService;
 
     @GetMapping("/intake/start")
     public String start(
@@ -54,16 +59,22 @@ public class VehicleBasicsController {
         model.addAttribute("editing", false);
         model.addAttribute("basicsStage", true);
         model.addAttribute("personalCustomer", personalImportLinker.current());
-        model.addAttribute("vehicle", new Vehicle());
+        Vehicle vehicle = new Vehicle();
+        model.addAttribute("vehicle", vehicle);
         model.addAttribute("photos", java.util.Collections.emptyList());
         model.addAttribute("maxPhotos", VehiclePhotoService.MAX_PHOTOS);
+        addBasicsNav(model, vehicle);
         return "vehicle/basics";
     }
 
     @PostMapping("/vehicle/basics")
     public String create(
             @RequestParam("chassisNo") String chassisNo,
+            @RequestParam(value = "make", required = false) String make,
             @RequestParam(value = "model", required = false) String modelName,
+            @RequestParam(value = "mileage", required = false) String mileage,
+            @RequestParam(value = "year", required = false) String year,
+            @RequestParam(value = "grade", required = false) String grade,
             @RequestParam(value = "storedNames", required = false) List<String> storedNames,
             @RequestParam(value = "originalNames", required = false) List<String> originalNames,
             @RequestParam(value = "contentTypes", required = false) List<String> contentTypes,
@@ -81,7 +92,7 @@ public class VehicleBasicsController {
         }
         Vehicle vehicle = new Vehicle();
         vehicle.setChassisNo(trimmed);
-        vehicle.setModel(blankToNull(modelName));
+        applySpecs(vehicle, make, modelName, mileage, year, grade);
         vehicleService.save(vehicle);
         if (storedNames != null && !storedNames.isEmpty()) {
             photoService.attachPending(trimmed, storedNames, originalNames, contentTypes);
@@ -105,14 +116,18 @@ public class VehicleBasicsController {
         model.addAttribute("vehicle", vehicle);
         model.addAttribute("photos", photoService.list(vehicle.getChassisNo()));
         model.addAttribute("maxPhotos", VehiclePhotoService.MAX_PHOTOS);
-        PipelineStageUtils.addPipelineFlags(model, importProgressService.progressFor(vehicle));
+        addBasicsNav(model, vehicle);
         return "vehicle/basics";
     }
 
     @PostMapping("/vehicle/basics/{chassisNo}")
     public String update(
             @PathVariable String chassisNo,
+            @RequestParam(value = "make", required = false) String make,
             @RequestParam(value = "model", required = false) String modelName,
+            @RequestParam(value = "mileage", required = false) String mileage,
+            @RequestParam(value = "year", required = false) String year,
+            @RequestParam(value = "grade", required = false) String grade,
             @RequestParam(value = "storedNames", required = false) List<String> storedNames,
             @RequestParam(value = "originalNames", required = false) List<String> originalNames,
             @RequestParam(value = "contentTypes", required = false) List<String> contentTypes,
@@ -122,13 +137,38 @@ public class VehicleBasicsController {
         if (vehicle == null) {
             return "redirect:/import";
         }
-        vehicle.setModel(blankToNull(modelName));
+        applySpecs(vehicle, make, modelName, mileage, year, grade);
         vehicleService.save(vehicle);
         if (storedNames != null && !storedNames.isEmpty()) {
             photoService.attachPending(vehicle.getChassisNo(), storedNames, originalNames, contentTypes);
         }
         redirectAttributes.addFlashAttribute("successMessage", "Vehicle details saved.");
         return "redirect:/vehicle/basics/" + Utils.encodeChassis(vehicle.getChassisNo());
+    }
+
+    private void addBasicsNav(Model model, Vehicle vehicle) {
+        String nav = intakePlanService.basicsNav(vehicle);
+        model.addAttribute("basicsNav", nav);
+        if ("customs".equals(nav)) {
+            PipelineStageUtils.addPipelineFlags(model, customsProgressService.progressFor(vehicle));
+        } else if ("prep".equals(nav)) {
+            PreparationProgress status = preparationProgressService.progressFor(vehicle);
+            model.addAttribute("workshopReady", status.isWorkshopReady());
+            model.addAttribute("yardReady", status.isYardReady());
+            model.addAttribute("inspectionReady", status.isInspectionReady());
+            model.addAttribute("saleReady", status.isSaleReady());
+            model.addAttribute("canEnterYard", status.isCanEnterYard());
+        } else if (vehicle.getChassisNo() != null && !vehicle.getChassisNo().trim().isEmpty()) {
+            PipelineStageUtils.addPipelineFlags(model, importProgressService.progressFor(vehicle));
+        }
+    }
+
+    private static void applySpecs(Vehicle vehicle, String make, String modelName, String mileage, String year, String grade) {
+        vehicle.setMake(blankToNull(make));
+        vehicle.setModel(blankToNull(modelName));
+        vehicle.setMileage(blankToNull(mileage));
+        vehicle.setYear(blankToNull(year));
+        vehicle.setGrade(blankToNull(grade));
     }
 
     private static boolean on(String value) {

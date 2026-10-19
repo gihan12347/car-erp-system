@@ -32,7 +32,12 @@ public final class ImportStageUrls {
     public static String redirectAfterNewVehicle(String chassisNo, ImportProgress status, List<String> keys) {
         String encoded = PipelineStageUtils.encode(chassisNo);
         if (status.isPipelineCompleted()) {
-            return "/customs/" + encoded;
+            FlowPipeline next = PipelineStageUtils.nextSelectedPipeline(
+                    FlowPipeline.IMPORT, PipelineStageUtils.selectedPipelinesOf(chassisNo));
+            if (next == null) {
+                return hubUrl(encoded);
+            }
+            return next.getCurrentBase() + encoded;
         }
         return firstIncompleteEditUrl(encoded, status, keys);
     }

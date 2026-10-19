@@ -3,6 +3,7 @@ package com.carsale.erp.shared.service;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
+import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
@@ -47,6 +48,55 @@ public class IntakePlanService {
 
     public boolean importSelected() {
         return flag(IMPORT, true);
+    }
+
+    @PostConstruct
+    void registerPipelineLookup() {
+        PipelineStageUtils.setSelectedPipelinesLookup(chassis -> {
+            Vehicle vehicle = vehicleRepository.findById(chassis.trim()).orElse(null);
+            return vehicle == null ? null : vehicle.getSelectedPipelines();
+        });
+    }
+
+    public boolean pipelineSelected(String chassisNo, String token) {
+        if (chassisNo != null && !chassisNo.trim().isEmpty()) {
+            Vehicle vehicle = vehicleRepository.findById(chassisNo.trim()).orElse(null);
+            if (vehicle != null) {
+                return pipelineSelected(vehicle, token);
+            }
+        }
+        if (hasPlan()) {
+            return sessionFlag(token);
+        }
+        return true;
+    }
+
+    public boolean pipelineSelected(Vehicle vehicle, String token) {
+        if (vehicle != null && vehicle.getSelectedPipelines() != null) {
+            return PipelineStageUtils.containsToken(vehicle.getSelectedPipelines(), token);
+        }
+        if (hasPlan()) {
+            return sessionFlag(token);
+        }
+        return true;
+    }
+
+    /**
+     * Pipeline stepper shown on vehicle details. Import stays when that pipeline
+     * was chosen. Otherwise customs wins over preparation, and preparation is
+     * shown only when customs was left out.
+     */
+    public String basicsNav(Vehicle vehicle) {
+        if (pipelineSelected(vehicle, "import") && !usesBasics(vehicle)) {
+            return "import";
+        }
+        if (pipelineSelected(vehicle, "customs")) {
+            return "customs";
+        }
+        if (pipelineSelected(vehicle, "prep")) {
+            return "prep";
+        }
+        return "details";
     }
 
     public String startPath() {
@@ -182,6 +232,19 @@ public class IntakePlanService {
         }
         Object value = session.getAttribute(KIND);
         return value instanceof String ? (String) value : null;
+    }
+
+    private boolean sessionFlag(String token) {
+        if ("import".equals(token)) {
+            return flag(IMPORT, false);
+        }
+        if ("customs".equals(token)) {
+            return flag(CUSTOMS, false);
+        }
+        if ("prep".equals(token)) {
+            return flag(PREP, false);
+        }
+        return false;
     }
 
     private boolean flag(String name, boolean fallback) {

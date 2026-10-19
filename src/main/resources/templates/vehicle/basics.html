@@ -13,16 +13,17 @@
                     <p class="form-lead" th:if="${personalCustomer != null}">
                         Personal import for
                         <strong th:text="${personalCustomer.fullName != null ? personalCustomer.fullName : personalCustomer.nicNo}">customer</strong>.
-                        Enter the chassis number and up to 5 images. Skipped pipeline stages stay available to fill later.
+                        Enter the chassis number, vehicle specs, and up to 5 images. Skipped pipeline stages stay available to fill later.
                     </p>
                     <p class="form-lead" th:if="${personalCustomer == null}">
-                        Enter the chassis number and up to 5 images. Pipelines left out are skipped, and those stages can be filled later.
+                        Enter the chassis number, vehicle specs, and up to 5 images. Pipelines left out are skipped, and those stages can be filled later.
                     </p>
                 </div>
             </div>
             <p th:if="${successMessage}" class="alert alert-ok" th:text="${successMessage}"></p>
             <p th:if="${errorMessage}" class="alert alert-error" th:text="${errorMessage}"></p>
 
+            <th:block th:if="${basicsNav == 'import'}">
             <div th:replace="import-pipeline/fragments/pipeline :: importPipelineSteps(
                     'basics',
                     ${editing ? vehicle.chassisNo : ''},
@@ -39,6 +40,53 @@
                     ${editing ? vehicle.model : ''},
                     false,
                     false)"></div>
+            </th:block>
+            <th:block th:if="${basicsNav == 'customs'}">
+            <div th:replace="customs-pipeline/fragments/pipeline :: clearancePipelineSteps(
+                    'basics',
+                    ${editing ? vehicle.chassisNo : ''},
+                    ${blReady},
+                    ${declarationReady},
+                    ${assessmentReady},
+                    ${worksheetReady},
+                    ${editing ? vehicle.model : ''},
+                    false)"></div>
+            </th:block>
+            <th:block th:if="${basicsNav == 'prep'}">
+            <div th:replace="preparation-pipeline/fragments/pipeline :: prepPipelineSteps(
+                    'basics',
+                    ${editing ? vehicle.chassisNo : ''},
+                    ${workshopReady},
+                    ${yardReady},
+                    ${inspectionReady},
+                    ${canEnterYard},
+                    ${editing ? vehicle.model : ''},
+                    false,
+                    ${saleReady})"></div>
+            </th:block>
+            <nav th:if="${basicsNav == 'details'}" class="import-pipeline panel" aria-label="Vehicle details">
+                <div class="import-pipeline-head">
+                    <div>
+                        <strong class="import-pipeline-kicker">Vehicle details</strong>
+                        <p class="import-pipeline-lead">Save the chassis number and images. No further pipeline was selected.</p>
+                    </div>
+                </div>
+                <div class="import-pipeline-scroller">
+                    <ol class="import-pipeline-steps">
+                        <li class="is-current is-done">
+                            <span class="import-pipeline-step is-static">
+                                <span class="import-pipeline-step-icon"><i class="fa-solid fa-car"></i></span>
+                                <span class="import-pipeline-step-copy">
+                                    <strong>Vehicle details</strong>
+                                    <small>Chassis and 5 images</small>
+                                    <em class="pipeline-step-status" th:classappend="${editing} ? ' done' : ' pending'"
+                                        th:text="${editing} ? 'Saved' : 'In progress'">In progress</em>
+                                </span>
+                            </span>
+                        </li>
+                    </ol>
+                </div>
+            </nav>
 
             <form th:action="${editing} ? @{/vehicle/basics/{c}(c=${vehicle.chassisNo})} : @{/vehicle/basics}"
                   method="post" class="vehicle-form" id="basicsForm">
@@ -51,8 +99,22 @@
                             <input type="text" name="chassisNo" id="chassisNo" maxlength="40" required
                                    th:value="${vehicle.chassisNo}" th:readonly="${editing}">
                         </label>
-                        <label>Vehicle name
-                            <input type="text" name="model" id="model" maxlength="120" th:value="${vehicle.model}">
+                        <label>Make
+                            <input type="text" name="make" id="make" maxlength="80" th:value="${vehicle.make}">
+                        </label>
+                        <label>Model
+                            <input type="text" name="model" id="model" maxlength="80" th:value="${vehicle.model}">
+                        </label>
+                        <label>Mileage
+                            <input type="text" name="mileage" id="mileage" maxlength="40" inputmode="numeric"
+                                   th:value="${vehicle.mileage}">
+                        </label>
+                        <label>Manufacture year
+                            <input type="text" name="year" id="year" maxlength="40" inputmode="numeric"
+                                   th:value="${vehicle.year}">
+                        </label>
+                        <label>Grade
+                            <input type="text" name="grade" id="grade" maxlength="80" th:value="${vehicle.grade}">
                         </label>
                     </div>
                 </article>

@@ -199,6 +199,7 @@
             choices[i].classList.add("is-picked");
             choices[i].setAttribute("aria-pressed", "true");
         }
+        syncContinue();
         hide(modal);
         show(pipelineModal);
         var back = pipelineModal.querySelector(".add-vehicle-close");
@@ -210,6 +211,15 @@
     function backToIntake() {
         hide(pipelineModal);
         show(modal);
+    }
+
+    function syncContinue() {
+        var continueBtn = document.getElementById("pipelineChoiceContinue");
+        if (!continueBtn) {
+            return;
+        }
+        var picked = pipelineModal.querySelector("[data-pipeline].is-picked");
+        continueBtn.disabled = !picked;
     }
 
     document.addEventListener("click", function (event) {
@@ -230,6 +240,7 @@
             event.preventDefault();
             var picked = pipelineBtn.classList.toggle("is-picked");
             pipelineBtn.setAttribute("aria-pressed", picked ? "true" : "false");
+            syncContinue();
             return;
         }
         var backBtn = event.target.closest ? event.target.closest("[data-pipeline-back]") : null;
@@ -246,6 +257,9 @@
         }
         if (event.target.id === "pipelineChoiceContinue") {
             event.preventDefault();
+            if (event.target.disabled) {
+                return;
+            }
             var params = ["intake=" + encodeURIComponent(intakeKind)];
             var choices = pipelineModal.querySelectorAll("[data-pipeline]");
             for (var i = 0; i < choices.length; i++) {
