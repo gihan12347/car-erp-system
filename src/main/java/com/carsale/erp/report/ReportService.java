@@ -197,7 +197,7 @@ public class ReportService {
         );
     }
 
-    private String placeOf(Vehicle vehicle, SaleListing listing) {
+    public String placeOf(Vehicle vehicle, SaleListing listing) {
         if (listing != null && listing.isSold()) {
             return SOLD;
         }
@@ -322,12 +322,12 @@ public class ReportService {
         return raw.trim();
     }
 
-    private static String formatMoney(BigDecimal value) {
+    public static String formatMoney(BigDecimal value) {
         DecimalFormat format = new DecimalFormat("#,##0.##");
         return "Rs. " + format.format(value);
     }
 
-    private static BigDecimal parseMoney(String raw) {
+    public static BigDecimal parseMoney(String raw) {
         if (raw == null) {
             return null;
         }

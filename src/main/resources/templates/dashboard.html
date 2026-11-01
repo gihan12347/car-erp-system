@@ -139,7 +139,7 @@
                     </div>
                     <ul class="fleet-snap" th:if="${!dash.actions.isEmpty()}">
                         <li th:each="action : ${dash.actions}">
-                            <a th:href="${action.href}">
+                            <a th:href="${action.href}" th:classappend="${action.tone}">
                                 <strong th:text="${action.title}">Ready and not listed</strong>
                                 <span th:text="${action.detail}">Move them onto a sale floor.</span>
                             </a>

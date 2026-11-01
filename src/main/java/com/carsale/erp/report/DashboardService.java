@@ -17,8 +17,12 @@ import org.springframework.transaction.annotation.Transactional;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import com.carsale.erp.preparationpipeline.model.YardBay;
+import com.carsale.erp.preparationpipeline.model.YardRecord;
+import com.carsale.erp.preparationpipeline.repository.YardRecordRepository;
 import com.carsale.erp.preparationpipeline.service.YardBayService;
+import com.carsale.erp.readypipeline.model.SaleListing;
 import com.carsale.erp.readypipeline.model.SaleLocation;
+import com.carsale.erp.readypipeline.repository.SaleListingRepository;
 import com.carsale.erp.readypipeline.service.SaleLocationService;
 import com.carsale.erp.readypipeline.util.Period;
 import com.carsale.erp.shared.vehicle.Vehicle;
@@ -34,17 +38,23 @@ public class DashboardService {
     private final SaleLocationService saleLocationService;
     private final YardBayService yardBayService;
     private final VehicleService vehicleService;
+    private final SaleListingRepository saleListingRepository;
+    private final YardRecordRepository yardRecordRepository;
 
     public DashboardService(
             ReportService reportService,
             SaleLocationService saleLocationService,
             YardBayService yardBayService,
-            VehicleService vehicleService
+            VehicleService vehicleService,
+            SaleListingRepository saleListingRepository,
+            YardRecordRepository yardRecordRepository
     ) {
         this.reportService = reportService;
         this.saleLocationService = saleLocationService;
         this.yardBayService = yardBayService;
         this.vehicleService = vehicleService;
+        this.saleListingRepository = saleListingRepository;
+        this.yardRecordRepository = yardRecordRepository;
     }
 
     @Transactional(readOnly = true)
@@ -331,6 +341,7 @@ public class DashboardService {
         moneyLines.add(new MoneyLine("Average sold price", averageSold, ""));
 
         List<ActionItem> actions = new ArrayList<ActionItem>();
+        addTaxableActions(actions, report.getRows());
         addAction(actions, listedMissingPrice, "Listed without an asking price",
                 "These vehicles are on a sale floor with no selling price.",
                 "/reports?section=listed");
@@ -706,7 +717,61 @@ public class DashboardService {
         } else if (title.contains("nearly")) {
             phrase = count + (count == 1 ? " sale location is nearly full" : " sale locations are nearly full");
         }
-        actions.add(new ActionItem(phrase, detail, href));
+        actions.add(new ActionItem(phrase, detail, href, ""));
+    }
+
+    private void addTaxableActions(List<ActionItem> actions, List<ReportService.ReportRow> rows) {
+        Map<String, String> listedOn = new HashMap<String, String>();
+        for (SaleListing listing : saleListingRepository.findAll()) {
+            if (listing.getChassisNo() != null) {
+                listedOn.put(listing.getChassisNo(), listing.getListedOn());
+            }
+        }
+        Map<String, String> arrivedOn = new HashMap<String, String>();
+        for (YardRecord yard : yardRecordRepository.findAll()) {
+            if (yard.getChassisNo() != null) {
+                arrivedOn.put(yard.getChassisNo(), yard.getArrivalDate());
+            }
+        }
+        int comingSoon = 0;
+        int started = 0;
+        for (ReportService.ReportRow row : rows) {
+            if (ReportService.SOLD.equals(row.getSection())) {
+                continue;
+            }
+            Integer days = StandardReportService.daysInStock(
+                    listedOn.get(row.getChassisNo()),
+                    arrivedOn.get(row.getChassisNo())
+            );
+            if (days == null) {
+                continue;
+            }
+            if (days.intValue() > 90) {
+                started++;
+            } else if (days.intValue() > 60) {
+                comingSoon++;
+            }
+        }
+        if (started > 0) {
+            actions.add(new ActionItem(
+                    started + (started == 1
+                            ? " vehicle — taxable period has started"
+                            : " vehicles — taxable period has started"),
+                    "In stock more than 90 days. The taxable period has started.",
+                    "/reports/stock",
+                    "is-due"
+            ));
+        }
+        if (comingSoon > 0) {
+            actions.add(new ActionItem(
+                    comingSoon + (comingSoon == 1
+                            ? " vehicle — taxable period is coming soon"
+                            : " vehicles — taxable period is coming soon"),
+                    "In stock more than 60 days. Sell before the taxable period starts.",
+                    "/reports/stock",
+                    "is-soon"
+            ));
+        }
     }
 
     private static int compareListed(String left, String right) {
@@ -970,16 +1035,19 @@ public class DashboardService {
         private final String title;
         private final String detail;
         private final String href;
+        private final String tone;
 
-        public ActionItem(String title, String detail, String href) {
+        public ActionItem(String title, String detail, String href, String tone) {
             this.title = title;
             this.detail = detail;
             this.href = href;
+            this.tone = tone == null ? "" : tone;
         }
 
         public String getTitle() { return title; }
         public String getDetail() { return detail; }
         public String getHref() { return href; }
+        public String getTone() { return tone; }
     }
 
     public static final class LocationRow {

@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="shared/head :: head(${pageTitle})"></head>
+<body>
+<div class="app-shell">
+    <aside th:replace="shared/sidebar :: sidebar(${activeMenu})"></aside>
+    <div class="app-main">
+        <header th:replace="shared/topbar :: topbar"></header>
+        <main class="page-content report-view-page">
+            <div class="fleet-shell">
+                <header class="fleet-head report-view-head">
+                    <div>
+                        <a class="config-crumb" th:href="@{/reports}">← Reports</a>
+                        <h1 th:text="${report.title}">Stock book</h1>
+                        <p>
+                            <span th:text="${report.standard}">IAS 2</span>
+                            ·
+                            <span th:text="${report.periodLabel}">All dates</span>
+                        </p>
+                    </div>
+                    <div class="report-view-actions">
+                        <a class="import-tool is-quiet" th:href="@{/reports}">New report</a>
+                        <button type="button" class="import-tool is-quiet" onclick="window.print()">Print</button>
+                        <a class="import-tool"
+                           th:href="@{/reports/{kind}(kind=${report.kind}, export='csv', q=${report.searchQuery}, section=${report.section}, from=${report.fromDate}, to=${report.toDate})}">
+                            Export CSV
+                        </a>
+                    </div>
+                </header>
+
+                <form method="get" th:action="@{/reports/{kind}(kind=${report.kind})}" class="report-generator">
+                    <input type="hidden" name="section" th:value="${report.section}">
+                    <label class="report-generator-date">
+                        <span>From</span>
+                        <input type="date" class="native-date" name="from" th:value="${report.fromDate}">
+                    </label>
+                    <label class="report-generator-date">
+                        <span>To</span>
+                        <input type="date" class="native-date" name="to" th:value="${report.toDate}">
+                    </label>
+                    <label class="report-generator-search">
+                        <span>Search</span>
+                        <input type="search" name="q" th:value="${report.searchQuery}"
+                               placeholder="Chassis, stock no, make, or buyer">
+                    </label>
+                    <button type="submit" class="import-tool">
+                        <i class="fa-solid fa-rotate" aria-hidden="true"></i>
+                        <span>Refresh</span>
+                    </button>
+                    <p class="report-period-basis" th:if="${report.kind == 'landed' or report.kind == 'duty' or report.kind == 'documents'}">
+                        Period uses the stock date: the listing date, or the yard arrival date when the unit is not listed.
+                    </p>
+                    <p class="report-period-basis" th:if="${report.kind == 'workshop'}">
+                        Period uses the workshop date: the repair start date, or the completion date when the repair has not started.
+                    </p>
+                </form>
+
+                <section class="report-sheet" aria-label="Generated report">
+                    <header class="report-letterhead">
+                        <div>
+                            <strong>CAR ERP</strong>
+                            <span>Import · Clearance · Preparation · Sale</span>
+                        </div>
+                        <div class="report-letterhead-meta">
+                            <span th:text="${report.title}">Stock book</span>
+                            <span th:text="${'Generated ' + report.generatedOn}">Generated</span>
+                            <span th:text="${report.periodLabel}">All dates</span>
+                            <span th:text="${report.rowCount + ' line' + (report.rowCount == 1 ? '' : 's')}">0 lines</span>
+                        </div>
+                    </header>
+                    <p class="report-sheet-lead" th:text="${report.lead}">Vehicles still in stock.</p>
+
+                    <div class="report-kpis" th:if="${!report.kpis.isEmpty()}"
+                         th:classappend="${report.kind == 'duty'} ? ' is-duty' : (${report.kind == 'documents'} ? ' is-docs' : (${report.kind == 'workshop'} ? ' is-workshop' : ''))">
+                        <a class="kpi-card report-kpi"
+                           th:each="kpi : ${report.kpis}"
+                           th:href="${kpi.isLink()} ? ${kpi.href} : @{/reports/{kind}(kind=${report.kind}, q=${report.searchQuery}, from=${report.fromDate}, to=${report.toDate})}"
+                           th:classappend="${kpi.isActive(report.section)} ? ' is-active' : ''">
+                            <span th:text="${kpi.label}">On hand</span>
+                            <strong th:text="${kpi.value}">0</strong>
+                            <small th:text="${kpi.hint}">Hint</small>
+                        </a>
+                    </div>
+                    <p class="report-note" th:if="${report.filterLinks}">
+                        <a th:href="${report.allHref}">Show every stage</a>
+                    </p>
+
+                    <div class="table-wrap" th:if="${!report.rows.isEmpty()}">
+                        <table class="report-table"
+                               th:classappend="${report.kind == 'stock'} ? ' is-stock' : (${report.kind == 'sales'} ? ' is-sales' : (${report.kind == 'landed'} ? ' is-landed' : (${report.kind == 'duty'} ? ' is-duty' : (${report.kind == 'documents'} ? ' is-docs' : (${report.kind == 'workshop'} ? ' is-workshop' : '')))))">
+                            <thead>
+                            <tr>
+                                <th th:each="column : ${report.columns}"
+                                    th:classappend="${column.numeric} ? 'num' : ''"
+                                    th:text="${column.label}">Chassis</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="row : ${pageRows}" th:classappend="${row.tone}">
+                                <td th:each="cell, iter : ${row.cells}"
+                                    th:attr="data-label=${report.columns[iter.index].label}"
+                                    th:classappend="${(report.columns[iter.index].numeric ? 'num ' : '') + (cell.tone != null ? cell.tone : '')}">
+                                    <div th:if="${cell.lines != null}" class="cost-stack"
+                                         th:classappend="${cell.tone == 'is-details'} ? ' is-details'">
+                                        <div th:each="line : ${cell.lines}"
+                                             class="cost-stack-line"
+                                             th:classappend="${line.total} ? ' is-total'">
+                                            <a th:if="${line.href != null}"
+                                               class="chassis-link"
+                                               th:href="${line.href}"
+                                               th:text="${line.amount}"
+                                               title="Open the vehicle summary">NHP10</a>
+                                            <th:block th:if="${line.href == null}">
+                                                <span th:if="${line.label != null and !#strings.isEmpty(line.label)}"
+                                                      th:text="${line.label}">Landing</span>
+                                                <b th:text="${line.amount}">Rs. 1</b>
+                                            </th:block>
+                                        </div>
+                                    </div>
+                                    <a th:if="${cell.lines == null and cell.href != null}"
+                                       class="chassis-link"
+                                       th:classappend="${cell.tone}"
+                                       th:href="${cell.href}"
+                                       th:text="${cell.text}"
+                                       th:title="${cell.text}">NHP10</a>
+                                    <span th:if="${cell.lines == null and cell.href == null and cell.pill != null}"
+                                          class="pill" th:classappend="${cell.pill}" th:text="${cell.text}">Listed</span>
+                                    <span th:if="${cell.lines == null and cell.href == null and cell.pill == null}" th:text="${cell.text}">—</span>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="fleet-pager report-pager" th:if="${report.rowCount > 0}">
+                        <span class="fleet-pager-range" th:text="${reportRange}">1–10 of 24</span>
+                        <nav aria-label="Report pages">
+                            <a th:if="${reportPage > 1}"
+                               th:href="@{/reports/{kind}(kind=${report.kind}, q=${report.searchQuery}, section=${report.section}, from=${report.fromDate}, to=${report.toDate}, page=${reportPage - 1})}">Previous</a>
+                            <span th:if="${reportPage <= 1}" class="is-off">Previous</span>
+                            <th:block th:each="n : ${reportPageNumbers}">
+                                <span th:if="${n == 0}" class="is-gap" aria-hidden="true">…</span>
+                                <a th:if="${n > 0}"
+                                   th:href="@{/reports/{kind}(kind=${report.kind}, q=${report.searchQuery}, section=${report.section}, from=${report.fromDate}, to=${report.toDate}, page=${n})}"
+                                   th:text="${n}"
+                                   th:classappend="${n == reportPage} ? ' is-on'"
+                                   th:aria-current="${n == reportPage} ? 'page' : null">1</a>
+                            </th:block>
+                            <a th:if="${reportPage < reportPages}"
+                               th:href="@{/reports/{kind}(kind=${report.kind}, q=${report.searchQuery}, section=${report.section}, from=${report.fromDate}, to=${report.toDate}, page=${reportPage + 1})}">Next</a>
+                            <span th:if="${reportPage >= reportPages}" class="is-off">Next</span>
+                        </nav>
+                    </div>
+                    <p class="report-empty" th:if="${report.rows.isEmpty()}">
+                        No lines for this period. Change the dates or search, then refresh.
+                    </p>
+                    <p class="report-footnote" th:text="${report.note}">Notes.</p>
+                </section>
+            </div>
+        </main>
+    </div>
+</div>
+<script th:src="@{/js/shared/app.js(v=20260905k)}"></script>
+</body>
+</html>
