@@ -222,12 +222,13 @@ public final class SaleGroup {
         }
 
         void add(ReadyForSaleController.SaleRow row) {
+            if (row != null && row.isSold()) {
+                soldCount++;
+                return;
+            }
             vehicleCount++;
             if (row != null && row.isListed()) {
                 listedCount++;
-            }
-            if (row != null && row.isSold()) {
-                soldCount++;
             }
         }
 

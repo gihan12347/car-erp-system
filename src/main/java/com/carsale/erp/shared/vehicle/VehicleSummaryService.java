@@ -1,5 +1,6 @@
 package com.carsale.erp.shared.vehicle;
 
+import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
@@ -27,12 +28,16 @@ import com.carsale.erp.importpipeline.service.StandardsCertificateService;
 import com.carsale.erp.importpipeline.service.VehiclePhotoService;
 import com.carsale.erp.preparationpipeline.model.PreviousOwner;
 import com.carsale.erp.preparationpipeline.model.RegistrationCertificate;
+import com.carsale.erp.preparationpipeline.model.WorkshopJob;
+import com.carsale.erp.preparationpipeline.model.WorkshopJobLine;
 import com.carsale.erp.preparationpipeline.model.YardBay;
 import com.carsale.erp.preparationpipeline.model.YardRecord;
 import com.carsale.erp.preparationpipeline.service.PreviousOwnerService;
 import com.carsale.erp.preparationpipeline.service.RegistrationCertificateService;
+import com.carsale.erp.preparationpipeline.service.WorkshopService;
 import com.carsale.erp.preparationpipeline.service.YardBayService;
 import com.carsale.erp.preparationpipeline.service.YardService;
+import com.carsale.erp.report.ReportService;
 import com.carsale.erp.readypipeline.model.SaleListing;
 import com.carsale.erp.readypipeline.model.SaleLocation;
 import com.carsale.erp.readypipeline.service.SaleListingService;
@@ -68,6 +73,7 @@ public class VehicleSummaryService {
     private final RegistrationCertificateService registrationCertificateService;
     private final PreviousOwnerService previousOwnerService;
     private final SkippedStageService skippedStageService;
+    private final WorkshopService workshopService;
 
     public VehicleSummaryService(
             VehicleService vehicleService,
@@ -86,7 +92,8 @@ public class VehicleSummaryService {
             YardBayService yardBayService,
             RegistrationCertificateService registrationCertificateService,
             PreviousOwnerService previousOwnerService,
-            SkippedStageService skippedStageService
+            SkippedStageService skippedStageService,
+            WorkshopService workshopService
     ) {
         this.vehicleService = vehicleService;
         this.importProgressService = importProgressService;
@@ -105,6 +112,7 @@ public class VehicleSummaryService {
         this.registrationCertificateService = registrationCertificateService;
         this.previousOwnerService = previousOwnerService;
         this.skippedStageService = skippedStageService;
+        this.workshopService = workshopService;
     }
 
     public VehicleSummary build(String chassisNo) {
@@ -119,10 +127,11 @@ public class VehicleSummaryService {
         ImportProgress progress = importProgressService.progressFor(vehicle);
         CustomsDocument clearance = customsDocumentService.findByChassisNo(chassis);
         SaleListing listing = saleListingService.findByChassisNo(chassis);
+        WorkshopJob workshop = workshopService.findByChassisNo(chassis);
 
         List<PhotoCard> photos = photosFor(chassis);
         List<DocumentCard> documents = documentsFor(vehicle, progress, clearance, photos, chassis);
-        List<PriceGroup> priceGroups = pricesFor(vehicle, clearance, listing);
+        List<PriceGroup> priceGroups = pricesFor(vehicle, clearance, listing, workshop);
 
         int onFile = 0;
         int pending = 0;
@@ -148,7 +157,7 @@ public class VehicleSummaryService {
                 pending,
                 skipped,
                 percent,
-                landingHighlight(clearance),
+                totalCost(clearance, workshop),
                 askingHighlight(listing),
                 highlightsFor(vehicle),
                 specsFor(vehicle),
@@ -542,12 +551,18 @@ public class VehicleSummaryService {
         ));
     }
 
-    private List<PriceGroup> pricesFor(Vehicle vehicle, CustomsDocument clearance, SaleListing listing) {
+    private List<PriceGroup> pricesFor(
+            Vehicle vehicle,
+            CustomsDocument clearance,
+            SaleListing listing,
+            WorkshopJob workshop
+    ) {
         List<PriceGroup> groups = new ArrayList<PriceGroup>();
         PriceBuilder landing = new PriceBuilder("Landing");
         PriceBuilder invoice = new PriceBuilder("Customs declaration(CUSDEC)");
         PriceBuilder assessment = new PriceBuilder("Assessment");
         PriceBuilder worksheet = new PriceBuilder("Working sheet");
+        PriceBuilder repairs = new PriceBuilder("Workshop");
         PriceBuilder sale = new PriceBuilder("Sale");
 
         if (clearance != null) {
@@ -588,6 +603,8 @@ public class VehicleSummaryService {
             worksheet.addTotal("Fiscal total", withCurrency(clearance.getWorksheetFiscalTotal(), clearance.getWorksheetFiscalTotalCurrency()));
         }
 
+        addWorkshop(repairs, workshop);
+
         sale.add("Recycle fee", vehicle.getRecycleFee());
         if (listing != null) {
             sale.add("Selling price", listing.getAskingPrice());
@@ -598,8 +615,76 @@ public class VehicleSummaryService {
         addGroup(groups, invoice.build());
         addGroup(groups, assessment.build());
         addGroup(groups, worksheet.build());
+        addGroup(groups, repairs.build());
         addGroup(groups, sale.build());
         return groups;
+    }
+
+    private static void addWorkshop(PriceBuilder repairs, WorkshopJob workshop) {
+        if (workshop == null || workshop.getLines() == null) {
+            return;
+        }
+        int index = 0;
+        for (WorkshopJobLine line : workshop.getLines()) {
+            if (line == null || line.isEmpty()) {
+                continue;
+            }
+            String estimated = text(line.getEstimatedCost());
+            String actual = text(line.getActualCost());
+            if (estimated == null && actual == null) {
+                continue;
+            }
+            index++;
+            String name = text(line.getJobSummary());
+            if (name == null) {
+                name = "Repair " + index;
+            }
+            repairs.add(name + " · estimated", money(estimated));
+            repairs.add(name + " · actual", money(actual));
+        }
+        String total = repairHighlight(workshop);
+        if (total != null) {
+            repairs.addTotal("Repair cost", total);
+        }
+    }
+
+    private static String repairHighlight(WorkshopJob workshop) {
+        BigDecimal total = repairTotal(workshop);
+        return total == null ? null : ReportService.formatMoney(total);
+    }
+
+    private static BigDecimal repairTotal(WorkshopJob workshop) {
+        if (workshop == null || workshop.getLines() == null) {
+            return null;
+        }
+        BigDecimal total = BigDecimal.ZERO;
+        boolean any = false;
+        for (WorkshopJobLine line : workshop.getLines()) {
+            if (line == null || line.isEmpty()) {
+                continue;
+            }
+            BigDecimal cost = lineCost(line);
+            if (cost != null) {
+                total = total.add(cost);
+                any = true;
+            }
+        }
+        return any ? total : null;
+    }
+
+    private static BigDecimal lineCost(WorkshopJobLine line) {
+        String actual = text(line.getActualCost());
+        String estimated = text(line.getEstimatedCost());
+        return ReportService.parseMoney(actual != null ? actual : estimated);
+    }
+
+    private static String money(String raw) {
+        String value = text(raw);
+        if (value == null) {
+            return null;
+        }
+        BigDecimal parsed = ReportService.parseMoney(value);
+        return parsed == null ? value : ReportService.formatMoney(parsed);
     }
 
     private static void addGroup(List<PriceGroup> groups, PriceGroup group) {
@@ -763,19 +848,21 @@ public class VehicleSummaryService {
         return vehicle.getStage().getDisplayName();
     }
 
-    private static String landingHighlight(CustomsDocument clearance) {
-        if (clearance == null) {
-            return null;
+    private static String totalCost(CustomsDocument clearance, WorkshopJob workshop) {
+        BigDecimal total = null;
+        BigDecimal[] parts = new BigDecimal[] {
+                clearance == null ? null : ReportService.parseMoney(clearance.getLandingCostLkr()),
+                clearance == null ? null : ReportService.parseMoney(clearance.getValueNcy()),
+                clearance == null ? null : ReportService.parseMoney(clearance.getAssessmentTotalAssessed()),
+                repairTotal(workshop)
+        };
+        for (BigDecimal part : parts) {
+            if (part == null) {
+                continue;
+            }
+            total = total == null ? part : total.add(part);
         }
-        String lkr = text(clearance.getLandingCostLkr());
-        if (lkr != null) {
-            return lkr;
-        }
-        String usd = text(clearance.getLandingCostUsd());
-        if (usd != null) {
-            return usd;
-        }
-        return withCurrency(clearance.getWorksheetFiscalTotal(), clearance.getWorksheetFiscalTotalCurrency());
+        return total == null ? null : ReportService.formatMoney(total);
     }
 
     private static String askingHighlight(SaleListing listing) {

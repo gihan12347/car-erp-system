@@ -11854,12 +11854,12 @@ a.place-card.is-unassigned .place-meter-fill { background: var(--brand); }
     vertical-align: middle;
 }
 
-.report-table.is-stock th:nth-child(1) { width: 24%; }
-.report-table.is-stock th:nth-child(2) { width: 13%; }
+.report-table.is-stock th:nth-child(1) { width: 22%; }
+.report-table.is-stock th:nth-child(2) { width: 12%; }
 .report-table.is-stock th:nth-child(3) { width: 11%; }
 .report-table.is-stock th:nth-child(4) { width: 16%; }
-.report-table.is-stock th:nth-child(5) { width: 24%; }
-.report-table.is-stock th:nth-child(6) { width: 12%; }
+.report-table.is-stock th:nth-child(5) { width: 23%; }
+.report-table.is-stock th:nth-child(6) { width: 16%; }
 
 .report-table.is-stock th:nth-child(4),
 .report-table.is-stock td:nth-child(4),
@@ -11873,6 +11873,18 @@ a.place-card.is-unassigned .place-meter-fill { background: var(--brand); }
 
 .report-table.is-stock th {
     letter-spacing: 0.02em;
+}
+
+.report-table.is-stock th:nth-child(6) {
+    white-space: normal;
+    line-height: 1.3;
+    padding-left: 10px;
+    padding-right: 10px;
+}
+
+.report-table.is-stock td:nth-child(6) {
+    padding-left: 10px;
+    padding-right: 10px;
 }
 
 .report-table.is-stock td:nth-child(2),
@@ -12116,20 +12128,28 @@ a.place-card.is-unassigned .place-meter-fill { background: var(--brand); }
 }
 
 .report-table.is-sales .cost-stack {
-    width: max-content;
-    max-width: 100%;
+    width: 100%;
     min-width: 0;
-    margin-left: auto;
-    gap: 4px;
+    margin-left: 0;
+    gap: 5px;
 }
 
 .report-table.is-sales .cost-stack-line {
-    justify-content: flex-start;
-    gap: 12px;
+    display: grid;
+    grid-template-columns: 88px minmax(0, 1fr);
+    justify-content: stretch;
+    gap: 16px;
+    align-items: baseline;
 }
 
 .report-table.is-sales .cost-stack-line span {
-    flex: 0 0 84px;
+    flex: none;
+    width: auto;
+    text-align: left;
+}
+
+.report-table.is-sales .cost-stack-line b {
+    text-align: right;
 }
 
 .report-pager {

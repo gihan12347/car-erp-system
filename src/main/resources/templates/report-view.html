@@ -11,7 +11,7 @@
                 <header class="fleet-head report-view-head">
                     <div>
                         <a class="config-crumb" th:href="@{/reports}">← Reports</a>
-                        <h1 th:text="${report.title}">Stock book</h1>
+                        <h1 th:text="${report.title}">Vehicles on stock</h1>
                         <p>
                             <span th:text="${report.standard}">IAS 2</span>
                             ·
@@ -62,7 +62,7 @@
                             <span>Import · Clearance · Preparation · Sale</span>
                         </div>
                         <div class="report-letterhead-meta">
-                            <span th:text="${report.title}">Stock book</span>
+                            <span th:text="${report.title}">Vehicles on stock</span>
                             <span th:text="${'Generated ' + report.generatedOn}">Generated</span>
                             <span th:text="${report.periodLabel}">All dates</span>
                             <span th:text="${report.rowCount + ' line' + (report.rowCount == 1 ? '' : 's')}">0 lines</span>
@@ -159,6 +159,6 @@
         </main>
     </div>
 </div>
-<script th:src="@{/js/shared/app.js(v=20260905k)}"></script>
+<script th:src="@{/js/shared/app.js(v=20261103c)}"></script>
 </body>
 </html>

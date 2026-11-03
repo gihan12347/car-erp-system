@@ -35,7 +35,7 @@ class SaleGroupTest {
 
         assertEquals(3, groups.size());
         assertEquals("SL-01", groups.get(0).getSaleCode());
-        assertEquals(2, groups.get(0).getVehicleCount());
+        assertEquals(1, groups.get(0).getVehicleCount());
         assertEquals(1, groups.get(0).getListedCount());
         assertEquals(1, groups.get(0).getSoldCount());
         assertEquals(2, groups.get(0).getOccupied());

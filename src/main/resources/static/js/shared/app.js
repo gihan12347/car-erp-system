@@ -218,6 +218,9 @@
             if (url.pathname === window.location.pathname && url.search === window.location.search) {
                 return;
             }
+            if (url.search.indexOf("export=csv") !== -1) {
+                return;
+            }
         } catch (ignored) {
             return;
         }

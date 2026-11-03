@@ -47,8 +47,8 @@
                         <strong th:text="${summary.pendingCount}">4</strong>
                     </div>
                     <div class="summary-meter">
-                        <span>Landing cost</span>
-                        <strong th:text="${summary.landingCost != null ? summary.landingCost : '—'}">—</strong>
+                        <span>Total cost</span>
+                        <strong th:text="${summary.totalCost != null ? summary.totalCost : '—'}">—</strong>
                     </div>
                     <div class="summary-meter">
                         <span>Asking price</span>
@@ -215,7 +215,7 @@
                         <div class="summary-block-head">
                             <div>
                                 <h2>Prices</h2>
-                                <p>Landing, customs declaration, duty, worksheet, and sale figures.</p>
+                                <p>Landing, customs declaration, duty, worksheet, workshop, and sale figures.</p>
                             </div>
                         </div>
                         <div th:if="${summary.pricesEmpty}" class="summary-empty is-compact">

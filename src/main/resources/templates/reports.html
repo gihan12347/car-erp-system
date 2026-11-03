@@ -25,7 +25,7 @@
                             <option value="">Select a report</option>
                             <option th:each="card : ${catalog}"
                                     th:value="${card.kind}"
-                                    th:text="${card.group + ' — ' + card.title}">Stock book</option>
+                                    th:text="${card.group + ' — ' + card.title}">Vehicles on stock</option>
                         </select>
                     </label>
                     <label class="report-generator-date">
@@ -54,7 +54,7 @@
                             <i class="fa-solid" th:classappend="${card.icon}"></i>
                         </span>
                         <div class="report-card-copy">
-                            <strong th:text="${card.title}">Stock book</strong>
+                            <strong th:text="${card.title}">Vehicles on stock</strong>
                             <em th:text="${card.standard}">IAS 2 inventory listing</em>
                             <span th:text="${card.description}">On-hand inventory.</span>
                         </div>

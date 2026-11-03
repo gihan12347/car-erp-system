@@ -130,13 +130,13 @@ public class StandardReportService {
         Snapshot snap = load("");
         List<ReportCard> cards = new ArrayList<ReportCard>();
         cards.add(new ReportCard(
-                STOCK, "Inventory", "Stock book", "IAS 2 inventory listing",
+                STOCK, "Inventory", "Vehicles on stock", "IAS 2 inventory listing",
                 "On-hand inventory by location at landing cost.",
                 "fa-warehouse", "is-blue", snap.onHand, "on hand",
                 moneyOrDash(snap.onHandLanding, snap.anyOnHandLanding)
         ));
         cards.add(new ReportCard(
-                SALES, "Sales", "Sales register", "Dealer deal jacket",
+                SALES, "Sales", "Sold vehicles", "Dealer deal jacket",
                 "Sold units, buyers, and gross profit per chassis.",
                 "fa-receipt", "is-green", snap.soldCount, "sold",
                 moneyOrDash(snap.soldRevenue, snap.anySoldRevenue)
@@ -269,7 +269,8 @@ public class StandardReportService {
             BigDecimal landing = landingOf(customs);
             BigDecimal cusdec = customs == null ? null : ReportService.parseMoney(customs.getValueNcy());
             BigDecimal assessment = customs == null ? null : ReportService.parseMoney(customs.getAssessmentTotalAssessed());
-            BigDecimal total = sumMoney(landing, cusdec, assessment);
+            BigDecimal repair = repairOf(snap.jobs.get(chassis));
+            BigDecimal total = sumMoney(landing, cusdec, assessment, repair);
             if (landing == null || cusdec == null || assessment == null) {
                 missingCost++;
             }
@@ -285,7 +286,7 @@ public class StandardReportService {
             row.cells.add(text(blank(vehicle.getYear(), "—")));
             row.cells.add(text(blank(vehicle.getMileage(), "—")));
             row.cells.add(text(location));
-            row.cells.add(costBreakdown(landing, cusdec, assessment, total));
+            row.cells.add(costBreakdown(landing, cusdec, assessment, repair, total));
             Cell daysCell = text(days == null ? "—" : String.valueOf(days));
             if (days != null && days.intValue() > 90) {
                 daysCell.tone = "due";
@@ -304,17 +305,18 @@ public class StandardReportService {
         });
         List<Kpi> kpis = new ArrayList<Kpi>();
         kpis.add(new Kpi("On hand", String.valueOf(onHand), "Excludes sold units"));
-        kpis.add(new Kpi("Total cost", moneyOrDash(onHandTotal, anyOnHandTotal), "Landing + CUSDEC + assessment"));
+        kpis.add(new Kpi("Total cost", moneyOrDash(onHandTotal, anyOnHandTotal), "Landing + CUSDEC + assessment + repair"));
         kpis.add(new Kpi("On sale", String.valueOf(onSale), "Vehicles on a sale floor"));
         kpis.add(new Kpi("On yard", String.valueOf(onYard), "Vehicles in a yard bay"));
         kpis.add(new Kpi("Missing total cost", String.valueOf(missingCost), "Landing, CUSDEC, or assessment missing"));
         return page(
-                STOCK, "Stock book",
+                STOCK, "Vehicles on stock",
                 "Vehicles still in stock, valued at total cost.",
                 "IAS 2 inventory listing",
                 query, kpis, columns, rows,
-                "Total cost is landing (shipping, LKR) plus the CUSDEC value in LKR plus assessment total tax. "
-                        + "A vehicle counts as missing a total cost when any of those three is absent. "
+                "Total cost is landing (shipping, LKR) plus the CUSDEC value in LKR plus assessment total tax plus workshop repair cost. "
+                        + "Repair cost is the actual amount, or the estimate when the actual is not set. "
+                        + "A vehicle counts as missing a total cost when landing, CUSDEC, or assessment is absent. "
                         + "Days in stock uses the listing date, or the yard arrival date when the unit is not listed."
         );
     }
@@ -350,7 +352,8 @@ public class StandardReportService {
             BigDecimal landing = landingOf(customs);
             BigDecimal cusdec = customs == null ? null : ReportService.parseMoney(customs.getValueNcy());
             BigDecimal assessment = customs == null ? null : ReportService.parseMoney(customs.getAssessmentTotalAssessed());
-            BigDecimal total = sumMoney(landing, cusdec, assessment);
+            BigDecimal repair = repairOf(snap.jobs.get(chassis));
+            BigDecimal total = sumMoney(landing, cusdec, assessment, repair);
             BigDecimal sale = salePrice(listing);
             BigDecimal gp = sale != null && total != null ? sale.subtract(total) : null;
             String margin = "—";
@@ -378,7 +381,7 @@ public class StandardReportService {
             row.cells.add(buyerDetails(listing));
             row.cells.add(placeDetails(listing));
             row.cells.add(text(sale == null ? "—" : ReportService.formatMoney(sale)));
-            row.cells.add(costBreakdown(landing, cusdec, assessment, total));
+            row.cells.add(costBreakdown(landing, cusdec, assessment, repair, total));
             row.cells.add(moneyCell(gp));
             row.cells.add(toneText(margin, gp));
             rows.add(row);
@@ -389,15 +392,16 @@ public class StandardReportService {
         List<Kpi> kpis = new ArrayList<Kpi>();
         kpis.add(new Kpi("Units sold", String.valueOf(soldCount), "All sold chassis"));
         kpis.add(new Kpi("Revenue", moneyOrDash(soldRevenue, anySoldRevenue), "Advertised, else asking"));
-        kpis.add(new Kpi("Total cost", moneyOrDash(soldCost, anySoldCost), "Landing + CUSDEC + assessment"));
+        kpis.add(new Kpi("Total cost", moneyOrDash(soldCost, anySoldCost), "Landing + CUSDEC + assessment + repair"));
         kpis.add(new Kpi("Gross profit", moneyOrDash(grossProfit, anyGrossProfit), "Revenue minus total cost"));
         kpis.add(new Kpi("Average sold", avg, missingPrice + " without a price"));
         return page(
-                SALES, "Sales register",
+                SALES, "Sold vehicles",
                 "Completed sales, valued at total cost.",
                 "Dealer deal jacket",
                 query, kpis, columns, rows,
-                "Total cost is landing (shipping, LKR) plus the CUSDEC value in LKR plus assessment total tax. "
+                "Total cost is landing (shipping, LKR) plus the CUSDEC value in LKR plus assessment total tax plus workshop repair cost. "
+                        + "Repair cost is the actual amount, or the estimate when the actual is not set. "
                         + "Revenue is the advertised price, or the asking price when it is not set. "
                         + "Gross profit is revenue minus that total cost. "
                         + "Sale date is not stored separately, so the listing date is shown."
@@ -1253,10 +1257,30 @@ public class StandardReportService {
         return total;
     }
 
+    private static BigDecimal repairOf(WorkshopJob job) {
+        if (job == null || job.getLines() == null) {
+            return null;
+        }
+        BigDecimal total = BigDecimal.ZERO;
+        boolean any = false;
+        for (WorkshopJobLine line : job.getLines()) {
+            if (line == null || line.isEmpty()) {
+                continue;
+            }
+            BigDecimal cost = lineCost(line);
+            if (cost != null) {
+                total = total.add(cost);
+                any = true;
+            }
+        }
+        return any ? total : null;
+    }
+
     private static Cell costBreakdown(
             BigDecimal landing,
             BigDecimal cusdec,
             BigDecimal assessment,
+            BigDecimal repair,
             BigDecimal total
     ) {
         if (total == null) {
@@ -1266,6 +1290,7 @@ public class StandardReportService {
         addCostLine(lines, "Landing", landing);
         addCostLine(lines, "CUSDEC", cusdec);
         addCostLine(lines, "Assessment", assessment);
+        addCostLine(lines, "Repair", repair);
         addCostLine(lines, "Total", total);
         StringBuilder plain = new StringBuilder();
         for (CostLine line : lines) {

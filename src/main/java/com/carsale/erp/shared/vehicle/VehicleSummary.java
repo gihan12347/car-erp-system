@@ -15,7 +15,7 @@ public class VehicleSummary {
     private final int pendingCount;
     private final int skippedCount;
     private final int progressPercent;
-    private final String landingCost;
+    private final String totalCost;
     private final String askingPrice;
     private final List<SpecLine> highlights;
     private final List<SpecLine> specs;
@@ -35,7 +35,7 @@ public class VehicleSummary {
             int pendingCount,
             int skippedCount,
             int progressPercent,
-            String landingCost,
+            String totalCost,
             String askingPrice,
             List<SpecLine> highlights,
             List<SpecLine> specs,
@@ -54,7 +54,7 @@ public class VehicleSummary {
         this.pendingCount = pendingCount;
         this.skippedCount = skippedCount;
         this.progressPercent = progressPercent;
-        this.landingCost = landingCost;
+        this.totalCost = totalCost;
         this.askingPrice = askingPrice;
         this.highlights = highlights;
         this.specs = specs;
@@ -102,8 +102,8 @@ public class VehicleSummary {
         return progressPercent;
     }
 
-    public String getLandingCost() {
-        return landingCost;
+    public String getTotalCost() {
+        return totalCost;
     }
 
     public String getAskingPrice() {
