@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import lombok.Getter;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.util.UriUtils;
@@ -350,6 +351,7 @@ public class ReportService {
         }
     }
 
+    @Getter
     public static final class ReportPage {
         private final String searchQuery;
         private final String section;
@@ -398,22 +400,9 @@ public class ReportService {
             this.makes = makes;
         }
 
-        public String getSearchQuery() { return searchQuery; }
-        public String getSection() { return section; }
-        public int getTotal() { return total; }
-        public int getImportCount() { return importCount; }
-        public int getCustomsCount() { return customsCount; }
-        public int getPreparationCount() { return preparationCount; }
-        public int getReadyCount() { return readyCount; }
-        public int getListedCount() { return listedCount; }
-        public int getSoldCount() { return soldCount; }
-        public String getLandingCostTotal() { return landingCostTotal; }
-        public String getAskingTotal() { return askingTotal; }
-        public String getSoldTotal() { return soldTotal; }
-        public List<ReportRow> getRows() { return rows; }
-        public List<MakeCount> getMakes() { return makes; }
     }
 
+    @Getter
     public static final class ReportRow {
         private final String chassisNo;
         private final String vehicleLabel;
@@ -465,23 +454,9 @@ public class ReportService {
             this.advertisedAmount = advertisedAmount;
         }
 
-        public String getChassisNo() { return chassisNo; }
-        public String getVehicleLabel() { return vehicleLabel; }
-        public String getYear() { return year; }
-        public String getSection() { return section; }
-        public String getSectionLabel() { return sectionLabel; }
-        public String getPillClass() { return pillClass; }
-        public String getViewPath() { return viewPath; }
-        public String getLandingCost() { return landingCost; }
-        public String getAskingPrice() { return askingPrice; }
-        public String getAdvertisedPrice() { return advertisedPrice; }
-        public String getSaleLocation() { return saleLocation; }
-        public String getListedOn() { return listedOn; }
-        public BigDecimal getLandingAmount() { return landingAmount; }
-        public BigDecimal getAskingAmount() { return askingAmount; }
-        public BigDecimal getAdvertisedAmount() { return advertisedAmount; }
     }
 
+    @Getter
     public static final class MakeCount {
         private final String make;
         private final int count;
@@ -491,7 +466,5 @@ public class ReportService {
             this.count = count;
         }
 
-        public String getMake() { return make; }
-        public int getCount() { return count; }
     }
 }

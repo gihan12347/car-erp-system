@@ -654,28 +654,7 @@ public class VehicleSummaryService {
     }
 
     private static BigDecimal repairTotal(WorkshopJob workshop) {
-        if (workshop == null || workshop.getLines() == null) {
-            return null;
-        }
-        BigDecimal total = BigDecimal.ZERO;
-        boolean any = false;
-        for (WorkshopJobLine line : workshop.getLines()) {
-            if (line == null || line.isEmpty()) {
-                continue;
-            }
-            BigDecimal cost = lineCost(line);
-            if (cost != null) {
-                total = total.add(cost);
-                any = true;
-            }
-        }
-        return any ? total : null;
-    }
-
-    private static BigDecimal lineCost(WorkshopJobLine line) {
-        String actual = text(line.getActualCost());
-        String estimated = text(line.getEstimatedCost());
-        return ReportService.parseMoney(actual != null ? actual : estimated);
+        return VehicleTotalCost.repairOf(workshop);
     }
 
     private static String money(String raw) {
@@ -849,19 +828,7 @@ public class VehicleSummaryService {
     }
 
     private static String totalCost(CustomsDocument clearance, WorkshopJob workshop) {
-        BigDecimal total = null;
-        BigDecimal[] parts = new BigDecimal[] {
-                clearance == null ? null : ReportService.parseMoney(clearance.getLandingCostLkr()),
-                clearance == null ? null : ReportService.parseMoney(clearance.getValueNcy()),
-                clearance == null ? null : ReportService.parseMoney(clearance.getAssessmentTotalAssessed()),
-                repairTotal(workshop)
-        };
-        for (BigDecimal part : parts) {
-            if (part == null) {
-                continue;
-            }
-            total = total == null ? part : total.add(part);
-        }
+        BigDecimal total = VehicleTotalCost.of(clearance, workshop).getTotal();
         return total == null ? null : ReportService.formatMoney(total);
     }
 

@@ -11,13 +11,18 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import lombok.Getter;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import com.carsale.erp.customspipeline.model.CustomsDocument;
+import com.carsale.erp.customspipeline.repository.CustomsDocumentRepository;
+import com.carsale.erp.preparationpipeline.model.WorkshopJob;
 import com.carsale.erp.preparationpipeline.model.YardBay;
 import com.carsale.erp.preparationpipeline.model.YardRecord;
+import com.carsale.erp.preparationpipeline.repository.WorkshopJobRepository;
 import com.carsale.erp.preparationpipeline.repository.YardRecordRepository;
 import com.carsale.erp.preparationpipeline.service.YardBayService;
 import com.carsale.erp.readypipeline.model.SaleListing;
@@ -27,6 +32,7 @@ import com.carsale.erp.readypipeline.service.SaleLocationService;
 import com.carsale.erp.readypipeline.util.Period;
 import com.carsale.erp.shared.vehicle.Vehicle;
 import com.carsale.erp.shared.vehicle.VehicleService;
+import com.carsale.erp.shared.vehicle.VehicleTotalCost;
 
 @Service
 public class DashboardService {
@@ -40,6 +46,8 @@ public class DashboardService {
     private final VehicleService vehicleService;
     private final SaleListingRepository saleListingRepository;
     private final YardRecordRepository yardRecordRepository;
+    private final CustomsDocumentRepository customsDocumentRepository;
+    private final WorkshopJobRepository workshopJobRepository;
 
     public DashboardService(
             ReportService reportService,
@@ -47,7 +55,9 @@ public class DashboardService {
             YardBayService yardBayService,
             VehicleService vehicleService,
             SaleListingRepository saleListingRepository,
-            YardRecordRepository yardRecordRepository
+            YardRecordRepository yardRecordRepository,
+            CustomsDocumentRepository customsDocumentRepository,
+            WorkshopJobRepository workshopJobRepository
     ) {
         this.reportService = reportService;
         this.saleLocationService = saleLocationService;
@@ -55,6 +65,8 @@ public class DashboardService {
         this.vehicleService = vehicleService;
         this.saleListingRepository = saleListingRepository;
         this.yardRecordRepository = yardRecordRepository;
+        this.customsDocumentRepository = customsDocumentRepository;
+        this.workshopJobRepository = workshopJobRepository;
     }
 
     @Transactional(readOnly = true)
@@ -83,10 +95,10 @@ public class DashboardService {
         boolean anyListedSpread = false;
         boolean anySoldRevenue = false;
 
-        Map<String, Integer> soldByLocation = new HashMap<String, Integer>();
-        Map<String, BigDecimal> soldValueByLocation = new HashMap<String, BigDecimal>();
-        List<SaleLine> openLines = new ArrayList<SaleLine>();
-        List<SaleLine> soldLines = new ArrayList<SaleLine>();
+        Map<String, Integer> soldByLocation = new HashMap<>();
+        Map<String, BigDecimal> soldValueByLocation = new HashMap<>();
+        List<SaleLine> openLines = new ArrayList<>();
+        List<SaleLine> soldLines = new ArrayList<>();
 
         int importCount = 0;
         int customsCount = 0;
@@ -94,9 +106,11 @@ public class DashboardService {
         int readyCount = 0;
         int listedCount = 0;
         int soldCount = 0;
-        Map<String, Integer> makeCounts = new HashMap<String, Integer>();
+        Map<String, Integer> makeCounts = new HashMap<>();
         Map<String, Vehicle> vehiclesByChassis = vehiclesByChassis();
-        List<ReportService.ReportRow> periodRows = new ArrayList<ReportService.ReportRow>();
+        Map<String, CustomsDocument> customsByChassis = customsByChassis();
+        Map<String, WorkshopJob> jobsByChassis = jobsByChassis();
+        List<ReportService.ReportRow> periodRows = new ArrayList<>();
 
         for (ReportService.ReportRow row : report.getRows()) {
             if (!inDashboardPeriod(row.getListedOn(), period)) {
@@ -120,16 +134,21 @@ public class DashboardService {
             }
             Vehicle vehicle = vehiclesByChassis.get(row.getChassisNo());
             String makeName = vehicle == null ? "Unknown" : blank(vehicle.getMake(), "Unknown");
-            Integer makeSoFar = makeCounts.get(makeName);
-            makeCounts.put(makeName, makeSoFar == null ? 1 : makeSoFar + 1);
+            makeCounts.compute(makeName, (k, makeSoFar) -> makeSoFar == null ? 1 : makeSoFar + 1);
             BigDecimal landing = row.getLandingAmount();
             BigDecimal asking = row.getAskingAmount();
             BigDecimal advertised = row.getAdvertisedAmount();
             BigDecimal salePrice = advertised != null ? advertised : asking;
 
-            if (!sold && landing != null) {
-                stockCost = stockCost.add(landing);
-                anyStockCost = true;
+            if (!sold) {
+                BigDecimal totalCost = VehicleTotalCost.of(
+                        customsByChassis.get(row.getChassisNo()),
+                        jobsByChassis.get(row.getChassisNo())
+                ).getTotal();
+                if (totalCost != null) {
+                    stockCost = stockCost.add(totalCost);
+                    anyStockCost = true;
+                }
             }
             if (listed) {
                 if (asking == null) {
@@ -160,11 +179,9 @@ public class DashboardService {
                 soldLines.add(line(row, salePrice, landing, salePrice, landing));
                 String locationKey = locationKey(row.getSaleLocation());
                 if (!locationKey.isEmpty()) {
-                    Integer current = soldByLocation.get(locationKey);
-                    soldByLocation.put(locationKey, current == null ? 1 : current + 1);
+                    soldByLocation.compute(locationKey, (k, current) -> current == null ? 1 : current + 1);
                     if (salePrice != null) {
-                        BigDecimal soFar = soldValueByLocation.get(locationKey);
-                        soldValueByLocation.put(locationKey, soFar == null ? salePrice : soFar.add(salePrice));
+                        soldValueByLocation.compute(locationKey, (k, soFar) -> soFar == null ? salePrice : soFar.add(salePrice));
                     }
                 }
             }
@@ -172,15 +189,12 @@ public class DashboardService {
 
         int onHand = periodRows.size() - soldCount;
 
-        Collections.sort(openLines, new Comparator<SaleLine>() {
-            @Override
-            public int compare(SaleLine left, SaleLine right) {
-                int byDate = compareListed(right.getListedOn(), left.getListedOn());
-                if (byDate != 0) {
-                    return byDate;
-                }
-                return left.getChassisNo().compareToIgnoreCase(right.getChassisNo());
+        openLines.sort((left, right) -> {
+            int byDate = compareListed(right.getListedOn(), left.getListedOn());
+            if (byDate != 0) {
+                return byDate;
             }
+            return left.getChassisNo().compareToIgnoreCase(right.getChassisNo());
         });
         Collections.sort(soldLines, new Comparator<SaleLine>() {
             @Override
@@ -319,7 +333,7 @@ public class DashboardService {
         stages.add(stage("Sold", soldCount, periodTotal, "/reports?section=sold", "leaf"));
 
         List<MoneyLine> moneyLines = new ArrayList<MoneyLine>();
-        moneyLines.add(new MoneyLine("Stock at landing cost", anyStockCost ? money(stockCost) : "—", ""));
+        moneyLines.add(new MoneyLine("Stock at total cost", anyStockCost ? money(stockCost) : "—", ""));
         moneyLines.add(new MoneyLine("Listed asking", anyListedAsking ? money(listedAsking) : "—", ""));
         moneyLines.add(new MoneyLine(
                 "Spread on priced listings",
@@ -409,6 +423,26 @@ public class DashboardService {
         );
     }
 
+    private Map<String, CustomsDocument> customsByChassis() {
+        Map<String, CustomsDocument> documents = new HashMap<String, CustomsDocument>();
+        for (CustomsDocument document : customsDocumentRepository.findAll()) {
+            if (document.getChassisNo() != null) {
+                documents.put(document.getChassisNo(), document);
+            }
+        }
+        return documents;
+    }
+
+    private Map<String, WorkshopJob> jobsByChassis() {
+        Map<String, WorkshopJob> jobs = new HashMap<String, WorkshopJob>();
+        for (WorkshopJob job : workshopJobRepository.findAll()) {
+            if (job.getChassisNo() != null) {
+                jobs.put(job.getChassisNo(), job);
+            }
+        }
+        return jobs;
+    }
+
     private Map<String, Vehicle> vehiclesByChassis() {
         Map<String, Vehicle> vehicles = new HashMap<String, Vehicle>();
         for (Vehicle vehicle : vehicleService.findAll()) {
@@ -486,17 +520,17 @@ public class DashboardService {
     }
 
     static List<Integer> stockPageNumbers(int page, int pages) {
-        List<Integer> numbers = new ArrayList<Integer>();
+        List<Integer> numbers = new ArrayList<>();
         if (pages <= 1) {
             return numbers;
         }
         if (pages <= 7) {
             for (int number = 1; number <= pages; number++) {
-                numbers.add(Integer.valueOf(number));
+                numbers.add(number);
             }
             return numbers;
         }
-        numbers.add(Integer.valueOf(1));
+        numbers.add(1);
         int start = Math.max(2, page - 1);
         int end = Math.min(pages - 1, page + 1);
         if (page <= 3) {
@@ -507,20 +541,20 @@ public class DashboardService {
             end = pages - 1;
         }
         if (start > 2) {
-            numbers.add(Integer.valueOf(0));
+            numbers.add(0);
         }
         for (int number = start; number <= end; number++) {
-            numbers.add(Integer.valueOf(number));
+            numbers.add(number);
         }
         if (end < pages - 1) {
-            numbers.add(Integer.valueOf(0));
+            numbers.add(0);
         }
-        numbers.add(Integer.valueOf(pages));
+        numbers.add(pages);
         return numbers;
     }
 
     private List<PlaceOption> placeOptions(List<SaleLocation> locations) {
-        List<PlaceOption> places = new ArrayList<PlaceOption>();
+        List<PlaceOption> places = new ArrayList<>();
         for (SaleLocation location : locations) {
             if (!location.isActive()) {
                 continue;
@@ -605,58 +639,58 @@ public class DashboardService {
             BigDecimal soldRevenue,
             BigDecimal grossMargin
     ) {
-        Map<String, Object> root = new HashMap<String, Object>();
-        List<String> stageLabels = new ArrayList<String>();
-        List<Integer> stageValues = new ArrayList<Integer>();
+        Map<String, Object> root = new HashMap<>();
+        List<String> stageLabels = new ArrayList<>();
+        List<Integer> stageValues = new ArrayList<>();
         for (Stage stage : stages) {
             stageLabels.add(stage.getLabel());
-            stageValues.add(Integer.valueOf(stage.getCount()));
+            stageValues.add(stage.getCount());
         }
-        Map<String, Object> stageChart = new HashMap<String, Object>();
+        Map<String, Object> stageChart = new HashMap<>();
         stageChart.put("labels", stageLabels);
         stageChart.put("values", stageValues);
         root.put("stages", stageChart);
 
-        Map<String, Object> moneyChart = new HashMap<String, Object>();
-        List<String> moneyLabels = new ArrayList<String>();
+        Map<String, Object> moneyChart = new HashMap<>();
+        List<String> moneyLabels = new ArrayList<>();
         moneyLabels.add("Stock cost");
         moneyLabels.add("Listed asking");
         moneyLabels.add("Sold revenue");
         moneyLabels.add("Gross margin");
-        List<Double> moneyValues = new ArrayList<Double>();
-        moneyValues.add(Double.valueOf(stockCost.doubleValue()));
-        moneyValues.add(Double.valueOf(listedAsking.doubleValue()));
-        moneyValues.add(Double.valueOf(soldRevenue.doubleValue()));
-        moneyValues.add(Double.valueOf(grossMargin.doubleValue()));
+        List<Double> moneyValues = new ArrayList<>();
+        moneyValues.add(stockCost.doubleValue());
+        moneyValues.add(listedAsking.doubleValue());
+        moneyValues.add(soldRevenue.doubleValue());
+        moneyValues.add(grossMargin.doubleValue());
         moneyChart.put("labels", moneyLabels);
         moneyChart.put("values", moneyValues);
         root.put("money", moneyChart);
 
-        List<String> makeLabels = new ArrayList<String>();
-        List<Integer> makeValues = new ArrayList<Integer>();
+        List<String> makeLabels = new ArrayList<>();
+        List<Integer> makeValues = new ArrayList<>();
         for (MakeBar make : makes) {
             makeLabels.add(make.getMake());
-            makeValues.add(Integer.valueOf(make.getCount()));
+            makeValues.add(make.getCount());
         }
-        Map<String, Object> makeChart = new HashMap<String, Object>();
+        Map<String, Object> makeChart = new HashMap<>();
         makeChart.put("labels", makeLabels);
         makeChart.put("values", makeValues);
         root.put("makes", makeChart);
 
-        List<Map<String, Object>> pins = new ArrayList<Map<String, Object>>();
+        List<Map<String, Object>> pins = new ArrayList<>();
         for (PlaceOption place : places) {
             if (place.getLatitude() == null || place.getLongitude() == null) {
                 continue;
             }
-            Map<String, Object> pin = new HashMap<String, Object>();
+            Map<String, Object> pin = new HashMap<>();
             pin.put("kind", place.getKind());
             pin.put("name", place.getName());
             pin.put("code", place.getCode());
             pin.put("detail", place.getDetail());
             pin.put("lat", place.getLatitude());
             pin.put("lng", place.getLongitude());
-            pin.put("occupied", Integer.valueOf(place.getOccupied()));
-            pin.put("capacity", Integer.valueOf(place.getCapacity()));
+            pin.put("occupied", place.getOccupied());
+            pin.put("capacity", place.getCapacity());
             pins.add(pin);
         }
         root.put("places", pins);
@@ -721,13 +755,13 @@ public class DashboardService {
     }
 
     private void addTaxableActions(List<ActionItem> actions, List<ReportService.ReportRow> rows) {
-        Map<String, String> listedOn = new HashMap<String, String>();
+        Map<String, String> listedOn = new HashMap<>();
         for (SaleListing listing : saleListingRepository.findAll()) {
             if (listing.getChassisNo() != null) {
                 listedOn.put(listing.getChassisNo(), listing.getListedOn());
             }
         }
-        Map<String, String> arrivedOn = new HashMap<String, String>();
+        Map<String, String> arrivedOn = new HashMap<>();
         for (YardRecord yard : yardRecordRepository.findAll()) {
             if (yard.getChassisNo() != null) {
                 arrivedOn.put(yard.getChassisNo(), yard.getArrivalDate());
@@ -746,9 +780,9 @@ public class DashboardService {
             if (days == null) {
                 continue;
             }
-            if (days.intValue() > 90) {
+            if (days > 90) {
                 started++;
-            } else if (days.intValue() > 60) {
+            } else if (days > 60) {
                 comingSoon++;
             }
         }
@@ -841,6 +875,7 @@ public class DashboardService {
         return format.format(value) + "%";
     }
 
+    @Getter
     public static final class DashboardPage {
         private final String summary;
         private final String period;
@@ -928,33 +963,7 @@ public class DashboardService {
             this.places = places;
         }
 
-        public String getSummary() { return summary; }
-        public String getPeriod() { return period; }
-        public String getPeriodLabel() { return periodLabel; }
-        public String getStockCost() { return stockCost; }
-        public String getSellThrough() { return sellThrough; }
-        public String getAverageSold() { return averageSold; }
-        public String getGrossMargin() { return grossMargin; }
-        public String getMarginPercent() { return marginPercent; }
-        public String getListedAsking() { return listedAsking; }
-        public String getSoldRevenue() { return soldRevenue; }
-        public String getChartJson() { return chartJson; }
-        public List<Metric> getMetrics() { return metrics; }
-        public List<Stage> getStages() { return stages; }
-        public List<MoneyLine> getMoneyLines() { return moneyLines; }
-        public List<ActionItem> getActions() { return actions; }
-        public List<LocationRow> getLocations() { return locations; }
-        public List<SaleLine> getListings() { return listings; }
-        public List<SaleLine> getSoldVehicles() { return soldVehicles; }
-        public int getOpenTotal() { return openTotal; }
-        public int getSoldTotal() { return soldTotal; }
-        public List<MakeBar> getMakes() { return makes; }
-        public List<StockRow> getStock() { return stock; }
-        public int getStockPage() { return stockPage; }
-        public int getStockPages() { return stockPages; }
-        public int getStockTotal() { return stockTotal; }
         public int getStockPageSize() { return STOCK_PAGE_SIZE; }
-        public List<Integer> getStockPageNumbers() { return stockPageNumbers; }
 
         public String getStockRange() {
             if (stock.isEmpty() || stockTotal <= 0) {
@@ -965,7 +974,6 @@ public class DashboardService {
             return from + "–" + to + " of " + stockTotal;
         }
 
-        public List<PlaceOption> getPlaces() { return places; }
     }
 
     public static final class Metric {

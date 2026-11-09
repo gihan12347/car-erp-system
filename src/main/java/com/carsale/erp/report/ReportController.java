@@ -56,7 +56,7 @@ public class ReportController {
             @RequestParam(value = "to", required = false) String to,
             RedirectAttributes redirectAttributes
     ) {
-        if (!StandardReportService.isKnown(kind)) {
+        if (StandardReportService.isKnown(kind)) {
             redirectAttributes.addFlashAttribute("errorMessage", "Choose a report to generate.");
             return "redirect:/reports";
         }
@@ -94,7 +94,7 @@ public class ReportController {
             @RequestParam(value = "from", required = false) String from,
             @RequestParam(value = "to", required = false) String to
     ) {
-        if (!StandardReportService.isKnown(kind)) {
+        if (StandardReportService.isKnown(kind)) {
             return ResponseEntity.notFound().build();
         }
         StandardReportService.StandardReport report = standardReportService.build(kind, query, section, from, to);
@@ -107,7 +107,7 @@ public class ReportController {
     }
 
     private String show(String kind, String query, String section, String from, String to, String page, Model model) {
-        if (!StandardReportService.isKnown(kind)) {
+        if (StandardReportService.isKnown(kind)) {
             return "redirect:/reports";
         }
         StandardReportService.StandardReport report = standardReportService.build(kind, query, section, from, to);
@@ -118,8 +118,8 @@ public class ReportController {
         model.addAttribute("activeMenu", "reports");
         model.addAttribute("report", report);
         model.addAttribute("pageRows", pageSlice(report.getRows(), current));
-        model.addAttribute("reportPage", Integer.valueOf(current));
-        model.addAttribute("reportPages", Integer.valueOf(pages));
+        model.addAttribute("reportPage", current);
+        model.addAttribute("reportPages", pages);
         model.addAttribute("reportPageNumbers", pageNumbers(current, pages));
         model.addAttribute("reportRange", pageRange(current, total));
         model.addAttribute("searchQuery", report.getSearchQuery());

@@ -1,5 +1,6 @@
 package com.carsale.erp.web;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -9,13 +10,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import com.carsale.erp.report.DashboardService;
 
 @Controller
+@RequiredArgsConstructor
 public class AppPageController {
 
     private final DashboardService dashboardService;
-
-    public AppPageController(DashboardService dashboardService) {
-        this.dashboardService = dashboardService;
-    }
 
     @GetMapping("/")
     public String home() {

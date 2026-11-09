@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import lombok.Getter;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.util.UriUtils;
@@ -53,6 +54,7 @@ import com.carsale.erp.readypipeline.repository.VehicleRegistrationRepository;
 import com.carsale.erp.shared.vehicle.Vehicle;
 import com.carsale.erp.shared.vehicle.VehicleIntake;
 import com.carsale.erp.shared.vehicle.VehicleService;
+import com.carsale.erp.shared.vehicle.VehicleTotalCost;
 
 @Service
 public class StandardReportService {
@@ -122,7 +124,7 @@ public class StandardReportService {
     }
 
     public static boolean isKnown(String kind) {
-        return kind != null && KINDS.contains(kind.trim().toLowerCase(Locale.ROOT));
+        return kind == null || !KINDS.contains(kind.trim().toLowerCase(Locale.ROOT));
     }
 
     @Transactional(readOnly = true)
@@ -180,22 +182,31 @@ public class StandardReportService {
         String fromDate = blankDate(from);
         String toDate = blankDate(to);
         StandardReport report = null;
-        if (STOCK.equals(key)) {
-            report = stockBook(snap, query, fromDate, toDate);
-        } else if (SALES.equals(key)) {
-            report = salesRegister(snap, query, fromDate, toDate);
-        } else if (LANDED.equals(key)) {
-            report = landedCost(snap, query, fromDate, toDate);
-        } else if (DUTY.equals(key)) {
-            report = dutyTax(snap, query, fromDate, toDate);
-        } else if (DOCUMENTS.equals(key)) {
-            report = documents(snap, query, fromDate, toDate);
-        } else if (EXPIRY.equals(key)) {
-            report = expiry(snap, query, fromDate, toDate);
-        } else if (WORKSHOP.equals(key)) {
-            report = workshop(snap, query, fromDate, toDate);
-        } else if (PIPELINE.equals(key)) {
-            report = pipeline(snap, query, section, fromDate, toDate);
+        switch (key) {
+            case STOCK:
+                report = stockBook(snap, query, fromDate, toDate);
+                break;
+            case SALES:
+                report = salesRegister(snap, query, fromDate, toDate);
+                break;
+            case LANDED:
+                report = landedCost(snap, query, fromDate, toDate);
+                break;
+            case DUTY:
+                report = dutyTax(snap, query, fromDate, toDate);
+                break;
+            case DOCUMENTS:
+                report = documents(snap, query, fromDate, toDate);
+                break;
+            case EXPIRY:
+                report = expiry(snap, query, fromDate, toDate);
+                break;
+            case WORKSHOP:
+                report = workshop(snap, query, fromDate, toDate);
+                break;
+            case PIPELINE:
+                report = pipeline(snap, query, section, fromDate, toDate);
+                break;
         }
         if (report != null) {
             report.fromDate = fromDate;
@@ -237,7 +248,7 @@ public class StandardReportService {
                 "Location", "Total cost", "Days in stock"
         );
         numeric(columns, 4, 5);
-        List<DataRow> rows = new ArrayList<DataRow>();
+        List<DataRow> rows = new ArrayList<>();
         int missingCost = 0;
         int onSale = 0;
         int onYard = 0;
@@ -265,13 +276,13 @@ public class StandardReportService {
             if (inYard) {
                 onYard++;
             }
-            CustomsDocument customs = snap.customs.get(chassis);
-            BigDecimal landing = landingOf(customs);
-            BigDecimal cusdec = customs == null ? null : ReportService.parseMoney(customs.getValueNcy());
-            BigDecimal assessment = customs == null ? null : ReportService.parseMoney(customs.getAssessmentTotalAssessed());
-            BigDecimal repair = repairOf(snap.jobs.get(chassis));
-            BigDecimal total = sumMoney(landing, cusdec, assessment, repair);
-            if (landing == null || cusdec == null || assessment == null) {
+            VehicleTotalCost cost = totalCost(snap, chassis);
+            BigDecimal landing = cost.getLanding();
+            BigDecimal cusdec = cost.getCusdec();
+            BigDecimal assessment = cost.getAssessment();
+            BigDecimal repair = cost.getRepair();
+            BigDecimal total = cost.getTotal();
+            if (cost.isMissingRequired()) {
                 missingCost++;
             }
             if (total != null) {
@@ -281,28 +292,23 @@ public class StandardReportService {
             String location = locationOf(listing, yard, place);
             Integer days = daysInStock(listing, yard);
             DataRow row = new DataRow();
-            row.sortDays = days == null ? -1 : days.intValue();
+            row.sortDays = days == null ? -1 : days;
             row.cells.add(stockVehicle(vehicle, chassis));
             row.cells.add(text(blank(vehicle.getYear(), "—")));
             row.cells.add(text(blank(vehicle.getMileage(), "—")));
             row.cells.add(text(location));
             row.cells.add(costBreakdown(landing, cusdec, assessment, repair, total));
             Cell daysCell = text(days == null ? "—" : String.valueOf(days));
-            if (days != null && days.intValue() > 90) {
+            if (days != null && days > 90) {
                 daysCell.tone = "due";
                 row.tone = "is-due";
-            } else if (days != null && days.intValue() > 60) {
+            } else if (days != null && days > 60) {
                 daysCell.tone = "soon";
             }
             row.cells.add(daysCell);
             rows.add(row);
         }
-        Collections.sort(rows, new Comparator<DataRow>() {
-            @Override
-            public int compare(DataRow left, DataRow right) {
-                return Integer.compare(right.sortDays, left.sortDays);
-            }
-        });
+        rows.sort((left, right) -> Integer.compare(right.sortDays, left.sortDays));
         List<Kpi> kpis = new ArrayList<Kpi>();
         kpis.add(new Kpi("On hand", String.valueOf(onHand), "Excludes sold units"));
         kpis.add(new Kpi("Total cost", moneyOrDash(onHandTotal, anyOnHandTotal), "Landing + CUSDEC + assessment + repair"));
@@ -348,12 +354,12 @@ public class StandardReportService {
                 continue;
             }
             soldCount++;
-            CustomsDocument customs = snap.customs.get(chassis);
-            BigDecimal landing = landingOf(customs);
-            BigDecimal cusdec = customs == null ? null : ReportService.parseMoney(customs.getValueNcy());
-            BigDecimal assessment = customs == null ? null : ReportService.parseMoney(customs.getAssessmentTotalAssessed());
-            BigDecimal repair = repairOf(snap.jobs.get(chassis));
-            BigDecimal total = sumMoney(landing, cusdec, assessment, repair);
+            VehicleTotalCost cost = totalCost(snap, chassis);
+            BigDecimal landing = cost.getLanding();
+            BigDecimal cusdec = cost.getCusdec();
+            BigDecimal assessment = cost.getAssessment();
+            BigDecimal repair = cost.getRepair();
+            BigDecimal total = cost.getTotal();
             BigDecimal sale = salePrice(listing);
             BigDecimal gp = sale != null && total != null ? sale.subtract(total) : null;
             String margin = "—";
@@ -869,16 +875,13 @@ public class StandardReportService {
         return href;
     }
 
-    private Snapshot load(String query) {
+    public Snapshot load(String query) {
         Snapshot snap = new Snapshot();
         snap.vehicles = vehicleService.search(query == null ? "" : query.trim());
-        Collections.sort(snap.vehicles, new Comparator<Vehicle>() {
-            @Override
-            public int compare(Vehicle left, Vehicle right) {
-                String a = left.getChassisNo() == null ? "" : left.getChassisNo();
-                String b = right.getChassisNo() == null ? "" : right.getChassisNo();
-                return a.compareToIgnoreCase(b);
-            }
+        snap.vehicles.sort((left, right) -> {
+            String a = left.getChassisNo() == null ? "" : left.getChassisNo();
+            String b = right.getChassisNo() == null ? "" : right.getChassisNo();
+            return a.compareToIgnoreCase(b);
         });
         for (SaleListing listing : saleListingRepository.findAll()) {
             if (listing.getChassisNo() != null) {
@@ -940,8 +943,7 @@ public class StandardReportService {
         }
         for (VehiclePhoto photo : vehiclePhotoRepository.findAll()) {
             if (photo.getChassisNo() != null) {
-                Integer soFar = snap.photos.get(photo.getChassisNo());
-                snap.photos.put(photo.getChassisNo(), soFar == null ? 1 : soFar + 1);
+                snap.photos.compute(photo.getChassisNo(), (k, soFar) -> soFar == null ? 1 : soFar + 1);
             }
         }
         snap.photoChassis = snap.photos.size();
@@ -1242,8 +1244,12 @@ public class StandardReportService {
         return cell;
     }
 
+    private static VehicleTotalCost totalCost(Snapshot snap, String chassis) {
+        return VehicleTotalCost.of(snap.customs.get(chassis), snap.jobs.get(chassis));
+    }
+
     private static BigDecimal landingOf(CustomsDocument customs) {
-        return customs == null ? null : ReportService.parseMoney(customs.getLandingCostLkr());
+        return VehicleTotalCost.landingOf(customs);
     }
 
     private static BigDecimal sumMoney(BigDecimal... parts) {
@@ -1255,25 +1261,6 @@ public class StandardReportService {
             total = total == null ? part : total.add(part);
         }
         return total;
-    }
-
-    private static BigDecimal repairOf(WorkshopJob job) {
-        if (job == null || job.getLines() == null) {
-            return null;
-        }
-        BigDecimal total = BigDecimal.ZERO;
-        boolean any = false;
-        for (WorkshopJobLine line : job.getLines()) {
-            if (line == null || line.isEmpty()) {
-                continue;
-            }
-            BigDecimal cost = lineCost(line);
-            if (cost != null) {
-                total = total.add(cost);
-                any = true;
-            }
-        }
-        return any ? total : null;
     }
 
     private static Cell costBreakdown(
@@ -1766,11 +1753,7 @@ public class StandardReportService {
     }
 
     private static BigDecimal lineCost(WorkshopJobLine line) {
-        BigDecimal actual = ReportService.parseMoney(line.getActualCost());
-        if (actual != null) {
-            return actual;
-        }
-        return ReportService.parseMoney(line.getEstimatedCost());
+        return VehicleTotalCost.lineCost(line);
     }
 
     private static Cell repairBreakdown(List<WorkshopJobLine> lines) {
@@ -1803,10 +1786,7 @@ public class StandardReportService {
         if (fromDate != null && date.isBefore(fromDate)) {
             return false;
         }
-        if (toDate != null && date.isAfter(toDate)) {
-            return false;
-        }
-        return true;
+        return toDate == null || !date.isAfter(toDate);
     }
 
     private static String periodLabel(String from, String to) {
@@ -1837,17 +1817,17 @@ public class StandardReportService {
         return text;
     }
 
-    private static final class Snapshot {
-        private List<Vehicle> vehicles = new ArrayList<Vehicle>();
-        private final Map<String, SaleListing> listings = new HashMap<String, SaleListing>();
-        private final Map<String, CustomsDocument> customs = new HashMap<String, CustomsDocument>();
+    public static final class Snapshot {
+        private List<Vehicle> vehicles = new ArrayList<>();
+        private final Map<String, SaleListing> listings = new HashMap<>();
+        private final Map<String, CustomsDocument> customs = new HashMap<>();
         private final Map<String, WorkshopJob> jobs = new HashMap<String, WorkshopJob>();
         private final Map<String, YardRecord> yards = new HashMap<String, YardRecord>();
-        private final Map<String, VehicleRegistration> registrations = new HashMap<String, VehicleRegistration>();
-        private final Map<String, ExportCertificate> exports = new HashMap<String, ExportCertificate>();
-        private final Map<String, StandardsCertificate> standards = new HashMap<String, StandardsCertificate>();
+        private final Map<String, VehicleRegistration> registrations = new HashMap<>();
+        private final Map<String, ExportCertificate> exports = new HashMap<>();
+        private final Map<String, StandardsCertificate> standards = new HashMap<>();
         private final Map<String, GradeSearch> grades = new HashMap<String, GradeSearch>();
-        private final Map<String, VehicleInspection> inspections = new HashMap<String, VehicleInspection>();
+        private final Map<String, VehicleInspection> inspections = new HashMap<>();
         private final Map<String, Integer> photos = new HashMap<String, Integer>();
         private final Map<String, String> engines = new HashMap<String, String>();
         private int photoChassis;
@@ -1929,6 +1909,7 @@ public class StandardReportService {
         public String getExtra() { return extra; }
     }
 
+    @Getter
     public static final class StandardReport {
         private String kind;
         private String title;
@@ -1942,30 +1923,15 @@ public class StandardReportService {
         private String section = ReportService.ALL;
         private boolean filterLinks;
         private String allHref;
-        private List<Kpi> kpis = new ArrayList<Kpi>();
-        private List<Column> columns = new ArrayList<Column>();
-        private List<DataRow> rows = new ArrayList<DataRow>();
+        private List<Kpi> kpis = new ArrayList<>();
+        private List<Column> columns = new ArrayList<>();
+        private List<DataRow> rows = new ArrayList<>();
         private String note;
 
-        public String getKind() { return kind; }
-        public String getTitle() { return title; }
-        public String getLead() { return lead; }
-        public String getStandard() { return standard; }
-        public String getGeneratedOn() { return generatedOn; }
-        public String getSearchQuery() { return searchQuery; }
-        public String getFromDate() { return fromDate; }
-        public String getToDate() { return toDate; }
-        public String getPeriodLabel() { return periodLabel; }
-        public String getSection() { return section; }
-        public boolean isFilterLinks() { return filterLinks; }
-        public String getAllHref() { return allHref; }
-        public List<Kpi> getKpis() { return kpis; }
-        public List<Column> getColumns() { return columns; }
-        public List<DataRow> getRows() { return rows; }
-        public String getNote() { return note; }
         public int getRowCount() { return rows.size(); }
     }
 
+    @Getter
     public static final class Kpi {
         public final String label;
         public final String value;
@@ -1989,17 +1955,13 @@ public class StandardReportService {
             this.filterKey = filterKey;
         }
 
-        public String getLabel() { return label; }
-        public String getValue() { return value; }
-        public String getHint() { return hint; }
-        public String getHref() { return href; }
-        public String getFilterKey() { return filterKey; }
         public boolean isLink() { return href != null && !href.isEmpty(); }
         public boolean isActive(String section) {
             return filterKey != null && filterKey.equals(section);
         }
     }
 
+    @Getter
     public static final class Column {
         public final String label;
         public boolean numeric;
@@ -2009,19 +1971,17 @@ public class StandardReportService {
             this.numeric = numeric;
         }
 
-        public String getLabel() { return label; }
-        public boolean isNumeric() { return numeric; }
     }
 
     public static final class DataRow {
-        public final List<Cell> cells = new ArrayList<Cell>();
+        @Getter
+        public final List<Cell> cells = new ArrayList<>();
+        @Getter
         public String tone = "";
         public int sortDays = -1;
-
-        public List<Cell> getCells() { return cells; }
-        public String getTone() { return tone; }
     }
 
+    @Getter
     public static final class Cell {
         public final String text;
         public final String href;
@@ -2036,13 +1996,9 @@ public class StandardReportService {
             this.tone = tone;
         }
 
-        public String getText() { return text; }
-        public String getHref() { return href; }
-        public String getPill() { return pill; }
-        public String getTone() { return tone; }
-        public List<CostLine> getLines() { return lines; }
     }
 
+    @Getter
     public static final class CostLine {
         public final String label;
         public final String amount;
@@ -2060,10 +2016,6 @@ public class StandardReportService {
             this.total = total;
             this.href = href;
         }
-
-        public String getLabel() { return label; }
-        public String getAmount() { return amount; }
-        public boolean isTotal() { return total; }
-        public String getHref() { return href; }
     }
+
 }
