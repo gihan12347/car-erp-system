@@ -185,8 +185,8 @@ public final class RegexConstants {
                         + "|(?<![A-Z0-9])\\d[A-Z]\\d(?![A-Z0-9])"
         );
         public static final String CHASSIS_SHAPE = "[A-Z0-9]+-\\d{5,8}";
-        public static final String COLOR_CODE = "[A-Z]\\d{2}|\\d{3}|\\d[A-Z]\\d";
-        public static final Pattern COLOR_CODE_CAPTURE = compile("(?<![A-Z0-9])([A-Z]\\d{2}|\\d{3}|\\d[A-Z]\\d)(?![A-Z0-9])");
+        public static final String COLOR_CODE = "[A-Z]\\d{2}|\\d{3}|\\d[A-Z]\\d|ZVR";
+        public static final Pattern COLOR_CODE_CAPTURE = compile("(?<![A-Z0-9])([A-Z]\\d{2}|\\d{3}|\\d[A-Z]\\d|ZVR)(?![A-Z0-9])");
         public static final Pattern WHITE_CODE = compile("(?<!\\d)(W\\d{2})(?!\\d)");
 
         public static Pattern chassisContainingDigits(String digits) {
@@ -795,7 +795,7 @@ public final class RegexConstants {
                     "(?:車台番号|chassis(?:\\s+(?:no\\.?|number))?|frame(?:\\s+number)?|vin)[^\\d]{0,24}(\\d{6,8})"
             );
             public static final Pattern LOT_LABELED = compileIgnoreCase(
-                    "(?:出品番号|(?<![A-Za-z])lot(?:\\s*(?:no\\.?|number|#))?|exhibition\\s+number|listing\\s+number)[^\\d]{0,20}(\\d{3,6})"
+                    "(?:出品番号|(?<![A-Za-z])lot(?:\\s*(?:no\\.?|number|#))?|exhibition\\s+number|listing\\s+number)[^\\d]{0,20}(\\d{2,6})"
             );
             public static final Pattern LOT_DIGITS = compile("(\\d{3,6})");
             public static final Pattern LOT_LINE = compile("(?m)^\\s*(\\d{4,6})(?!\\d)");
@@ -836,7 +836,8 @@ public final class RegexConstants {
             public static final Pattern CC_COMMA = compile("(\\d{1,3})[,.](\\d{3})\\s*(cc|CC|ｃｃ)");
             public static final Pattern CC = compile("(\\d{3,4})\\s*(cc|CC|ｃｃ)");
             public static final String ENGINE_SIZES = "660|1000|1200|1300|1500|1800|2000|2400|2500|3000";
-            public static final Pattern DOORS_ANY = compileIgnoreCase("([2-5])\\s*(?:SD|HB|ドア|ハコ|doors?)|(?<![A-Z0-9])([2-5])\\s*W(?![A-Z0-9])|([2-5])\\s*ハコ");
+            public static final Pattern DOORS_ANY = compileIgnoreCase(
+                    "([2-5])\\s*(?:SD|HB|ドア|ハコ|doors?)|(?<![A-Z0-9])([2-5])\\s*W(?![A-Z0-9])|([2-5])\\s*ハコ|(?<![A-Z0-9])([2-5])\\s*D(?![A-Z0-9])");
             public static final Pattern DOORS_LABELED = compileIgnoreCase("(?:ドア(?:形状|・形状)?|doors?|door\\s+shape)[^\\d]{0,8}([2-5])");
             public static final Pattern SEATS_LABELED = compileIgnoreCase("(?:乗車定員|seating\\s+capacity|passengers?)[^\\d]{0,12}(\\d)");
             public static final Pattern SEATS_PEOPLE = compileIgnoreCase("(\\d)\\s*(人|名|people|persons?|seats?)");
@@ -865,7 +866,7 @@ public final class RegexConstants {
             public static final String STRIP_CODE = "(?i)(?<![A-Z0-9])(?:[A-Z]\\d{2}|\\d{3}|\\d[A-Z]\\d)(?![A-Z0-9])";
             public static final String STRIP_CHASSIS = "[A-Za-z]{1,5}\\d{2,3}[A-Za-z0-9]{0,2}-\\d{5,8}";
             public static final String STRIP_MODEL = "(?i)\\b(?:[0-9][A-Z]{2}|[A-Z]{3})-[A-Z0-9]{3,10}\\b";
-            public static final String WHITE = "W\\d{2}|070|040|058|W09|W24|W25";
+            public static final String WHITE = "W\\d{2}|070|040|058|W09|W24|W25|ZVR";
             public static final String BLACK = "202|209|218|219";
             public static final String SILVER = "1F7|1G3|1G4|1C0";
             public static final String IGNORED = "AAC|IAT|ABS|ETC|USS|KCAA|DAA|DBA|CBA|5BA|5AA|6AA|3BA|PS|PW|AC";

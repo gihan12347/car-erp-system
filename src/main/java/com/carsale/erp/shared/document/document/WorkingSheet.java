@@ -256,6 +256,14 @@ public class WorkingSheet implements DocumentParser {
             putCode("A210A", "Raize", "Toyota");
             putCode("A200A", "Raize", "Toyota");
             putCode("A201A", "Raize", "Toyota");
+            putCode("GRS200", "Crown", "Toyota");
+            putCode("GRS201", "Crown", "Toyota");
+            putCode("GRS202", "Crown", "Toyota");
+            putCode("GRS203", "Crown", "Toyota");
+            putCode("GRS204", "Crown", "Toyota");
+            putCode("GRS206", "Crown", "Toyota");
+            putCode("AYH30", "Alphard", "Toyota");
+            putCode("AYH30W", "Alphard", "Toyota");
             putCode("A202S", "Rocky", "Daihatsu");
             putCode("A200S", "Rocky", "Daihatsu");
             putSpec("A202A", "5AA-A202A", "Raize", "Toyota", "Hybrid Z", "Hybrid", "1200");
@@ -272,6 +280,9 @@ public class WorkingSheet implements DocumentParser {
             JP_MODELS.put("ワゴンＲ", "Wagon R");
             JP_MODELS.put("ヴェゼル", "Vezel");
             JP_MODELS.put("ロッキー", "Rocky");
+            JP_MODELS.put("クラウン", "Crown");
+            JP_MODELS.put("アルファード", "Alphard");
+            JP_MODELS.put("カローラアクシオ", "Corolla Axio");
             putEntity("chassis_no", "chassisNo");
             putEntity("chassis_number", "chassisNo");
             putEntity("chassis", "chassisNo");
@@ -309,6 +320,17 @@ public class WorkingSheet implements DocumentParser {
             putEntity("doors", "bodyStyle");
             putEntity("ac", "acType");
             putEntity("history", "history");
+            putEntity("air_conditioner", "acType");
+            putEntity("color_number", "colorCode");
+            putEntity("dimensions_height", "heightCm");
+            putEntity("dimensions_length", "lengthCm");
+            putEntity("dimensions_width", "widthCm");
+            putEntity("door_shape", "bodyStyle");
+            putEntity("engine_displacement", "engineSize");
+            putEntity("evaluation_score", "auctionGrade");
+            putEntity("fuel_type", "fuel");
+            putEntity("passenger_capacity", "seats");
+            putEntity("vehicle_history", "history");
         }
 
         private static void putEntity(String type, String field) {
@@ -383,6 +405,7 @@ public class WorkingSheet implements DocumentParser {
             fillKnownSpecs(result, text + "\n" + original);
             englishize(result);
             fillVehicleName(result);
+            refineKnownVehicle(result, original + "\n" + text);
             finish(result);
             return result;
         }
@@ -395,8 +418,19 @@ public class WorkingSheet implements DocumentParser {
                 failed.setMessage("Document AI returned no result.");
                 return failed;
             }
-            AuctionParseResult result = parsePage(documentAi.getText());
+            AuctionParseResult result = AuctionParseResult.builder().build();
             applyEntities(result, documentAi.getEntities());
+            String text = documentAi.getText();
+            if (text != null && !text.trim().isEmpty()) {
+                AuctionParseResult fallback = parsePage(text);
+                fillEmptyFrom(result, fallback);
+                if (!isBlank(fallback.getRawText())) {
+                    result.setRawText(fallback.getRawText());
+                }
+            } else if (text != null) {
+                result.setRawText(text);
+            }
+            refineKnownVehicle(result, (text == null ? "" : text) + "\n" + nullToEmpty(result.getRawText()));
             finish(result);
             return result;
         }
@@ -423,29 +457,270 @@ public class WorkingSheet implements DocumentParser {
             if (entities == null) {
                 return;
             }
+            String registrationYear = null;
+            String registrationMonth = null;
             for (SaleProgress.DocumentAiEntity entity : entities) {
-                String field = entityField(entity.getType());
-                if (field == null) {
+                String type = entityType(entity.getType());
+                if (type == null) {
                     continue;
+                }
+                String field = registrationField(type);
+                if (field == null) {
+                    field = entityField(type);
                 }
                 Double confidence = entity.getConfidence();
                 if (confidence != null && confidence < ENTITY_MIN_CONFIDENCE) {
-                    result.addWarning("Document AI left " + field + " unused because the reading was uncertain.");
+                    if (field != null) {
+                        result.addWarning("Document AI left " + field + " unused because the reading was uncertain.");
+                    }
                     continue;
                 }
-                if (result.getFields().get(field) != null) {
+                if ("year".equals(field) && ("first_registration_year".equals(type) || "first_registration_month".equals(type))) {
+                    if ("first_registration_year".equals(type)) {
+                        registrationYear = entity.getValue();
+                    } else {
+                        registrationMonth = entity.getValue();
+                    }
                     continue;
                 }
-                String value = translator.translateJaToEn(entity.getValue());
-                result.put(field, value);
+                if (field == null || !isBlank(result.getFields().get(field))) {
+                    continue;
+                }
+                result.put(field, normalizeEntityValue(field, englishValue(entity.getValue())));
+            }
+            if (isBlank(result.getFields().get("year")) && !isBlank(registrationYear)) {
+                result.put("year", registrationFromEntities(registrationYear, registrationMonth));
             }
         }
 
-        private static String entityField(String type) {
+        private void fillEmptyFrom(AuctionParseResult target, AuctionParseResult fallback) {
+            if (fallback == null || fallback.getFields() == null) {
+                return;
+            }
+            for (Map.Entry<String, String> entry : fallback.getFields().entrySet()) {
+                if (isBlank(target.getFields().get(entry.getKey()))) {
+                    target.put(entry.getKey(), entry.getValue());
+                }
+            }
+        }
+
+        private String registrationField(String type) {
+            if ("first_registration_year".equals(type) || "first_registration_month".equals(type)) {
+                return "year";
+            }
+            return null;
+        }
+
+        private String registrationFromEntities(String yearRaw, String monthRaw) {
+            int[] combined = eraYearAndMonth(yearRaw);
+            if (combined == null) {
+                combined = eraYearAndMonth((blankDate(yearRaw) + " " + blankDate(monthRaw)).trim());
+            }
+            if (combined != null) {
+                return formatFirstRegistration(combined[0], combined[1]);
+            }
+            Integer year = westernYear(yearRaw);
+            Integer month = monthNumber(monthRaw);
+            if (year == null && month != null) {
+                Integer eraYear = eraYearNumber(yearRaw);
+                if (eraYear != null) {
+                    year = westernFromEraYear(eraYear);
+                }
+            }
+            if (year != null && month != null) {
+                return formatFirstRegistration(year, month);
+            }
+            if (year != null) {
+                return String.valueOf(year);
+            }
+            return null;
+        }
+
+        private static String blankDate(String value) {
+            return value == null ? "" : value;
+        }
+
+        private int[] eraYearAndMonth(String raw) {
+            if (isBlank(raw)) {
+                return null;
+            }
+            Matcher pair = Pattern.compile("(\\d{1,2})\\s*[/年.\\-]?\\s*(\\d{1,2})").matcher(raw);
+            if (!pair.find()) {
+                return null;
+            }
+            int eraYear = Integer.parseInt(pair.group(1));
+            int month = Integer.parseInt(pair.group(2));
+            Integer western = westernFromEraYear(eraYear);
+            if (western == null || month < 1 || month > 12) {
+                return null;
+            }
+            return new int[] {western, month};
+        }
+
+        private Integer eraYearNumber(String raw) {
+            if (isBlank(raw)) {
+                return null;
+            }
+            Matcher number = Pattern.compile("(\\d{1,2})").matcher(raw);
+            if (!number.find()) {
+                return null;
+            }
+            return Integer.valueOf(number.group(1));
+        }
+
+        private Integer westernFromEraYear(int eraYear) {
+            if (eraYear >= 9 && eraYear <= 31) {
+                return Integer.valueOf(1988 + eraYear);
+            }
+            if (eraYear >= 1 && eraYear <= 8) {
+                return Integer.valueOf(2018 + eraYear);
+            }
+            return null;
+        }
+
+        private Integer westernYear(String raw) {
+            if (isBlank(raw)) {
+                return null;
+            }
+            Matcher western = Pattern.compile("(?:19|20)\\d{2}").matcher(raw);
+            if (western.find()) {
+                return Integer.valueOf(western.group());
+            }
+            Matcher reiwa = Pattern.compile("(?:令和|R)\\s*(\\d{1,2})", Pattern.CASE_INSENSITIVE).matcher(raw);
+            if (reiwa.find()) {
+                return Integer.valueOf(2018 + Integer.parseInt(reiwa.group(1)));
+            }
+            Matcher heisei = Pattern.compile("(?:平成|H)\\s*(\\d{1,2})", Pattern.CASE_INSENSITIVE).matcher(raw);
+            if (heisei.find()) {
+                return Integer.valueOf(1988 + Integer.parseInt(heisei.group(1)));
+            }
+            return null;
+        }
+
+        private Integer monthNumber(String raw) {
+            if (isBlank(raw)) {
+                return null;
+            }
+            Matcher number = Pattern.compile("(\\d{1,2})").matcher(raw);
+            if (number.find()) {
+                int month = Integer.parseInt(number.group(1));
+                if (month >= 1 && month <= 12) {
+                    return Integer.valueOf(month);
+                }
+            }
+            String[] names = new String[] {
+                    "jan", "feb", "mar", "apr", "may", "jun",
+                    "jul", "aug", "sep", "oct", "nov", "dec"
+            };
+            String key = raw.toLowerCase(Locale.ROOT);
+            for (int i = 0; i < names.length; i++) {
+                if (key.contains(names[i])) {
+                    return Integer.valueOf(i + 1);
+                }
+            }
+            return null;
+        }
+
+        private String englishValue(String value) {
+            String converted = AuctionSheetEnglish.convert(value, translator);
+            return isBlank(converted) ? null : converted;
+        }
+
+        private String normalizeEntityValue(String field, String value) {
+            if (isBlank(value)) {
+                return null;
+            }
+            if ("mileage".equals(field)) {
+                return formatKm(value);
+            }
+            if ("engineSize".equals(field)) {
+                return formatCc(value);
+            }
+            if ("seats".equals(field)) {
+                return formatSeats(value);
+            }
+            if ("lengthCm".equals(field) || "widthCm".equals(field) || "heightCm".equals(field)) {
+                return formatCm(value);
+            }
+            if ("bodyStyle".equals(field)) {
+                return formatDoor(value);
+            }
+            if ("fuel".equals(field)) {
+                return canonicalFuel(value);
+            }
+            if ("modelCode".equals(field)) {
+                return canonicalModelCode(value);
+            }
+            if ("year".equals(field) && !value.matches(".*(?:19|20)\\d{2}.*")) {
+                return null;
+            }
+            return value.trim();
+        }
+
+        private String canonicalFuel(String value) {
+            if (isBlank(value)) {
+                return null;
+            }
+            String text = value.toUpperCase(Locale.ROOT);
+            if (value.contains("ガソリン") || text.contains("GASOLINE") || text.contains("PETROL") || text.contains("GUNNON")) {
+                return "Gasoline";
+            }
+            if (value.contains("軽油") || value.contains("ディーゼル") || text.contains("DIESEL")) {
+                return "Diesel";
+            }
+            if (value.contains("ハイブリッド") || text.contains("HYBRID")) {
+                return "Hybrid";
+            }
+            if (value.contains("電気") || text.contains("ELECTRIC")) {
+                return "Electric";
+            }
+            return null;
+        }
+
+        private String canonicalModelCode(String value) {
+            if (isBlank(value)) {
+                return null;
+            }
+            String code = value.toUpperCase(Locale.ROOT).replaceAll("[\\s_]+", "");
+            if (!code.matches("(?:[0-9][A-Z]{2}|[A-Z]{2,4})-[A-Z0-9]{3,12}")) {
+                return null;
+            }
+            String suffix = code.substring(code.indexOf('-') + 1);
+            if (!suffix.matches(".*\\d.*")) {
+                return null;
+            }
+            return code;
+        }
+
+        private String formatCm(String value) {
+            String digits = value.replaceAll(RegexConstants.Text.DIGITS_ONLY, "");
+            if (digits.isEmpty() || !value.replaceAll("[\\s,cmCM.]", "").matches("\\d+")) {
+                return value.trim();
+            }
+            return digits + " cm";
+        }
+
+        private String formatDoor(String value) {
+            Matcher door = Pattern.compile("^(\\d+)\\s*(?:-?\\s*door)?$", Pattern.CASE_INSENSITIVE).matcher(value.trim());
+            if (door.matches()) {
+                return door.group(1) + "-door";
+            }
+            return value.trim();
+        }
+
+        private static String entityType(String type) {
             if (type == null) {
                 return null;
             }
             String key = type.trim().toLowerCase(Locale.ROOT).replace(' ', '_').replace('-', '_');
+            return key.isEmpty() ? null : key;
+        }
+
+        private static String entityField(String type) {
+            String key = entityType(type);
+            if (key == null) {
+                return null;
+            }
             String mapped = ENTITY_FIELDS.get(key);
             if (mapped != null) {
                 return mapped;
@@ -563,6 +838,9 @@ public class WorkingSheet implements DocumentParser {
             repaired = repaired.replace('ｋ', 'k').replace('ｍ', 'm').replace("㎞", "km");
             repaired = repaired.replaceAll(RegexConstants.AuctionSheet.Ocr.KM_THOUSANDS, "$1,$2 km");
             repaired = repaired.replaceAll(RegexConstants.AuctionSheet.Ocr.CC_THOUSANDS, "$1$2 cc");
+            repaired = repaired.replace("フラウレ", "クラウン");
+            repaired = repaired.replace("クラウレ", "クラウン");
+            repaired = repaired.replace("フラウン", "クラウン");
             repaired = repaired.replace("ハイプリッド", "ハイブリッド");
             repaired = repaired.replace("ハイプリット", "ハイブリッド");
             repaired = repaired.replaceAll(RegexConstants.AuctionSheet.Ocr.SAA_PREFIX, "5AA-");
@@ -858,15 +1136,16 @@ public class WorkingSheet implements DocumentParser {
                 }
             }
             List<String> panelLetters = findStandalonePanelGrades(text, result.getFields().get("auctionGrade"));
+            boolean exteriorLabeled = hasExteriorGradeLabel(text);
             if (isBlank(result.getFields().get("exteriorGrade")) && isBlank(result.getFields().get("interiorGrade"))
-                    && panelLetters.size() >= 2) {
+                    && panelLetters.size() >= 2 && exteriorLabeled) {
                 result.put("exteriorGrade", panelLetters.get(0));
                 result.put("interiorGrade", panelLetters.get(1));
             }
             if (isBlank(result.getFields().get("interiorGrade"))) {
                 putFirstUnusedGrade(result, "interiorGrade", panelLetters);
             }
-            if (isBlank(result.getFields().get("exteriorGrade")) && panelLetters.size() >= 2) {
+            if (isBlank(result.getFields().get("exteriorGrade")) && panelLetters.size() >= 2 && exteriorLabeled) {
                 putFirstUnusedGrade(result, "exteriorGrade", panelLetters);
             }
             Matcher together = RegexConstants.AuctionSheet.Grade.TOGETHER.matcher(text.toUpperCase());
@@ -935,8 +1214,17 @@ public class WorkingSheet implements DocumentParser {
             int from = Math.max(0, start - 8);
             int to = Math.min(text.length(), start + 8);
             String window = text.substring(from, to).toUpperCase();
-            if (window.contains("車歴") || window.contains("履歴") || window.contains("HISTORY")
-                    || window.contains("B )") || window.contains("B)")) {
+            if (window.contains("B )") || window.contains("B)") || window.contains("エア")) {
+                return false;
+            }
+            if (followsLabel(text, start, "車歴") || followsLabel(text, start, "履歴")
+                    || followsLabel(text, start, "HISTORY")) {
+                return false;
+            }
+            int lineStart = text.lastIndexOf('\n', Math.max(0, start - 1)) + 1;
+            int lineEnd = text.indexOf('\n', start);
+            String line = text.substring(lineStart, lineEnd < 0 ? text.length() : lineEnd);
+            if (line.contains("グレード") || line.toLowerCase(Locale.ROOT).contains("grade")) {
                 return false;
             }
             if (window.contains("AAC") || window.contains("IAT") || window.contains("ABS")
@@ -947,6 +1235,11 @@ public class WorkingSheet implements DocumentParser {
                 return false;
             }
             return start + 1 >= text.length() || !isCodeChar(text.charAt(start + 1));
+        }
+
+        private boolean followsLabel(String text, int start, String label) {
+            int at = text.toUpperCase(Locale.ROOT).lastIndexOf(label.toUpperCase(Locale.ROOT), start);
+            return at >= 0 && start - at <= label.length() + 4;
         }
 
         private boolean isCodeChar(char ch) {
@@ -962,6 +1255,123 @@ public class WorkingSheet implements DocumentParser {
             if (!model.toLowerCase().startsWith(make.toLowerCase())) {
                 result.getFields().put("model", make + " " + model);
             }
+        }
+
+        private void refineKnownVehicle(AuctionParseResult result, String text) {
+            correctAthleteModelCode(result);
+            applyCatalogName(result);
+            completeCatalogChassis(result);
+            preferHybridFuel(result);
+            String model = result.getFields().get("model");
+            if (isBlank(result.getFields().get("bodyStyle")) && model != null
+                    && model.toLowerCase(Locale.ROOT).contains("crown")) {
+                result.put("bodyStyle", "Sedan");
+            }
+            dropCopiedExteriorGrade(result, text);
+        }
+
+        private void correctAthleteModelCode(AuctionParseResult result) {
+            String code = result.getFields().get("modelCode");
+            if (code == null || !code.toUpperCase(Locale.ROOT).contains("GRS206")) {
+                return;
+            }
+            String grade = nullToEmpty(result.getFields().get("grade"));
+            String engine = nullToEmpty(result.getFields().get("engineSize")).replace(",", "");
+            if (!grade.contains("3.5") && !engine.contains("3500")) {
+                return;
+            }
+            result.put("modelCode", "DBA-GRS204");
+            String chassis = result.getFields().get("chassisNo");
+            if (chassis != null && chassis.toUpperCase(Locale.ROOT).startsWith("GRS206-")) {
+                result.put("chassisNo", "GRS204-" + chassis.substring("GRS206-".length()));
+            }
+        }
+
+        private void applyCatalogName(AuctionParseResult result) {
+            String prefix = chassisPrefix(result.getFields().get("modelCode"));
+            String[] catalog = prefix == null ? null : CODE_MODELS.get(prefix);
+            if (catalog == null) {
+                return;
+            }
+            String current = result.getFields().get("model");
+            boolean bareCatalogName = current != null && current.equalsIgnoreCase(catalog[0]);
+            if (isBlank(current) || AuctionSheetEnglish.containsJapanese(current) || isMisreadModelName(current)
+                    || bareCatalogName) {
+                result.put("model", catalog[0]);
+                if (isBlank(result.getFields().get("make"))) {
+                    result.put("make", catalog[1]);
+                }
+                fillVehicleName(result);
+            }
+        }
+
+        private boolean isMisreadModelName(String value) {
+            String compact = value.toLowerCase(Locale.ROOT).replace(" ", "");
+            return "fraule".equals(compact) || "kuraun".equals(compact) || "kuraure".equals(compact)
+                    || value.contains("フラウレ") || value.contains("クラウレ") || value.contains("フラウン");
+        }
+
+        private void preferHybridFuel(AuctionParseResult result) {
+            String code = result.getFields().get("modelCode");
+            if (code == null || !code.toUpperCase(Locale.ROOT).matches("(?:DAA|4AA|5AA|6AA|6LA)-.*")) {
+                return;
+            }
+            String fuel = result.getFields().get("fuel");
+            if (isBlank(fuel) || "Gasoline".equals(fuel)) {
+                result.put("fuel", "Hybrid");
+            }
+        }
+
+        private void completeCatalogChassis(AuctionParseResult result) {
+            String prefix = chassisPrefix(result.getFields().get("modelCode"));
+            if (prefix == null || !CODE_MODELS.containsKey(prefix)) {
+                return;
+            }
+            String chassis = result.getFields().get("chassisNo");
+            if (isBlank(chassis) || chassis.toUpperCase(Locale.ROOT).contains(prefix)) {
+                return;
+            }
+            if (chassis.matches(".*[A-Za-z].*")) {
+                return;
+            }
+            String digits = chassis.replaceAll("\\D", "");
+            if (digits.length() < 6 || digits.length() > 8) {
+                return;
+            }
+            result.put("chassisNo", prefix + "-" + digits);
+        }
+
+        private void dropCopiedExteriorGrade(AuctionParseResult result, String text) {
+            String exterior = result.getFields().get("exteriorGrade");
+            String interior = result.getFields().get("interiorGrade");
+            if (isBlank(exterior) || isBlank(interior) || !exterior.equalsIgnoreCase(interior)) {
+                return;
+            }
+            if (!hasExteriorGradeLabel(text)) {
+                result.getFields().remove("exteriorGrade");
+            }
+        }
+
+        private boolean hasExteriorGradeLabel(String text) {
+            if (text == null) {
+                return false;
+            }
+            if (text.toLowerCase(Locale.ROOT).contains("exterior")) {
+                return true;
+            }
+            int from = 0;
+            while (from < text.length()) {
+                int at = text.indexOf("外装", from);
+                if (at < 0) {
+                    return false;
+                }
+                int after = at + 2;
+                if (after >= text.length() || text.charAt(after) != '色') {
+                    return true;
+                }
+                from = after;
+            }
+            return false;
         }
 
         private void keepFormFields(AuctionParseResult result) {
@@ -1097,6 +1507,10 @@ public class WorkingSheet implements DocumentParser {
         private int[] extractEraDateNearLabel(String text) {
             Matcher label = RegexConstants.AuctionSheet.Identity.FIRST_REG_LABEL.matcher(text);
             while (label.find()) {
+                int[] slash = slashRegistrationNear(text, label.start());
+                if (slash != null) {
+                    return slash;
+                }
                 int from = label.start();
                 int to = Math.min(text.length(), label.end() + 140);
                 String window = text.substring(from, to);
@@ -1168,17 +1582,47 @@ public class WorkingSheet implements DocumentParser {
                 }
             }
             Matcher two = RegexConstants.AuctionSheet.Identity.FIRST_REG_NUMBERS.matcher(window);
-            if (two.find()) {
-                int eraYear = Integer.parseInt(two.group(1));
-                int month = Integer.parseInt(two.group(2));
-                if (month >= 1 && month <= 12) {
-                    if (eraYear >= 9 && eraYear <= 31) {
-                        return new int[] {1988 + eraYear, month};
-                    }
-                    if (eraYear >= 1 && eraYear <= 8) {
-                        return new int[] {2018 + eraYear, month};
-                    }
+            while (two.find()) {
+                String around = window.substring(Math.max(0, two.start(1) - 2), Math.min(window.length(), two.end(2) + 2))
+                        .toUpperCase(Locale.ROOT);
+                if (around.contains("WD")) {
+                    continue;
                 }
+                int[] parsed = toEraYearMonth(Integer.parseInt(two.group(1)), Integer.parseInt(two.group(2)));
+                if (parsed != null) {
+                    return parsed;
+                }
+            }
+            return null;
+        }
+
+        private int[] slashRegistrationNear(String text, int anchor) {
+            Matcher slash = Pattern.compile("(?<!\\d)(\\d{1,2})\\s*[/／]\\s*(\\d{1,2})\\s*月").matcher(text);
+            int[] best = null;
+            int bestDistance = Integer.MAX_VALUE;
+            while (slash.find()) {
+                int[] parsed = toEraYearMonth(Integer.parseInt(slash.group(1)), Integer.parseInt(slash.group(2)));
+                if (parsed == null) {
+                    continue;
+                }
+                int distance = Math.abs(slash.start() - anchor);
+                if (distance <= 240 && distance < bestDistance) {
+                    bestDistance = distance;
+                    best = parsed;
+                }
+            }
+            return best;
+        }
+
+        private int[] toEraYearMonth(int eraYear, int month) {
+            if (month < 1 || month > 12) {
+                return null;
+            }
+            if (eraYear >= 9 && eraYear <= 31) {
+                return new int[] {1988 + eraYear, month};
+            }
+            if (eraYear >= 1 && eraYear <= 8) {
+                return new int[] {2018 + eraYear, month};
             }
             return null;
         }
@@ -1415,9 +1859,9 @@ public class WorkingSheet implements DocumentParser {
             Matcher labeled = RegexConstants.AuctionSheet.Identity.LOT_LABELED
                     .matcher(text);
             if (labeled.find()) {
-                String lot = normalizeLot(labeled.group(1), mileageDigits);
-                if (lot != null && !isUnlikelyLot(lot, mileageDigits, text)) {
-                    return lot;
+                String raw = labeled.group(1);
+                if (raw.length() >= 2 && !raw.equals(mileageDigits) && !isUnlikelyLot(raw, mileageDigits, text)) {
+                    return raw;
                 }
             }
             String extracted = extract(text, new String[] {
@@ -1526,12 +1970,16 @@ public class WorkingSheet implements DocumentParser {
                     + RegexConstants.AuctionSheet.Grade.NOT_COLOR;
             Matcher matcher = RegexConstants.AuctionSheet.Grade.gradeLetterAfterLabel(label)
                     .matcher(text);
-            if (matcher.find() && isGradeLetterContext(text, matcher.start(1))) {
-                return matcher.group(1).toUpperCase();
+            while (matcher.find()) {
+                if (isGradeLetterContext(text, matcher.start(1))) {
+                    return matcher.group(1).toUpperCase();
+                }
             }
             Matcher nextLine = RegexConstants.AuctionSheet.Grade.gradeLetterOnNextLineAfterLabel(label).matcher(text);
-            if (nextLine.find() && isGradeLetterContext(text, nextLine.start(1))) {
-                return nextLine.group(1).toUpperCase();
+            while (nextLine.find()) {
+                if (isGradeLetterContext(text, nextLine.start(1))) {
+                    return nextLine.group(1).toUpperCase();
+                }
             }
             return null;
         }
@@ -1595,7 +2043,9 @@ public class WorkingSheet implements DocumentParser {
             Matcher any = RegexConstants.AuctionSheet.Specs.DOORS_ANY
                     .matcher(text);
             if (any.find()) {
-                String n = any.group(1) != null ? any.group(1) : (any.group(2) != null ? any.group(2) : any.group(3));
+                String n = any.group(1) != null ? any.group(1)
+                    : (any.group(2) != null ? any.group(2)
+                    : (any.group(3) != null ? any.group(3) : any.group(4)));
                 return n + "-door";
             }
             Matcher doorsAfterLabel = RegexConstants.AuctionSheet.Specs.DOORS_LABELED
@@ -2060,7 +2510,9 @@ public class WorkingSheet implements DocumentParser {
         }
 
         private String translateFuel(String value) {
-            return translator.translateJaToEn(value);
+            String english = englishValue(value);
+            String fuel = canonicalFuel(english == null ? value : english);
+            return fuel == null ? english : fuel;
         }
 
         private String nullToEmpty(String value) {

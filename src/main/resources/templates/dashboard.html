@@ -130,7 +130,7 @@
                             <strong th:text="${dash.sellThrough}">0%</strong>
                         </div>
                     </div>
-                    <p class="fleet-note">Total cost is landing plus CUSDEC, repair, and assessment. Total cost, revenue, and sell-through follow <strong th:text="${dash.periodLabel}">All time</strong>, the same period as the rest of this page.</p>
+                    <p class="fleet-note">Total cost is landing plus CUSDEC, repair, and assessment for vehicles still on hand. It uses the date the vehicle was added to stock — the yard arrival date, or the sale date when there is no yard date — within <strong th:text="${dash.periodLabel}">All time</strong>. Revenue and sell-through follow that same period from the selling date.</p>
                 </article>
 
                 <article class="fleet-card">

@@ -10,6 +10,7 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.Iterator;
+import java.util.Map;
 
 import javax.imageio.IIOImage;
 import javax.imageio.ImageIO;
@@ -120,27 +121,26 @@ public class OcrImagePreparer {
                 }
             }
             AuctionParseResult documentAiResult = tryDocumentAi(working, workingName, parser);
-            if (documentAiResult != null && documentAiResult.isSuccess()) {
+            if (documentAiResult != null && documentAiResult.isSuccess() && !auctionNeedsAnotherRead(parser, documentAiResult)) {
                 return documentAiResult;
             }
-            OcrClient client = ocrClients.clientFor(provider);
-            BufferedImage image = ImageIO.read(working);
-            if (image == null) {
-                if (documentAiResult != null) {
-                    return documentAiResult;
-                }
-                throw new IOException("Unsupported image format.");
-            }
-            File imageTemp = writeUploadImage(isAuctionSheet(parser) ? image : prepare(image), client);
+            AuctionParseResult ocrResult = null;
             try {
-                AuctionParseResult ocrResult = parser.parsePage(client.recognize(imageTemp, language));
-                if (ocrResult != null && ocrResult.isSuccess()) {
-                    return ocrResult;
+                ocrResult = readWithOcr(working, language, provider, parser);
+            } catch (Exception ex) {
+                if (documentAiResult == null || !documentAiResult.isSuccess()) {
+                    throw ex;
                 }
-                return documentAiResult != null ? documentAiResult : ocrResult;
-            } finally {
-                tryDelete(imageTemp);
+                log.warn("OCR fallback failed for {}: {}", parser.getDocumentName(), ex.toString());
             }
+            if (documentAiResult != null && documentAiResult.isSuccess()) {
+                fillAuctionGaps(documentAiResult, ocrResult);
+                return documentAiResult;
+            }
+            if (ocrResult != null && ocrResult.isSuccess()) {
+                return ocrResult;
+            }
+            return documentAiResult != null ? documentAiResult : ocrResult;
         } finally {
             if (prepared != null) {
                 tryDelete(prepared);
@@ -159,6 +159,50 @@ public class OcrImagePreparer {
         int dot = originalName.lastIndexOf('.');
         String base = dot > 0 ? originalName.substring(0, dot) : originalName;
         return base + ".jpg";
+    }
+
+    private AuctionParseResult readWithOcr(File working, String language, String provider, DocumentParser parser) throws Exception {
+        OcrClient client = ocrClients.clientFor(provider);
+        BufferedImage image = ImageIO.read(working);
+        if (image == null) {
+            throw new IOException("Unsupported image format.");
+        }
+        File imageTemp = writeUploadImage(isAuctionSheet(parser) ? image : prepare(image), client);
+        try {
+            return parser.parsePage(client.recognize(imageTemp, language));
+        } finally {
+            tryDelete(imageTemp);
+        }
+    }
+
+    private static boolean auctionNeedsAnotherRead(DocumentParser parser, AuctionParseResult result) {
+        if (!isAuctionSheet(parser) || result == null || result.getFields() == null) {
+            return false;
+        }
+        return blankField(result, "mileage")
+                || blankField(result, "year")
+                || blankField(result, "fuel")
+                || blankField(result, "modelCode")
+                || blankField(result, "colorCode");
+    }
+
+    private static boolean blankField(AuctionParseResult result, String key) {
+        String value = result.getFields().get(key);
+        return value == null || value.trim().isEmpty();
+    }
+
+    private static void fillAuctionGaps(AuctionParseResult target, AuctionParseResult extra) {
+        if (target == null || extra == null || extra.getFields() == null) {
+            return;
+        }
+        if (target.getFields() == null) {
+            target.setFields(new java.util.LinkedHashMap<String, String>());
+        }
+        for (Map.Entry<String, String> entry : extra.getFields().entrySet()) {
+            if (blankField(target, entry.getKey()) && entry.getValue() != null && !entry.getValue().trim().isEmpty()) {
+                target.getFields().put(entry.getKey(), entry.getValue().trim());
+            }
+        }
     }
 
     private AuctionParseResult tryDocumentAi(File file, String originalName, DocumentParser parser) {

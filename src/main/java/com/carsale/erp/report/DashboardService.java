@@ -110,6 +110,7 @@ public class DashboardService {
         Map<String, Vehicle> vehiclesByChassis = vehiclesByChassis();
         Map<String, CustomsDocument> customsByChassis = customsByChassis();
         Map<String, WorkshopJob> jobsByChassis = jobsByChassis();
+        Map<String, String> arrivalByChassis = arrivalByChassis();
         List<ReportService.ReportRow> periodRows = new ArrayList<>();
 
         for (ReportService.ReportRow row : report.getRows()) {
@@ -140,16 +141,6 @@ public class DashboardService {
             BigDecimal advertised = row.getAdvertisedAmount();
             BigDecimal salePrice = advertised != null ? advertised : asking;
 
-            if (!sold) {
-                BigDecimal totalCost = VehicleTotalCost.of(
-                        customsByChassis.get(row.getChassisNo()),
-                        jobsByChassis.get(row.getChassisNo())
-                ).getTotal();
-                if (totalCost != null) {
-                    stockCost = stockCost.add(totalCost);
-                    anyStockCost = true;
-                }
-            }
             if (listed) {
                 if (asking == null) {
                     listedMissingPrice++;
@@ -184,6 +175,24 @@ public class DashboardService {
                         soldValueByLocation.compute(locationKey, (k, soFar) -> soFar == null ? salePrice : soFar.add(salePrice));
                     }
                 }
+            }
+        }
+
+        for (ReportService.ReportRow row : report.getRows()) {
+            if (ReportService.SOLD.equals(row.getSection())) {
+                continue;
+            }
+            String addedOn = stockAddDate(arrivalByChassis.get(row.getChassisNo()), row.getListedOn());
+            if (!inStockAddPeriod(addedOn, period)) {
+                continue;
+            }
+            BigDecimal totalCost = VehicleTotalCost.of(
+                    customsByChassis.get(row.getChassisNo()),
+                    jobsByChassis.get(row.getChassisNo())
+            ).getTotal();
+            if (totalCost != null) {
+                stockCost = stockCost.add(totalCost);
+                anyStockCost = true;
             }
         }
 
@@ -433,6 +442,16 @@ public class DashboardService {
         return documents;
     }
 
+    private Map<String, String> arrivalByChassis() {
+        Map<String, String> arrivedOn = new HashMap<String, String>();
+        for (YardRecord yard : yardRecordRepository.findAll()) {
+            if (yard.getChassisNo() != null) {
+                arrivedOn.put(yard.getChassisNo(), yard.getArrivalDate());
+            }
+        }
+        return arrivedOn;
+    }
+
     private Map<String, WorkshopJob> jobsByChassis() {
         Map<String, WorkshopJob> jobs = new HashMap<String, WorkshopJob>();
         for (WorkshopJob job : workshopJobRepository.findAll()) {
@@ -597,6 +616,39 @@ public class DashboardService {
             return true;
         }
         return !Period.matchesPeriod(listedOn, period);
+    }
+
+    /**
+     * Date the vehicle entered stock: the yard arrival date, or the sale date when it never went to a yard.
+     */
+    static String stockAddDate(String arrivalDate, String listedOn) {
+        String arrival = normalizeStockDate(arrivalDate);
+        if (arrival != null) {
+            return arrival;
+        }
+        return normalizeStockDate(listedOn);
+    }
+
+    static boolean inStockAddPeriod(String stockAddDate, String period) {
+        if ("all".equals(period)) {
+            return true;
+        }
+        if (stockAddDate == null || stockAddDate.trim().isEmpty()) {
+            return false;
+        }
+        return !Period.matchesPeriod(stockAddDate, period);
+    }
+
+    private static String normalizeStockDate(String raw) {
+        if (raw == null) {
+            return null;
+        }
+        String text = raw.trim();
+        if (text.isEmpty() || "—".equals(text) || "-".equals(text)) {
+            return null;
+        }
+        String iso = SaleListing.toIsoDate(text);
+        return iso != null ? iso : text;
     }
 
     private static String normalizePeriod(String period) {

@@ -74,6 +74,7 @@ public final class AuctionSheetEnglish {
             return null;
         }
         String result = convertDates(value);
+        result = applyGlossary(result);
         result = result.replace('（', '(').replace('）', ')').replace('、', ',');
         if (containsJapanese(result) && translator != null) {
             String translated = translator.translateJaToEn(result);
@@ -89,6 +90,24 @@ public final class AuctionSheetEnglish {
         result = result.replaceAll(RegexConstants.Text.WHITESPACE, " ").trim();
         result = result.replaceAll(RegexConstants.Text.LEADING_TRAILING_COMMAS, "");
         return result.isEmpty() ? null : result;
+    }
+
+    private static String applyGlossary(String value) {
+        String result = value;
+        result = result.replace("ガソリン", "Gasoline");
+        result = result.replace("軽油", "Diesel");
+        result = result.replace("ディーゼル", "Diesel");
+        result = result.replace("ハイブリッドZX", "Hybrid ZX");
+        result = result.replace("ハイブリッド", "Hybrid");
+        result = result.replace("ツーリングセレクション", " Touring Selection");
+        result = result.replace("パッケージ", " Package");
+        result = result.replace("電気", "Electric");
+        result = result.replace("アスリート", "Athlete");
+        result = result.replace("クラウン", "Crown");
+        result = result.replace("フラウレ", "Crown");
+        result = result.replace("クラウレ", "Crown");
+        result = result.replaceAll("(?i)(?<![A-Za-z])Fraule(?![A-Za-z])", "Crown");
+        return result;
     }
 
     private static String convertDates(String value) {

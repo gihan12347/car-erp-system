@@ -21,9 +21,11 @@ class AuctionSheetDocumentAiTest {
         List<Map<String, Object>> entityTypes = (List<Map<String, Object>>) schema.get("entityTypes");
         assertFalse(entityTypes.isEmpty());
         List<Map<String, Object>> properties = (List<Map<String, Object>>) entityTypes.get(0).get("properties");
-        assertTrue(properties.stream().anyMatch(property -> "chassis_no".equals(property.get("name"))));
+        assertTrue(properties.stream().anyMatch(property -> "chassis_number".equals(property.get("name"))));
         assertTrue(properties.stream().anyMatch(property -> "mileage".equals(property.get("name"))));
-        assertTrue(properties.stream().anyMatch(property -> "auction_grade".equals(property.get("name"))));
+        assertTrue(properties.stream().anyMatch(property -> "evaluation_score".equals(property.get("name"))));
+        assertTrue(properties.stream().anyMatch(property -> "vehicle_name".equals(property.get("name"))));
+        assertTrue(properties.stream().noneMatch(property -> "chassis_no".equals(property.get("name"))));
         assertTrue(properties.stream().noneMatch(property -> property.containsKey("description")));
     }
 }
