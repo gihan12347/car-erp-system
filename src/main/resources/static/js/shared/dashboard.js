@@ -9,6 +9,8 @@
         }
     }
 
+    animateKpiCounts();
+
     var palette = ["#0f766e", "#b45309", "#c2410c", "#047857", "#9a3412", "#78716c"];
     var ink = "#1c1917";
     var muted = "#78716c";
@@ -141,3 +143,35 @@
 
     window.setTimeout(function () { map.invalidateSize(); }, 200);
 })();
+
+function animateKpiCounts() {
+    if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        return;
+    }
+    var nodes = document.querySelectorAll(".fleet-kpis .fleet-kpi-copy strong");
+    Array.prototype.forEach.call(nodes, function (node, index) {
+        var target = parseInt(String(node.textContent || "").replace(/[^\d-]/g, ""), 10);
+        if (!isFinite(target)) {
+            return;
+        }
+        window.setTimeout(function () {
+            var start = null;
+            var duration = 680;
+            function frame(now) {
+                if (start === null) {
+                    start = now;
+                }
+                var progress = Math.min(1, (now - start) / duration);
+                var eased = 1 - Math.pow(1 - progress, 3);
+                node.textContent = String(Math.round(target * eased));
+                if (progress < 1) {
+                    window.requestAnimationFrame(frame);
+                } else {
+                    node.textContent = String(target);
+                }
+            }
+            node.textContent = "0";
+            window.requestAnimationFrame(frame);
+        }, index * 70);
+    });
+}

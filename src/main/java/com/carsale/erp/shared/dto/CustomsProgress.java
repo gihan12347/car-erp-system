@@ -41,13 +41,7 @@ public class CustomsProgress implements PipelineProgress {
     }
 
     public int completedCount() {
-        int count = 0;
-        for (String key : PipelineStageUtils.CUSTOMS_STAGE_KEYS) {
-            if (isStageComplete(key)) {
-                count++;
-            }
-        }
-        return count;
+        return PipelineStageUtils.completedCount(PipelineStageUtils.CUSTOMS_STAGE_KEYS, this);
     }
 
     public boolean isStageFilled(String stageKey) {
@@ -73,12 +67,7 @@ public class CustomsProgress implements PipelineProgress {
 
     @Override
     public boolean isPipelineCompleted() {
-        for (String key : PipelineStageUtils.CUSTOMS_STAGE_KEYS) {
-            if (!isStageComplete(key)) {
-                return false;
-            }
-        }
-        return true;
+        return PipelineStageUtils.isPipelineCompleted(PipelineStageUtils.CUSTOMS_STAGE_KEYS, this);
     }
 
     public String firstIncompleteStageKey(List<String> keys) {
@@ -86,7 +75,7 @@ public class CustomsProgress implements PipelineProgress {
             return null;
         }
         for (String key : keys) {
-            if (!isStageComplete(key)) {
+            if (PipelineStageUtils.isIncomplete(key, this)) {
                 return key;
             }
         }

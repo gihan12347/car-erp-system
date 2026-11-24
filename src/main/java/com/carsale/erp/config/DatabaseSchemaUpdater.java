@@ -39,6 +39,7 @@ public class DatabaseSchemaUpdater implements CommandLineRunner {
         createPipelineStagesTable();
         migratePipelineStagesToFlowId();
         ensurePipelineStagesFlowForeignKey();
+        addPipelineStageEnabledColumn();
         createEquipmentInspectionsTable();
         createInspectionCertificatesTable();
         createStandardsCertificatesTable();
@@ -866,6 +867,22 @@ public class DatabaseSchemaUpdater implements CommandLineRunner {
         }
     }
 
+    private boolean isBitColumn(String table, String column) {
+        try {
+            String columnType = jdbcTemplate.queryForObject(
+                    "SELECT COLUMN_TYPE FROM INFORMATION_SCHEMA.COLUMNS "
+                            + "WHERE TABLE_SCHEMA = DATABASE() "
+                            + "AND UPPER(TABLE_NAME) = UPPER(?) AND UPPER(COLUMN_NAME) = UPPER(?)",
+                    String.class,
+                    table,
+                    column
+            );
+            return columnType != null && columnType.toLowerCase().startsWith("bit");
+        } catch (Exception ex) {
+            return false;
+        }
+    }
+
     private boolean hasTableColumn(String table, String column) {
         try {
             Integer count = jdbcTemplate.queryForObject(
@@ -938,6 +955,7 @@ public class DatabaseSchemaUpdater implements CommandLineRunner {
                             + "title VARCHAR(80) NOT NULL, "
                             + "subtitle VARCHAR(120), "
                             + "sort_order INT NOT NULL, "
+                            + "enabled TINYINT(1) NOT NULL DEFAULT 1, "
                             + "PRIMARY KEY (id), "
                             + "UNIQUE KEY uk_pipeline_stages_flow_id_stage (flow_id, stage_key), "
                             + "CONSTRAINT fk_pipeline_stages_flow FOREIGN KEY (flow_id) REFERENCES pipeline_flows (id)"
@@ -969,6 +987,27 @@ public class DatabaseSchemaUpdater implements CommandLineRunner {
             log.info("Migrated pipeline_stages.flow_key to flow_id");
         } catch (Exception ex) {
             log.warn("Could not migrate pipeline_stages to flow_id: {}", ex.getMessage());
+        }
+    }
+
+    private void addPipelineStageEnabledColumn() {
+        try {
+            if (!hasTableColumn("pipeline_stages", "enabled")) {
+                jdbcTemplate.execute(
+                        "ALTER TABLE pipeline_stages ADD COLUMN enabled TINYINT(1) NOT NULL DEFAULT 1"
+                );
+                log.info("Added pipeline_stages.enabled");
+                return;
+            }
+            if (isBitColumn("pipeline_stages", "enabled")) {
+                jdbcTemplate.update("UPDATE pipeline_stages SET enabled = 1");
+                jdbcTemplate.execute(
+                        "ALTER TABLE pipeline_stages MODIFY COLUMN enabled TINYINT(1) NOT NULL DEFAULT 1"
+                );
+                log.info("Converted pipeline_stages.enabled from BIT to TINYINT default 1");
+            }
+        } catch (Exception ex) {
+            log.warn("Could not add pipeline_stages.enabled: {}", ex.getMessage());
         }
     }
 

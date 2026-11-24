@@ -1,5 +1,6 @@
 package com.carsale.erp.shared.controller;
 
+import com.carsale.erp.shared.pipeline.StageEnabledRequest;
 import com.carsale.erp.shared.pipeline.StageReorderRequest;
 import com.carsale.erp.shared.pipeline.StageReorderResult;
 import com.carsale.erp.shared.service.PipelineStageService;
@@ -20,7 +21,7 @@ public class StageOrderController {
 
     @GetMapping("/stages")
     public String page(Model model) {
-        model.addAttribute("pageTitle", "Stage order");
+        model.addAttribute("pageTitle", "Stage management");
         model.addAttribute("activeMenu", "stages");
         model.addAttribute("flowGroups", pipelineStageService.flowGroups());
         return "shared/stage-order";
@@ -36,6 +37,24 @@ public class StageOrderController {
             return StageReorderResult.ok(
                     "Stage order saved.",
                     pipelineStageService.reorder(request.getFlowId(), request.getStageKeys())
+            );
+        } catch (IllegalArgumentException ex) {
+            return StageReorderResult.fail(ex.getMessage());
+        }
+    }
+
+    @PostMapping("/stages/enabled")
+    @ResponseBody
+    public StageReorderResult setEnabled(@RequestBody StageEnabledRequest request) {
+        try {
+            if (request == null || request.getFlowId() == null || request.getStageKey() == null) {
+                return StageReorderResult.fail("Stage is required.");
+            }
+            return StageReorderResult.ok(
+                    request.isEnabled()
+                            ? "Stage enabled."
+                            : "Stage disabled. Incomplete vehicles will skip it.",
+                    pipelineStageService.setEnabled(request.getFlowId(), request.getStageKey(), request.isEnabled())
             );
         } catch (IllegalArgumentException ex) {
             return StageReorderResult.fail(ex.getMessage());

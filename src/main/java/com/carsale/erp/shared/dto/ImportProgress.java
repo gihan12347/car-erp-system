@@ -56,33 +56,17 @@ public class ImportProgress implements PipelineProgress {
 
     @Override
     public boolean hasAnyCompletedStage() {
-        for (String key : PipelineStageUtils.IMPORT_STAGE_KEYS) {
-            if (isStageComplete(key)) {
-                return true;
-            }
-        }
-        return false;
+        return PipelineStageUtils.hasAnyCompletedStage(PipelineStageUtils.IMPORT_STAGE_KEYS, this);
     }
 
     @Override
     public int completedCount() {
-        int count = 0;
-        for (String key : PipelineStageUtils.IMPORT_STAGE_KEYS) {
-            if (isStageComplete(key)) {
-                count++;
-            }
-        }
-        return count;
+        return PipelineStageUtils.completedCount(PipelineStageUtils.IMPORT_STAGE_KEYS, this);
     }
 
     @Override
     public boolean isPipelineCompleted() {
-        for (String key : PipelineStageUtils.IMPORT_STAGE_KEYS) {
-            if (!isStageComplete(key)) {
-                return false;
-            }
-        }
-        return true;
+        return PipelineStageUtils.isPipelineCompleted(PipelineStageUtils.IMPORT_STAGE_KEYS, this);
     }
 
     public boolean isStageFilled(String stageKey) {
@@ -126,8 +110,11 @@ public class ImportProgress implements PipelineProgress {
     }
 
     public String firstIncompleteStageKey(List<String> keys) {
+        if (keys == null) {
+            return null;
+        }
         for (String key : keys) {
-            if (!isStageComplete(key)) {
+            if (PipelineStageUtils.isIncomplete(key, this)) {
                 return key;
             }
         }

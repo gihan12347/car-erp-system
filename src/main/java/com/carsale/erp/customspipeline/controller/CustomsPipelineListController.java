@@ -21,6 +21,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import com.carsale.erp.shared.vehicle.Vehicle;
 import com.carsale.erp.shared.dto.CustomsProgress;
 import com.carsale.erp.shared.vehicle.VehicleService;
+import com.carsale.erp.shared.web.ListPaging;
 
 
 @Controller
@@ -33,7 +34,11 @@ public class CustomsPipelineListController {
     private final PipelineStageService pipelineStageService;
 
     @GetMapping("/customs")
-    public String list(@RequestParam(value = "q", required = false) String query, Model model) {
+    public String list(
+            @RequestParam(value = "q", required = false) String query,
+            @RequestParam(value = "page", required = false) String page,
+            Model model
+    ) {
         List<Vehicle> vehicles = customsProgressService.listEligible(query);
         List<CustomsListRow> rows = new ArrayList<>();
         for (Vehicle vehicle : vehicles) {
@@ -41,7 +46,7 @@ public class CustomsPipelineListController {
         }
         model.addAttribute("pageTitle", "Customs clearance pipeline");
         model.addAttribute("activeMenu", "customs");
-        model.addAttribute("rows", rows);
+        model.addAttribute("rows", ListPaging.apply(rows, page, model, "/customs"));
         model.addAttribute("pipelineStages", pipelineStageService.list(PipelineStageService.FLOW_CUSTOMS));
         model.addAttribute("pipelineKeys", pipelineStageService.keys(PipelineStageService.FLOW_CUSTOMS));
         model.addAttribute("searchQuery", query == null ? "" : query.trim());

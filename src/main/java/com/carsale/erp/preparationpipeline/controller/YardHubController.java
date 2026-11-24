@@ -1,6 +1,8 @@
 package com.carsale.erp.preparationpipeline.controller;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import com.carsale.erp.preparationpipeline.dto.YardVehicleCard;
@@ -44,10 +46,16 @@ public class YardHubController {
     private final SaleLocationService saleLocationService;
 
     @GetMapping
-    public String yards(Model model) {
+    public String yards(
+            @RequestParam(value = "view", required = false) String view,
+            Model model
+    ) {
+        boolean vehicleView = view != null && "vehicles".equalsIgnoreCase(view.trim());
         model.addAttribute("pageTitle", "Yard");
         model.addAttribute("activeMenu", "yards");
         model.addAttribute("yards", yardBayService.listAll());
+        model.addAttribute("allocated", yardService.listAllocated());
+        model.addAttribute("vehicleView", vehicleView);
         return "yard-hub/list";
     }
 
@@ -56,6 +64,7 @@ public class YardHubController {
             @PathVariable String yardCode,
             @RequestParam(value = "q", required = false) String query,
             @RequestParam(value = "period", required = false) String period,
+            @RequestParam(value = "page", required = false) String page,
             Model model,
             RedirectAttributes redirectAttributes
     ) {
@@ -78,12 +87,35 @@ public class YardHubController {
             if (Period.matchesPeriod(record.getArrivalDate(), activePeriod)) {
                 continue;
             }
-            cards.add(new YardVehicleCard(vehicle, yardService.coverPhoto(vehicle.getChassisNo())));
+            cards.add(new YardVehicleCard(
+                    vehicle,
+                    yardService.coverPhoto(vehicle.getChassisNo()),
+                    yard.getBayCode(),
+                    Yard.yardTitle(yard),
+                    "/yards/" + PipelineStageUtils.encode(yard.getBayCode())
+                            + "/" + PipelineStageUtils.encode(vehicle.getChassisNo()),
+                    record.getArrivalDate()
+            ));
+        }
+        Collections.sort(cards, new Comparator<YardVehicleCard>() {
+            @Override
+            public int compare(YardVehicleCard left, YardVehicleCard right) {
+                return VehicleService.compareNewestFirst(left.getVehicle(), right.getVehicle());
+            }
+        });
+        List<YardBay> destYards = new ArrayList<>();
+        for (YardBay other : yardBayService.listAll()) {
+            if (other != null && other.getBayCode() != null
+                    && !other.getBayCode().equalsIgnoreCase(yard.getBayCode())) {
+                destYards.add(other);
+            }
         }
         model.addAttribute("pageTitle", Yard.yardTitle(yard) + " · Yard");
         model.addAttribute("activeMenu", "yards");
         model.addAttribute("yard", yard);
         model.addAttribute("cards", cards);
+        model.addAttribute("assignable", yardService.listAssignable());
+        model.addAttribute("destYards", destYards);
         model.addAttribute("searchQuery", searchQuery);
         model.addAttribute("period", activePeriod);
         return "yard-hub/vehicles";
@@ -143,6 +175,73 @@ public class YardHubController {
             redirectAttributes.addFlashAttribute("error", ex.getMessage());
             return "redirect:/yards/" + PipelineStageUtils.encode(yardCode) + "/" + PipelineStageUtils.encode(chassisNo);
         }
+    }
+
+    @PostMapping("/{yardCode}/assign")
+    public String assign(
+            @PathVariable String yardCode,
+            @RequestParam(value = "chassisNos", required = false) List<String> chassisNos,
+            @RequestParam(value = "returnTo", required = false) String returnTo,
+            RedirectAttributes redirectAttributes
+    ) {
+        try {
+            int assigned = yardService.assignVehicles(yardCode, chassisNos);
+            redirectAttributes.addFlashAttribute("notice",
+                    assigned == 1
+                            ? "1 vehicle assigned to the yard."
+                            : assigned + " vehicles assigned to the yard.");
+        } catch (IllegalArgumentException ex) {
+            redirectAttributes.addFlashAttribute("error", ex.getMessage());
+        }
+        return "redirect:" + safeReturn(returnTo, "/yards/" + PipelineStageUtils.encode(yardCode));
+    }
+
+    @PostMapping("/{yardCode}/{chassisNo}/remove")
+    public String remove(
+            @PathVariable String yardCode,
+            @PathVariable String chassisNo,
+            @RequestParam(value = "returnTo", required = false) String returnTo,
+            RedirectAttributes redirectAttributes
+    ) {
+        try {
+            yardService.removeFromYard(yardCode, chassisNo);
+            redirectAttributes.addFlashAttribute("notice", "Vehicle removed from the yard.");
+        } catch (IllegalArgumentException ex) {
+            redirectAttributes.addFlashAttribute("error", ex.getMessage());
+        }
+        return "redirect:" + safeReturn(returnTo, "/yards/" + PipelineStageUtils.encode(yardCode));
+    }
+
+    @PostMapping("/{yardCode}/{chassisNo}/transfer")
+    public String transfer(
+            @PathVariable String yardCode,
+            @PathVariable String chassisNo,
+            @RequestParam(value = "destYardCode", required = false) String destYardCode,
+            @RequestParam(value = "returnTo", required = false) String returnTo,
+            RedirectAttributes redirectAttributes
+    ) {
+        try {
+            yardService.transferVehicle(yardCode, chassisNo, destYardCode);
+            redirectAttributes.addFlashAttribute("notice", "Vehicle transferred.");
+            if (destYardCode != null && !destYardCode.trim().isEmpty()
+                    && (returnTo == null || returnTo.trim().isEmpty())) {
+                return "redirect:/yards/" + PipelineStageUtils.encode(destYardCode.trim());
+            }
+        } catch (IllegalArgumentException ex) {
+            redirectAttributes.addFlashAttribute("error", ex.getMessage());
+        }
+        return "redirect:" + safeReturn(returnTo, "/yards/" + PipelineStageUtils.encode(yardCode));
+    }
+
+    private static String safeReturn(String returnTo, String fallback) {
+        if (returnTo == null) {
+            return fallback;
+        }
+        String path = returnTo.trim();
+        if (path.startsWith("/yards")) {
+            return path;
+        }
+        return fallback;
     }
 
 }

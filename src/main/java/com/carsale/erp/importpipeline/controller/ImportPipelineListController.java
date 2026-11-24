@@ -32,6 +32,7 @@ import com.carsale.erp.shared.vehicle.VehicleStage;
 import com.carsale.erp.shared.dto.ImportProgress;
 import com.carsale.erp.shared.service.PipelineStageService;
 import com.carsale.erp.shared.vehicle.VehicleService;
+import com.carsale.erp.shared.web.ListPaging;
 
 @Controller
 @RequiredArgsConstructor
@@ -50,7 +51,11 @@ public class ImportPipelineListController {
     private final VehiclePhotoService vehiclePhotoService;
 
     @GetMapping("/import")
-    public String list(@RequestParam(value = "q", required = false) String query, Model model) {
+    public String list(
+            @RequestParam(value = "q", required = false) String query,
+            @RequestParam(value = "page", required = false) String page,
+            Model model
+    ) {
         List<Vehicle> vehicles = vehicleService.search(query);
         List<ImportListRow> rows = new ArrayList<>();
         for (Vehicle vehicle : vehicles) {
@@ -62,7 +67,7 @@ public class ImportPipelineListController {
         }
         model.addAttribute("pageTitle", "Import pipeline");
         model.addAttribute("activeMenu", "import");
-        model.addAttribute("rows", rows);
+        model.addAttribute("rows", ListPaging.apply(rows, page, model, "/import"));
         model.addAttribute("importStages", pipelineStageService.list(PipelineStageService.FLOW_IMPORT));
         model.addAttribute("importKeys", pipelineStageService.keys(PipelineStageService.FLOW_IMPORT));
         model.addAttribute("searchQuery", query == null ? "" : query.trim());

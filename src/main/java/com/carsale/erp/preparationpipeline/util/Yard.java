@@ -24,6 +24,27 @@ public class Yard {
         return vehicle.getChassisNo();
     }
 
+    public static String makeModel(Vehicle vehicle) {
+        if (vehicle == null) {
+            return "Vehicle";
+        }
+        String make = vehicle.getMake() == null ? "" : vehicle.getMake().trim();
+        String model = vehicle.getModel() == null ? "" : vehicle.getModel().trim();
+        if (!make.isEmpty() && !model.isEmpty()) {
+            if (model.toLowerCase(Locale.ROOT).contains(make.toLowerCase(Locale.ROOT))) {
+                return model;
+            }
+            return make + " " + model;
+        }
+        if (!model.isEmpty()) {
+            return model;
+        }
+        if (!make.isEmpty()) {
+            return make;
+        }
+        return vehicleLabel(vehicle);
+    }
+
     public static boolean matchesQuery(Vehicle vehicle, String query) {
         if (query == null || query.trim().isEmpty()) {
             return true;

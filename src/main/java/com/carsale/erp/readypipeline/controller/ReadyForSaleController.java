@@ -1,7 +1,12 @@
 package com.carsale.erp.readypipeline.controller;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 import com.carsale.erp.readypipeline.model.SaleListing;
 import com.carsale.erp.readypipeline.model.SaleLocation;
@@ -26,6 +31,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import com.carsale.erp.importpipeline.model.VehiclePhoto;
 import com.carsale.erp.importpipeline.service.VehiclePhotoService;
 import com.carsale.erp.preparationpipeline.service.PreparationProgressService;
+import com.carsale.erp.preparationpipeline.util.Yard;
 import com.carsale.erp.shared.dto.SaleProgress;
 import com.carsale.erp.shared.pipeline.FlowStage;
 import com.carsale.erp.shared.service.PipelineStageService;
@@ -51,11 +57,25 @@ public class ReadyForSaleController {
     private final PipelineStageService pipelineStageService;
 
     @GetMapping
-    public String hub(Model model) {
-        List<SaleGroup> groups = SaleGroup.group(saleLocationService.listAll(), rows());
+    public String hub(
+            @RequestParam(value = "view", required = false) String view,
+            Model model
+    ) {
+        boolean vehicleView = view != null && "vehicles".equalsIgnoreCase(view.trim());
+        List<SaleLocation> sales = saleLocationService.listAll();
+        SaleGroup unassigned = null;
+        for (SaleGroup group : SaleGroup.group(sales, rows())) {
+            if (group != null && group.isUnassigned()) {
+                unassigned = group;
+                break;
+            }
+        }
         model.addAttribute("pageTitle", "Sale");
         model.addAttribute("activeMenu", "ready-for-sale");
-        model.addAttribute("groups", groups);
+        model.addAttribute("sales", sales);
+        model.addAttribute("unassigned", unassigned);
+        model.addAttribute("allocated", cards(null, ReadyStageUrls.PERIOD_ALL));
+        model.addAttribute("vehicleView", vehicleView);
         return "ready-for-sale/groups";
     }
 
@@ -85,7 +105,7 @@ public class ReadyForSaleController {
             redirectAttributes.addFlashAttribute("error", "Unknown sale.");
             return "redirect:/ready-for-sale";
         }
-        String activeTab = ReadyStageUrls.normalizeTab(tab);
+        String activeTab = normalizeStatus(tab);
         String activePeriod = normalizePeriod(period);
         List<SaleVehicleCard> all = new ArrayList<>();
         for (SaleVehicleCard card : cards(query, activePeriod)) {
@@ -106,7 +126,7 @@ public class ReadyForSaleController {
             } else {
                 unregistered++;
             }
-            if (activeTab.equals(card.getTab())) {
+            if ("all".equals(activeTab) || activeTab.equals(card.getTab())) {
                 cards.add(card);
             }
         }
@@ -218,6 +238,7 @@ public class ReadyForSaleController {
     }
 
     private List<SaleVehicleCard> cards(String query, String period) {
+        Map<String, String> titles = saleTitles();
         List<SaleVehicleCard> cards = new ArrayList<>();
         for (Vehicle vehicle : preparationProgressService.listReadyForSale(query)) {
             SaleProgress status = saleListingService.progressFor(vehicle.getChassisNo());
@@ -226,9 +247,48 @@ public class ReadyForSaleController {
                 continue;
             }
             SaleRow row = new SaleRow(vehicle, status, listing);
-            cards.add(new SaleVehicleCard(vehicle, listing, coverPhoto(vehicle.getChassisNo()), row.getTab()));
+            String code = listing == null ? null : listing.getSaleCode();
+            cards.add(new SaleVehicleCard(
+                    vehicle,
+                    listing,
+                    coverPhoto(vehicle.getChassisNo()),
+                    row.getTab(),
+                    titleFor(titles, code)
+            ));
         }
+        Collections.sort(cards, new Comparator<SaleVehicleCard>() {
+            @Override
+            public int compare(SaleVehicleCard left, SaleVehicleCard right) {
+                return VehicleService.compareNewestFirst(left.getVehicle(), right.getVehicle());
+            }
+        });
         return cards;
+    }
+
+    private Map<String, String> saleTitles() {
+        Map<String, String> titles = new HashMap<String, String>();
+        for (SaleLocation sale : saleLocationService.listAll()) {
+            if (sale == null || sale.getSaleCode() == null || sale.getSaleCode().trim().isEmpty()) {
+                continue;
+            }
+            titles.put(sale.getSaleCode().trim().toUpperCase(Locale.ROOT), saleTitle(sale, sale.getSaleCode()));
+        }
+        return titles;
+    }
+
+    private static String titleFor(Map<String, String> titles, String code) {
+        if (code == null || code.trim().isEmpty()) {
+            return "Unassigned";
+        }
+        String title = titles.get(code.trim().toUpperCase(Locale.ROOT));
+        return title == null || title.trim().isEmpty() ? code.trim() : title;
+    }
+
+    private static String normalizeStatus(String tab) {
+        if (tab == null || tab.trim().isEmpty() || "all".equalsIgnoreCase(tab.trim())) {
+            return "all";
+        }
+        return ReadyStageUrls.normalizeTab(tab);
     }
 
     private List<SaleRow> rows() {
@@ -305,13 +365,91 @@ public class ReadyForSaleController {
     }
 
     @Getter
-    @AllArgsConstructor
     public static final class SaleVehicleCard {
         private final Vehicle vehicle;
         private final SaleListing listing;
         private final VehiclePhoto photo;
         private final String tab;
+        private final String saleTitle;
 
+        public SaleVehicleCard(
+                Vehicle vehicle,
+                SaleListing listing,
+                VehiclePhoto photo,
+                String tab,
+                String saleTitle
+        ) {
+            this.vehicle = vehicle;
+            this.listing = listing;
+            this.photo = photo;
+            this.tab = tab;
+            this.saleTitle = saleTitle == null || saleTitle.trim().isEmpty() ? "Unassigned" : saleTitle;
+        }
+
+        public String getMakeModel() {
+            return Yard.makeModel(vehicle);
+        }
+
+        public String getStatusLabel() {
+            if (ReadyStageUrls.TAB_SOLD.equals(tab)) {
+                return "Sold";
+            }
+            if (ReadyStageUrls.TAB_REGISTERED.equals(tab)) {
+                return "Registered";
+            }
+            return "Unregistered";
+        }
+
+        public String getStatusTone() {
+            if (ReadyStageUrls.TAB_SOLD.equals(tab)) {
+                return "rust";
+            }
+            if (ReadyStageUrls.TAB_REGISTERED.equals(tab)) {
+                return "sea";
+            }
+            return "gold";
+        }
+
+        public String getSaleCode() {
+            if (listing == null || listing.getSaleCode() == null || listing.getSaleCode().trim().isEmpty()) {
+                return SaleGroup.UNASSIGNED_KEY;
+            }
+            return listing.getSaleCode();
+        }
+
+        public String getListedOn() {
+            return listing == null ? null : listing.getListedOn();
+        }
+
+        public boolean isSold() {
+            return ReadyStageUrls.TAB_SOLD.equals(tab);
+        }
+
+        public String getSearchText() {
+            StringBuilder text = new StringBuilder();
+            if (vehicle != null) {
+                appendSearch(text, vehicle.getChassisNo());
+                appendSearch(text, vehicle.getStockNo());
+                appendSearch(text, vehicle.getMake());
+                appendSearch(text, vehicle.getModel());
+                appendSearch(text, vehicle.getYear());
+                appendSearch(text, vehicle.getColor());
+            }
+            appendSearch(text, getSaleCode());
+            appendSearch(text, saleTitle);
+            appendSearch(text, getStatusLabel());
+            return text.toString().trim().toLowerCase(Locale.ROOT);
+        }
+
+        private static void appendSearch(StringBuilder text, String value) {
+            if (value == null || value.trim().isEmpty()) {
+                return;
+            }
+            if (text.length() > 0) {
+                text.append(' ');
+            }
+            text.append(value.trim());
+        }
     }
 
     @Getter

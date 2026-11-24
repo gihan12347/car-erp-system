@@ -17,9 +17,22 @@ import java.util.function.Function;
 public class PipelineStageUtils {
 
     private static Function<String, String> selectedPipelinesLookup = chassis -> null;
+    private static Function<String, Boolean> stageEnabledLookup = key -> Boolean.TRUE;
 
     public static void setSelectedPipelinesLookup(Function<String, String> lookup) {
         selectedPipelinesLookup = lookup == null ? chassis -> null : lookup;
+    }
+
+    public static void setStageEnabledLookup(Function<String, Boolean> lookup) {
+        stageEnabledLookup = lookup == null ? key -> Boolean.TRUE : lookup;
+    }
+
+    public static boolean isStageEnabled(String stageKey) {
+        if (stageKey == null || stageKey.trim().isEmpty()) {
+            return true;
+        }
+        Boolean enabled = stageEnabledLookup.apply(stageKey.trim());
+        return enabled == null || enabled.booleanValue();
     }
 
     public static String selectedPipelinesOf(String chassisNo) {
@@ -86,8 +99,7 @@ public class PipelineStageUtils {
     public static final List<String> CUSTOMS_STAGE_KEYS = Arrays.asList(
             FlowStage.BILL_OF_LADING.getStageKey(),
             FlowStage.DECLARATION.getStageKey(),
-            FlowStage.ASSESSMENT.getStageKey(),
-            FlowStage.WORKSHEET.getStageKey()
+            FlowStage.ASSESSMENT.getStageKey()
     );
 
     public static final List<String> PREP_STAGE_KEYS = Arrays.asList(
@@ -180,7 +192,44 @@ public class PipelineStageUtils {
     }
 
     public static boolean isIncomplete(String stageKey, PipelineProgress status) {
-        return !status.isStageComplete(stageKey);
+        return isStageEnabled(stageKey) && !status.isStageComplete(stageKey);
+    }
+
+    public static boolean isPipelineCompleted(List<String> keys, PipelineProgress status) {
+        if (keys == null || keys.isEmpty()) {
+            return true;
+        }
+        for (String key : keys) {
+            if (isIncomplete(key, status)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public static int completedCount(List<String> keys, PipelineProgress status) {
+        int count = 0;
+        if (keys == null) {
+            return 0;
+        }
+        for (String key : keys) {
+            if (isStageEnabled(key) && status.isStageComplete(key)) {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    public static boolean hasAnyCompletedStage(List<String> keys, PipelineProgress status) {
+        if (keys == null) {
+            return false;
+        }
+        for (String key : keys) {
+            if (isStageEnabled(key) && status.isStageComplete(key)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public static String stageKeyAt(List<PipelineStage> stages, int index) {

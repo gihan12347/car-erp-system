@@ -31,6 +31,7 @@ import com.carsale.erp.shared.vehicle.VehicleStage;
 import com.carsale.erp.shared.dto.PreparationProgress;
 import com.carsale.erp.preparationpipeline.service.VehicleInspectionService;
 import com.carsale.erp.shared.vehicle.VehicleService;
+import com.carsale.erp.shared.web.ListPaging;
 import com.carsale.erp.preparationpipeline.service.WorkshopService;
 import com.carsale.erp.preparationpipeline.service.YardService;
 import com.carsale.erp.readypipeline.service.SaleListingService;
@@ -52,7 +53,11 @@ public class PreparationPipelineListController {
     private final RegisteredProgressService registeredProgressService;
 
     @GetMapping("/workshop-yard")
-    public String list(@RequestParam(value = "q", required = false) String query, Model model) {
+    public String list(
+            @RequestParam(value = "q", required = false) String query,
+            @RequestParam(value = "page", required = false) String page,
+            Model model
+    ) {
         List<Vehicle> vehicles = preparationProgressService.listEligible(query);
         List<PreparationListRow> rows = new ArrayList<>();
         for (Vehicle vehicle : vehicles) {
@@ -63,7 +68,7 @@ public class PreparationPipelineListController {
         }
         model.addAttribute("pageTitle", "Preparation pipeline");
         model.addAttribute("activeMenu", "workshop-yard");
-        model.addAttribute("rows", rows);
+        model.addAttribute("rows", ListPaging.apply(rows, page, model, "/workshop-yard"));
         model.addAttribute("pipelineStages", pipelineStageService.list(PipelineStageService.FLOW_PREP));
         model.addAttribute("pipelineKeys", pipelineStageService.keys(PipelineStageService.FLOW_PREP));
         model.addAttribute("searchQuery", query == null ? "" : query.trim());

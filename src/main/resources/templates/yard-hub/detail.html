@@ -17,7 +17,8 @@
 
             <div th:replace="~{vehicle/summary :: summaryBody}"></div>
 
-            <form th:action="@{/yards/{y}/{c}/move(y=${yard.bayCode}, c=${vehicle.chassisNo})}"
+            <form id="sale-move"
+                  th:action="@{/yards/{y}/{c}/move(y=${yard.bayCode}, c=${vehicle.chassisNo})}"
                   th:object="${record}" method="post" class="vehicle-form summary-move">
                 <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
                 <input type="hidden" th:field="*{chassisNo}">
@@ -72,6 +73,28 @@
 </div>
 <div th:replace="shared/document-viewer :: documentViewer"></div>
 <script th:src="@{/js/shared/app.js(v=20261003s)}"></script>
+<script>
+    (function () {
+        function scrollToSale() {
+            if (window.location.hash !== "#sale-move") {
+                return;
+            }
+            var form = document.getElementById("sale-move");
+            var scroller = document.querySelector(".page-content");
+            if (!form || !scroller) {
+                return;
+            }
+            var top = form.getBoundingClientRect().top - scroller.getBoundingClientRect().top + scroller.scrollTop;
+            scroller.scrollTop = Math.max(0, top - 12);
+        }
+        if (document.readyState === "loading") {
+            document.addEventListener("DOMContentLoaded", scrollToSale);
+        } else {
+            scrollToSale();
+        }
+        window.addEventListener("load", scrollToSale);
+    })();
+</script>
 <script th:src="@{/js/shared/document-viewer.js(v=20260826d)}"></script>
 <script th:src="@{/js/vehicle/summary.js(v=20261003g)}"></script>
 <script th:src="@{/js/shared/capacity-select.js(v=20260919a)}"></script>

@@ -275,7 +275,7 @@ public class AuctionLotController {
                     importKeys
             );
         } catch (DataIntegrityViolationException ex) {
-            redirectAttributes.addFlashAttribute("error", "Could not save the vehicle. A record with the same stock number may already exist.");
+            redirectAttributes.addFlashAttribute("error", "Could not save the vehicle. A record with the same vehicle number may already exist.");
             redirectAttributes.addFlashAttribute("vehicle", vehicle);
             if (vehicle.getChassisNo() == null || vehicle.getChassisNo().trim().isEmpty()) {
                 return "redirect:/auction/new";

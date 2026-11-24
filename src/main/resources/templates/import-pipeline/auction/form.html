@@ -175,7 +175,13 @@
                         <article class="panel">
                             <div class="panel-head"><h2>Transmission / air conditioning</h2></div>
                             <div class="field-grid">
-                                <label>Transmission <input type="text" th:field="*{transmission}" id="transmission"></label>
+                                <label>Transmission
+                                    <select id="transmission" name="transmission">
+                                        <option value="">Select</option>
+                                        <option value="Automatic" th:selected="${vehicle.transmissionLabel == 'Automatic'}">Automatic</option>
+                                        <option value="Manual" th:selected="${vehicle.transmissionLabel == 'Manual'}">Manual</option>
+                                    </select>
+                                </label>
                                 <label>Air conditioning <input type="text" th:field="*{acType}" id="acType"></label>
                             </div>
                         </article>
@@ -255,7 +261,7 @@
 
 <script th:src="@{/js/shared/app.js(v=20260905k)}"></script>
 <script th:src="@{/js/shared/document-viewer.js(v=20260826d)}"></script>
-<script th:src="@{/js/import-pipeline/auction.js(v=20260829a)}"></script>
+<script th:src="@{/js/import-pipeline/auction.js(v=20261124a)}"></script>
 </th:block>
 </body>
 </html>

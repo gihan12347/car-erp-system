@@ -27,8 +27,9 @@
             </header>
 
             <section class="fleet-kpis" aria-label="Stock totals">
-                <a class="fleet-kpi" th:each="metric : ${dash.metrics}"
-                   th:href="${metric.href}" th:classappend="${metric.tone}">
+                <a class="fleet-kpi" th:each="metric, stat : ${dash.metrics}"
+                   th:href="${metric.href}" th:classappend="${metric.tone}"
+                   th:style="'--kpi-i:' + ${stat.index}">
                     <span class="fleet-kpi-icon" aria-hidden="true">
                         <svg th:if="${metric.icon == 'fa-car'}" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM5 11l1.5-4.5h11L19 11H5zM5 15.6a1.45 1.45 0 1 0 2.9 0 1.45 1.45 0 0 0-2.9 0zm11.1 0a1.45 1.45 0 1 0 2.9 0 1.45 1.45 0 0 0-2.9 0z"/></svg>
                         <svg th:if="${metric.icon == 'fa-circle-check'}" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M12 2.4a9.6 9.6 0 1 0 0 19.2 9.6 9.6 0 0 0 0-19.2zM7.7 12.15l2.05 2.05c.32.32.84.32 1.16 0l4.85-5.05-1.4-1.34-4.02 4.18-1.32-1.32-1.32 1.48z"/></svg>
@@ -47,41 +48,42 @@
             <section class="fleet-top">
                 <article class="fleet-card fleet-table-card" id="vehicles">
                     <div class="fleet-card-head">
-                        <h2>Vehicles</h2>
-                        <a th:href="@{/reports}">View all</a>
+                        <div>
+                            <h2>Unfinished pipeline work</h2>
+                            <p class="fleet-card-lead">Vehicles that still have an open stage, newest first.</p>
+                        </div>
+                        <a th:href="@{/import}">Open pipelines</a>
                     </div>
                     <div class="table-wrap" th:if="${!dash.stock.isEmpty()}">
                         <table class="fleet-table">
                             <thead>
                             <tr>
-                                <th>Vehicle ID</th>
-                                <th>Type</th>
-                                <th>Model</th>
+                                <th>Vehicle no.</th>
+                                <th>Make and model</th>
                                 <th>Year</th>
-                                <th>Meter</th>
-                                <th>Status</th>
-                                <th>Location</th>
+                                <th>Mileage</th>
+                                <th>Continue at</th>
                             </tr>
                             </thead>
                             <tbody>
                             <tr th:each="row : ${dash.stock}">
-                                <td data-label="Vehicle ID">
-                                    <a class="fleet-id" th:href="${row.href}" th:text="${row.idLabel}">V001</a>
-                                    <span class="fleet-sub" th:text="${row.chassisNo}">NHP10</span>
+                                <td data-label="Vehicle no.">
+                                    <strong class="fleet-id" th:text="${row.idLabel}">V0001</strong>
+                                    <span class="fleet-sub">
+                                        <a th:replace="shared/chassis-link :: chassisLink(${row.chassisNo})">NHP10</a>
+                                    </span>
                                 </td>
-                                <td data-label="Type" th:text="${row.type}">SUV</td>
-                                <td data-label="Model" th:text="${row.model}">Raize</td>
+                                <td data-label="Make and model" th:text="${row.makeModel}">Toyota Raize</td>
                                 <td data-label="Year" th:text="${row.year}">2025</td>
-                                <td data-label="Meter" th:text="${row.meter}">10 km</td>
-                                <td data-label="Status">
-                                    <em class="fleet-status" th:classappend="${row.statusKey}" th:text="${row.status}">Import</em>
+                                <td data-label="Mileage" th:text="${row.mileage}">10 km</td>
+                                <td data-label="Continue at">
+                                    <a class="panel-btn is-inline fleet-next" th:href="${row.actionHref}" th:text="${row.actionLabel}">Auction lot</a>
                                 </td>
-                                <td data-label="Location" th:text="${row.place}">Yard</td>
                             </tr>
                             </tbody>
                         </table>
                     </div>
-                    <p class="fleet-empty" th:if="${dash.stock.isEmpty()}">No vehicles match this period.</p>
+                    <p class="fleet-empty" th:if="${dash.stock.isEmpty()}">No unfinished pipeline work in this period.</p>
                     <div class="fleet-pager" th:if="${dash.stockPages > 1}">
                         <span class="fleet-pager-range" th:text="${dash.stockRange}">1–4 of 8</span>
                         <nav aria-label="Vehicle pages">
@@ -103,7 +105,7 @@
                     </div>
                 </article>
 
-                <article class="fleet-card">
+                <article class="fleet-card fleet-status-card">
                     <div class="fleet-card-head">
                         <h2>Vehicle status</h2>
                     </div>
@@ -206,7 +208,7 @@
 <script id="dash-charts" type="application/json" th:utext="${dash.chartJson}">{}</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
-<script th:src="@{/js/shared/dashboard.js(v=20261004g)}"></script>
+<script th:src="@{/js/shared/dashboard.js(v=20261124a)}"></script>
 <script th:src="@{/js/shared/app.js(v=20260905k)}"></script>
 </body>
 </html>

@@ -32,7 +32,7 @@
                         <path d="M16 16.5 20 20.5"/>
                     </svg>
                     <input type="search" name="q" th:value="${searchQuery}"
-                           placeholder="Search chassis, model, lot, or stock">
+                           placeholder="Search chassis, model, or vehicle no">
                 </label>
                 <button type="submit" class="import-tool">
                     <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -82,7 +82,7 @@
                             <td class="pipeline-vehicle-cell">
                                 <strong th:text="${row.vehicle.model != null ? row.vehicle.model : '—'}"
                                         th:title="${row.vehicle.model}">Toyota Aqua</strong>
-                                <div class="muted" th:text="${row.vehicle.lotNo != null ? 'Lot ' + row.vehicle.lotNo : (row.vehicle.stockNo != null ? row.vehicle.stockNo : '')}">Lot 36497</div>
+                                <div class="muted" th:text="${row.vehicle.stockNo != null ? row.vehicle.stockNo : ''}">V0001</div>
                             </td>
                             <td class="pipeline-chassis-cell">
                                 <a th:replace="shared/chassis-link :: chassisLink(${row.vehicle.chassisNo})">NHP10-884211</a>

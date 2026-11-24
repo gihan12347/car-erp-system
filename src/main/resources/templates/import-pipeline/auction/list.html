@@ -27,7 +27,7 @@
                     <input type="search"
                            name="q"
                            th:value="${searchQuery}"
-                           placeholder="Search chassis, model, lot, stock, model code...">
+                           placeholder="Search chassis, model, vehicle no, model code...">
                 </div>
                 <button type="submit" class="panel-btn auction-search-btn">Search</button>
                 <a th:if="${searchQuery != null and !#strings.isEmpty(searchQuery)}"
@@ -41,10 +41,9 @@
                         <thead>
                         <tr>
                             <th>Chassis</th>
-                            <th>Stock</th>
+                            <th>Vehicle no.</th>
                             <th>Vehicle</th>
                             <th>Year</th>
-                            <th>Lot</th>
                             <th>Grade</th>
                             <th>Mileage</th>
                             <th>Stage</th>
@@ -54,13 +53,12 @@
                         <tbody>
                         <tr th:each="item : ${vehicles}">
                             <td data-label="Chassis"><a th:replace="shared/chassis-link :: chassisLink(${item.chassisNo})">M900A-1122703</a></td>
-                            <td data-label="Stock" th:text="${item.stockNo}">V001</td>
+                            <td data-label="Vehicle no." th:text="${item.stockNo}">V0001</td>
                             <td data-label="Vehicle">
                                 <strong th:text="${item.model != null and item.make != null and item.model.startsWith(item.make)} ? ${item.model} : |${item.make} ${item.model}|">Toyota Roomy</strong>
                                 <div class="muted" th:text="${item.grade}">S</div>
                             </td>
                             <td data-label="Year" th:text="${item.year}">2018</td>
-                            <td data-label="Lot" th:text="${item.lotNo}">-</td>
                             <td data-label="Grade" th:text="${item.auctionGrade}">-</td>
                             <td data-label="Mileage" th:text="${item.mileage}">54000 km</td>
                             <td data-label="Stage">

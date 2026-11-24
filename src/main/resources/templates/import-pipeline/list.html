@@ -25,7 +25,7 @@
                         <path d="M16 16.5 20 20.5"/>
                     </svg>
                     <input type="search" name="q" th:value="${searchQuery}"
-                           placeholder="Search chassis, model, lot, or stock">
+                           placeholder="Search chassis, model, or vehicle no">
                 </label>
                 <button type="submit" class="import-tool">
                     <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round">
@@ -72,7 +72,7 @@
                                 <strong th:text="${row.vehicle.model != null ? row.vehicle.model : '—'}"
                                         th:title="${row.vehicle.model}">Toyota Land Cruiser</strong>
                                 <a th:replace="shared/chassis-link :: chassisLink(${row.vehicle.chassisNo})">TRJ250-0025161</a>
-                                <div class="muted" th:text="${row.vehicle.lotNo != null ? 'Lot ' + row.vehicle.lotNo : ''}">Lot 36497</div>
+                                <div class="muted" th:text="${row.vehicle.stockNo != null ? row.vehicle.stockNo : ''}">V0001</div>
                             </td>
                             <td class="list-pipeline-cell">
                                 <div class="list-pipeline"
@@ -148,6 +148,7 @@
                         </tbody>
                     </table>
                 </div>
+                <div th:replace="shared/list-pager :: pager"></div>
                 <div class="import-empty" th:if="${rows.isEmpty()}">
                     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 16.5 7 8h10l3 8.5"/><path d="M6 16.5h12"/><circle cx="8" cy="17.2" r="1.2"/><circle cx="16" cy="17.2" r="1.2"/></svg>
                     <p>No vehicles in the import pipeline.</p>

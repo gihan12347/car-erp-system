@@ -46,6 +46,7 @@
                         </tbody>
                     </table>
                 </div>
+                <div th:replace="shared/list-pager :: pager"></div>
                 <p class="muted" th:if="${rows.isEmpty()}">No sold vehicles yet.</p>
             </article>
         </main>

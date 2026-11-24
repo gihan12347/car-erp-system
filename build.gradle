@@ -34,6 +34,14 @@ tasks.named('test') {
     useJUnitPlatform()
 }
 
+tasks.withType(JavaCompile).configureEach {
+    options.incremental = false
+}
+
+springBoot {
+    mainClass = 'com.carsale.erp.CarSaleErpApplication'
+}
+
 bootRun {
     jvmArgs = [
         '-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005'

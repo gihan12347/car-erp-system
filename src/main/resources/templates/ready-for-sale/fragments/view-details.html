@@ -8,7 +8,7 @@
         <div>
             <div class="vehicle-hero-badges">
                 <span class="vehicle-stock" th:if="${vehicle.stockNo != null and !#strings.isEmpty(vehicle.stockNo)}"
-                      th:text="${vehicle.stockNo}">V001</span>
+                      th:text="${vehicle.stockNo}">V0001</span>
                 <em class="pill sea" th:if="${vehicle.auctionGrade != null and !#strings.isEmpty(vehicle.auctionGrade)}"
                     th:text="${'Grade ' + vehicle.auctionGrade}">Grade 4.5</em>
             </div>
@@ -36,7 +36,7 @@
                 </div>
                 <div>
                     <small>Transmission</small>
-                    <strong th:text="${vehicle.transmission != null and !#strings.isEmpty(vehicle.transmission) ? vehicle.transmission : dash}">—</strong>
+                    <strong th:text="${vehicle.transmissionLabel != null and !#strings.isEmpty(vehicle.transmissionLabel) ? vehicle.transmissionLabel : dash}">—</strong>
                 </div>
                 <div>
                     <small>Engine</small>
@@ -64,7 +64,7 @@
             <h3>Identity</h3>
             <ul class="detail-spec-list">
                 <li><span>Chassis</span><a th:replace="shared/chassis-link :: chassisLink(${vehicle.chassisNo})">M900A-1122703</a></li>
-                <li><span>Stock no.</span><strong th:text="${vehicle.stockNo != null and !#strings.isEmpty(vehicle.stockNo) ? vehicle.stockNo : dash}">—</strong></li>
+                <li><span>Vehicle no.</span><strong th:text="${vehicle.stockNo != null and !#strings.isEmpty(vehicle.stockNo) ? vehicle.stockNo : dash}">—</strong></li>
                 <li><span>Make</span><strong th:text="${vehicle.make != null and !#strings.isEmpty(vehicle.make) ? vehicle.make : dash}">—</strong></li>
                 <li><span>Model</span><strong th:text="${vehicle.model != null and !#strings.isEmpty(vehicle.model) ? vehicle.model : dash}">—</strong></li>
                 <li><span>Grade</span><strong th:text="${vehicle.grade != null and !#strings.isEmpty(vehicle.grade) ? vehicle.grade : dash}">—</strong></li>
@@ -88,7 +88,7 @@
             <ul class="detail-spec-list">
                 <li><span>Engine</span><strong th:text="${vehicle.engineSize != null and !#strings.isEmpty(vehicle.engineSize) ? vehicle.engineSize : dash}">—</strong></li>
                 <li><span>Fuel</span><strong th:text="${vehicle.fuel != null and !#strings.isEmpty(vehicle.fuel) ? vehicle.fuel : dash}">—</strong></li>
-                <li><span>Transmission</span><strong th:text="${vehicle.transmission != null and !#strings.isEmpty(vehicle.transmission) ? vehicle.transmission : dash}">—</strong></li>
+                <li><span>Transmission</span><strong th:text="${vehicle.transmissionLabel != null and !#strings.isEmpty(vehicle.transmissionLabel) ? vehicle.transmissionLabel : dash}">—</strong></li>
                 <li><span>Drive</span><strong th:text="${vehicle.driveSystem != null and !#strings.isEmpty(vehicle.driveSystem) ? vehicle.driveSystem : dash}">—</strong></li>
                 <li><span>Air conditioning</span><strong th:text="${vehicle.acType != null and !#strings.isEmpty(vehicle.acType) ? vehicle.acType : dash}">—</strong></li>
                 <li><span>Model code</span><strong th:text="${vehicle.modelCode != null and !#strings.isEmpty(vehicle.modelCode) ? vehicle.modelCode : dash}">—</strong></li>

@@ -1,6 +1,8 @@
 package com.carsale.erp.shared.service;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
 
 import com.carsale.erp.shared.model.PipelineFlow;
 import com.carsale.erp.shared.model.PipelineStage;
@@ -25,6 +27,7 @@ public class PipelineStageService implements CommandLineRunner {
 
     private final PipelineFlowRepository pipelineFlowRepository;
     private final PipelineStageRepository pipelineStageRepository;
+    private volatile Map<String, Boolean> enabledByKey = new ConcurrentHashMap<String, Boolean>();
 
     public PipelineStageService(PipelineFlowRepository pipelineFlowRepository,
                                 PipelineStageRepository pipelineStageRepository) {
@@ -35,6 +38,7 @@ public class PipelineStageService implements CommandLineRunner {
     @Override
     public void run(String... args) {
         ensureDefaults();
+        refreshEnabledLookup();
     }
 
     @Transactional
@@ -52,6 +56,7 @@ public class PipelineStageService implements CommandLineRunner {
         placePrepInspectionFirst();
         placeBillOfLadingFirst();
         placeSaleDetailsFirst();
+        refreshEnabledLookup();
     }
 
     @Transactional
@@ -398,12 +403,22 @@ public class PipelineStageService implements CommandLineRunner {
         }
     }
 
-    public List<PipelineStage> list(String flowKey) {
+    public List<PipelineStage> listAll(String flowKey) {
         Optional<PipelineFlow> flow = pipelineFlowRepository.findByFlowKey(flowKey);
         if (flow.isPresent()) {
             return pipelineStageRepository.findByFlowIdOrdered(flow.get().getId());
         }
         return new ArrayList<>();
+    }
+
+    public List<PipelineStage> list(String flowKey) {
+        List<PipelineStage> enabled = new ArrayList<>();
+        for (PipelineStage stage : listAll(flowKey)) {
+            if (stage.isEnabled()) {
+                enabled.add(stage);
+            }
+        }
+        return enabled;
     }
 
     public List<String> keys(String flowKey) {
@@ -412,6 +427,14 @@ public class PipelineStageService implements CommandLineRunner {
             keys.add(stage.getStageKey());
         }
         return keys;
+    }
+
+    public boolean isEnabled(String stageKey) {
+        if (stageKey == null || stageKey.trim().isEmpty()) {
+            return true;
+        }
+        Boolean enabled = enabledByKey.get(stageKey.trim());
+        return enabled == null || enabled.booleanValue();
     }
 
     public int indexOf(String flowKey, String stageKey) {
@@ -451,6 +474,37 @@ public class PipelineStageService implements CommandLineRunner {
             ));
         }
         return groups;
+    }
+
+    @Transactional
+    public List<PipelineStage> setEnabled(Long flowId, String stageKey, boolean enabled) {
+        if (stageKey == null || stageKey.trim().isEmpty()) {
+            throw new IllegalArgumentException("Stage is required.");
+        }
+        PipelineFlow flow = requireFlowById(flowId);
+        PipelineStage stage = pipelineStageRepository
+                .findByFlowIdAndStageKey(flow.getId(), stageKey.trim())
+                .orElseThrow(() -> new IllegalArgumentException("Unknown stage."));
+        stage.setEnabled(enabled);
+        pipelineStageRepository.save(stage);
+        refreshEnabledLookup();
+        return pipelineStageRepository.findByFlowIdOrdered(flow.getId());
+    }
+
+    public void refreshEnabledLookup() {
+        Map<String, Boolean> next = new ConcurrentHashMap<String, Boolean>();
+        for (PipelineStage stage : pipelineStageRepository.findAll()) {
+            if (stage.getStageKey() != null) {
+                next.put(stage.getStageKey(), Boolean.valueOf(stage.isEnabled()));
+            }
+        }
+        enabledByKey = next;
+        PipelineStageUtils.setStageEnabledLookup(new Function<String, Boolean>() {
+            @Override
+            public Boolean apply(String key) {
+                return Boolean.valueOf(isEnabled(key));
+            }
+        });
     }
 
     @Transactional
@@ -530,6 +584,7 @@ public class PipelineStageService implements CommandLineRunner {
         stage.setTitle(def.title);
         stage.setSubtitle(def.subtitle);
         stage.setSortOrder(sortOrder);
+        stage.setEnabled(true);
         stage.setFlow(flow);
         pipelineStageRepository.save(stage);
     }

@@ -4,6 +4,9 @@ import com.carsale.erp.importpipeline.service.VehiclePhotoService;
 import com.carsale.erp.shared.document.SheetDocumentStorageService;
 import com.carsale.erp.shared.service.PipelineStageService;
 import com.carsale.erp.shared.utils.Utils;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
@@ -82,14 +85,50 @@ public class VehicleService {
     }
 
     public List<Vehicle> findAll() {
-        return vehicleRepository.findAll();
+        return newestFirst(vehicleRepository.findAll());
     }
 
     public List<Vehicle> search(String query) {
         if (query == null || query.trim().isEmpty()) {
             return findAll();
         }
-        return vehicleRepository.search(query.trim());
+        return newestFirst(vehicleRepository.search(query.trim()));
+    }
+
+    static List<Vehicle> newestFirst(List<Vehicle> vehicles) {
+        List<Vehicle> sorted = new ArrayList<Vehicle>(vehicles);
+        Collections.sort(sorted, newestFirstComparator());
+        return sorted;
+    }
+
+    public static Comparator<Vehicle> newestFirstComparator() {
+        return new Comparator<Vehicle>() {
+            @Override
+            public int compare(Vehicle left, Vehicle right) {
+                return compareNewestFirst(left, right);
+            }
+        };
+    }
+
+    public static int compareNewestFirst(Vehicle left, Vehicle right) {
+        if (left == right) {
+            return 0;
+        }
+        if (left == null) {
+            return 1;
+        }
+        if (right == null) {
+            return -1;
+        }
+        int byVehicleNo = Integer.compare(
+                parseVehicleNoSuffix(right.getStockNo()),
+                parseVehicleNoSuffix(left.getStockNo()));
+        if (byVehicleNo != 0) {
+            return byVehicleNo;
+        }
+        String leftChassis = left.getChassisNo() == null ? "" : left.getChassisNo();
+        String rightChassis = right.getChassisNo() == null ? "" : right.getChassisNo();
+        return rightChassis.compareToIgnoreCase(leftChassis);
     }
 
     public Vehicle findByChassisNo(String chassisNo) {
@@ -121,8 +160,8 @@ public class VehicleService {
             if (vehicle.getIntake() == null) {
                 vehicle.setIntake(existing.getIntake());
             }
-        } else if (vehicle.getStockNo() == null || vehicle.getStockNo().trim().isEmpty()) {
-            vehicle.setStockNo(nextAvailableStockNo());
+        } else {
+            vehicle.setStockNo(nextAvailableVehicleNo());
         }
         return vehicleRepository.save(vehicle);
     }
@@ -147,25 +186,49 @@ public class VehicleService {
         }
     }
 
-    private String nextAvailableStockNo() {
+    private String nextAvailableVehicleNo() {
         int maxSuffix = 0;
         for (Vehicle vehicle : vehicleRepository.findAll()) {
-            maxSuffix = Math.max(maxSuffix, parseStockSuffix(vehicle.getStockNo()));
+            maxSuffix = Math.max(maxSuffix, parseVehicleNoSuffix(vehicle.getStockNo()));
         }
         int candidate = maxSuffix + 1;
-        String stockNo;
+        String vehicleNo;
         do {
-            stockNo = String.format("V%03d", candidate++);
-        } while (vehicleRepository.existsByStockNo(stockNo));
-        return stockNo;
+            vehicleNo = formatVehicleNo(candidate++);
+        } while (vehicleNoTaken(vehicleNo));
+        return vehicleNo;
     }
 
-    private int parseStockSuffix(String stockNo) {
-        if (stockNo == null || stockNo.length() < 2 || stockNo.charAt(0) != 'V') {
+    private boolean vehicleNoTaken(String vehicleNo) {
+        if (vehicleRepository.existsByStockNo(vehicleNo)) {
+            return true;
+        }
+        int suffix = parseVehicleNoSuffix(vehicleNo);
+        if (suffix <= 0) {
+            return false;
+        }
+        return vehicleRepository.existsByStockNo("V" + suffix)
+                || vehicleRepository.existsByStockNo(String.format("V%03d", suffix));
+    }
+
+    static String formatVehicleNo(int suffix) {
+        return String.format("V%04d", suffix);
+    }
+
+    public static int parseVehicleNoSuffix(String vehicleNo) {
+        if (vehicleNo == null) {
+            return 0;
+        }
+        String trimmed = vehicleNo.trim();
+        if (trimmed.length() < 2) {
+            return 0;
+        }
+        char prefix = trimmed.charAt(0);
+        if (prefix != 'V' && prefix != 'v') {
             return 0;
         }
         try {
-            return Integer.parseInt(stockNo.substring(1));
+            return Integer.parseInt(trimmed.substring(1));
         } catch (NumberFormatException ex) {
             return 0;
         }

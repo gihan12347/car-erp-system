@@ -16,7 +16,8 @@ public class Vehicle {
     @Column(name = "chassis_no", length = 40, nullable = false)
     private String chassisNo;
 
-    @Column(unique = true, length = 20)
+    /** Vehicle no stored as V0001, V0002, ... (column name kept as stock_no). */
+    @Column(name = "stock_no", unique = true, length = 20)
     private String stockNo;
 
     @Column(length = 80)
@@ -235,6 +236,10 @@ public class Vehicle {
 
     public String getTransmission() {
         return transmission;
+    }
+
+    public String getTransmissionLabel() {
+        return VehicleFieldNormalizer.displayTransmission(transmission);
     }
 
     public void setTransmission(String transmission) {

@@ -1,0 +1,19 @@
+<div class="fleet-pager" th:fragment="pager" th:if="${listTotal != null and listTotal > 0}">
+    <span class="fleet-pager-range" th:text="${listRange}">1–10 of 24</span>
+    <nav aria-label="List pages">
+        <a th:if="${listPage > 1}"
+           th:href="@{${listPath}(q=${searchQuery}, page=${listPage - 1}, tab=${tab}, period=${period})}">Previous</a>
+        <span th:if="${listPage <= 1}" class="is-off">Previous</span>
+        <th:block th:each="n : ${listPageNumbers}">
+            <span th:if="${n == 0}" class="is-gap" aria-hidden="true">…</span>
+            <a th:if="${n > 0}"
+               th:href="@{${listPath}(q=${searchQuery}, page=${n}, tab=${tab}, period=${period})}"
+               th:text="${n}"
+               th:classappend="${n == listPage} ? ' is-on'"
+               th:aria-current="${n == listPage} ? 'page' : null">1</a>
+        </th:block>
+        <a th:if="${listPage < listPages}"
+           th:href="@{${listPath}(q=${searchQuery}, page=${listPage + 1}, tab=${tab}, period=${period})}">Next</a>
+        <span th:if="${listPage >= listPages}" class="is-off">Next</span>
+    </nav>
+</div>

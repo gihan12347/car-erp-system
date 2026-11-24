@@ -30,6 +30,7 @@ import com.carsale.erp.readypipeline.model.SaleLocation;
 import com.carsale.erp.readypipeline.repository.SaleListingRepository;
 import com.carsale.erp.readypipeline.service.SaleLocationService;
 import com.carsale.erp.readypipeline.util.Period;
+import com.carsale.erp.shared.pipeline.PipelineResumeService;
 import com.carsale.erp.shared.vehicle.Vehicle;
 import com.carsale.erp.shared.vehicle.VehicleService;
 import com.carsale.erp.shared.vehicle.VehicleTotalCost;
@@ -48,6 +49,7 @@ public class DashboardService {
     private final YardRecordRepository yardRecordRepository;
     private final CustomsDocumentRepository customsDocumentRepository;
     private final WorkshopJobRepository workshopJobRepository;
+    private final PipelineResumeService pipelineResumeService;
 
     public DashboardService(
             ReportService reportService,
@@ -57,7 +59,8 @@ public class DashboardService {
             SaleListingRepository saleListingRepository,
             YardRecordRepository yardRecordRepository,
             CustomsDocumentRepository customsDocumentRepository,
-            WorkshopJobRepository workshopJobRepository
+            WorkshopJobRepository workshopJobRepository,
+            PipelineResumeService pipelineResumeService
     ) {
         this.reportService = reportService;
         this.saleLocationService = saleLocationService;
@@ -67,6 +70,7 @@ public class DashboardService {
         this.yardRecordRepository = yardRecordRepository;
         this.customsDocumentRepository = customsDocumentRepository;
         this.workshopJobRepository = workshopJobRepository;
+        this.pipelineResumeService = pipelineResumeService;
     }
 
     @Transactional(readOnly = true)
@@ -311,7 +315,7 @@ public class DashboardService {
             shownMakes++;
         }
 
-        List<StockRow> allStock = stockRows(periodRows, vehiclesByChassis, !"all".equals(period));
+        List<StockRow> allStock = stockRows(periodRows, vehiclesByChassis);
         int stockTotal = allStock.size();
         int stockPages = stockPageCount(stockTotal);
         int stockPage = clampStockPage(rawPage, stockPages);
@@ -474,37 +478,60 @@ public class DashboardService {
 
     private List<StockRow> stockRows(
             List<ReportService.ReportRow> rows,
-            Map<String, Vehicle> vehicles,
-            boolean includeSold
+            Map<String, Vehicle> vehicles
     ) {
         List<StockRow> stock = new ArrayList<StockRow>();
         for (ReportService.ReportRow row : rows) {
-            if (!includeSold && ReportService.SOLD.equals(row.getSection())) {
+            if (ReportService.SOLD.equals(row.getSection())) {
                 continue;
             }
             Vehicle vehicle = vehicles.get(row.getChassisNo());
-            String id = vehicle == null ? row.getChassisNo() : blank(vehicle.getStockNo(), row.getChassisNo());
-            String type = vehicle == null ? "—" : blank(vehicle.getBodyStyle(), blank(vehicle.getMake(), "—"));
-            String model = vehicle == null ? row.getVehicleLabel() : blank(vehicle.getModel(), row.getVehicleLabel());
-            String meter = vehicle == null ? "—" : blank(vehicle.getMileage(), "—");
-            String place = row.getSaleLocation();
-            if (place == null || place.trim().isEmpty() || "—".equals(place.trim())) {
-                place = row.getSectionLabel();
+            PipelineResumeService.Resume resume = pipelineResumeService.resumeFor(vehicle);
+            if (resume == null) {
+                continue;
             }
+            String id = blank(vehicle.getStockNo(), row.getChassisNo());
             stock.add(new StockRow(
                     id,
                     row.getChassisNo(),
-                    row.getViewPath(),
-                    type,
-                    model,
-                    row.getYear(),
-                    meter,
-                    row.getSectionLabel(),
-                    row.getSection(),
-                    place
+                    makeAndModel(vehicle, row.getVehicleLabel()),
+                    blank(vehicle.getYear(), blank(row.getYear(), "—")),
+                    blank(vehicle.getMileage(), "—"),
+                    resume.getHref(),
+                    resume.getLabel()
             ));
         }
+        Collections.sort(stock, new Comparator<StockRow>() {
+            @Override
+            public int compare(StockRow left, StockRow right) {
+                int byNo = Integer.compare(
+                        VehicleService.parseVehicleNoSuffix(right.getIdLabel()),
+                        VehicleService.parseVehicleNoSuffix(left.getIdLabel()));
+                if (byNo != 0) {
+                    return byNo;
+                }
+                return right.getChassisNo().compareToIgnoreCase(left.getChassisNo());
+            }
+        });
         return stock;
+    }
+
+    private static String makeAndModel(Vehicle vehicle, String fallback) {
+        String make = vehicle.getMake() == null ? "" : vehicle.getMake().trim();
+        String model = vehicle.getModel() == null ? "" : vehicle.getModel().trim();
+        if (!make.isEmpty() && !model.isEmpty()) {
+            if (model.toLowerCase(Locale.ROOT).startsWith(make.toLowerCase(Locale.ROOT))) {
+                return model;
+            }
+            return make + " " + model;
+        }
+        if (!model.isEmpty()) {
+            return model;
+        }
+        if (!make.isEmpty()) {
+            return make;
+        }
+        return blank(fallback, "—");
     }
 
     static int stockPageCount(int total) {
@@ -1236,49 +1263,37 @@ public class DashboardService {
     public static final class StockRow {
         private final String idLabel;
         private final String chassisNo;
-        private final String href;
-        private final String type;
-        private final String model;
+        private final String makeModel;
         private final String year;
-        private final String meter;
-        private final String status;
-        private final String statusKey;
-        private final String place;
+        private final String mileage;
+        private final String actionHref;
+        private final String actionLabel;
 
         public StockRow(
                 String idLabel,
                 String chassisNo,
-                String href,
-                String type,
-                String model,
+                String makeModel,
                 String year,
-                String meter,
-                String status,
-                String statusKey,
-                String place
+                String mileage,
+                String actionHref,
+                String actionLabel
         ) {
             this.idLabel = idLabel;
             this.chassisNo = chassisNo;
-            this.href = href;
-            this.type = type;
-            this.model = model;
+            this.makeModel = makeModel;
             this.year = year;
-            this.meter = meter;
-            this.status = status;
-            this.statusKey = statusKey;
-            this.place = place;
+            this.mileage = mileage;
+            this.actionHref = actionHref;
+            this.actionLabel = actionLabel;
         }
 
         public String getIdLabel() { return idLabel; }
         public String getChassisNo() { return chassisNo; }
-        public String getHref() { return href; }
-        public String getType() { return type; }
-        public String getModel() { return model; }
+        public String getMakeModel() { return makeModel; }
         public String getYear() { return year; }
-        public String getMeter() { return meter; }
-        public String getStatus() { return status; }
-        public String getStatusKey() { return statusKey; }
-        public String getPlace() { return place; }
+        public String getMileage() { return mileage; }
+        public String getActionHref() { return actionHref; }
+        public String getActionLabel() { return actionLabel; }
     }
 
     public static final class PlaceOption {

@@ -268,6 +268,26 @@
         updateActionButtons();
     }
 
+    function displayTransmission(value) {
+        var text = String(value == null ? "" : value).trim();
+        if (!text) {
+            return "";
+        }
+        var compact = text.toUpperCase().replace(/[\s\-\/\.]/g, "");
+        if (compact === "MANUAL" || compact === "MT" || /MT$/.test(compact) && compact.indexOf("AMT") < 0
+                || text.indexOf("マニュアル") >= 0 || text.indexOf("手動") >= 0) {
+            return "Manual";
+        }
+        if (compact === "AUTOMATIC" || compact === "AUTO" || compact === "AT"
+                || compact.indexOf("CVT") >= 0 || compact.indexOf("IAT") >= 0 || compact.indexOf("FAT") >= 0
+                || compact.indexOf("DCT") >= 0 || compact.indexOf("DSG") >= 0 || compact.indexOf("AMT") >= 0
+                || /AT$/.test(compact) || compact.indexOf("AUTO") >= 0
+                || text.indexOf("オート") >= 0 || text.indexOf("自動") >= 0 || text.indexOf("無段") >= 0) {
+            return "Automatic";
+        }
+        return text;
+    }
+
     function fillForm(result) {
         var fields = result.fields || {};
         Object.keys(fields).forEach(function (key) {
@@ -279,12 +299,12 @@
             if (!nodes.length) {
                 var el = document.getElementById(key);
                 if (el) {
-                    el.value = value;
+                    el.value = key === "transmission" ? displayTransmission(value) : value;
                 }
                 return;
             }
             Array.prototype.forEach.call(nodes, function (el) {
-                el.value = value;
+                el.value = key === "transmission" ? displayTransmission(value) : value;
             });
         });
         var ocr = document.getElementById("ocrText");

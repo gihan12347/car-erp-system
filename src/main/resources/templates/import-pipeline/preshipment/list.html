@@ -21,7 +21,7 @@
                     <input type="search"
                            name="q"
                            th:value="${searchQuery}"
-                           placeholder="Search chassis, model, lot, stock, model code...">
+                           placeholder="Search chassis, model, vehicle no, model code...">
                 </div>
                 <button type="submit" class="panel-btn auction-search-btn">Search</button>
                 <a th:if="${searchQuery != null and !#strings.isEmpty(searchQuery)}"
@@ -35,9 +35,8 @@
                         <thead>
                         <tr>
                             <th>Chassis</th>
-                            <th>Stock</th>
+                            <th>Vehicle no.</th>
                             <th>Vehicle</th>
-                            <th>Auction lot</th>
                             <th>Stage</th>
                             <th>Pre-shipment</th>
                             <th>Actions</th>
@@ -46,12 +45,11 @@
                         <tbody>
                         <tr th:each="row : ${rows}">
                             <td data-label="Chassis"><a th:replace="shared/chassis-link :: chassisLink(${row.vehicle.chassisNo})">TRJ250-0025161</a></td>
-                            <td data-label="Stock" th:text="${row.vehicle.stockNo}">V001</td>
+                            <td data-label="Vehicle no." th:text="${row.vehicle.stockNo}">V0001</td>
                             <td data-label="Vehicle">
                                 <strong th:text="${row.vehicle.model != null and row.vehicle.make != null and row.vehicle.model.startsWith(row.vehicle.make)} ? ${row.vehicle.model} : |${row.vehicle.make} ${row.vehicle.model}|">Toyota Land Cruiser</strong>
                                 <div class="muted" th:text="${row.vehicle.grade}">-</div>
                             </td>
-                            <td data-label="Auction lot" th:text="${row.vehicle.lotNo}">-</td>
                             <td data-label="Stage"><em class="pill leaf" th:text="${row.vehicle.stage.displayName}">Purchased</em></td>
                             <td data-label="Pre-shipment">
                                 <em th:if="${row.preShipmentReady}" class="pill sea">Ready</em>

@@ -23,7 +23,7 @@ final class VehicleFieldNormalizer {
         vehicle.setMileage(trimTo(vehicle.getMileage(), 40));
         vehicle.setColor(trimTo(vehicle.getColor(), 40));
         vehicle.setEngineSize(trimTo(vehicle.getEngineSize(), 40));
-        vehicle.setTransmission(trimTo(vehicle.getTransmission(), 40));
+        vehicle.setTransmission(displayTransmission(vehicle.getTransmission()));
         vehicle.setFuel(trimTo(vehicle.getFuel(), 40));
         vehicle.setDoors(trimTo(vehicle.getDoors(), 10));
         vehicle.setSeats(trimTo(vehicle.getSeats(), 20));
@@ -45,6 +45,40 @@ final class VehicleFieldNormalizer {
         vehicle.setSheetOriginalName(trimTo(vehicle.getSheetOriginalName(), 255));
         vehicle.setSheetStoredName(trimTo(vehicle.getSheetStoredName(), 120));
         vehicle.setSheetContentType(trimTo(vehicle.getSheetContentType(), 80));
+    }
+
+    static String displayTransmission(String value) {
+        String trimmed = trimTo(value, 40);
+        if (trimmed == null) {
+            return null;
+        }
+        String compact = trimmed.toUpperCase()
+                .replace(" ", "")
+                .replace("-", "")
+                .replace("/", "")
+                .replace(".", "");
+        if ("AUTOMATIC".equals(compact) || "AUTO".equals(compact)) {
+            return "Automatic";
+        }
+        if ("MANUAL".equals(compact)) {
+            return "Manual";
+        }
+        if (trimmed.contains("マニュアル") || trimmed.contains("手動")) {
+            return "Manual";
+        }
+        if (trimmed.contains("オート") || trimmed.contains("自動") || trimmed.contains("無段")) {
+            return "Automatic";
+        }
+        if (compact.contains("CVT") || compact.contains("IAT") || compact.contains("FAT")
+                || compact.contains("DCT") || compact.contains("DSG") || compact.contains("AMT")
+                || compact.contains("SAT") || compact.equals("AT") || compact.endsWith("AT")
+                || compact.contains("AUTO")) {
+            return "Automatic";
+        }
+        if (compact.equals("MT") || compact.endsWith("MT")) {
+            return "Manual";
+        }
+        return trimmed;
     }
 
     private static String normalizeFirstRegistration(String value) {

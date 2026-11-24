@@ -6,11 +6,21 @@
     <aside th:replace="shared/sidebar :: sidebar(${activeMenu})"></aside>
     <div class="app-main">
         <header th:replace="shared/topbar :: topbar"></header>
-        <main class="page-content pipeline-page">
+        <main class="page-content pipeline-page" id="saleHubRoot" th:attr="data-view=${vehicleView ? 'vehicles' : 'sales'}">
             <div class="dash-head">
                 <div>
-                    <h1>Sale</h1>
-                    <p class="form-lead">Open an available sale to see vehicles assigned there.</p>
+                    <h1>Sale management</h1>
+                    <p class="form-lead">Track occupancy by sale, then open a sale to view or sell vehicles from a searchable list.</p>
+                </div>
+                <div class="dash-head-actions">
+                    <div class="view-switch" role="tablist" aria-label="Sale views">
+                        <button type="button" class="view-switch-btn" data-view="sales"
+                                th:classappend="${!vehicleView} ? ' is-active'"
+                                th:attr="aria-selected=${!vehicleView}">Sale view</button>
+                        <button type="button" class="view-switch-btn" data-view="vehicles"
+                                th:classappend="${vehicleView} ? ' is-active'"
+                                th:attr="aria-selected=${vehicleView}">Vehicle view</button>
+                    </div>
                 </div>
             </div>
 
@@ -18,60 +28,184 @@
             <p th:if="${successMessage}" class="alert alert-ok" th:text="${successMessage}"></p>
             <p th:if="${error}" class="alert alert-error" th:text="${error}"></p>
 
-            <p class="place-summary"
-               th:if="${groups != null and !groups.isEmpty()}"
-               th:with="used=${#aggregates.sum(groups.![vehicleCount])}">
-                <span><strong th:text="${#lists.size(groups)}">4</strong> sale locations</span>
-                <span>
-                    <strong th:text="${used}">0</strong>
-                    <th:block th:text="${used == 1} ? 'vehicle' : 'vehicles'">vehicles</th:block>
-                </span>
-            </p>
+            <div class="yard-hub-toolbar">
+                <label class="auction-search-field yard-hub-search">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="search" id="saleHubSearch" placeholder="Search chassis, model, vehicle no, or sale">
+                </label>
+                <label class="period-select" id="saleFilterWrap">
+                    <select id="saleFillFilter" aria-label="Filter sales">
+                        <option value="all">All sales</option>
+                        <option value="available">Available</option>
+                        <option value="low">Low space</option>
+                        <option value="full">Full</option>
+                        <option value="empty">Empty</option>
+                    </select>
+                </label>
+                <label class="period-select" id="vehicleFilterWrap" hidden>
+                    <select id="vehicleSaleFilter" aria-label="Filter by sale">
+                        <option value="all">All sales</option>
+                        <option th:each="sale : ${sales}"
+                                th:value="${sale.saleCode}"
+                                th:text="${sale.saleName != null and !#strings.isEmpty(sale.saleName) ? sale.saleName : sale.saleCode}">Showroom</option>
+                        <option th:if="${unassigned != null}" value="_unassigned">Unassigned</option>
+                    </select>
+                </label>
+                <p class="place-summary"
+                   th:if="${sales != null and !sales.isEmpty()}"
+                   th:with="used=${#aggregates.sum(sales.![occupied])}, cap=${#aggregates.sum(sales.![capacity])}">
+                    <span><strong th:text="${#lists.size(sales)}">4</strong> sales</span>
+                    <span>
+                        <strong th:text="${used}">2</strong>
+                        <th:block th:text="${used == 1} ? 'vehicle stored' : 'vehicles stored'">vehicles stored</th:block>
+                    </span>
+                    <span><strong th:text="${cap - used}">103</strong> spaces left</span>
+                </p>
+            </div>
 
-            <section class="place-grid" th:if="${groups != null and !groups.isEmpty()}">
-                <a class="place-card"
-                   th:each="group : ${groups}"
-                   th:href="@{/ready-for-sale/{code}(code=${group.saleCode})}"
-                   th:classappend="${group.unassigned ? 'is-unassigned' : (group.fillState == 'is-full' ? 'is-full' : (group.fillState == 'is-low' ? 'is-low' : (group.vehicleCount == 0 ? 'is-empty' : 'is-open')))}">
-                    <span class="place-photo is-sale">
-                        <img th:src="@{/images/hub/sale.png(v=20261017a)}" alt="">
-                    </span>
-                    <span class="place-body">
-                        <span class="place-card-top">
-                            <span class="place-code" th:text="${group.unassigned ? 'Unassigned' : group.saleCode}">SL-01</span>
-                            <em class="pill gold" th:if="${group.unassigned}">Unassigned</em>
-                            <em class="pill rust" th:if="${!group.unassigned and group.fillState == 'is-full'}">Full</em>
-                            <em class="pill gold" th:if="${!group.unassigned and group.fillState == 'is-low'}">Low</em>
-                            <em class="pill leaf" th:if="${!group.unassigned and group.vehicleCount == 0}">Empty</em>
-                            <em class="pill sea" th:if="${!group.unassigned and group.vehicleCount > 0 and group.fillState != 'is-full' and group.fillState != 'is-low'}">Available</em>
-                        </span>
-                        <strong class="place-title" th:text="${group.title}">Showroom</strong>
-                        <span class="place-location">
-                            <i class="fa-solid fa-location-dot" aria-hidden="true"></i>
-                            <span th:text="${group.location != null and !#strings.isEmpty(group.location) ? group.location : '—'}">Front showroom</span>
-                        </span>
-                        <span class="place-foot">
-                            <span class="place-count">
-                                <b th:text="${group.vehicleCount}">0</b>
-                                <span th:text="${group.vehicleCount == 1} ? 'vehicle' : 'vehicles'">vehicles</span>
-                            </span>
-                            <span class="place-meter" th:if="${group.capacity != null}">
-                                <span class="place-meter-label"><b th:text="${group.remaining}">14</b> left of <b th:text="${group.capacity}">15</b></span>
-                                <span class="place-meter-track" role="progressbar"
-                                      th:attr="aria-valuenow=${group.fillPercent}, aria-valuemin=0, aria-valuemax=100, aria-label=|${group.occupied} of ${group.capacity} spaces used|">
-                                    <span class="place-meter-fill" th:style="|width: ${group.fillPercent}%|"></span>
-                                </span>
-                            </span>
-                        </span>
-                    </span>
-                </a>
+            <section id="saleView" class="yard-hub-panel"
+                     th:classappend="${vehicleView} ? ' is-hidden'">
+                <article class="panel import-panel"
+                         th:if="${(sales != null and !sales.isEmpty()) or unassigned != null}">
+                    <div class="table-wrap">
+                        <table class="pipeline-table is-compact yard-alloc-table">
+                            <thead>
+                            <tr>
+                                <th>Sale</th>
+                                <th>Code</th>
+                                <th>Location</th>
+                                <th>Capacity</th>
+                                <th>Occupied</th>
+                                <th>Available</th>
+                                <th>Occupancy</th>
+                                <th></th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="sale : ${sales}"
+                                class="yard-alloc-row"
+                                th:attr="data-sale-search=|${sale.saleCode} ${sale.saleName} ${sale.location}|,
+                                         data-fill=${sale.occupied == 0 ? 'empty' : (sale.full ? 'full' : (sale.fillState == 'is-low' ? 'low' : 'available'))}">
+                                <td>
+                                    <strong th:text="${sale.saleName != null and !#strings.isEmpty(sale.saleName) ? sale.saleName : sale.saleCode}">Showroom</strong>
+                                </td>
+                                <td th:text="${sale.saleCode}">SL-01</td>
+                                <td th:text="${sale.location != null and !#strings.isEmpty(sale.location) ? sale.location : '—'}">Front showroom</td>
+                                <td th:text="${sale.capacity}">40</td>
+                                <td th:text="${sale.occupied}">1</td>
+                                <td th:text="${sale.remaining}">39</td>
+                                <td>
+                                    <span class="yard-occ">
+                                        <span class="yard-occ-label" th:text="|${sale.fillPercent}%|">25%</span>
+                                        <span class="place-meter-track" role="progressbar"
+                                              th:attr="aria-valuenow=${sale.fillPercent}, aria-valuemin=0, aria-valuemax=100">
+                                            <span class="place-meter-fill" th:style="|width: ${sale.fillPercent}%|"></span>
+                                        </span>
+                                    </span>
+                                </td>
+                                <td class="pipeline-actions-cell yard-alloc-actions">
+                                    <div class="table-row-actions">
+                                        <a class="table-btn view" th:href="@{/ready-for-sale/{code}(code=${sale.saleCode})}"><span>Manage</span></a>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr th:if="${unassigned != null}"
+                                class="yard-alloc-row"
+                                th:attr="data-sale-search=|${unassigned.saleCode} ${unassigned.title} ${unassigned.location}|,
+                                         data-fill='unassigned'">
+                                <td><strong th:text="${unassigned.title}">Unassigned</strong></td>
+                                <td>—</td>
+                                <td th:text="${unassigned.location != null and !#strings.isEmpty(unassigned.location) ? unassigned.location : '—'}">No sale selected yet</td>
+                                <td>—</td>
+                                <td th:text="${unassigned.vehicleCount}">1</td>
+                                <td>—</td>
+                                <td>—</td>
+                                <td class="pipeline-actions-cell yard-alloc-actions">
+                                    <div class="table-row-actions">
+                                        <a class="table-btn view" th:href="@{/ready-for-sale/{code}(code=${unassigned.saleCode})}"><span>Manage</span></a>
+                                    </div>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </article>
+                <article class="panel yard-hub-empty"
+                         th:if="${(sales == null or sales.isEmpty()) and unassigned == null}">
+                    <p class="muted">No sales yet. Add sales in Configuration, then move vehicles from the yard.</p>
+                </article>
+                <article class="panel yard-hub-empty is-filter" hidden>
+                    <p class="muted">No sales match this search or filter.</p>
+                </article>
             </section>
-            <article class="panel" th:if="${groups == null or groups.isEmpty()}">
-                <p class="muted">No sale locations yet. Add them in Configuration, then move vehicles from the yard.</p>
-            </article>
+
+            <section id="vehicleView" class="yard-hub-panel"
+                     th:classappend="${!vehicleView} ? ' is-hidden'">
+                <article class="panel import-panel" th:if="${allocated != null and !allocated.isEmpty()}">
+                    <div class="table-wrap">
+                        <table class="pipeline-table is-compact yard-alloc-table">
+                            <thead>
+                            <tr>
+                                <th></th>
+                                <th>Vehicle no</th>
+                                <th>Chassis</th>
+                                <th>Make and model</th>
+                                <th>Status</th>
+                                <th>Sale</th>
+                                <th>Date added</th>
+                                <th>Actions</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="card : ${allocated}"
+                                class="yard-alloc-row"
+                                th:attr="data-sale-search=${card.searchText},
+                                         data-sale-code=${card.saleCode}">
+                                <td>
+                                    <img class="yard-thumb"
+                                         th:if="${card.photo != null}"
+                                         th:src="@{/photos/documents/{name}(name=${card.photo.storedName})}"
+                                         th:alt="${card.makeModel}">
+                                    <img class="yard-thumb"
+                                         th:unless="${card.photo != null}"
+                                         th:src="@{/images/dashboard/illu-car.svg}"
+                                         alt="">
+                                </td>
+                                <td th:text="${card.vehicle.stockNo != null and !#strings.isEmpty(card.vehicle.stockNo) ? card.vehicle.stockNo : '—'}">V0001</td>
+                                <td>
+                                    <a th:replace="shared/chassis-link :: chassisLink(${card.vehicle.chassisNo})">A202A-0082833</a>
+                                </td>
+                                <td th:text="${card.makeModel}">Toyota Raize</td>
+                                <td>
+                                    <em class="pill" th:classappend="${card.statusTone}" th:text="${card.statusLabel}">Unregistered</em>
+                                </td>
+                                <td th:text="${card.saleTitle}">Showroom</td>
+                                <td class="yard-date-cell"
+                                    th:text="${card.listedOn != null and !#strings.isEmpty(card.listedOn) ? card.listedOn : '—'}">2025-04-12</td>
+                                <td class="pipeline-actions-cell yard-alloc-actions">
+                                    <div class="table-row-actions">
+                                        <a class="table-btn view"
+                                           th:href="@{/ready-for-sale/{s}/{c}(s=${card.saleCode}, c=${card.vehicle.chassisNo})}"><span>View</span></a>
+                                        <a class="table-btn" th:unless="${card.sold}"
+                                           th:href="@{/sell/{c}(c=${card.vehicle.chassisNo})}"><span>Sell</span></a>
+                                    </div>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </article>
+                <article class="panel yard-hub-empty" th:if="${allocated == null or allocated.isEmpty()}">
+                    <p class="muted">No vehicles are in a sale yet. Move vehicles from a yard into an available sale.</p>
+                </article>
+                <article class="panel yard-hub-empty is-filter" hidden>
+                    <p class="muted">No vehicles match this search or filter.</p>
+                </article>
+            </section>
         </main>
     </div>
 </div>
-<script th:src="@{/js/shared/app.js(v=20260905k)}"></script>
+<script th:src="@{/js/shared/app.js(v=20261003s)}"></script>
+<script th:src="@{/js/ready-for-sale/sale-hub.js(v=20261124a)}"></script>
 </body>
 </html>

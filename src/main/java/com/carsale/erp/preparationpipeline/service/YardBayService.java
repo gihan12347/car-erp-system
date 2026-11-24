@@ -13,6 +13,7 @@ import com.carsale.erp.preparationpipeline.model.YardBay;
 import com.carsale.erp.preparationpipeline.repository.YardBayRepository;
 import com.carsale.erp.preparationpipeline.model.YardRecord;
 import com.carsale.erp.preparationpipeline.repository.YardRecordRepository;
+import com.carsale.erp.preparationpipeline.util.YardAllocation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.core.annotation.Order;
@@ -172,6 +173,16 @@ public class YardBayService implements CommandLineRunner {
         }).orElse(null);
     }
 
+    public YardBay lockByCode(String yardCode) {
+        if (isBlank(yardCode)) {
+            return null;
+        }
+        return yardBayRepository.lockByBayCodeIgnoreCase(yardCode.trim()).map(yard -> {
+            attachOccupancy(yard);
+            return yard;
+        }).orElse(null);
+    }
+
     public YardBay requireAssignable(String yardCode, String chassisNo) {
         YardBay yard = findByCode(yardCode);
         if (yard == null || !yard.isActive()) {
@@ -325,6 +336,35 @@ public class YardBayService implements CommandLineRunner {
             present.add(record);
         }
         return present;
+    }
+
+    public List<YardRecord> listUnassignedPresent() {
+        Set<String> known = knownYardCodes();
+        List<YardRecord> present = new ArrayList<>();
+        for (YardRecord record : yardRecordRepository.findAll()) {
+            if (record == null || movedToSale(record.getChassisNo())) {
+                continue;
+            }
+            if (YardAllocation.isUnassigned(record, known)) {
+                present.add(record);
+            }
+        }
+        return present;
+    }
+
+    public Set<String> knownYardCodes() {
+        Set<String> codes = new LinkedHashSet<>();
+        for (YardBay bay : yardBayRepository.findAllByOrderBySortOrderAscIdAsc()) {
+            String code = YardAllocation.normalize(bay.getBayCode());
+            if (!code.isEmpty()) {
+                codes.add(code);
+            }
+        }
+        return codes;
+    }
+
+    public boolean isMovedToSale(String chassisNo) {
+        return movedToSale(chassisNo);
     }
 
     private boolean movedToSale(String chassisNo) {

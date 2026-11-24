@@ -54,4 +54,7 @@ public class PipelineStage {
     @Column(name = "sort_order", nullable = false)
     private int sortOrder;
 
+    @Column(nullable = false, columnDefinition = "TINYINT(1) NOT NULL DEFAULT 1")
+    private boolean enabled = true;
+
 }

@@ -45,22 +45,11 @@ public class PreparationProgress implements PipelineProgress {
 
     @Override
     public int completedCount() {
-        int count = 0;
-        for (String key : PipelineStageUtils.PREP_STAGE_KEYS) {
-            if (isStageComplete(key)) {
-                count++;
-            }
-        }
-        return count;
+        return PipelineStageUtils.completedCount(PipelineStageUtils.PREP_STAGE_KEYS, this);
     }
 
     public boolean isPipelineCompleted() {
-        for (String key : PipelineStageUtils.PREP_STAGE_KEYS) {
-            if (!isStageComplete(key)) {
-                return false;
-            }
-        }
-        return true;
+        return PipelineStageUtils.isPipelineCompleted(PipelineStageUtils.PREP_STAGE_KEYS, this);
     }
 
     public boolean isStageFilled(String stageKey) {
@@ -92,7 +81,7 @@ public class PreparationProgress implements PipelineProgress {
             return null;
         }
         for (String key : keys) {
-            if (!isStageComplete(key)) {
+            if (PipelineStageUtils.isIncomplete(key, this)) {
                 return key;
             }
         }

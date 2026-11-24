@@ -303,6 +303,43 @@ class PipelineStageServiceTest {
 
     @Test
     @Transactional
+    void setEnabledPersistsAndHidesStageFromPipelineKeys() {
+        PipelineFlow importFlow = pipelineFlowRepository.findByFlowKey("IMPORT")
+                .orElseThrow(IllegalStateException::new);
+        List<String> before = pipelineStageService.keys("IMPORT");
+        assertThat(before).contains("jevic");
+
+        pipelineStageService.setEnabled(importFlow.getId(), "jevic", false);
+
+        PipelineStage stored = pipelineStageRepository
+                .findByFlowIdAndStageKey(importFlow.getId(), "jevic")
+                .orElseThrow(IllegalStateException::new);
+        assertThat(stored.isEnabled()).isFalse();
+        assertThat(pipelineStageService.keys("IMPORT")).doesNotContain("jevic");
+        assertThat(pipelineStageService.listAll("IMPORT")).extracting(PipelineStage::getStageKey).contains("jevic");
+        assertThat(pipelineStageService.flowGroups().stream()
+                .filter(group -> importFlow.getId().equals(group.getId()))
+                .findFirst()
+                .orElseThrow(IllegalStateException::new)
+                .getStages()
+                .stream()
+                .anyMatch(stage -> "jevic".equals(stage.getStageKey()) && !stage.isEnabled())
+        ).isTrue();
+        assertThat(pipelineStageService.isEnabled("jevic")).isFalse();
+
+        pipelineStageService.reset(importFlow.getId());
+        PipelineStage afterReset = pipelineStageRepository
+                .findByFlowIdAndStageKey(importFlow.getId(), "jevic")
+                .orElseThrow(IllegalStateException::new);
+        assertThat(afterReset.isEnabled()).isFalse();
+
+        pipelineStageService.setEnabled(importFlow.getId(), "jevic", true);
+        assertThat(pipelineStageService.keys("IMPORT")).contains("jevic");
+        assertThat(pipelineStageService.isEnabled("jevic")).isTrue();
+    }
+
+    @Test
+    @Transactional
     void ensureDefaultsAddsMissingRegistrationStage() {
         PipelineFlow readyFlow = pipelineFlowRepository.findByFlowKey("READY")
                 .orElseThrow(IllegalStateException::new);

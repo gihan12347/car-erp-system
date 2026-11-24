@@ -173,6 +173,64 @@
         });
     }
 
+    function bindEnabledToggle(input) {
+        input.addEventListener("mousedown", function (event) {
+            event.stopPropagation();
+        });
+        input.addEventListener("click", function (event) {
+            event.stopPropagation();
+        });
+        input.addEventListener("change", function () {
+            var enabled = input.checked;
+            var flowId = input.getAttribute("data-flow-id");
+            var stageKey = input.getAttribute("data-stage-key");
+            var item = input.closest(".stage-order-item");
+            var label = item ? item.querySelector(".stage-enabled-text") : null;
+            input.disabled = true;
+            fetch("/stages/enabled", {
+                method: "POST",
+                credentials: "same-origin",
+                headers: csrfHeaders(true),
+                body: JSON.stringify({
+                    flowId: Number(flowId),
+                    stageKey: stageKey,
+                    enabled: enabled
+                })
+            })
+                .then(function (response) {
+                    if (!response.ok) {
+                        return parseError(response, "Could not update stage.").then(function (msg) {
+                            throw new Error(msg);
+                        });
+                    }
+                    return response.json();
+                })
+                .then(function (result) {
+                    if (!result.success) {
+                        throw new Error(result.message || "Could not update stage.");
+                    }
+                    if (item) {
+                        if (enabled) {
+                            item.classList.remove("is-disabled");
+                        } else {
+                            item.classList.add("is-disabled");
+                        }
+                    }
+                    if (label) {
+                        label.textContent = enabled ? "Enabled" : "Disabled";
+                    }
+                    showMessage(true, result.message || (enabled ? "Stage enabled." : "Stage disabled."));
+                })
+                .catch(function (err) {
+                    input.checked = !enabled;
+                    showMessage(false, err.message || "Could not update stage.");
+                })
+                .then(function () {
+                    input.disabled = false;
+                });
+        });
+    }
+
     function bindReset(button) {
         button.addEventListener("click", function () {
             var flowId = button.getAttribute("data-flow-id");
@@ -206,4 +264,5 @@
 
     Array.prototype.forEach.call(document.querySelectorAll(".stage-order-list"), bindList);
     Array.prototype.forEach.call(document.querySelectorAll(".stage-reset-btn"), bindReset);
+    Array.prototype.forEach.call(document.querySelectorAll(".stage-enabled-input"), bindEnabledToggle);
 })();

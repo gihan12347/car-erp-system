@@ -13,8 +13,8 @@
                         <i class="fa-solid fa-sliders" aria-hidden="true"></i>
                         Configuration
                     </a>
-                    <h1>Stage order</h1>
-                    <p class="form-lead">Drag stages to change the order of each pipeline. The stepper, vehicle view, and list columns follow this order.</p>
+                    <h1>Stage management</h1>
+                    <p class="form-lead">Enable or disable stages, or drag to change the order of each pipeline. Disabled stages stay in this list and keep their records, but they are hidden from the vehicle pipeline and treated as skipped for incomplete vehicles.</p>
                 </div>
             </div>
 
@@ -37,6 +37,7 @@
                         <li class="stage-order-item"
                             th:each="stage, iter : ${flow.stages}"
                             draggable="true"
+                            th:classappend="${stage.enabled} ? '' : ' is-disabled'"
                             th:attr="data-stage-key=${stage.stageKey}">
                             <span class="stage-order-handle" title="Drag to reorder" aria-hidden="true">
                                 <i class="fa-solid fa-grip-vertical"></i>
@@ -46,6 +47,14 @@
                                 <strong th:text="${stage.title}">Auction lot</strong>
                                 <small th:text="${stage.subtitle}">Japanese auction sheet</small>
                             </span>
+                            <label class="stage-enabled">
+                                <input type="checkbox"
+                                       class="stage-enabled-input"
+                                       th:checked="${stage.enabled}"
+                                       th:attr="data-flow-id=${flow.id}, data-stage-key=${stage.stageKey}">
+                                <span class="stage-enabled-track" aria-hidden="true"></span>
+                                <span class="stage-enabled-text" th:text="${stage.enabled} ? 'Enabled' : 'Disabled'">Enabled</span>
+                            </label>
                         </li>
                     </ol>
                     <p class="muted stage-order-hint" th:if="${#lists.size(flow.stages) lt 2}">
@@ -60,6 +69,6 @@
     </div>
 </div>
 <script th:src="@{/js/shared/app.js(v=20260905k)}"></script>
-<script th:src="@{/js/shared/stages.js(v=20260826f)}"></script>
+<script th:src="@{/js/shared/stages.js(v=20261124a)}"></script>
 </body>
 </html>

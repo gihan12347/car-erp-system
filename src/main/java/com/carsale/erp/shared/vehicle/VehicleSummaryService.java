@@ -677,7 +677,7 @@ public class VehicleSummaryService {
         addSpec(lines, "Year", vehicle.getYear());
         addSpec(lines, "Mileage", vehicle.getMileage());
         addSpec(lines, "Grade", vehicle.getAuctionGrade());
-        addSpec(lines, "Transmission", vehicle.getTransmission());
+        addSpec(lines, "Transmission", vehicle.getTransmissionLabel());
         addSpec(lines, "Fuel", vehicle.getFuel());
         return lines;
     }
@@ -696,7 +696,7 @@ public class VehicleSummaryService {
         addSpec(lines, "Mileage", vehicle.getMileage());
         addSpec(lines, "Color", vehicle.getColor());
         addSpec(lines, "Engine", vehicle.getEngineSize());
-        addSpec(lines, "Transmission", vehicle.getTransmission());
+        addSpec(lines, "Transmission", vehicle.getTransmissionLabel());
         addSpec(lines, "Fuel", vehicle.getFuel());
         addSpec(lines, "Doors", vehicle.getDoors());
         addSpec(lines, "Seats", vehicle.getSeats());

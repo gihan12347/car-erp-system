@@ -6,71 +6,258 @@
     <aside th:replace="shared/sidebar :: sidebar(${activeMenu})"></aside>
     <div class="app-main">
         <header th:replace="shared/topbar :: topbar"></header>
-        <main class="page-content pipeline-page">
+        <main class="page-content pipeline-page" id="yardHubRoot" th:attr="data-view=${vehicleView ? 'vehicles' : 'yards'}">
             <div class="dash-head">
                 <div>
-                    <h1>Yard</h1>
-                    <p class="form-lead">Open a yard to see vehicles still stored there. Move a vehicle to an available sale when it is ready.</p>
+                    <h1>Yard management</h1>
+                    <p class="form-lead">Track occupancy by yard, then assign, transfer, or remove vehicles from a searchable list.</p>
+                </div>
+                <div class="dash-head-actions">
+                    <div class="view-switch" role="tablist" aria-label="Yard views">
+                        <button type="button" class="view-switch-btn" data-view="yards"
+                                th:classappend="${!vehicleView} ? ' is-active'"
+                                th:attr="aria-selected=${!vehicleView}">Yard view</button>
+                        <button type="button" class="view-switch-btn" data-view="vehicles"
+                                th:classappend="${vehicleView} ? ' is-active'"
+                                th:attr="aria-selected=${vehicleView}">Vehicle view</button>
+                    </div>
                 </div>
             </div>
 
             <p th:if="${notice}" class="alert alert-ok" th:text="${notice}"></p>
             <p th:if="${error}" class="alert alert-error" th:text="${error}"></p>
 
-            <p class="place-summary"
-               th:if="${yards != null and !yards.isEmpty()}"
-               th:with="used=${#aggregates.sum(yards.![occupied])}, cap=${#aggregates.sum(yards.![capacity])}">
-                <span><strong th:text="${#lists.size(yards)}">4</strong> yards</span>
-                <span>
-                    <strong th:text="${used}">2</strong>
-                    <th:block th:text="${used == 1} ? 'vehicle stored' : 'vehicles stored'">vehicles stored</th:block>
-                </span>
-                <span><strong th:text="${cap - used}">103</strong> spaces left</span>
-            </p>
+            <div class="yard-hub-toolbar">
+                <label class="auction-search-field yard-hub-search">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="search" id="yardHubSearch" placeholder="Search chassis, model, vehicle no, or yard">
+                </label>
+                <label class="period-select" id="yardFilterWrap">
+                    <select id="yardFillFilter" aria-label="Filter yards">
+                        <option value="all">All yards</option>
+                        <option value="available">Available</option>
+                        <option value="low">Low space</option>
+                        <option value="full">Full</option>
+                        <option value="empty">Empty</option>
+                    </select>
+                </label>
+                <label class="period-select" id="vehicleFilterWrap" hidden>
+                    <select id="vehicleYardFilter" aria-label="Filter by yard">
+                        <option value="all">All yards</option>
+                        <option th:each="yard : ${yards}"
+                                th:value="${yard.bayCode}"
+                                th:text="${yard.yardName != null and !#strings.isEmpty(yard.yardName) ? yard.yardName : yard.bayCode}">Main yard</option>
+                    </select>
+                </label>
+                <p class="place-summary"
+                   th:if="${yards != null and !yards.isEmpty()}"
+                   th:with="used=${#aggregates.sum(yards.![occupied])}, cap=${#aggregates.sum(yards.![capacity])}">
+                    <span><strong th:text="${#lists.size(yards)}">4</strong> yards</span>
+                    <span>
+                        <strong th:text="${used}">2</strong>
+                        <th:block th:text="${used == 1} ? 'vehicle stored' : 'vehicles stored'">vehicles stored</th:block>
+                    </span>
+                    <span><strong th:text="${cap - used}">103</strong> spaces left</span>
+                </p>
+            </div>
 
-            <section class="place-grid" th:if="${yards != null and !yards.isEmpty()}">
-                <a class="place-card"
-                   th:each="yard : ${yards}"
-                   th:href="@{/yards/{code}(code=${yard.bayCode})}"
-                   th:classappend="${yard.full ? 'is-full' : (yard.fillState == 'is-low' ? 'is-low' : (yard.occupied == 0 ? 'is-empty' : 'is-open'))}">
-                    <span class="place-photo is-yard">
-                        <img th:src="@{/images/hub/yard.jpg}" alt="">
-                    </span>
-                    <span class="place-body">
-                        <span class="place-card-top">
-                            <span class="place-code" th:text="${yard.bayCode}">YD-01</span>
-                            <em class="pill rust" th:if="${yard.full}">Full</em>
-                            <em class="pill gold" th:if="${!yard.full and yard.fillState == 'is-low'}">Low</em>
-                            <em class="pill leaf" th:if="${yard.occupied == 0}">Empty</em>
-                            <em class="pill sea" th:if="${yard.occupied > 0 and !yard.full and yard.fillState != 'is-low'}">Available</em>
-                        </span>
-                        <strong class="place-title" th:text="${yard.yardName != null and !#strings.isEmpty(yard.yardName) ? yard.yardName : yard.bayCode}">Main yard</strong>
-                        <span class="place-location">
-                            <i class="fa-solid fa-location-dot" aria-hidden="true"></i>
-                            <span th:text="${yard.location != null and !#strings.isEmpty(yard.location) ? yard.location : '—'}">Ranna</span>
-                        </span>
-                        <span class="place-foot">
-                            <span class="place-count">
-                                <b th:text="${yard.occupied}">1</b>
-                                <span th:text="${yard.occupied == 1} ? 'vehicle' : 'vehicles'">vehicles</span>
-                            </span>
-                            <span class="place-meter">
-                                <span class="place-meter-label"><b th:text="${yard.remaining}">39</b> left of <b th:text="${yard.capacity}">40</b></span>
-                                <span class="place-meter-track" role="progressbar"
-                                      th:attr="aria-valuenow=${yard.fillPercent}, aria-valuemin=0, aria-valuemax=100, aria-label=|${yard.occupied} of ${yard.capacity} spaces used|">
-                                    <span class="place-meter-fill" th:style="|width: ${yard.fillPercent}%|"></span>
-                                </span>
-                            </span>
-                        </span>
-                    </span>
-                </a>
+            <section id="yardView" class="yard-hub-panel"
+                     th:classappend="${vehicleView} ? ' is-hidden'">
+                <article class="panel import-panel" th:if="${yards != null and !yards.isEmpty()}">
+                    <div class="table-wrap">
+                        <table class="pipeline-table is-compact yard-alloc-table">
+                            <thead>
+                            <tr>
+                                <th>Yard</th>
+                                <th>Code</th>
+                                <th>Location</th>
+                                <th>Capacity</th>
+                                <th>Occupied</th>
+                                <th>Available</th>
+                                <th>Occupancy</th>
+                                <th></th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="yard : ${yards}"
+                                class="yard-alloc-row"
+                                th:attr="data-yard-search=|${yard.bayCode} ${yard.yardName} ${yard.location}|,
+                                         data-fill=${yard.occupied == 0 ? 'empty' : (yard.full ? 'full' : (yard.fillState == 'is-low' ? 'low' : 'available'))}">
+                                <td>
+                                    <strong th:text="${yard.yardName != null and !#strings.isEmpty(yard.yardName) ? yard.yardName : yard.bayCode}">Main yard</strong>
+                                </td>
+                                <td th:text="${yard.bayCode}">YD-01</td>
+                                <td th:text="${yard.location != null and !#strings.isEmpty(yard.location) ? yard.location : '—'}">Ranna</td>
+                                <td th:text="${yard.capacity}">40</td>
+                                <td th:text="${yard.occupied}">1</td>
+                                <td th:text="${yard.remaining}">39</td>
+                                <td>
+                                    <span class="yard-occ">
+                                        <span class="yard-occ-label" th:text="|${yard.fillPercent}%|">25%</span>
+                                        <span class="place-meter-track" role="progressbar"
+                                              th:attr="aria-valuenow=${yard.fillPercent}, aria-valuemin=0, aria-valuemax=100">
+                                            <span class="place-meter-fill" th:style="|width: ${yard.fillPercent}%|"></span>
+                                        </span>
+                                    </span>
+                                </td>
+                                <td class="pipeline-actions-cell yard-alloc-actions">
+                                    <div class="table-row-actions">
+                                        <a class="table-btn view" th:href="@{/yards/{code}(code=${yard.bayCode})}"><span>Manage</span></a>
+                                    </div>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </article>
+                <article class="panel yard-hub-empty" th:if="${yards == null or yards.isEmpty()}">
+                    <p class="muted">No yards yet. Add yards in Configuration, then assign vehicles during preparation.</p>
+                </article>
+                <article class="panel yard-hub-empty is-filter" hidden>
+                    <p class="muted">No yards match this search or filter.</p>
+                </article>
             </section>
-            <article class="panel" th:if="${yards == null or yards.isEmpty()}">
-                <p class="muted">No yards yet. Add yards in Configuration, then assign vehicles during preparation.</p>
-            </article>
+
+            <section id="vehicleView" class="yard-hub-panel"
+                     th:classappend="${!vehicleView} ? ' is-hidden'">
+                <article class="panel import-panel" th:if="${allocated != null and !allocated.isEmpty()}">
+                    <div class="table-wrap">
+                        <table class="pipeline-table is-compact yard-alloc-table">
+                            <thead>
+                            <tr>
+                                <th></th>
+                                <th>Vehicle no</th>
+                                <th>Chassis</th>
+                                <th>Make and model</th>
+                                <th>Yard</th>
+                                <th>Date added</th>
+                                <th>Actions</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="card : ${allocated}"
+                                class="yard-alloc-row"
+                                th:attr="data-yard-search=${card.searchText},
+                                         data-yard-code=${card.yardCode}">
+                                <td>
+                                    <img class="yard-thumb"
+                                         th:if="${card.photo != null}"
+                                         th:src="@{/photos/documents/{name}(name=${card.photo.storedName})}"
+                                         th:alt="${card.makeModel}">
+                                    <img class="yard-thumb"
+                                         th:unless="${card.photo != null}"
+                                         th:src="@{/images/dashboard/illu-car.svg}"
+                                         alt="">
+                                </td>
+                                <td th:text="${card.vehicle.stockNo != null and !#strings.isEmpty(card.vehicle.stockNo) ? card.vehicle.stockNo : '—'}">V0001</td>
+                                <td>
+                                    <a th:replace="shared/chassis-link :: chassisLink(${card.vehicle.chassisNo})">A202A-0082833</a>
+                                </td>
+                                <td th:text="${card.makeModel}">Toyota Raize</td>
+                                <td th:text="${card.yardTitle != null ? card.yardTitle : 'Unassigned'}">Main yard</td>
+                                <td class="yard-date-cell"
+                                    th:text="${card.arrivalDate != null and !#strings.isEmpty(card.arrivalDate) ? card.arrivalDate : '—'}">2025-04-12</td>
+                                <td class="pipeline-actions-cell yard-alloc-actions">
+                                    <div class="table-row-actions">
+                                        <a class="table-btn view"
+                                           th:href="@{/yards/{y}/{c}#sale-move(y=${card.yardCode}, c=${card.vehicle.chassisNo})}"><span>Sale</span></a>
+                                        <button type="button" class="table-btn"
+                                                data-open-transfer
+                                                th:attr="data-chassis=${card.vehicle.chassisNo},
+                                                         data-from=${card.yardCode},
+                                                         data-from-title=${card.yardTitle}">
+                                            <span>Transfer</span>
+                                        </button>
+                                        <form class="table-action-form" method="post"
+                                              th:action="@{/yards/{y}/{c}/remove(y=${card.yardCode}, c=${card.vehicle.chassisNo})}"
+                                              onsubmit="return confirm('Remove this vehicle from the yard? It stays in inventory as unassigned.');">
+                                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                                            <input type="hidden" name="returnTo" value="/yards?view=vehicles">
+                                            <button type="submit" class="table-btn delete"><span>Remove</span></button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </article>
+                <article class="panel yard-hub-empty" th:if="${allocated == null or allocated.isEmpty()}">
+                    <p class="muted">No vehicles are stored in a yard yet. Open a yard and use Add vehicles to assign stock.</p>
+                </article>
+                <article class="panel yard-hub-empty is-filter" hidden>
+                    <p class="muted">No vehicles match this search or filter.</p>
+                </article>
+            </section>
         </main>
     </div>
 </div>
-<script th:src="@{/js/shared/app.js(v=20260905k)}"></script>
+
+<div class="add-vehicle-modal" id="yardAssignModal" hidden>
+    <button type="button" class="add-vehicle-backdrop" data-close-modal aria-label="Close"></button>
+    <article class="add-vehicle-dialog yard-modal-dialog">
+        <header class="add-vehicle-dialog-head">
+            <h2>Assign vehicle</h2>
+            <button type="button" class="add-vehicle-close" data-close-modal aria-label="Close">&times;</button>
+        </header>
+        <form method="post" action="/yards/assign" id="hubAssignForm">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+            <input type="hidden" name="returnTo" value="/yards?view=vehicles">
+            <input type="hidden" name="chassisNos" id="hubAssignChassis">
+            <p class="muted">Choose a yard with free space. Capacity is checked before saving.</p>
+            <label>Destination yard
+                <select name="destYardCode" id="hubAssignYard" required>
+                    <option value="">Select yard…</option>
+                    <option th:each="yard : ${yards}"
+                            th:value="${yard.bayCode}"
+                            th:disabled="${yard.full}"
+                            th:attr="data-remaining=${yard.remaining}"
+                            th:text="${yard.full
+                                    ? yard.bayCode + ' · ' + yard.yardName + ' · full'
+                                    : yard.bayCode + ' · ' + yard.yardName + ' · ' + yard.remaining + ' left'}">YD-01</option>
+                </select>
+            </label>
+            <p class="yard-modal-meta">Available: <strong id="hubAssignRemaining">—</strong></p>
+            <div class="add-vehicle-dialog-actions">
+                <button type="button" class="panel-btn ghost" data-close-modal>Cancel</button>
+                <button type="submit" class="panel-btn" id="hubAssignSubmit">Assign vehicle</button>
+            </div>
+        </form>
+    </article>
+</div>
+
+<div class="add-vehicle-modal" id="yardTransferModal" hidden>
+    <button type="button" class="add-vehicle-backdrop" data-close-modal aria-label="Close"></button>
+    <article class="add-vehicle-dialog yard-modal-dialog">
+        <header class="add-vehicle-dialog-head">
+            <h2>Transfer vehicle</h2>
+            <button type="button" class="add-vehicle-close" data-close-modal aria-label="Close">&times;</button>
+        </header>
+        <form method="post" action="#" id="hubTransferForm">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+            <input type="hidden" name="returnTo" value="/yards?view=vehicles">
+            <p class="yard-modal-meta">Current yard: <strong id="hubTransferFrom">—</strong></p>
+            <label>Destination yard
+                <select name="destYardCode" id="hubTransferYard" required>
+                    <option value="">Select yard…</option>
+                    <option th:each="yard : ${yards}"
+                            th:value="${yard.bayCode}"
+                            th:attr="data-remaining=${yard.remaining}"
+                            th:text="${yard.full
+                                    ? yard.bayCode + ' · ' + yard.yardName + ' · full'
+                                    : yard.bayCode + ' · ' + yard.yardName + ' · ' + yard.remaining + ' left'}">YD-02</option>
+                </select>
+            </label>
+            <p class="yard-modal-meta">Available: <strong id="hubTransferRemaining">—</strong></p>
+            <div class="add-vehicle-dialog-actions">
+                <button type="button" class="panel-btn ghost" data-close-modal>Cancel</button>
+                <button type="submit" class="panel-btn">Confirm transfer</button>
+            </div>
+        </form>
+    </article>
+</div>
+
+<script th:src="@{/js/shared/app.js(v=20261003s)}"></script>
+<script th:src="@{/js/preparation-pipeline/yard-hub.js(v=20261124c)}"></script>
 </body>
 </html>

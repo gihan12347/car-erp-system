@@ -23,6 +23,7 @@ import com.carsale.erp.shared.service.SkippedStageService;
 import com.carsale.erp.shared.vehicle.Vehicle;
 import com.carsale.erp.shared.vehicle.VehicleIntake;
 import com.carsale.erp.shared.vehicle.VehicleService;
+import com.carsale.erp.shared.web.ListPaging;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
@@ -55,7 +56,11 @@ public class RegisteredPipelineController {
     private final PipelineStageService pipelineStageService;
 
     @GetMapping("/registered")
-    public String list(@RequestParam(value = "q", required = false) String query, Model model) {
+    public String list(
+            @RequestParam(value = "q", required = false) String query,
+            @RequestParam(value = "page", required = false) String page,
+            Model model
+    ) {
         List<RegisteredRow> rows = new ArrayList<>();
         for (Vehicle vehicle : vehicleService.search(query)) {
             if (vehicle.getIntake() != VehicleIntake.LOCAL_REGISTERED) {
@@ -65,7 +70,7 @@ public class RegisteredPipelineController {
         }
         model.addAttribute("pageTitle", "Registered vehicles");
         model.addAttribute("activeMenu", "registered");
-        model.addAttribute("rows", rows);
+        model.addAttribute("rows", ListPaging.apply(rows, page, model, "/registered"));
         model.addAttribute("searchQuery", query == null ? "" : query.trim());
         return "registered/list";
     }
