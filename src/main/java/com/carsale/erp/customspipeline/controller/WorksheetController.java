@@ -1,16 +1,15 @@
 package com.carsale.erp.customspipeline.controller;
 
+import com.carsale.erp.importpipeline.util.ImportStageSave;
+import com.carsale.erp.shared.web.ListSearchRedirect;
+import com.carsale.erp.shared.document.DocumentUploads;
+import com.carsale.erp.shared.document.InlineDocumentResponse;
 import java.io.IOException;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 
 import com.carsale.erp.shared.document.document.WorkingSheet;
 import com.carsale.erp.shared.utils.PipelineStageUtils;
-import com.carsale.erp.shared.utils.Utils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -23,7 +22,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import org.springframework.web.util.UriUtils;
 
 import com.carsale.erp.customspipeline.model.CustomsDocument;
 import com.carsale.erp.shared.ocr.OcrClient;
@@ -57,21 +55,14 @@ public class WorksheetController {
 
     @GetMapping
     public String list(@RequestParam(value = "q", required = false) String query) {
-        if (query != null && !query.trim().isEmpty()) {
-            return "redirect:/import?q=" + UriUtils.encodeQueryParam(query.trim(), StandardCharsets.UTF_8);
-        }
-        return "redirect:/import";
+        return ListSearchRedirect.to("/import", query);
     }
 
     @GetMapping("/documents/{storedName:.+}")
     public ResponseEntity<Resource> serveDocument(@PathVariable String storedName) throws IOException {
         Resource resource = documentStorageService.loadClearanceAsResource(storedName);
         String contentType = documentStorageService.resolveContentType(storedName, null);
-        String encodedName = URLEncoder.encode(storedName, StandardCharsets.UTF_8.name()).replace("+", "%20");
-        return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + encodedName + "\"")
-                .contentType(MediaType.parseMediaType(contentType))
-                .body(resource);
+        return InlineDocumentResponse.of(resource, storedName, contentType);
     }
 
     @GetMapping("/{chassisNo}")
@@ -105,14 +96,7 @@ public class WorksheetController {
     @PostMapping("/upload-document")
     @ResponseBody
     public SheetUploadResult uploadDocument(@RequestParam("file") MultipartFile file) {
-        try {
-            return documentStorageService.storeClearance(file);
-        } catch (IOException ex) {
-            SheetUploadResult failed = new SheetUploadResult();
-            failed.setSuccess(false);
-            failed.setMessage("Could not save the document. " + ex.getMessage());
-            return failed;
-        }
+        return DocumentUploads.store(() -> documentStorageService.storeClearance(file), "Could not save the document. ");
     }
 
     @PostMapping("/parse-document")
@@ -129,18 +113,19 @@ public class WorksheetController {
             RedirectAttributes redirectAttributes
     ) {
         record.setChassisNo(chassisNo);
-        try {
-            customsDocumentService.saveWorksheet(record);
-            importProgressService.syncVehicleStage(chassisNo);
-            customsProgressService.syncVehicleStage(chassisNo);
-            redirectAttributes.addFlashAttribute("successMessage", "Working sheet saved.");
-            return "redirect:" + ImportStageUrls.redirectAfterWorksheetSave(
-                    chassisNo,
-                    pipelineStageService.keys(PipelineStageService.FLOW_IMPORT)
-            );
-        } catch (IllegalArgumentException ex) {
-            redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
-            return "redirect:/worksheet/" + Utils.encodeChassis(chassisNo) + (hub ? "?hub=1" : "");
-        }
+        return ImportStageSave.saveAndSync(
+                chassisNo,
+                hub,
+                "/worksheet/",
+                redirectAttributes,
+                () -> customsDocumentService.saveWorksheet(record),
+                importProgressService,
+                customsProgressService,
+                "Working sheet saved.",
+                () -> ImportStageUrls.redirectAfterWorksheetSave(
+                        chassisNo,
+                        pipelineStageService.keys(PipelineStageService.FLOW_IMPORT)
+                )
+        );
     }
 }

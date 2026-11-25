@@ -1,9 +1,9 @@
 package com.carsale.erp.config;
 
+import lombok.RequiredArgsConstructor;
 import java.util.List;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.core.annotation.Order;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -17,15 +17,13 @@ import com.carsale.erp.shared.regex.RegexConstants;
  */
 @Component
 @Order(1)
+@Slf4j
+@RequiredArgsConstructor
 public class DatabaseSchemaUpdater implements CommandLineRunner {
 
-    private static final Logger log = LoggerFactory.getLogger(DatabaseSchemaUpdater.class);
 
     private final JdbcTemplate jdbcTemplate;
 
-    public DatabaseSchemaUpdater(JdbcTemplate jdbcTemplate) {
-        this.jdbcTemplate = jdbcTemplate;
-    }
 
     @Override
     public void run(String... args) {
@@ -64,6 +62,8 @@ public class DatabaseSchemaUpdater implements CommandLineRunner {
         createVehicleInspectionLinesTable();
         addWorkshopJobInspectionItemKey();
         addClearanceInvoiceOtherColumn();
+        createAppSettingsTable();
+        createVehicleShareLinksTable();
     }
 
     private void addClearanceInvoiceOtherColumn() {
@@ -896,6 +896,41 @@ public class DatabaseSchemaUpdater implements CommandLineRunner {
             return count != null && count > 0;
         } catch (Exception ex) {
             return false;
+        }
+    }
+
+    private void createAppSettingsTable() {
+        try {
+            jdbcTemplate.execute(
+                    "CREATE TABLE IF NOT EXISTS app_settings ("
+                            + "setting_key VARCHAR(40) NOT NULL, "
+                            + "setting_value VARCHAR(40) NOT NULL, "
+                            + "PRIMARY KEY (setting_key)"
+                            + ")"
+            );
+            log.info("Verified table app_settings");
+        } catch (Exception ex) {
+            log.warn("Could not create app_settings: {}", ex.getMessage());
+        }
+    }
+
+    private void createVehicleShareLinksTable() {
+        try {
+            jdbcTemplate.execute(
+                    "CREATE TABLE IF NOT EXISTS vehicle_share_links ("
+                            + "id BIGINT NOT NULL AUTO_INCREMENT, "
+                            + "public_token VARCHAR(36) NOT NULL, "
+                            + "chassis_no VARCHAR(40) NOT NULL, "
+                            + "active BIT NOT NULL, "
+                            + "created_at DATETIME NOT NULL, "
+                            + "PRIMARY KEY (id), "
+                            + "UNIQUE KEY uk_vehicle_share_token (public_token), "
+                            + "KEY idx_vehicle_share_chassis (chassis_no)"
+                            + ")"
+            );
+            log.info("Verified table vehicle_share_links");
+        } catch (Exception ex) {
+            log.warn("Could not create vehicle_share_links: {}", ex.getMessage());
         }
     }
 

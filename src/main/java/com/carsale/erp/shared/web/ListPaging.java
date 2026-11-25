@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import lombok.Getter;
 import org.springframework.ui.Model;
 
 public final class ListPaging {
@@ -113,6 +114,7 @@ public final class ListPaging {
         return numbers;
     }
 
+    @Getter
     public static final class Window<T> {
         private final List<T> items;
         private final int page;
@@ -136,30 +138,6 @@ public final class ListPaging {
             model.addAttribute("listPageNumbers", numbers);
             model.addAttribute("listRange", range);
             model.addAttribute("listTotal", Integer.valueOf(total));
-        }
-
-        public List<T> getItems() {
-            return items;
-        }
-
-        public int getPage() {
-            return page;
-        }
-
-        public int getPages() {
-            return pages;
-        }
-
-        public int getTotal() {
-            return total;
-        }
-
-        public List<Integer> getNumbers() {
-            return numbers;
-        }
-
-        public String getRange() {
-            return range;
         }
     }
 }

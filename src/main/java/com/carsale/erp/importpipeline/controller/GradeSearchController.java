@@ -1,8 +1,10 @@
 package com.carsale.erp.importpipeline.controller;
 
+import com.carsale.erp.importpipeline.util.ImportStageSave;
+import com.carsale.erp.shared.web.ListSearchRedirect;
+import com.carsale.erp.shared.document.DocumentUploads;
+import com.carsale.erp.shared.document.InlineDocumentResponse;
 import java.io.IOException;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 
 import com.carsale.erp.customspipeline.service.CustomsProgressService;
 import com.carsale.erp.importpipeline.service.ImportProgressService;
@@ -19,13 +21,10 @@ import com.carsale.erp.shared.ocr.OcrImagePreparer;
 import com.carsale.erp.shared.pipeline.FlowStage;
 import com.carsale.erp.shared.service.PipelineStageService;
 import com.carsale.erp.shared.utils.PipelineStageUtils;
-import com.carsale.erp.shared.utils.Utils;
 import com.carsale.erp.shared.vehicle.Vehicle;
 import com.carsale.erp.shared.vehicle.VehicleService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -38,7 +37,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import org.springframework.web.util.UriUtils;
 
 @Controller
 @RequiredArgsConstructor
@@ -56,21 +54,14 @@ public class GradeSearchController {
 
     @GetMapping
     public String list(@RequestParam(value = "q", required = false) String query) {
-        if (query != null && !query.trim().isEmpty()) {
-            return "redirect:/import?q=" + UriUtils.encodeQueryParam(query.trim(), StandardCharsets.UTF_8);
-        }
-        return "redirect:/import";
+        return ListSearchRedirect.to("/import", query);
     }
 
     @GetMapping("/documents/{storedName:.+}")
     public ResponseEntity<Resource> serveDocument(@PathVariable String storedName) throws IOException {
         Resource resource = documentStorageService.loadGradeSearchAsResource(storedName);
         String contentType = documentStorageService.resolveContentType(storedName, null);
-        String encodedName = URLEncoder.encode(storedName, StandardCharsets.UTF_8.name()).replace("+", "%20");
-        return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + encodedName + "\"")
-                .contentType(MediaType.parseMediaType(contentType))
-                .body(resource);
+        return InlineDocumentResponse.of(resource, storedName, contentType);
     }
 
     @GetMapping("/new")
@@ -88,44 +79,32 @@ public class GradeSearchController {
             chassisNo = record.getChassisNumber().trim();
             record.setChassisNo(chassisNo);
         }
-        if (chassisNo.isEmpty()) {
-            redirectAttributes.addFlashAttribute("error", "Chassis number is required.");
-            redirectAttributes.addFlashAttribute("record", record);
-            return "redirect:/auction/new";
+        final String resolvedChassis = chassisNo;
+        String missingChassis = ImportStageSave.requireChassis(resolvedChassis, record, redirectAttributes);
+        if (missingChassis != null) {
+            return missingChassis;
         }
-        Vehicle existing = vehicleService.findByChassisNo(chassisNo);
-        if (existing != null) {
-            ImportProgress status = importProgressService.progressFor(existing);
-            redirectAttributes.addFlashAttribute("notice",
-                    "Chassis number " + chassisNo + " is already in the import pipeline. "
-                            + "No new vehicle was created — opened the existing record instead.");
-            return "redirect:" + ImportStageUrls.pipelineHubUrl(
-                    chassisNo,
-                    status,
-                    pipelineStageService.keys(PipelineStageService.FLOW_IMPORT)
-            );
-        }
-        try {
-            Vehicle vehicle = new Vehicle();
-            vehicle.setChassisNo(chassisNo);
-            if (record.getGrade() != null && !record.getGrade().trim().isEmpty()) {
-                vehicle.setGrade(record.getGrade().trim());
-            }
-            vehicleService.save(vehicle);
-            record.setChassisNo(chassisNo);
-            gradeSearchService.save(record);
-            importProgressService.syncVehicleStage(chassisNo);
-            customsProgressService.syncVehicleStage(chassisNo);
-            redirectAttributes.addFlashAttribute("successMessage", "Grade search saved.");
-            return "redirect:" + ImportStageUrls.redirectAfterGradeSave(
-                    chassisNo,
-                    pipelineStageService.keys(PipelineStageService.FLOW_IMPORT)
-            );
-        } catch (IllegalArgumentException ex) {
-            redirectAttributes.addFlashAttribute("error", ex.getMessage());
-            redirectAttributes.addFlashAttribute("record", record);
-            return "redirect:/auction/new";
-        }
+        return ImportStageSave.openExistingOrCreate(
+                resolvedChassis,
+                record,
+                redirectAttributes,
+                vehicleService,
+                importProgressService,
+                customsProgressService,
+                pipelineStageService,
+                null,
+                vehicle -> {
+                    if (record.getGrade() != null && !record.getGrade().trim().isEmpty()) {
+                        vehicle.setGrade(record.getGrade().trim());
+                    }
+                },
+                () -> {
+                    record.setChassisNo(resolvedChassis);
+                    gradeSearchService.save(record);
+                },
+                "Grade search saved.",
+                keys -> ImportStageUrls.redirectAfterGradeSave(resolvedChassis, keys)
+        );
     }
 
     @GetMapping("/{chassisNo}")
@@ -159,14 +138,7 @@ public class GradeSearchController {
     @PostMapping("/upload-document")
     @ResponseBody
     public SheetUploadResult uploadDocument(@RequestParam("file") MultipartFile file) {
-        try {
-            return documentStorageService.storeGradeSearch(file);
-        } catch (IOException ex) {
-            SheetUploadResult failed = new SheetUploadResult();
-            failed.setSuccess(false);
-            failed.setMessage("Could not save the document. " + ex.getMessage());
-            return failed;
-        }
+        return DocumentUploads.store(() -> documentStorageService.storeGradeSearch(file), "Could not save the document. ");
     }
 
     @PostMapping("/parse-document")
@@ -183,18 +155,19 @@ public class GradeSearchController {
             RedirectAttributes redirectAttributes
     ) {
         record.setChassisNo(chassisNo);
-        try {
-            gradeSearchService.save(record);
-            importProgressService.syncVehicleStage(chassisNo);
-            customsProgressService.syncVehicleStage(chassisNo);
-            redirectAttributes.addFlashAttribute("successMessage", "Grade search saved.");
-            return "redirect:" + ImportStageUrls.redirectAfterGradeSave(
-                    chassisNo,
-                    pipelineStageService.keys(PipelineStageService.FLOW_IMPORT)
-            );
-        } catch (IllegalArgumentException ex) {
-            redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
-            return "redirect:/grade/" + Utils.encodeChassis(chassisNo) + (hub ? "?hub=1" : "");
-        }
+        return ImportStageSave.saveAndSync(
+                chassisNo,
+                hub,
+                "/grade/",
+                redirectAttributes,
+                () -> gradeSearchService.save(record),
+                importProgressService,
+                customsProgressService,
+                "Grade search saved.",
+                () -> ImportStageUrls.redirectAfterGradeSave(
+                        chassisNo,
+                        pipelineStageService.keys(PipelineStageService.FLOW_IMPORT)
+                )
+        );
     }
 }

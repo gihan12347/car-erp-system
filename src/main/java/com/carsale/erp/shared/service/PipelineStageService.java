@@ -1,5 +1,6 @@
 package com.carsale.erp.shared.service;
 
+import lombok.RequiredArgsConstructor;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
@@ -10,6 +11,7 @@ import com.carsale.erp.shared.pipeline.*;
 import com.carsale.erp.shared.repository.PipelineFlowRepository;
 import com.carsale.erp.shared.repository.PipelineProgress;
 import com.carsale.erp.shared.repository.PipelineStageRepository;
+import com.carsale.erp.shared.settings.BusinessTypeService;
 import com.carsale.erp.shared.utils.PipelineStageUtils;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.core.annotation.Order;
@@ -18,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Order(3)
+@RequiredArgsConstructor
 public class PipelineStageService implements CommandLineRunner {
 
     public static final String FLOW_IMPORT = FlowPipeline.IMPORT.getFlowKey();
@@ -27,13 +30,9 @@ public class PipelineStageService implements CommandLineRunner {
 
     private final PipelineFlowRepository pipelineFlowRepository;
     private final PipelineStageRepository pipelineStageRepository;
+    private final BusinessTypeService businessTypeService;
     private volatile Map<String, Boolean> enabledByKey = new ConcurrentHashMap<String, Boolean>();
 
-    public PipelineStageService(PipelineFlowRepository pipelineFlowRepository,
-                                PipelineStageRepository pipelineStageRepository) {
-        this.pipelineFlowRepository = pipelineFlowRepository;
-        this.pipelineStageRepository = pipelineStageRepository;
-    }
 
     @Override
     public void run(String... args) {
@@ -467,6 +466,7 @@ public class PipelineStageService implements CommandLineRunner {
         for (PipelineFlow flow : flows) {
             groups.add(new PipelineFlowGroup(
                     flow.getId(),
+                    flow.getFlowKey(),
                     flow.getTitle(),
                     flow.getDescription(),
                     flow.getIcon(),
@@ -482,6 +482,7 @@ public class PipelineStageService implements CommandLineRunner {
             throw new IllegalArgumentException("Stage is required.");
         }
         PipelineFlow flow = requireFlowById(flowId);
+        requireEditable(flow);
         PipelineStage stage = pipelineStageRepository
                 .findByFlowIdAndStageKey(flow.getId(), stageKey.trim())
                 .orElseThrow(() -> new IllegalArgumentException("Unknown stage."));
@@ -510,6 +511,7 @@ public class PipelineStageService implements CommandLineRunner {
     @Transactional
     public List<PipelineStage> reorder(Long flowId, List<String> stageKeys) {
         PipelineFlow flow = requireFlowById(flowId);
+        requireEditable(flow);
         List<String> expected = getStrings(flow);
         Set<String> incoming = new HashSet<>(stageKeys);
         Set<String> known = new HashSet<>(expected);
@@ -538,6 +540,7 @@ public class PipelineStageService implements CommandLineRunner {
     @Transactional
     public List<PipelineStage> reset(Long flowId) {
         PipelineFlow flow = requireFlowById(flowId);
+        requireEditable(flow);
         List<DefaultStage> defaults = defaultsFor(flow.getFlowKey());
         for (int i = 0; i < defaults.size(); i++) {
             DefaultStage def = defaults.get(i);
@@ -603,6 +606,12 @@ public class PipelineStageService implements CommandLineRunner {
         }
         return pipelineFlowRepository.findByIdWithStages(flowId)
                 .orElseThrow(() -> new IllegalArgumentException("Unknown pipeline."));
+    }
+
+    private void requireEditable(PipelineFlow flow) {
+        if (!businessTypeService.current().isFlowEnabled(flow.getFlowKey())) {
+            throw new IllegalArgumentException("That pipeline is turned off for this business type.");
+        }
     }
 
     private static List<DefaultStage> defaultsFor(String flowKey) {

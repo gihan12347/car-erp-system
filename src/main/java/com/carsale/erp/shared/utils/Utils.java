@@ -86,18 +86,18 @@ public class Utils {
         return result.toString();
     }
 
-    public static String mapType(String type, Map<String, String> typeToFiled) {
+    public static String mapDocumentTypeToField(String type, Map<String, String> typeToField) {
         if (type == null || type.trim().isEmpty()) {
             return null;
         }
         String key = typeKey(type);
-        String mapped = typeToFiled.get(key);
+        String mapped = typeToField.get(key);
         if (mapped != null) {
             return mapped;
         }
         int slash = key.lastIndexOf('/');
         if (slash >= 0 && slash + 1 < key.length()) {
-            return typeToFiled.get(key.substring(slash + 1));
+            return typeToField.get(key.substring(slash + 1));
         }
         return null;
     }

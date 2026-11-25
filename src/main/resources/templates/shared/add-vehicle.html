@@ -18,7 +18,8 @@
             </button>
         </div>
         <div class="add-vehicle-lanes">
-            <section class="add-vehicle-lane" aria-labelledby="addVehicleImport">
+            <section class="add-vehicle-lane" aria-labelledby="addVehicleImport"
+                     th:if="${businessType == null or businessType.unregisteredPipelinesEnabled}">
                 <h3 id="addVehicleImport">Unregistered vehicle</h3>
                 <button type="button" class="add-vehicle-choice" data-intake-choice="company">
                     <span class="add-vehicle-icon is-company" aria-hidden="true">
@@ -61,7 +62,8 @@
                     <svg class="add-vehicle-go" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg>
                 </button>
             </section>
-            <section class="add-vehicle-lane is-prep" aria-labelledby="addVehiclePrep">
+            <section class="add-vehicle-lane is-prep" aria-labelledby="addVehiclePrep"
+                     th:if="${businessType == null or businessType.localPurchaseEnabled}">
                 <h3 id="addVehiclePrep">Registered vehicle</h3>
                 <a class="add-vehicle-choice is-prep" th:href="@{/workshop-yard/new}">
                     <span class="add-vehicle-icon is-registered" aria-hidden="true">

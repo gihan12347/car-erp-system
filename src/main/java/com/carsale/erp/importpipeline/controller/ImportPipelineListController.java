@@ -13,6 +13,8 @@ import com.carsale.erp.importpipeline.service.PreShipmentService;
 import com.carsale.erp.importpipeline.service.StandardsCertificateService;
 import com.carsale.erp.importpipeline.service.VehiclePhotoService;
 import com.carsale.erp.importpipeline.util.EquipmentInspectionFields;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -168,21 +170,10 @@ public class ImportPipelineListController {
         return "import-pipeline/auction/detail";
     }
 
+    @Getter
+    @AllArgsConstructor
     public static final class ImportListRow {
         private final Vehicle vehicle;
         private final ImportProgress status;
-
-        public ImportListRow(Vehicle vehicle, ImportProgress status) {
-            this.vehicle = vehicle;
-            this.status = status;
-        }
-
-        public Vehicle getVehicle() {
-            return vehicle;
-        }
-
-        public ImportProgress getStatus() {
-            return status;
-        }
     }
 }

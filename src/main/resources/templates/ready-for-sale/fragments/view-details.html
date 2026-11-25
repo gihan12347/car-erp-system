@@ -12,10 +12,8 @@
                 <em class="pill sea" th:if="${vehicle.auctionGrade != null and !#strings.isEmpty(vehicle.auctionGrade)}"
                     th:text="${'Grade ' + vehicle.auctionGrade}">Grade 4.5</em>
             </div>
-            <h1>
-                <span th:text="${vehicle.year != null and !#strings.isEmpty(vehicle.year) ? vehicle.year + ' ' : ''}">2025 </span>
-                <span th:text="${vehicle.model != null and !#strings.isEmpty(vehicle.model) ? vehicle.model : 'Vehicle'}">Toyota Roomy</span>
-            </h1>
+            <h1 th:with="name=${vehicle.model != null and !#strings.isEmpty(vehicle.model) ? vehicle.model : 'Vehicle'}"
+                th:text="${vehicle.make != null and !#strings.isEmpty(vehicle.make) and !#strings.containsIgnoreCase(name, vehicle.make) ? vehicle.make + ' ' + name : name}">Suzuki Wagon R</h1>
             <p class="vehicle-hero-sub">
                 <a th:replace="shared/chassis-link :: chassisLink(${vehicle.chassisNo})" class="hero-chassis">M900A-1122703</a>
                 <span th:if="${vehicle.lotNo != null and !#strings.isEmpty(vehicle.lotNo)}"

@@ -1,5 +1,6 @@
 package com.carsale.erp.report;
 
+import lombok.RequiredArgsConstructor;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
@@ -54,9 +55,11 @@ import com.carsale.erp.readypipeline.repository.VehicleRegistrationRepository;
 import com.carsale.erp.shared.vehicle.Vehicle;
 import com.carsale.erp.shared.vehicle.VehicleIntake;
 import com.carsale.erp.shared.vehicle.VehicleService;
+import com.carsale.erp.shared.settings.BusinessTypeService;
 import com.carsale.erp.shared.vehicle.VehicleTotalCost;
 
 @Service
+@RequiredArgsConstructor
 public class StandardReportService {
 
     public static final String STOCK = "stock";
@@ -88,43 +91,26 @@ public class StandardReportService {
     private final RegistrationCertificateRepository registrationCertificateRepository;
     private final InspectionCertificateRepository inspectionCertificateRepository;
     private final PreShipmentInspectionRepository preShipmentInspectionRepository;
+    private final BusinessTypeService businessTypeService;
 
-    public StandardReportService(
-            VehicleService vehicleService,
-            ReportService reportService,
-            SaleListingRepository saleListingRepository,
-            CustomsDocumentRepository customsDocumentRepository,
-            WorkshopJobRepository workshopJobRepository,
-            YardRecordRepository yardRecordRepository,
-            VehicleRegistrationRepository vehicleRegistrationRepository,
-            ExportCertificateRepository exportCertificateRepository,
-            StandardsCertificateRepository standardsCertificateRepository,
-            GradeSearchRepository gradeSearchRepository,
-            VehiclePhotoRepository vehiclePhotoRepository,
-            VehicleInspectionRepository vehicleInspectionRepository,
-            RegistrationCertificateRepository registrationCertificateRepository,
-            InspectionCertificateRepository inspectionCertificateRepository,
-            PreShipmentInspectionRepository preShipmentInspectionRepository
-    ) {
-        this.vehicleService = vehicleService;
-        this.reportService = reportService;
-        this.saleListingRepository = saleListingRepository;
-        this.customsDocumentRepository = customsDocumentRepository;
-        this.workshopJobRepository = workshopJobRepository;
-        this.yardRecordRepository = yardRecordRepository;
-        this.vehicleRegistrationRepository = vehicleRegistrationRepository;
-        this.exportCertificateRepository = exportCertificateRepository;
-        this.standardsCertificateRepository = standardsCertificateRepository;
-        this.gradeSearchRepository = gradeSearchRepository;
-        this.vehiclePhotoRepository = vehiclePhotoRepository;
-        this.vehicleInspectionRepository = vehicleInspectionRepository;
-        this.registrationCertificateRepository = registrationCertificateRepository;
-        this.inspectionCertificateRepository = inspectionCertificateRepository;
-        this.preShipmentInspectionRepository = preShipmentInspectionRepository;
-    }
 
     public static boolean isKnown(String kind) {
         return kind == null || !KINDS.contains(kind.trim().toLowerCase(Locale.ROOT));
+    }
+
+    public boolean isAvailable(String kind) {
+        if (isKnown(kind)) {
+            return false;
+        }
+        String key = kind.trim().toLowerCase(Locale.ROOT);
+        if (LANDED.equals(key) || DUTY.equals(key)) {
+            return customsReportsEnabled();
+        }
+        return true;
+    }
+
+    private boolean customsReportsEnabled() {
+        return businessTypeService.current().isUnregisteredPipelinesEnabled();
     }
 
     @Transactional(readOnly = true)
@@ -143,18 +129,20 @@ public class StandardReportService {
                 "fa-receipt", "is-green", snap.soldCount, "sold",
                 moneyOrDash(snap.soldRevenue, snap.anySoldRevenue)
         ));
-        cards.add(new ReportCard(
-                LANDED, "Customs", "Landed cost sheet", "Incoterms / CIF roll-up",
-                "Shipping cost plus the customs declaration, in LKR.",
-                "fa-ship", "is-red", snap.landedRows, "vehicles",
-                moneyOrDash(snap.landingTotal, snap.anyLanding)
-        ));
-        cards.add(new ReportCard(
-                DUTY, "Customs", "Duty and tax", "Sri Lanka CUSDEC / ASYCUDA",
-                "CID, SUR, XID, VAT, VEL, and total tax.",
-                "fa-file-invoice-dollar", "is-gold", snap.vehicles.size(), "vehicles",
-                moneyOrDash(snap.taxTotal, snap.anyTax)
-        ));
+        if (customsReportsEnabled()) {
+            cards.add(new ReportCard(
+                    LANDED, "Customs", "Landed cost sheet", "Incoterms / CIF roll-up",
+                    "Shipping cost plus the customs declaration, in LKR.",
+                    "fa-ship", "is-red", snap.landedRows, "vehicles",
+                    moneyOrDash(snap.landingTotal, snap.anyLanding)
+            ));
+            cards.add(new ReportCard(
+                    DUTY, "Customs", "Duty and tax", "Sri Lanka CUSDEC / ASYCUDA",
+                    "CID, SUR, XID, VAT, VEL, and total tax.",
+                    "fa-file-invoice-dollar", "is-gold", snap.vehicles.size(), "vehicles",
+                    moneyOrDash(snap.taxTotal, snap.anyTax)
+            ));
+        }
         cards.add(new ReportCard(
                 DOCUMENTS, "Compliance", "Document completeness", "Compliance register",
                 "Export, JEVIC, CUSDEC, assessment, BL, standards, and RMV.",

@@ -10,6 +10,7 @@ import java.util.List;
 @AllArgsConstructor
 public class PipelineFlowGroup {
     private final Long id;
+    private final String flowKey;
     private final String title;
     private final String description;
     private final String icon;

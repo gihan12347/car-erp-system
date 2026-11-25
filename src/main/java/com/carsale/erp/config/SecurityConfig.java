@@ -28,7 +28,15 @@ public class SecurityConfig {
                     .frameOptions().sameOrigin()
                 .and()
                 .authorizeRequests()
-                    .antMatchers("/css/**", "/js/**", "/images/**", "/favicon.ico", "/favicon.svg", "/login").permitAll()
+                    .antMatchers(
+                            "/css/**",
+                            "/js/**",
+                            "/images/**",
+                            "/favicon.ico",
+                            "/favicon.svg",
+                            "/login",
+                            "/shared/**"
+                    ).permitAll()
                     .anyRequest().authenticated()
                 .and()
                 .formLogin()

@@ -1,5 +1,6 @@
 package com.carsale.erp.shared.service;
 
+import lombok.RequiredArgsConstructor;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collection;
@@ -16,6 +17,7 @@ import com.carsale.erp.shared.vehicle.Vehicle;
 import com.carsale.erp.shared.vehicle.VehicleRepository;
 
 @Service
+@RequiredArgsConstructor
 public class SkippedStageService {
 
     public static final String REG_BOOK = "reg-book";
@@ -26,9 +28,6 @@ public class SkippedStageService {
 
     private final VehicleRepository vehicleRepository;
 
-    public SkippedStageService(VehicleRepository vehicleRepository) {
-        this.vehicleRepository = vehicleRepository;
-    }
 
     public Set<String> matching(Vehicle vehicle, Collection<String> allowed) {
         Set<String> matched = new LinkedHashSet<String>();

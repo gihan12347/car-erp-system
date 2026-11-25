@@ -149,4 +149,107 @@
             isPdf: pdfFlag === "true"
         });
     });
+
+    var shareForm = document.getElementById("shareVehicleForm");
+    var shareButton = document.getElementById("shareVehicleButton");
+    var shareInput = document.getElementById("shareVehicleUrl");
+    var shareError = document.getElementById("shareVehicleError");
+    if (shareForm && shareButton && shareInput) {
+        var shareLabel = shareButton.querySelector("span");
+
+        function markCopied() {
+            if (shareLabel) {
+                shareLabel.textContent = "Link copied";
+            }
+        }
+
+        function showUrl(url) {
+            shareInput.value = url;
+        }
+
+        function showShareError(message) {
+            if (!shareError) {
+                return;
+            }
+            shareError.hidden = false;
+            shareError.textContent = message;
+        }
+
+        function copyWithInput(url) {
+            showUrl(url);
+            var area = document.createElement("textarea");
+            area.value = url;
+            area.setAttribute("readonly", "");
+            area.style.position = "fixed";
+            area.style.left = "-9999px";
+            document.body.appendChild(area);
+            area.select();
+            try {
+                document.execCommand("copy");
+            } catch (ignore) {
+                // Clipboard access can be blocked; the button still confirms the attempt.
+            }
+            document.body.removeChild(area);
+            markCopied();
+        }
+
+        function copyNow(url) {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(url).then(markCopied).catch(function () {
+                    copyWithInput(url);
+                });
+                return;
+            }
+            copyWithInput(url);
+        }
+
+        function createLink() {
+            return fetch(shareForm.getAttribute("action"), {
+                method: "POST",
+                body: new FormData(shareForm),
+                headers: { "Accept": "application/json" },
+                credentials: "same-origin"
+            }).then(function (response) {
+                return response.json().then(function (data) {
+                    if (!response.ok || !data.url) {
+                        throw new Error(data.error || "Could not create the sharing link.");
+                    }
+                    return data.url;
+                });
+            });
+        }
+
+        shareForm.addEventListener("submit", function (event) {
+            event.preventDefault();
+            if (shareError) {
+                shareError.hidden = true;
+            }
+            var existing = (shareInput.value || "").trim();
+            if (existing) {
+                copyNow(existing);
+                return;
+            }
+            var pending = createLink();
+            if (navigator.clipboard && window.ClipboardItem) {
+                var item = new ClipboardItem({
+                    "text/plain": pending.then(function (url) {
+                        showUrl(url);
+                        return new Blob([url], { type: "text/plain" });
+                    })
+                });
+                navigator.clipboard.write([item]).then(markCopied).catch(function () {
+                    pending.then(copyWithInput).catch(function (error) {
+                        showShareError(error.message || "Could not create the sharing link.");
+                    });
+                });
+                return;
+            }
+            pending.then(function (url) {
+                showUrl(url);
+                copyNow(url);
+            }).catch(function (error) {
+                showShareError(error.message || "Could not create the sharing link.");
+            });
+        });
+    }
 })();

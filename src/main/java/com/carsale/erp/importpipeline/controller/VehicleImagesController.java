@@ -1,20 +1,18 @@
 package com.carsale.erp.importpipeline.controller;
 
+import com.carsale.erp.shared.web.ListSearchRedirect;
+import com.carsale.erp.shared.document.InlineDocumentResponse;
+import com.carsale.erp.importpipeline.util.ImportStageSave;
 import com.carsale.erp.importpipeline.util.ImportStageUrls;
 import java.io.IOException;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 import com.carsale.erp.importpipeline.util.PhotoUploadResult;
 import com.carsale.erp.importpipeline.model.VehiclePhoto;
 import com.carsale.erp.importpipeline.service.VehiclePhotoService;
 import com.carsale.erp.shared.utils.PipelineStageUtils;
-import com.carsale.erp.shared.utils.Utils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -26,7 +24,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import org.springframework.web.util.UriUtils;
 
 import com.carsale.erp.shared.document.SheetUploadResult;
 import com.carsale.erp.shared.vehicle.Vehicle;
@@ -52,21 +49,14 @@ public class VehicleImagesController {
 
     @GetMapping
     public String list(@RequestParam(value = "q", required = false) String query) {
-        if (query != null && !query.trim().isEmpty()) {
-            return "redirect:/import?q=" + UriUtils.encodeQueryParam(query.trim(), StandardCharsets.UTF_8);
-        }
-        return "redirect:/import";
+        return ListSearchRedirect.to("/import", query);
     }
 
     @GetMapping("/documents/{storedName:.+}")
     public ResponseEntity<Resource> serveDocument(@PathVariable String storedName) throws IOException {
         Resource resource = documentStorageService.loadPhotoAsResource(storedName);
         String contentType = documentStorageService.resolveContentType(storedName, null);
-        String encodedName = URLEncoder.encode(storedName, StandardCharsets.UTF_8.name()).replace("+", "%20");
-        return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + encodedName + "\"")
-                .contentType(MediaType.parseMediaType(contentType))
-                .body(resource);
+        return InlineDocumentResponse.of(resource, storedName, contentType);
     }
 
     @GetMapping("/new")
@@ -83,41 +73,28 @@ public class VehicleImagesController {
             RedirectAttributes redirectAttributes
     ) {
         String trimmed = chassisNo == null ? "" : chassisNo.trim();
-        if (trimmed.isEmpty()) {
-            redirectAttributes.addFlashAttribute("error", "Chassis number is required.");
-            return "redirect:/auction/new";
+        String missingChassis = ImportStageSave.requireChassis(trimmed, null, redirectAttributes);
+        if (missingChassis != null) {
+            return missingChassis;
         }
-        Vehicle existing = vehicleService.findByChassisNo(trimmed);
-        if (existing != null) {
-            ImportProgress status = importProgressService.progressFor(existing);
-            redirectAttributes.addFlashAttribute("notice",
-                    "Chassis number " + trimmed + " is already in the import pipeline. "
-                            + "No new vehicle was created — opened the existing record instead.");
-            return "redirect:" + ImportStageUrls.pipelineHubUrl(
-                    trimmed,
-                    status,
-                    pipelineStageService.keys(PipelineStageService.FLOW_IMPORT)
-            );
-        }
-        try {
-            if (storedNames == null || storedNames.isEmpty()) {
-                throw new IllegalArgumentException("Upload at least one vehicle image.");
-            }
-            Vehicle vehicle = new Vehicle();
-            vehicle.setChassisNo(trimmed);
-            vehicleService.save(vehicle);
-            photoService.attachPending(trimmed, storedNames, originalNames, contentTypes);
-            importProgressService.syncVehicleStage(trimmed);
-            customsProgressService.syncVehicleStage(trimmed);
-            redirectAttributes.addFlashAttribute("successMessage", "Vehicle images saved.");
-            return "redirect:" + ImportStageUrls.redirectAfterPhotosSave(
-                    trimmed,
-                    pipelineStageService.keys(PipelineStageService.FLOW_IMPORT)
-            );
-        } catch (IllegalArgumentException ex) {
-            redirectAttributes.addFlashAttribute("error", ex.getMessage());
-            return "redirect:/auction/new";
-        }
+        return ImportStageSave.openExistingOrCreate(
+                trimmed,
+                null,
+                redirectAttributes,
+                vehicleService,
+                importProgressService,
+                customsProgressService,
+                pipelineStageService,
+                () -> {
+                    if (storedNames == null || storedNames.isEmpty()) {
+                        throw new IllegalArgumentException("Upload at least one vehicle image.");
+                    }
+                },
+                null,
+                () -> photoService.attachPending(trimmed, storedNames, originalNames, contentTypes),
+                "Vehicle images saved.",
+                keys -> ImportStageUrls.redirectAfterPhotosSave(trimmed, keys)
+        );
     }
 
     @GetMapping("/{chassisNo}")
@@ -228,21 +205,24 @@ public class VehicleImagesController {
             @RequestParam(value = "hub", defaultValue = "false") boolean hub,
             RedirectAttributes redirectAttributes
     ) {
-        try {
-            if (!photoService.hasPhotos(chassisNo)) {
-                throw new IllegalArgumentException("Upload at least one vehicle image.");
-            }
-            importProgressService.syncVehicleStage(chassisNo);
-            customsProgressService.syncVehicleStage(chassisNo);
-            redirectAttributes.addFlashAttribute("successMessage", "Vehicle images saved.");
-            return "redirect:" + ImportStageUrls.redirectAfterPhotosSave(
-                    chassisNo,
-                    pipelineStageService.keys(PipelineStageService.FLOW_IMPORT)
-            );
-        } catch (IllegalArgumentException ex) {
-            redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
-            return "redirect:/photos/" + Utils.encodeChassis(chassisNo) + (hub ? "?hub=1" : "");
-        }
+        return ImportStageSave.saveAndSync(
+                chassisNo,
+                hub,
+                "/photos/",
+                redirectAttributes,
+                () -> {
+                    if (!photoService.hasPhotos(chassisNo)) {
+                        throw new IllegalArgumentException("Upload at least one vehicle image.");
+                    }
+                },
+                importProgressService,
+                customsProgressService,
+                "Vehicle images saved.",
+                () -> ImportStageUrls.redirectAfterPhotosSave(
+                        chassisNo,
+                        pipelineStageService.keys(PipelineStageService.FLOW_IMPORT)
+                )
+        );
     }
 
     private void addPhotoModel(Model model, String chassisNo) {

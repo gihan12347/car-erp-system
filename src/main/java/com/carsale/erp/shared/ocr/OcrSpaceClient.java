@@ -6,8 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.HttpEntity;
@@ -31,9 +30,9 @@ import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
  * Register for a free API key (25k requests/month) and set OCR_SPACE_API_KEY.
  */
 @Component
+@Slf4j
 public class OcrSpaceClient implements OcrClient {
 
-    private static final Logger log = LoggerFactory.getLogger(OcrSpaceClient.class);
 
     private static final int CONNECT_TIMEOUT_MS = 30_000;
     private static final int READ_TIMEOUT_MS = 120_000;

@@ -1,9 +1,11 @@
 package com.carsale.erp.importpipeline.controller;
 
+import com.carsale.erp.importpipeline.util.ImportStageSave;
+import com.carsale.erp.shared.web.ListSearchRedirect;
+import com.carsale.erp.shared.document.DocumentUploads;
+import com.carsale.erp.shared.document.InlineDocumentResponse;
 import com.carsale.erp.importpipeline.util.ImportStageUrls;
 import java.io.IOException;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 
 import com.carsale.erp.importpipeline.model.StandardsCertificate;
 import com.carsale.erp.importpipeline.service.StandardsCertificateService;
@@ -11,11 +13,8 @@ import com.carsale.erp.shared.document.document.StandardsCertificateParser;
 import com.carsale.erp.shared.ocr.OcrClient;
 import com.carsale.erp.shared.ocr.OcrImagePreparer;
 import com.carsale.erp.shared.utils.PipelineStageUtils;
-import com.carsale.erp.shared.utils.Utils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -28,7 +27,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import org.springframework.web.util.UriUtils;
 
 import com.carsale.erp.importpipeline.util.AuctionParseResult;
 import com.carsale.erp.shared.document.SheetUploadResult;
@@ -57,21 +55,14 @@ public class StandardsCertificateController {
 
     @GetMapping
     public String list(@RequestParam(value = "q", required = false) String query) {
-        if (query != null && !query.trim().isEmpty()) {
-            return "redirect:/import?q=" + UriUtils.encodeQueryParam(query.trim(), StandardCharsets.UTF_8);
-        }
-        return "redirect:/import";
+        return ListSearchRedirect.to("/import", query);
     }
 
     @GetMapping("/documents/{storedName:.+}")
     public ResponseEntity<Resource> serveDocument(@PathVariable String storedName) throws IOException {
         Resource resource = documentStorageService.loadStandardsAsResource(storedName);
         String contentType = documentStorageService.resolveContentType(storedName, null);
-        String encodedName = URLEncoder.encode(storedName, StandardCharsets.UTF_8.name()).replace("+", "%20");
-        return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + encodedName + "\"")
-                .contentType(MediaType.parseMediaType(contentType))
-                .body(resource);
+        return InlineDocumentResponse.of(resource, storedName, contentType);
     }
 
     @GetMapping("/new")
@@ -85,41 +76,27 @@ public class StandardsCertificateController {
             RedirectAttributes redirectAttributes
     ) {
         String chassisNo = record.getChassisNo() == null ? "" : record.getChassisNo().trim();
-        if (chassisNo.isEmpty()) {
-            redirectAttributes.addFlashAttribute("error", "Chassis number is required.");
-            redirectAttributes.addFlashAttribute("record", record);
-            return "redirect:/auction/new";
+        String missingChassis = ImportStageSave.requireChassis(chassisNo, record, redirectAttributes);
+        if (missingChassis != null) {
+            return missingChassis;
         }
-        Vehicle existing = vehicleService.findByChassisNo(chassisNo);
-        if (existing != null) {
-            ImportProgress status = importProgressService.progressFor(existing);
-            redirectAttributes.addFlashAttribute("notice",
-                    "Chassis number " + chassisNo + " is already in the import pipeline. "
-                            + "No new vehicle was created — opened the existing record instead.");
-            return "redirect:" + ImportStageUrls.pipelineHubUrl(
-                    chassisNo,
-                    status,
-                    pipelineStageService.keys(PipelineStageService.FLOW_IMPORT)
-            );
-        }
-        try {
-            Vehicle vehicle = new Vehicle();
-            vehicle.setChassisNo(chassisNo);
-            vehicleService.save(vehicle);
-            record.setChassisNo(chassisNo);
-            certificateService.save(record);
-            importProgressService.syncVehicleStage(chassisNo);
-            customsProgressService.syncVehicleStage(chassisNo);
-            redirectAttributes.addFlashAttribute("successMessage", "Standards certificate saved.");
-            return "redirect:" + ImportStageUrls.redirectAfterStandardsSave(
-                    chassisNo,
-                    pipelineStageService.keys(PipelineStageService.FLOW_IMPORT)
-            );
-        } catch (IllegalArgumentException ex) {
-            redirectAttributes.addFlashAttribute("error", ex.getMessage());
-            redirectAttributes.addFlashAttribute("record", record);
-            return "redirect:/auction/new";
-        }
+        return ImportStageSave.openExistingOrCreate(
+                chassisNo,
+                record,
+                redirectAttributes,
+                vehicleService,
+                importProgressService,
+                customsProgressService,
+                pipelineStageService,
+                null,
+                null,
+                () -> {
+                    record.setChassisNo(chassisNo);
+                    certificateService.save(record);
+                },
+                "Standards certificate saved.",
+                keys -> ImportStageUrls.redirectAfterStandardsSave(chassisNo, keys)
+        );
     }
 
     @GetMapping("/{chassisNo}")
@@ -153,14 +130,7 @@ public class StandardsCertificateController {
     @PostMapping("/upload-document")
     @ResponseBody
     public SheetUploadResult uploadDocument(@RequestParam("file") MultipartFile file) {
-        try {
-            return documentStorageService.storeStandards(file);
-        } catch (IOException ex) {
-            SheetUploadResult failed = new SheetUploadResult();
-            failed.setSuccess(false);
-            failed.setMessage("Could not save the document. " + ex.getMessage());
-            return failed;
-        }
+        return DocumentUploads.store(() -> documentStorageService.storeStandards(file), "Could not save the document. ");
     }
 
     @PostMapping("/parse-document")
@@ -177,18 +147,19 @@ public class StandardsCertificateController {
             RedirectAttributes redirectAttributes
     ) {
         record.setChassisNo(chassisNo);
-        try {
-            certificateService.save(record);
-            importProgressService.syncVehicleStage(chassisNo);
-            customsProgressService.syncVehicleStage(chassisNo);
-            redirectAttributes.addFlashAttribute("successMessage", "Standards certificate saved.");
-            return "redirect:" + ImportStageUrls.redirectAfterStandardsSave(
-                    chassisNo,
-                    pipelineStageService.keys(PipelineStageService.FLOW_IMPORT)
-            );
-        } catch (IllegalArgumentException ex) {
-            redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
-            return "redirect:/standards/" + Utils.encodeChassis(chassisNo) + (hub ? "?hub=1" : "");
-        }
+        return ImportStageSave.saveAndSync(
+                chassisNo,
+                hub,
+                "/standards/",
+                redirectAttributes,
+                () -> certificateService.save(record),
+                importProgressService,
+                customsProgressService,
+                "Standards certificate saved.",
+                () -> ImportStageUrls.redirectAfterStandardsSave(
+                        chassisNo,
+                        pipelineStageService.keys(PipelineStageService.FLOW_IMPORT)
+                )
+        );
     }
 }

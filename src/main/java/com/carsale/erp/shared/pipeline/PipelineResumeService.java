@@ -16,6 +16,7 @@ import com.carsale.erp.shared.utils.PipelineStageUtils;
 import com.carsale.erp.shared.vehicle.Vehicle;
 import com.carsale.erp.shared.vehicle.VehicleIntake;
 import com.carsale.erp.shared.vehicle.VehicleStage;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -166,13 +167,9 @@ public class PipelineResumeService {
     }
 
     @Getter
+    @AllArgsConstructor
     public static final class Resume {
         private final String href;
         private final String label;
-
-        public Resume(String href, String label) {
-            this.href = href;
-            this.label = label;
-        }
     }
 }

@@ -1,5 +1,6 @@
 package com.carsale.erp.shared.vehicle;
 
+import lombok.RequiredArgsConstructor;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -54,6 +55,7 @@ import com.carsale.erp.shared.vehicle.VehicleSummary.PriceGroup;
 import com.carsale.erp.shared.vehicle.VehicleSummary.SpecLine;
 
 @Service
+@RequiredArgsConstructor
 public class VehicleSummaryService {
 
     private final VehicleService vehicleService;
@@ -75,45 +77,6 @@ public class VehicleSummaryService {
     private final SkippedStageService skippedStageService;
     private final WorkshopService workshopService;
 
-    public VehicleSummaryService(
-            VehicleService vehicleService,
-            ImportProgressService importProgressService,
-            PreShipmentService preShipmentService,
-            EquipmentInspectionService equipmentInspectionService,
-            CertificateOfInspectionService certificateOfInspectionService,
-            StandardsCertificateService standardsCertificateService,
-            ExportCertificateService exportCertificateService,
-            GradeSearchService gradeSearchService,
-            VehiclePhotoService vehiclePhotoService,
-            CustomsDocumentService customsDocumentService,
-            SaleListingService saleListingService,
-            SaleLocationService saleLocationService,
-            YardService yardService,
-            YardBayService yardBayService,
-            RegistrationCertificateService registrationCertificateService,
-            PreviousOwnerService previousOwnerService,
-            SkippedStageService skippedStageService,
-            WorkshopService workshopService
-    ) {
-        this.vehicleService = vehicleService;
-        this.importProgressService = importProgressService;
-        this.preShipmentService = preShipmentService;
-        this.equipmentInspectionService = equipmentInspectionService;
-        this.certificateOfInspectionService = certificateOfInspectionService;
-        this.standardsCertificateService = standardsCertificateService;
-        this.exportCertificateService = exportCertificateService;
-        this.gradeSearchService = gradeSearchService;
-        this.vehiclePhotoService = vehiclePhotoService;
-        this.customsDocumentService = customsDocumentService;
-        this.saleListingService = saleListingService;
-        this.saleLocationService = saleLocationService;
-        this.yardService = yardService;
-        this.yardBayService = yardBayService;
-        this.registrationCertificateService = registrationCertificateService;
-        this.previousOwnerService = previousOwnerService;
-        this.skippedStageService = skippedStageService;
-        this.workshopService = workshopService;
-    }
 
     public VehicleSummary build(String chassisNo) {
         if (chassisNo == null || chassisNo.trim().isEmpty()) {
@@ -816,8 +779,7 @@ public class VehicleSummaryService {
         } else {
             name = "Vehicle";
         }
-        String year = text(vehicle.getYear());
-        return year == null ? name : year + " " + name;
+        return name;
     }
 
     private static String stageLabel(Vehicle vehicle) {

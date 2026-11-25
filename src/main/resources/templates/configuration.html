@@ -14,7 +14,70 @@
                 </div>
             </div>
 
+            <p th:if="${successMessage}" class="alert alert-ok" th:text="${successMessage}"></p>
+            <p th:if="${errorMessage}" class="alert alert-error" th:text="${errorMessage}"></p>
+
             <section class="config-hub">
+                <article class="config-tile config-tile--business">
+                    <div class="config-tile-copy">
+                        <span class="config-tile-kicker">Workspace</span>
+                        <h2>Business type</h2>
+                        <p>Choose which pipelines are available when adding a vehicle.</p>
+                        <form th:action="@{/configuration/business-type}" method="post" class="business-type-form">
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                            <label class="business-type-option">
+                                <input type="radio" name="businessType" value="registered"
+                                       th:checked="${businessType != null and businessType.registered}">
+                                <span>
+                                    <strong>Registered</strong>
+                                    <em>Only the local purchase pipeline</em>
+                                </span>
+                            </label>
+                            <label class="business-type-option">
+                                <input type="radio" name="businessType" value="unregistered"
+                                       th:checked="${businessType != null and businessType.unregistered}">
+                                <span>
+                                    <strong>Unregistered</strong>
+                                    <em>Unregistered vehicles, all pipelines</em>
+                                </span>
+                            </label>
+                            <label class="business-type-option">
+                                <input type="radio" name="businessType" value="both"
+                                       th:checked="${businessType == null or businessType.both}">
+                                <span>
+                                    <strong>Both</strong>
+                                    <em>Local purchase and every unregistered pipeline</em>
+                                </span>
+                            </label>
+                            <button type="submit" class="panel-btn business-type-save">Save business type</button>
+                        </form>
+                    </div>
+                </article>
+
+                <article class="config-tile config-tile--business">
+                    <div class="config-tile-copy">
+                        <span class="config-tile-kicker">Public listing</span>
+                        <h2>Sales contact</h2>
+                        <p>These numbers appear on the public vehicle page for calls and WhatsApp enquiries.</p>
+                        <form th:action="@{/configuration/sales-contact}" method="post" class="sales-contact-form">
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                            <label>
+                                Phone number
+                                <input type="tel" name="phone" maxlength="40" autocomplete="tel"
+                                       placeholder="077 123 4567"
+                                       th:value="${salesContact != null ? salesContact.phone : ''}">
+                            </label>
+                            <label>
+                                WhatsApp number
+                                <input type="tel" name="whatsapp" maxlength="40" autocomplete="tel"
+                                       placeholder="077 123 4567"
+                                       th:value="${salesContact != null ? salesContact.whatsapp : ''}">
+                            </label>
+                            <button type="submit" class="panel-btn business-type-save">Save contact</button>
+                        </form>
+                    </div>
+                </article>
+
                 <a th:href="@{/stages}" class="config-tile config-tile--stages">
                     <img class="config-tile-art" th:src="@{/images/config/illu-stages.svg}" alt="">
                     <div class="config-tile-copy">

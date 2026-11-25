@@ -1,7 +1,8 @@
 package com.carsale.erp.preparationpipeline.controller;
 
+import com.carsale.erp.shared.document.DocumentUploads;
+import com.carsale.erp.shared.document.InlineDocumentResponse;
 import java.io.IOException;
-import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 
 import com.carsale.erp.importpipeline.util.AuctionParseResult;
@@ -19,8 +20,6 @@ import com.carsale.erp.shared.vehicle.VehicleIntake;
 import com.carsale.erp.shared.vehicle.VehicleService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -51,24 +50,13 @@ public class RegistrationCertificateController {
     public ResponseEntity<Resource> serveDocument(@PathVariable String storedName) throws IOException {
         Resource resource = documentStorageService.loadRegistrationCertificateAsResource(storedName);
         String contentType = documentStorageService.resolveContentType(storedName, null);
-        String encodedName = URLEncoder.encode(storedName, StandardCharsets.UTF_8.name()).replace("+", "%20");
-        return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + encodedName + "\"")
-                .contentType(MediaType.parseMediaType(contentType))
-                .body(resource);
+        return InlineDocumentResponse.of(resource, storedName, contentType);
     }
 
     @PostMapping("/upload-document")
     @ResponseBody
     public SheetUploadResult uploadDocument(@RequestParam("file") MultipartFile file) {
-        try {
-            return documentStorageService.storeRegistrationCertificate(file);
-        } catch (IOException ex) {
-            SheetUploadResult failed = new SheetUploadResult();
-            failed.setSuccess(false);
-            failed.setMessage("Could not save the document. " + ex.getMessage());
-            return failed;
-        }
+        return DocumentUploads.store(() -> documentStorageService.storeRegistrationCertificate(file), "Could not save the document. ");
     }
 
     @PostMapping("/parse-certificate")

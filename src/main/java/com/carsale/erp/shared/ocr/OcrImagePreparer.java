@@ -21,15 +21,14 @@ import javax.imageio.stream.ImageOutputStream;
 import com.carsale.erp.importpipeline.util.AuctionParseResult;
 import com.carsale.erp.shared.document.DocumentParser;
 import com.carsale.erp.shared.utils.Utils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
 @Component
+@Slf4j
 public class OcrImagePreparer {
-    private static final Logger log = LoggerFactory.getLogger(OcrImagePreparer.class);
 
     private final int maxImageSide;
     //private final int pdfRenderDpi;

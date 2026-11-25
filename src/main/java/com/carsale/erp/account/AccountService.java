@@ -1,5 +1,6 @@
 package com.carsale.erp.account;
 
+import lombok.RequiredArgsConstructor;
 import com.carsale.erp.shared.utils.Utils;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -11,15 +12,12 @@ import org.springframework.transaction.annotation.Transactional;
 import com.carsale.erp.security.CustomUserDetails;
 
 @Service
+@RequiredArgsConstructor
 public class AccountService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public AccountService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
-        this.userRepository = userRepository;
-        this.passwordEncoder = passwordEncoder;
-    }
 
     @Transactional
     public void updateProfile(

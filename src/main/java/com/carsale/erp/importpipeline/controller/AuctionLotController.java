@@ -1,10 +1,14 @@
 package com.carsale.erp.importpipeline.controller;
 
+import com.carsale.erp.shared.web.ListSearchRedirect;
+import com.carsale.erp.shared.document.DocumentUploads;
+import com.carsale.erp.shared.document.InlineDocumentResponse;
 import com.carsale.erp.customer.PersonalImportLinker;
 import com.carsale.erp.importpipeline.util.ImportStageUrls;
 import com.carsale.erp.shared.service.IntakePlanService;
+import com.carsale.erp.shared.settings.BusinessType;
+import com.carsale.erp.shared.settings.BusinessTypeService;
 import java.io.IOException;
-import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
@@ -18,8 +22,6 @@ import com.carsale.erp.shared.utils.Utils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.core.io.Resource;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -67,21 +69,24 @@ public class AuctionLotController {
     private final WorkingSheet.AuctionSheetParser parser;
     private final PersonalImportLinker personalImportLinker;
     private final IntakePlanService intakePlanService;
+    private final BusinessTypeService businessTypeService;
 
     @GetMapping
     public String list(@RequestParam(value = "q", required = false) String query) {
-        if (query != null && !query.trim().isEmpty()) {
-            return "redirect:/import?q=" + UriUtils.encodeQueryParam(query.trim(), StandardCharsets.UTF_8);
-        }
-        return "redirect:/import";
+        return ListSearchRedirect.to("/import", query);
     }
 
     @GetMapping("/new")
     public String createForm(
             @RequestParam(value = "customer", required = false) Long customerId,
             @RequestParam(value = "intake", required = false) String intake,
-            Model model
+            Model model,
+            RedirectAttributes redirectAttributes
     ) {
+        String blocked = rejectUnregisteredIntake(redirectAttributes);
+        if (blocked != null) {
+            return blocked;
+        }
         if (customerId != null) {
             personalImportLinker.remember(customerId);
         } else if (intake != null && !intake.trim().isEmpty()) {
@@ -150,11 +155,7 @@ public class AuctionLotController {
     public ResponseEntity<Resource> serveDocument(@PathVariable String storedName) throws IOException {
         Resource resource = documentStorageService.loadAsResource(storedName);
         String contentType = documentStorageService.resolveContentType(storedName, null);
-        String encodedName = URLEncoder.encode(storedName, StandardCharsets.UTF_8.name()).replace("+", "%20");
-        return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + encodedName + "\"")
-                .contentType(MediaType.parseMediaType(contentType))
-                .body(resource);
+        return InlineDocumentResponse.of(resource, storedName, contentType);
     }
 
     @GetMapping("/{chassisNo}")
@@ -219,14 +220,7 @@ public class AuctionLotController {
     @PostMapping("/upload-sheet")
     @ResponseBody
     public SheetUploadResult uploadSheet(@RequestParam("file") MultipartFile file) {
-        try {
-            return documentStorageService.store(file);
-        } catch (IOException ex) {
-            SheetUploadResult failed = new SheetUploadResult();
-            failed.setSuccess(false);
-            failed.setMessage("Could not save the document. " + ex.getMessage());
-            return failed;
-        }
+        return DocumentUploads.store(() -> documentStorageService.store(file), "Could not save the document. ");
     }
 
     @PostMapping("/parse-sheet")
@@ -244,6 +238,12 @@ public class AuctionLotController {
             @RequestParam(value = "editMode", defaultValue = "false") boolean editMode,
             RedirectAttributes redirectAttributes
     ) {
+        if (!editMode) {
+            String blocked = rejectUnregisteredIntake(redirectAttributes);
+            if (blocked != null) {
+                return blocked;
+            }
+        }
         try {
             String chassisNo = vehicle.getChassisNo() == null ? "" : vehicle.getChassisNo().trim();
             if (chassisNo.isEmpty()) {
@@ -392,6 +392,14 @@ public class AuctionLotController {
         } else {
             return "";
         }
+    }
+
+    private String rejectUnregisteredIntake(RedirectAttributes redirectAttributes) {
+        if (businessTypeService.current().isUnregisteredPipelinesEnabled()) {
+            return null;
+        }
+        redirectAttributes.addFlashAttribute("errorMessage", BusinessType.REGISTERED_ONLY_MESSAGE);
+        return "redirect:/configuration";
     }
 
     private String buildDuplicateChassisMessage(String chassisNo, Vehicle existing, ImportProgress status) {

@@ -9,6 +9,8 @@ import com.carsale.erp.importpipeline.service.VehiclePhotoService;
 import com.carsale.erp.preparationpipeline.service.PreparationProgressService;
 import com.carsale.erp.shared.dto.PreparationProgress;
 import com.carsale.erp.shared.service.IntakePlanService;
+import com.carsale.erp.shared.settings.BusinessType;
+import com.carsale.erp.shared.settings.BusinessTypeService;
 import com.carsale.erp.shared.utils.PipelineStageUtils;
 import com.carsale.erp.shared.utils.Utils;
 import lombok.RequiredArgsConstructor;
@@ -28,6 +30,7 @@ public class VehicleBasicsController {
     private final VehiclePhotoService photoService;
     private final PersonalImportLinker personalImportLinker;
     private final IntakePlanService intakePlanService;
+    private final BusinessTypeService businessTypeService;
     private final ImportProgressService importProgressService;
     private final CustomsProgressService customsProgressService;
     private final PreparationProgressService preparationProgressService;
@@ -37,8 +40,13 @@ public class VehicleBasicsController {
             @RequestParam(value = "intake", defaultValue = "company") String intake,
             @RequestParam(value = "importPipeline", defaultValue = "0") String importPipeline,
             @RequestParam(value = "customs", defaultValue = "0") String customs,
-            @RequestParam(value = "prep", defaultValue = "0") String prep
+            @RequestParam(value = "prep", defaultValue = "0") String prep,
+            RedirectAttributes redirectAttributes
     ) {
+        String blocked = rejectUnregisteredIntake(redirectAttributes);
+        if (blocked != null) {
+            return blocked;
+        }
         intakePlanService.remember(intake, on(importPipeline), on(customs), on(prep));
         return "redirect:" + intakePlanService.startPath();
     }
@@ -47,8 +55,13 @@ public class VehicleBasicsController {
     public String createForm(
             @RequestParam(value = "customer", required = false) Long customerId,
             @RequestParam(value = "intake", required = false) String intake,
-            Model model
+            Model model,
+            RedirectAttributes redirectAttributes
     ) {
+        String blocked = rejectUnregisteredIntake(redirectAttributes);
+        if (blocked != null) {
+            return blocked;
+        }
         if (customerId != null) {
             personalImportLinker.remember(customerId);
         } else if (intake != null && !intake.trim().isEmpty()) {
@@ -80,6 +93,10 @@ public class VehicleBasicsController {
             @RequestParam(value = "contentTypes", required = false) List<String> contentTypes,
             RedirectAttributes redirectAttributes
     ) {
+        String blocked = rejectUnregisteredIntake(redirectAttributes);
+        if (blocked != null) {
+            return blocked;
+        }
         String trimmed = chassisNo == null ? "" : chassisNo.trim();
         if (trimmed.isEmpty()) {
             redirectAttributes.addFlashAttribute("errorMessage", "Chassis number is required.");
@@ -144,6 +161,14 @@ public class VehicleBasicsController {
         }
         redirectAttributes.addFlashAttribute("successMessage", "Vehicle details saved.");
         return "redirect:/vehicle/basics/" + Utils.encodeChassis(vehicle.getChassisNo());
+    }
+
+    private String rejectUnregisteredIntake(RedirectAttributes redirectAttributes) {
+        if (businessTypeService.current().isUnregisteredPipelinesEnabled()) {
+            return null;
+        }
+        redirectAttributes.addFlashAttribute("errorMessage", BusinessType.REGISTERED_ONLY_MESSAGE);
+        return "redirect:/configuration";
     }
 
     private void addBasicsNav(Model model, Vehicle vehicle) {

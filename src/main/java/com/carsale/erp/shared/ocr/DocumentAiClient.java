@@ -14,8 +14,7 @@ import java.util.Map;
 import com.carsale.erp.shared.document.DocumentParser;
 import com.carsale.erp.shared.document.document.WorkingSheet;
 import com.carsale.erp.shared.dto.SaleProgress;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -33,9 +32,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * Calls a Document AI Custom Extractor processor and returns typed entities.
  */
 @Component
-public class  DocumentAiClient {
+@Slf4j
+public class DocumentAiClient {
 
-    private static final Logger log = LoggerFactory.getLogger(DocumentAiClient.class);
     private static final int CONNECT_TIMEOUT_MS = 30_000;
     private static final int READ_TIMEOUT_MS = 180_000;
 

@@ -1,20 +1,20 @@
 package com.carsale.erp.importpipeline.controller;
 
+import com.carsale.erp.importpipeline.util.ImportStageSave;
+import com.carsale.erp.shared.utils.PipelineStageUtils;
+import com.carsale.erp.shared.web.ListSearchRedirect;
+import com.carsale.erp.shared.document.DocumentUploads;
+import com.carsale.erp.shared.document.InlineDocumentResponse;
 import com.carsale.erp.importpipeline.util.ImportStageUrls;
 import java.io.IOException;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 
 import com.carsale.erp.importpipeline.model.EquipmentInspection;
 import com.carsale.erp.importpipeline.util.EquipmentInspectionFields;
 import com.carsale.erp.importpipeline.service.EquipmentInspectionService;
 import com.carsale.erp.shared.document.document.EquipmentInspectionParser;
 import com.carsale.erp.shared.ocr.OcrImagePreparer;
-import com.carsale.erp.shared.utils.Utils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -27,7 +27,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import org.springframework.web.util.UriUtils;
 
 import com.carsale.erp.importpipeline.util.AuctionParseResult;
 import com.carsale.erp.shared.document.SheetUploadResult;
@@ -56,21 +55,14 @@ public class EquipmentConditionController {
 
     @GetMapping
     public String list(@RequestParam(value = "q", required = false) String query) {
-        if (query != null && !query.trim().isEmpty()) {
-            return "redirect:/import?q=" + UriUtils.encodeQueryParam(query.trim(), StandardCharsets.UTF_8);
-        }
-        return "redirect:/import";
+        return ListSearchRedirect.to("/import", query);
     }
 
     @GetMapping("/documents/{storedName:.+}")
     public ResponseEntity<Resource> serveDocument(@PathVariable String storedName) throws IOException {
         Resource resource = documentStorageService.loadEquipmentAsResource(storedName);
         String contentType = documentStorageService.resolveContentType(storedName, null);
-        String encodedName = URLEncoder.encode(storedName, StandardCharsets.UTF_8.name()).replace("+", "%20");
-        return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + encodedName + "\"")
-                .contentType(MediaType.parseMediaType(contentType))
-                .body(resource);
+        return InlineDocumentResponse.of(resource, storedName, contentType);
     }
 
     @GetMapping("/new")
@@ -84,41 +76,27 @@ public class EquipmentConditionController {
             RedirectAttributes redirectAttributes
     ) {
         String chassisNo = record.getChassisNo() == null ? "" : record.getChassisNo().trim();
-        if (chassisNo.isEmpty()) {
-            redirectAttributes.addFlashAttribute("error", "Chassis number is required.");
-            redirectAttributes.addFlashAttribute("record", record);
-            return "redirect:/auction/new";
+        String missingChassis = ImportStageSave.requireChassis(chassisNo, record, redirectAttributes);
+        if (missingChassis != null) {
+            return missingChassis;
         }
-        Vehicle existing = vehicleService.findByChassisNo(chassisNo);
-        if (existing != null) {
-            ImportProgress status = importProgressService.progressFor(existing);
-            redirectAttributes.addFlashAttribute("notice",
-                    "Chassis number " + chassisNo + " is already in the import pipeline. "
-                            + "No new vehicle was created — opened the existing record instead.");
-            return "redirect:" + ImportStageUrls.pipelineHubUrl(
-                    chassisNo,
-                    status,
-                    pipelineStageService.keys(PipelineStageService.FLOW_IMPORT)
-            );
-        }
-        try {
-            Vehicle vehicle = new Vehicle();
-            vehicle.setChassisNo(chassisNo);
-            vehicleService.save(vehicle);
-            record.setChassisNo(chassisNo);
-            equipmentInspectionService.save(record);
-            importProgressService.syncVehicleStage(chassisNo);
-            customsProgressService.syncVehicleStage(chassisNo);
-            redirectAttributes.addFlashAttribute("successMessage", "Equipment condition saved.");
-            return "redirect:" + ImportStageUrls.redirectAfterEquipmentSave(
-                    chassisNo,
-                    pipelineStageService.keys(PipelineStageService.FLOW_IMPORT)
-            );
-        } catch (IllegalArgumentException ex) {
-            redirectAttributes.addFlashAttribute("error", ex.getMessage());
-            redirectAttributes.addFlashAttribute("record", record);
-            return "redirect:/auction/new";
-        }
+        return ImportStageSave.openExistingOrCreate(
+                chassisNo,
+                record,
+                redirectAttributes,
+                vehicleService,
+                importProgressService,
+                customsProgressService,
+                pipelineStageService,
+                null,
+                null,
+                () -> {
+                    record.setChassisNo(chassisNo);
+                    equipmentInspectionService.save(record);
+                },
+                "Equipment condition saved.",
+                keys -> ImportStageUrls.redirectAfterEquipmentSave(chassisNo, keys)
+        );
     }
 
     @GetMapping("/{chassisNo}")
@@ -139,16 +117,7 @@ public class EquipmentConditionController {
         model.addAttribute("hubMode", hub);
         model.addAttribute("vehicle", vehicle);
         model.addAttribute("record", record);
-        model.addAttribute("auctionDocReady", status.isAuctionReady());
-        model.addAttribute("preshipReady", status.isPreshipReady());
-        model.addAttribute("equipmentReady", status.isEquipmentReady());
-        model.addAttribute("jevicReady", status.isJevicReady());
-        model.addAttribute("coiReady", status.isCoiReady());
-        model.addAttribute("standardsReady", status.isStandardsReady());
-        model.addAttribute("exportReady", status.isExportReady());
-        model.addAttribute("gradeReady", status.isGradeReady());
-        model.addAttribute("photosReady", status.isPhotosReady());
-        model.addAttribute("worksheetReady", status.isWorksheetReady());
+        PipelineStageUtils.addPipelineFlags(model, status);
         model.addAttribute("stageNav", ImportStageUrls.editLinks(
                 chassisNo,
                 pipelineStageService.indexOf(PipelineStageService.FLOW_IMPORT, FlowStage.EQUIPMENT.getStageKey()),
@@ -161,14 +130,7 @@ public class EquipmentConditionController {
     @PostMapping("/upload-document")
     @ResponseBody
     public SheetUploadResult uploadDocument(@RequestParam("file") MultipartFile file) {
-        try {
-            return documentStorageService.storeEquipment(file);
-        } catch (IOException ex) {
-            SheetUploadResult failed = new SheetUploadResult();
-            failed.setSuccess(false);
-            failed.setMessage("Could not save the document. " + ex.getMessage());
-            return failed;
-        }
+        return DocumentUploads.store(() -> documentStorageService.storeEquipment(file), "Could not save the document. ");
     }
 
     @PostMapping("/parse-document")
@@ -188,19 +150,20 @@ public class EquipmentConditionController {
             RedirectAttributes redirectAttributes
     ) {
         record.setChassisNo(chassisNo);
-        try {
-            equipmentInspectionService.save(record);
-            importProgressService.syncVehicleStage(chassisNo);
-            customsProgressService.syncVehicleStage(chassisNo);
-            redirectAttributes.addFlashAttribute("successMessage", "Equipment condition saved.");
-            return "redirect:" + ImportStageUrls.redirectAfterEquipmentSave(
-                    chassisNo,
-                    pipelineStageService.keys(PipelineStageService.FLOW_IMPORT)
-            );
-        } catch (IllegalArgumentException ex) {
-            redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
-            return "redirect:/equipment/" + Utils.encodeChassis(chassisNo) + (hub ? "?hub=1" : "");
-        }
+        return ImportStageSave.saveAndSync(
+                chassisNo,
+                hub,
+                "/equipment/",
+                redirectAttributes,
+                () -> equipmentInspectionService.save(record),
+                importProgressService,
+                customsProgressService,
+                "Equipment condition saved.",
+                () -> ImportStageUrls.redirectAfterEquipmentSave(
+                        chassisNo,
+                        pipelineStageService.keys(PipelineStageService.FLOW_IMPORT)
+                )
+        );
     }
 
     private void addFieldCatalog(Model model) {

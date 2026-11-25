@@ -62,7 +62,7 @@ public class GradeSearchParser implements DocumentParser {
                 if (entity == null) {
                     continue;
                 }
-                String field = Utils.mapType(entity.getType(), TYPE_TO_FIELD);
+                String field = Utils.mapDocumentTypeToField(entity.getType(), TYPE_TO_FIELD);
                 if (field == null || result.getFields().containsKey(field)) {
                     continue;
                 }

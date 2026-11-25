@@ -3,8 +3,7 @@ package com.carsale.erp.config;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
@@ -17,9 +16,9 @@ import org.springframework.transaction.CannotCreateTransactionException;
 @Aspect
 @Component
 @Order(Ordered.HIGHEST_PRECEDENCE)
+@Slf4j
 public class DeadConnectionRetryAspect {
 
-    private static final Logger log = LoggerFactory.getLogger(DeadConnectionRetryAspect.class);
 
     @Around("@annotation(org.springframework.transaction.annotation.Transactional)")
     public Object retryIfConnectionClosed(ProceedingJoinPoint joinPoint) throws Throwable {

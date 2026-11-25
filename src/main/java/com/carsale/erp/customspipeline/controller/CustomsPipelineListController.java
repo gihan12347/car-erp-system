@@ -9,6 +9,8 @@ import com.carsale.erp.shared.model.PipelineStage;
 import com.carsale.erp.shared.pipeline.*;
 import com.carsale.erp.shared.service.PipelineStageService;
 import com.carsale.erp.shared.utils.PipelineStageUtils;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -145,21 +147,10 @@ public class CustomsPipelineListController {
         return "customs-pipeline/detail";
     }
 
+    @Getter
+    @AllArgsConstructor
     public static final class CustomsListRow {
         private final Vehicle vehicle;
         private final CustomsProgress status;
-
-        public CustomsListRow(Vehicle vehicle, CustomsProgress status) {
-            this.vehicle = vehicle;
-            this.status = status;
-        }
-
-        public Vehicle getVehicle() {
-            return vehicle;
-        }
-
-        public CustomsProgress getStatus() {
-            return status;
-        }
     }
 }

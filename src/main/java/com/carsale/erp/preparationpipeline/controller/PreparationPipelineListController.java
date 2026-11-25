@@ -31,6 +31,8 @@ import com.carsale.erp.shared.vehicle.VehicleStage;
 import com.carsale.erp.shared.dto.PreparationProgress;
 import com.carsale.erp.preparationpipeline.service.VehicleInspectionService;
 import com.carsale.erp.shared.vehicle.VehicleService;
+import com.carsale.erp.shared.settings.BusinessType;
+import com.carsale.erp.shared.settings.BusinessTypeService;
 import com.carsale.erp.shared.web.ListPaging;
 import com.carsale.erp.preparationpipeline.service.WorkshopService;
 import com.carsale.erp.preparationpipeline.service.YardService;
@@ -51,6 +53,7 @@ public class PreparationPipelineListController {
     private final PipelineStageService pipelineStageService;
     private final RegistrationCertificateService registrationCertificateService;
     private final RegisteredProgressService registeredProgressService;
+    private final BusinessTypeService businessTypeService;
 
     @GetMapping("/workshop-yard")
     public String list(
@@ -76,7 +79,11 @@ public class PreparationPipelineListController {
     }
 
     @GetMapping("/workshop-yard/new")
-    public String createForm(Model model) {
+    public String createForm(Model model, RedirectAttributes redirectAttributes) {
+        String blocked = rejectLocalPurchase(redirectAttributes);
+        if (blocked != null) {
+            return blocked;
+        }
         model.addAttribute("pageTitle", "Vehicle book");
         model.addAttribute("activeMenu", "registered");
         if (!model.containsAttribute("certificate")) {
@@ -91,6 +98,10 @@ public class PreparationPipelineListController {
             @ModelAttribute("certificate") RegistrationCertificate certificate,
             RedirectAttributes redirectAttributes
     ) {
+        String blocked = rejectLocalPurchase(redirectAttributes);
+        if (blocked != null) {
+            return blocked;
+        }
         try {
             String chassisNo = certificate.getChassisNo() == null ? "" : certificate.getChassisNo().trim();
             certificate.setChassisNo(chassisNo);
@@ -221,6 +232,14 @@ public class PreparationPipelineListController {
         model.addAttribute("stageKey", stageKey);
         model.addAttribute("stageNav", nav);
         return "preparation-pipeline/detail";
+    }
+
+    private String rejectLocalPurchase(RedirectAttributes redirectAttributes) {
+        if (businessTypeService.current().isLocalPurchaseEnabled()) {
+            return null;
+        }
+        redirectAttributes.addFlashAttribute("errorMessage", BusinessType.UNREGISTERED_ONLY_MESSAGE);
+        return "redirect:/configuration";
     }
 
     @Getter

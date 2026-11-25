@@ -136,7 +136,7 @@ public class RegistrationCertificateParser implements DocumentParser {
                 if (entity == null) {
                     continue;
                 }
-                String field = Utils.mapType(entity.getType(), TYPE_TO_FIELD);
+                String field = Utils.mapDocumentTypeToField(entity.getType(), TYPE_TO_FIELD);
                 if (field == null) {
                     continue;
                 }

@@ -56,7 +56,7 @@ public class ReportController {
             @RequestParam(value = "to", required = false) String to,
             RedirectAttributes redirectAttributes
     ) {
-        if (StandardReportService.isKnown(kind)) {
+        if (!standardReportService.isAvailable(kind)) {
             redirectAttributes.addFlashAttribute("errorMessage", "Choose a report to generate.");
             return "redirect:/reports";
         }
@@ -94,7 +94,7 @@ public class ReportController {
             @RequestParam(value = "from", required = false) String from,
             @RequestParam(value = "to", required = false) String to
     ) {
-        if (StandardReportService.isKnown(kind)) {
+        if (!standardReportService.isAvailable(kind)) {
             return ResponseEntity.notFound().build();
         }
         StandardReportService.StandardReport report = standardReportService.build(kind, query, section, from, to);
@@ -107,7 +107,7 @@ public class ReportController {
     }
 
     private String show(String kind, String query, String section, String from, String to, String page, Model model) {
-        if (StandardReportService.isKnown(kind)) {
+        if (!standardReportService.isAvailable(kind)) {
             return "redirect:/reports";
         }
         StandardReportService.StandardReport report = standardReportService.build(kind, query, section, from, to);

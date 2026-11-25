@@ -5,15 +5,22 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.carsale.erp.report.DashboardService;
+import com.carsale.erp.shared.settings.BusinessType;
+import com.carsale.erp.shared.settings.BusinessTypeService;
+import com.carsale.erp.shared.settings.SalesContactService;
 
 @Controller
 @RequiredArgsConstructor
 public class AppPageController {
 
     private final DashboardService dashboardService;
+    private final BusinessTypeService businessTypeService;
+    private final SalesContactService salesContactService;
 
     @GetMapping("/")
     public String home() {
@@ -37,6 +44,35 @@ public class AppPageController {
         model.addAttribute("pageTitle", "Configuration");
         model.addAttribute("activeMenu", "configuration");
         return "configuration";
+    }
+
+    @PostMapping("/configuration/business-type")
+    public String saveBusinessType(
+            @RequestParam("businessType") String businessType,
+            RedirectAttributes redirectAttributes
+    ) {
+        try {
+            businessTypeService.save(BusinessType.parse(businessType));
+            redirectAttributes.addFlashAttribute("successMessage", "Business type saved.");
+        } catch (IllegalArgumentException ex) {
+            redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
+        }
+        return "redirect:/configuration";
+    }
+
+    @PostMapping("/configuration/sales-contact")
+    public String saveSalesContact(
+            @RequestParam(value = "phone", required = false) String phone,
+            @RequestParam(value = "whatsapp", required = false) String whatsapp,
+            RedirectAttributes redirectAttributes
+    ) {
+        try {
+            salesContactService.save(phone, whatsapp);
+            redirectAttributes.addFlashAttribute("successMessage", "Sales contact saved.");
+        } catch (IllegalArgumentException ex) {
+            redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
+        }
+        return "redirect:/configuration";
     }
 
     @GetMapping("/vehicles")

@@ -1,5 +1,6 @@
 package com.carsale.erp.report;
 
+import lombok.RequiredArgsConstructor;
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
@@ -28,6 +29,7 @@ import com.carsale.erp.shared.vehicle.VehicleService;
 import java.nio.charset.StandardCharsets;
 
 @Service
+@RequiredArgsConstructor
 public class ReportService {
 
     public static final String ALL = "all";
@@ -45,21 +47,6 @@ public class ReportService {
     private final SaleListingRepository saleListingRepository;
     private final CustomsDocumentRepository customsDocumentRepository;
 
-    public ReportService(
-            VehicleService vehicleService,
-            ImportProgressService importProgressService,
-            CustomsProgressService customsProgressService,
-            PreparationProgressService preparationProgressService,
-            SaleListingRepository saleListingRepository,
-            CustomsDocumentRepository customsDocumentRepository
-    ) {
-        this.vehicleService = vehicleService;
-        this.importProgressService = importProgressService;
-        this.customsProgressService = customsProgressService;
-        this.preparationProgressService = preparationProgressService;
-        this.saleListingRepository = saleListingRepository;
-        this.customsDocumentRepository = customsDocumentRepository;
-    }
 
     @Transactional(readOnly = true)
     public ReportPage build(String query, String section) {

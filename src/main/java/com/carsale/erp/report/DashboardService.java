@@ -1,5 +1,6 @@
 package com.carsale.erp.report;
 
+import lombok.RequiredArgsConstructor;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
@@ -36,6 +37,7 @@ import com.carsale.erp.shared.vehicle.VehicleService;
 import com.carsale.erp.shared.vehicle.VehicleTotalCost;
 
 @Service
+@RequiredArgsConstructor
 public class DashboardService {
 
     private static final int TABLE_LIMIT = 8;
@@ -51,27 +53,6 @@ public class DashboardService {
     private final WorkshopJobRepository workshopJobRepository;
     private final PipelineResumeService pipelineResumeService;
 
-    public DashboardService(
-            ReportService reportService,
-            SaleLocationService saleLocationService,
-            YardBayService yardBayService,
-            VehicleService vehicleService,
-            SaleListingRepository saleListingRepository,
-            YardRecordRepository yardRecordRepository,
-            CustomsDocumentRepository customsDocumentRepository,
-            WorkshopJobRepository workshopJobRepository,
-            PipelineResumeService pipelineResumeService
-    ) {
-        this.reportService = reportService;
-        this.saleLocationService = saleLocationService;
-        this.yardBayService = yardBayService;
-        this.vehicleService = vehicleService;
-        this.saleListingRepository = saleListingRepository;
-        this.yardRecordRepository = yardRecordRepository;
-        this.customsDocumentRepository = customsDocumentRepository;
-        this.workshopJobRepository = workshopJobRepository;
-        this.pipelineResumeService = pipelineResumeService;
-    }
 
     @Transactional(readOnly = true)
     public DashboardPage build(String rawPeriod) {

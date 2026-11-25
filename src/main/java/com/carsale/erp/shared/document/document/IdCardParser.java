@@ -103,7 +103,7 @@ public class IdCardParser implements DocumentParser {
                 if (entity == null) {
                     continue;
                 }
-                String field = Utils.mapType(entity.getType(), TYPE_TO_FIELD);
+                String field = Utils.mapDocumentTypeToField(entity.getType(), TYPE_TO_FIELD);
                 String value = clean(entity.getValue());
                 if (field != null && value != null) {
                     result.put(field, value);

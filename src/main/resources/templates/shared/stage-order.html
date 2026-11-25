@@ -22,23 +22,31 @@
             <p id="stageOrderError" class="alert alert-error" hidden></p>
 
             <section class="stage-order-grid">
-                <article class="panel stage-order-flow" th:each="flow : ${flowGroups}" th:attr="data-flow-id=${flow.id}">
+                <article class="panel stage-order-flow"
+                         th:each="flow : ${flowGroups}"
+                         th:classappend="${businessType != null and !businessType.isFlowEnabled(flow.flowKey)} ? ' is-locked' : ''"
+                         th:attr="data-flow-id=${flow.id}">
                     <div class="panel-head">
                         <h2>
                             <i class="fa-solid" th:classappend="${flow.icon}"></i>
                             <span th:text="${flow.title}">Import pipeline</span>
                         </h2>
-                        <button type="button" class="panel-btn ghost stage-reset-btn" th:attr="data-flow-id=${flow.id}">
+                        <button type="button" class="panel-btn ghost stage-reset-btn"
+                                th:attr="data-flow-id=${flow.id}"
+                                th:disabled="${businessType != null and !businessType.isFlowEnabled(flow.flowKey)}">
                             Reset default
                         </button>
                     </div>
                     <p class="muted" th:text="${flow.description}">Auction lot and pre-shipment certificate</p>
+                    <p class="muted stage-order-lock"
+                       th:if="${businessType != null and !businessType.isFlowEnabled(flow.flowKey)}">
+                        Turned off for this business type.
+                    </p>
                     <ol class="stage-order-list" th:attr="data-flow-id=${flow.id}">
                         <li class="stage-order-item"
                             th:each="stage, iter : ${flow.stages}"
-                            draggable="true"
                             th:classappend="${stage.enabled} ? '' : ' is-disabled'"
-                            th:attr="data-stage-key=${stage.stageKey}">
+                            th:attr="data-stage-key=${stage.stageKey},draggable=${businessType == null or businessType.isFlowEnabled(flow.flowKey)}">
                             <span class="stage-order-handle" title="Drag to reorder" aria-hidden="true">
                                 <i class="fa-solid fa-grip-vertical"></i>
                             </span>
@@ -51,6 +59,7 @@
                                 <input type="checkbox"
                                        class="stage-enabled-input"
                                        th:checked="${stage.enabled}"
+                                       th:disabled="${businessType != null and !businessType.isFlowEnabled(flow.flowKey)}"
                                        th:attr="data-flow-id=${flow.id}, data-stage-key=${stage.stageKey}">
                                 <span class="stage-enabled-track" aria-hidden="true"></span>
                                 <span class="stage-enabled-text" th:text="${stage.enabled} ? 'Enabled' : 'Disabled'">Enabled</span>

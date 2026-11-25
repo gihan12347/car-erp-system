@@ -1,5 +1,6 @@
 package com.carsale.erp.shared.vehicle;
 
+import lombok.RequiredArgsConstructor;
 import com.carsale.erp.importpipeline.service.VehiclePhotoService;
 import com.carsale.erp.shared.document.SheetDocumentStorageService;
 import com.carsale.erp.shared.service.PipelineStageService;
@@ -27,6 +28,7 @@ import com.carsale.erp.preparationpipeline.repository.WorkshopJobRepository;
 import com.carsale.erp.preparationpipeline.repository.YardRecordRepository;
 
 @Service
+@RequiredArgsConstructor
 public class VehicleService {
     private final VehicleRepository vehicleRepository;
     private final SheetDocumentStorageService documentStorageService;
@@ -46,43 +48,6 @@ public class VehicleService {
     private final SaleListingRepository saleListingRepository;
     private final VehicleRegistrationRepository vehicleRegistrationRepository;
 
-    public VehicleService(
-            VehicleRepository vehicleRepository,
-            SheetDocumentStorageService documentStorageService,
-            PreShipmentInspectionRepository preShipmentInspectionRepository,
-            CustomsDocumentRepository clearanceDocumentRepository,
-            EquipmentInspectionRepository equipmentInspectionRepository,
-            InspectionCertificateRepository inspectionCertificateRepository,
-            StandardsCertificateRepository standardsCertificateRepository,
-            ExportCertificateRepository exportCertificateRepository,
-            GradeSearchRepository gradeSearchRepository,
-            VehiclePhotoService vehiclePhotoService,
-            WorkshopJobRepository workshopJobRepository,
-            YardRecordRepository yardRecordRepository,
-            VehicleInspectionRepository vehicleInspectionRepository,
-            RegistrationCertificateRepository registrationCertificateRepository,
-            PreviousOwnerRepository previousOwnerRepository,
-            SaleListingRepository saleListingRepository,
-            VehicleRegistrationRepository vehicleRegistrationRepository
-    ) {
-        this.vehicleRepository = vehicleRepository;
-        this.documentStorageService = documentStorageService;
-        this.preShipmentInspectionRepository = preShipmentInspectionRepository;
-        this.clearanceDocumentRepository = clearanceDocumentRepository;
-        this.equipmentInspectionRepository = equipmentInspectionRepository;
-        this.inspectionCertificateRepository = inspectionCertificateRepository;
-        this.standardsCertificateRepository = standardsCertificateRepository;
-        this.exportCertificateRepository = exportCertificateRepository;
-        this.gradeSearchRepository = gradeSearchRepository;
-        this.vehiclePhotoService = vehiclePhotoService;
-        this.workshopJobRepository = workshopJobRepository;
-        this.yardRecordRepository = yardRecordRepository;
-        this.vehicleInspectionRepository = vehicleInspectionRepository;
-        this.registrationCertificateRepository = registrationCertificateRepository;
-        this.previousOwnerRepository = previousOwnerRepository;
-        this.saleListingRepository = saleListingRepository;
-        this.vehicleRegistrationRepository = vehicleRegistrationRepository;
-    }
 
     public List<Vehicle> findAll() {
         return newestFirst(vehicleRepository.findAll());

@@ -6,16 +6,15 @@ import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import com.carsale.erp.shared.regex.RegexConstants;
 
 @Service
+@Slf4j
 public class JapaneseTextTranslatorService implements JapaneseTextTranslator {
 
-    private static final Logger log = LoggerFactory.getLogger(JapaneseTextTranslatorService.class);
 
     private final GoogleTranslateClient googleTranslate;
     private final MyMemoryTranslateClient myMemoryTranslate;

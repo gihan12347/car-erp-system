@@ -6,15 +6,14 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component
+@Slf4j
 public class OcrProviderSettings {
 
-    private static final Logger log = LoggerFactory.getLogger(OcrProviderSettings.class);
 
     private final String defaultProvider;
     private final Path storeFile;

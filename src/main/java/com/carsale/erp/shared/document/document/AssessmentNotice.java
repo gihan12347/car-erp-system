@@ -115,7 +115,7 @@ public class AssessmentNotice implements DocumentParser {
                     pendingValue = taxResult.getPendingValue();
                     continue;
                 }
-                String field = Utils.mapType(entity.getType(), TYPE_TO_FIELD);
+                String field = Utils.mapDocumentTypeToField(entity.getType(), TYPE_TO_FIELD);
                 if (field != null) {
                     result.put(
                             field,

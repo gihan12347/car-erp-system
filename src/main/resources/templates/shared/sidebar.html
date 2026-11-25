@@ -18,13 +18,16 @@
             <i class="fa-solid fa-house"></i><span>Dashboard</span>
         </a>
 
-        <a th:href="@{/import}" th:classappend="${activeMenu == 'import'} ? 'is-active' : ''">
+        <a th:if="${businessType == null or businessType.unregisteredPipelinesEnabled}"
+           th:href="@{/import}" th:classappend="${activeMenu == 'import'} ? 'is-active' : ''">
             <i class="fa-solid fa-route"></i><span>Imports</span>
         </a>
-        <a th:href="@{/customs}" th:classappend="${activeMenu == 'customs'} ? 'is-active' : ''">
+        <a th:if="${businessType == null or businessType.unregisteredPipelinesEnabled}"
+           th:href="@{/customs}" th:classappend="${activeMenu == 'customs'} ? 'is-active' : ''">
             <i class="fa-solid fa-passport"></i><span>Custom Clearance</span>
         </a>
-        <a th:href="@{/registered}" th:classappend="${activeMenu == 'registered'} ? 'is-active' : ''">
+        <a th:if="${businessType == null or businessType.localPurchaseEnabled}"
+           th:href="@{/registered}" th:classappend="${activeMenu == 'registered'} ? 'is-active' : ''">
             <i class="fa-solid fa-id-card"></i><span>Registered</span>
         </a>
         <a th:href="@{/workshop-yard}" th:classappend="${activeMenu == 'workshop-yard'} ? 'is-active' : ''">
