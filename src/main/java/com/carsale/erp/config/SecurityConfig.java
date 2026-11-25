@@ -2,6 +2,7 @@ package com.carsale.erp.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -37,6 +38,7 @@ public class SecurityConfig {
                             "/login",
                             "/shared/**"
                     ).permitAll()
+                    .antMatchers(HttpMethod.GET, "/configuration/business-logo").permitAll()
                     .anyRequest().authenticated()
                 .and()
                 .formLogin()

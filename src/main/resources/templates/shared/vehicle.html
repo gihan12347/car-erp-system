@@ -10,15 +10,24 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
-    <link rel="stylesheet" th:href="@{/css/public-share.css(v=20261125m)}">
+    <link rel="stylesheet" th:href="@{/css/public-share.css(v=20261125w)}">
 </head>
 <body class="share-page">
 <header class="share-top">
-    <a class="share-brand" href="#top">
-        <span><i class="fa-solid fa-car"></i></span>
-        <strong>CAR ERP</strong>
+    <a class="share-brand" href="#top"
+       th:aria-label="${businessProfile != null and businessProfile.hasName ? businessProfile.name : 'CAR ERP'}">
+        <img th:if="${businessProfile != null and businessProfile.hasLogo}"
+             class="share-logo"
+             th:src="@{/configuration/business-logo(v=${businessProfile.logoStoredName})}"
+             alt="">
+        <span class="share-mark" th:unless="${businessProfile != null and businessProfile.hasLogo}">
+            <i class="fa-solid fa-car"></i>
+        </span>
+        <span class="share-brand-copy">
+            <strong th:text="${businessProfile != null and businessProfile.hasName ? businessProfile.name : 'CAR ERP'}">CAR ERP</strong>
+            <small>Import · Clearance · Prep</small>
+        </span>
     </a>
-    <p>Vehicle for sale</p>
 </header>
 
 <main class="share-main" id="top">
@@ -111,7 +120,7 @@
 
         <div class="ad-split"
              th:if="${(salesContact != null and salesContact.hasAny) or vehicle.locationName != null or vehicle.locationAddress != null}">
-            <section class="ad-block" th:if="${salesContact != null and salesContact.hasAny}">
+            <section class="ad-block" id="ad-contact" th:if="${salesContact != null and salesContact.hasAny}">
                 <h2>Contact</h2>
                 <p class="ad-lead">Talk to the sales team about this vehicle.</p>
                 <div class="ad-actions">
@@ -135,22 +144,32 @@
                 </div>
             </section>
 
-            <section class="ad-block" th:if="${vehicle.locationName != null or vehicle.locationAddress != null}">
-                <div class="ad-place-head">
+            <section class="ad-block ad-location" th:if="${vehicle.locationName != null or vehicle.locationAddress != null}">
+                <h2>Vehicle Location</h2>
+                <div class="ad-location-place">
+                    <i class="fa-solid fa-location-dot" aria-hidden="true"></i>
                     <div>
-                        <h2>Sale location</h2>
-                        <strong th:if="${vehicle.locationName != null}" th:text="${vehicle.locationName}">Outdoor lot</strong>
-                        <p th:if="${vehicle.locationAddress != null}" th:text="${vehicle.locationAddress}">Street display</p>
+                        <strong th:text="${vehicle.locationAddress != null ? vehicle.locationAddress : vehicle.locationName}">Negombo, Sri Lanka</strong>
+                        <p>Vehicle available for inspection</p>
                     </div>
-                    <a class="ad-directions" th:if="${vehicle.directionsUrl != null}"
-                       th:href="${vehicle.directionsUrl}" target="_blank" rel="noopener">
-                        <i class="fa-solid fa-diamond-turn-right"></i>
-                        Directions
-                    </a>
                 </div>
                 <p class="ad-map-note" th:unless="${vehicle.mapped}">The showroom address is listed above. A map pin has not been set for this location.</p>
                 <div id="shareMap" class="ad-map" th:if="${vehicle.mapped}"
                      th:attr="data-lat=${vehicle.latitude}, data-lng=${vehicle.longitude}, data-name=${vehicle.locationName}, data-address=${vehicle.locationAddress}"></div>
+                <a class="ad-directions" th:if="${vehicle.directionsUrl != null}"
+                   th:href="${vehicle.directionsUrl}" target="_blank" rel="noopener">
+                    <i class="fa-solid fa-location-arrow" aria-hidden="true"></i>
+                    Get Directions
+                    <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
+                </a>
+                <a class="ad-location-note" th:if="${salesContact != null and salesContact.hasAny}" href="#ad-contact">
+                    <i class="fa-solid fa-circle-chevron-down" aria-hidden="true"></i>
+                    Contact the seller before visiting.
+                </a>
+                <p class="ad-location-note" th:unless="${salesContact != null and salesContact.hasAny}">
+                    <i class="fa-solid fa-circle-chevron-down" aria-hidden="true"></i>
+                    Contact the seller before visiting.
+                </p>
             </section>
         </div>
 
@@ -337,7 +356,7 @@
         var lat = Number(mapNode.getAttribute("data-lat"));
         var lng = Number(mapNode.getAttribute("data-lng"));
         if (!isNaN(lat) && !isNaN(lng)) {
-            var map = L.map(mapNode).setView([lat, lng], 15);
+            var map = L.map(mapNode, { zoomControl: false, scrollWheelZoom: false }).setView([lat, lng], 15);
             L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
                 maxZoom: 19,
                 attribution: "&copy; OpenStreetMap"
@@ -347,13 +366,19 @@
                     return ch === "&" ? "&amp;" : (ch === "<" ? "&lt;" : "&gt;");
                 });
             }
-            var name = mapNode.getAttribute("data-name") || "Sale location";
+            var name = mapNode.getAttribute("data-name") || "Vehicle location";
             var address = mapNode.getAttribute("data-address");
             var popup = escapeHtml(name);
             if (address) {
                 popup += "<br>" + escapeHtml(address);
             }
-            L.marker([lat, lng]).addTo(map).bindPopup(popup);
+            var pin = L.divIcon({
+                className: "ad-map-pin",
+                html: "<span></span>",
+                iconSize: [22, 22],
+                iconAnchor: [11, 22]
+            });
+            L.marker([lat, lng], { icon: pin }).addTo(map).bindPopup(popup);
             setTimeout(function () { map.invalidateSize(); }, 200);
         }
     }

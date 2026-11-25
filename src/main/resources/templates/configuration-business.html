@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="shared/head :: head(${pageTitle})"></head>
+<body>
+<div class="app-shell">
+    <aside th:replace="shared/sidebar :: sidebar(${activeMenu})"></aside>
+    <div class="app-main">
+        <header th:replace="shared/topbar :: topbar"></header>
+        <main class="page-content">
+            <div class="dash-head">
+                <div>
+                    <a th:href="@{/configuration}" class="config-crumb">
+                        <i class="fa-solid fa-sliders" aria-hidden="true"></i>
+                        Configuration
+                    </a>
+                    <h1>Business details</h1>
+                    <p class="form-lead">The name and logo appear in the top header. Business type controls the pipelines, and the sales numbers appear on the public vehicle page.</p>
+                </div>
+            </div>
+
+            <p th:if="${successMessage}" class="alert alert-ok" th:text="${successMessage}"></p>
+            <p th:if="${errorMessage}" class="alert alert-error" th:text="${errorMessage}"></p>
+
+            <section class="business-sections">
+                <article class="business-section">
+                    <span class="config-tile-kicker">Workspace</span>
+                    <h2>Business name and logo</h2>
+                    <p>This name and logo appear in the top header bar.</p>
+                    <form th:action="@{/configuration/business-details(__${_csrf.parameterName}__=${_csrf.token})}"
+                          method="post" enctype="multipart/form-data" class="business-details-form">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                        <label>Business name
+                            <input type="text" name="businessName" maxlength="80" autocomplete="organization"
+                                   placeholder="Your business name"
+                                   th:value="${businessProfile != null and businessProfile.name != null ? businessProfile.name : ''}">
+                        </label>
+                        <label>Business logo
+                            <span class="business-logo-control">
+                                <img th:if="${businessProfile != null and businessProfile.hasLogo}"
+                                     class="business-logo-preview"
+                                     th:src="@{/configuration/business-logo(v=${businessProfile.logoStoredName})}"
+                                     alt="">
+                                <input type="file" name="logo" accept="image/jpeg,image/png,image/webp,image/gif">
+                            </span>
+                        </label>
+                        <label class="business-logo-remove" th:if="${businessProfile != null and businessProfile.hasLogo}">
+                            <input type="checkbox" name="removeLogo" value="true">
+                            Remove current logo
+                        </label>
+                        <button type="submit" class="panel-btn business-type-save">Save business details</button>
+                    </form>
+                </article>
+
+                <article class="business-section">
+                    <span class="config-tile-kicker">Workspace</span>
+                    <h2>Business type</h2>
+                    <p>Choose which pipelines are available when adding a vehicle.</p>
+                    <form th:action="@{/configuration/business-type}" method="post" class="business-type-form">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                        <label class="business-type-option">
+                            <input type="radio" name="businessType" value="registered"
+                                   th:checked="${businessType != null and businessType.registered}">
+                            <span>
+                                <strong>Registered</strong>
+                                <em>Only the local purchase pipeline</em>
+                            </span>
+                        </label>
+                        <label class="business-type-option">
+                            <input type="radio" name="businessType" value="unregistered"
+                                   th:checked="${businessType != null and businessType.unregistered}">
+                            <span>
+                                <strong>Unregistered</strong>
+                                <em>Unregistered vehicles, all pipelines</em>
+                            </span>
+                        </label>
+                        <label class="business-type-option">
+                            <input type="radio" name="businessType" value="both"
+                                   th:checked="${businessType == null or businessType.both}">
+                            <span>
+                                <strong>Both</strong>
+                                <em>Local purchase and every unregistered pipeline</em>
+                            </span>
+                        </label>
+                        <button type="submit" class="panel-btn business-type-save">Save business type</button>
+                    </form>
+                </article>
+
+                <article class="business-section">
+                    <span class="config-tile-kicker">Public listing</span>
+                    <h2>Sales contact</h2>
+                    <p>These numbers appear on the public vehicle page for calls and WhatsApp enquiries.</p>
+                    <form th:action="@{/configuration/sales-contact}" method="post" class="sales-contact-form">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                        <label>
+                            Phone number
+                            <input type="tel" name="phone" maxlength="40" autocomplete="tel"
+                                   placeholder="077 123 4567"
+                                   th:value="${salesContact != null ? salesContact.phone : ''}">
+                        </label>
+                        <label>
+                            WhatsApp number
+                            <input type="tel" name="whatsapp" maxlength="40" autocomplete="tel"
+                                   placeholder="077 123 4567"
+                                   th:value="${salesContact != null ? salesContact.whatsapp : ''}">
+                        </label>
+                        <button type="submit" class="panel-btn business-type-save">Save contact</button>
+                    </form>
+                </article>
+            </section>
+        </main>
+    </div>
+</div>
+<script th:src="@{/js/shared/app.js(v=20260905k)}"></script>
+</body>
+</html>

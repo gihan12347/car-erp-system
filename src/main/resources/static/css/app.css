@@ -53,36 +53,61 @@ a { color: inherit; text-decoration: none; }
 .sidebar-brand {
     display: flex;
     align-items: center;
-    gap: 12px;
-    height: 52px;
-    padding: 0 18px;
-    border-bottom: 1px solid rgba(255,255,255,0.06);
+    gap: 10px;
+    min-height: 68px;
+    padding: 12px 14px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
 }
 
 .brand-copy {
     min-width: 0;
+    flex: 1;
+}
+
+.brand-mark,
+.brand-logo {
+    width: 40px;
+    height: 40px;
+    flex-shrink: 0;
+    border-radius: 50%;
 }
 
 .brand-mark {
-    width: 32px;
-    height: 32px;
     display: grid;
     place-items: center;
-    border-radius: 10px;
     background: var(--brand);
     color: #fff;
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.14);
+}
+
+.brand-logo {
+    object-fit: cover;
+    background: #fff;
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.18);
 }
 
 .brand-copy strong {
     display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
     font-family: "Poppins", sans-serif;
-    font-size: 15px;
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: -0.01em;
     color: #fff;
 }
 
 .brand-copy small {
-    color: #a8a29e;
+    display: block;
+    margin-top: 2px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: #d6d3d1;
     font-size: 11px;
+    line-height: 1.2;
 }
 
 .sidebar-nav {
@@ -3259,6 +3284,7 @@ body.sheet-page .clearance-form .sheet-document.has-file .sheet-preview-frame {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 16px;
+    align-items: stretch;
 }
 
 .config-tile {
@@ -3381,22 +3407,57 @@ body.sheet-page .clearance-form .sheet-document.has-file .sheet-preview-frame {
     }
 }
 
-.config-tile--business {
-    grid-column: 1 / -1;
-    display: block;
-    min-height: 0;
-    cursor: default;
-    background: linear-gradient(180deg, #fffcf7 0%, #faf6ef 100%);
+.config-tile--details {
+    background: linear-gradient(180deg, #fff7f0 0%, #faeee6 100%);
 }
 
-.config-tile--business:hover {
-    transform: none;
-    border-color: var(--line);
+.config-tile--details .config-tile-kicker {
+    color: var(--brand);
+}
+
+.config-tile--details .config-tile-go {
+    background: #fff7ed;
+    color: var(--brand);
+}
+
+.config-tile--details:hover .config-tile-go {
+    background: var(--brand);
+    color: #fff;
+}
+
+.business-sections {
+    display: grid;
+    gap: 16px;
+}
+
+.business-section {
+    padding: 20px 22px;
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    background: linear-gradient(180deg, #fffcf7 0%, #faf6ef 100%);
     box-shadow: var(--shadow);
 }
 
-.config-tile--business .config-tile-kicker {
+.business-section h2 {
+    margin: 0 0 6px;
+    font-size: 20px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+}
+
+.business-section > p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 14px;
+    line-height: 1.45;
+}
+
+.business-section .config-tile-kicker {
     color: var(--brand);
+}
+
+.business-section:nth-child(3) .config-tile-kicker {
+    color: var(--leaf);
 }
 
 .business-type-form {
@@ -3409,7 +3470,7 @@ body.sheet-page .clearance-form .sheet-document.has-file .sheet-preview-frame {
 
 .sales-contact-form {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     gap: 12px;
     align-items: end;
     margin-top: 16px;
@@ -3427,8 +3488,10 @@ body.sheet-page .clearance-form .sheet-document.has-file .sheet-preview-frame {
 }
 
 .sales-contact-form input {
+    width: 100%;
     height: 42px;
     padding: 0 12px;
+    box-sizing: border-box;
     border: 1px solid var(--line);
     border-radius: 12px;
     background: #fff;
@@ -3440,8 +3503,94 @@ body.sheet-page .clearance-form .sheet-document.has-file .sheet-preview-frame {
     text-transform: none;
 }
 
+.business-details-form {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 12px;
+    align-items: end;
+    margin-top: 16px;
+}
+
+.business-details-form label {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.business-details-form input[type="text"] {
+    width: 100%;
+    height: 42px;
+    padding: 0 12px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: #fff;
+    color: var(--ink);
+    font: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0;
+    text-transform: none;
+    box-sizing: border-box;
+}
+
+.business-logo-control {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    height: 42px;
+    min-width: 0;
+    padding: 0 10px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: #fff;
+    box-sizing: border-box;
+}
+
+.business-logo-preview {
+    width: 28px;
+    height: 28px;
+    flex-shrink: 0;
+    object-fit: contain;
+    border-radius: 6px;
+}
+
+.business-logo-control input[type="file"] {
+    min-width: 0;
+    flex: 1;
+    border: 0;
+    background: transparent;
+    color: var(--ink);
+    font: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0;
+    text-transform: none;
+}
+
+.business-details-form label.business-logo-remove {
+    flex-direction: row;
+    align-items: center;
+    grid-column: 1 / -1;
+    color: var(--ink);
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0;
+    text-transform: none;
+}
+
+.business-logo-remove input {
+    margin: 0;
+}
+
 @media (max-width: 900px) {
-    .sales-contact-form {
+    .sales-contact-form,
+    .business-details-form {
         grid-template-columns: 1fr;
     }
 }

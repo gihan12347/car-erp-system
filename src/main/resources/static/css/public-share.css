@@ -31,20 +31,42 @@ button, a, input, select, textarea, optgroup { font-family: "Poppins", sans-seri
     font-size: 18px;
 }
 
-.share-brand span {
+.share-brand-copy {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    line-height: 1.15;
+}
+
+.share-brand-copy strong {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 16px;
+}
+
+.share-brand-copy small {
+    color: #d6d3d1;
+    font-size: 11px;
+    font-weight: 500;
+}
+
+.share-logo {
+    width: 40px;
+    height: 40px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    object-fit: cover;
+    background: #fff;
+}
+
+.share-mark {
     width: 36px;
     height: 36px;
     display: grid;
     place-items: center;
-    border-radius: 12px;
+    border-radius: 50%;
     background: #c2410c;
-}
-
-.share-top p {
-    margin: 0;
-    color: #d6d3d1;
-    font-size: 13px;
-    font-weight: 600;
 }
 
 .share-main {
@@ -418,19 +440,43 @@ button, a, input, select, textarea, optgroup { font-family: "Poppins", sans-seri
     grid-template-columns: 1fr 1fr;
     gap: 12px;
     margin-top: 12px;
+    align-items: stretch;
 }
 
 .ad-split > :only-child { grid-column: 1 / -1; }
 
 .ad-split .ad-block {
     margin-top: 0;
+    height: 100%;
+}
+
+#ad-contact {
     display: flex;
     flex-direction: column;
 }
 
-.ad-split .ad-actions { flex-direction: row; }
+#ad-contact h2 {
+    margin-bottom: 8px;
+    font-size: 18px;
+}
 
-.ad-split .ad-btn { flex: 1; }
+#ad-contact .ad-lead {
+    margin: 0 0 12px;
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+#ad-contact .ad-actions,
+.ad-split .ad-actions {
+    flex: 0 0 auto;
+    flex-direction: column;
+    align-items: stretch;
+}
+
+.ad-split .ad-btn {
+    flex: 0 0 auto;
+    width: 100%;
+}
 
 .ad-split .ad-specs { grid-template-columns: 1fr; }
 
@@ -536,45 +582,100 @@ button, a, input, select, textarea, optgroup { font-family: "Poppins", sans-seri
     color: #0f766e;
 }
 
-.ad-place-head {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    gap: 16px;
+.ad-location h2 {
+    margin-bottom: 14px;
+    font-size: 18px;
 }
 
-.ad-place-head strong { display: block; font-size: 18px; }
+.ad-location-place {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 14px;
+}
 
-.ad-place-head p {
-    margin: 4px 0 0;
-    color: #57534e;
+.ad-location-place > i {
+    margin-top: 3px;
+    color: #e11d48;
+    font-size: 16px;
+}
+
+.ad-location-place strong {
+    display: block;
+    font-size: 16px;
+    line-height: 1.3;
+}
+
+.ad-location-place p {
+    margin: 2px 0 0;
+    color: #78716c;
+    font-size: 13px;
 }
 
 .ad-directions {
-    display: inline-flex;
+    display: flex;
     align-items: center;
+    justify-content: center;
     gap: 8px;
-    height: 40px;
-    padding: 0 14px;
-    border-radius: 999px;
-    background: #0f766e;
-    color: #fff;
+    margin-top: 14px;
+    color: #1c1917;
     text-decoration: none;
-    font-size: 14px;
+    font-size: 15px;
     font-weight: 700;
-    white-space: nowrap;
+}
+
+.ad-directions .fa-location-arrow {
+    color: #059669;
+}
+
+.ad-directions .fa-arrow-up-right-from-square {
+    color: #a8a29e;
+    font-size: 12px;
+}
+
+.ad-location-note {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin: 14px 0 0;
+    padding-top: 14px;
+    border-top: 1px solid #e7e0d6;
+    color: #a8a29e;
+    font-size: 13px;
+    text-align: center;
+    text-decoration: none;
+}
+
+.ad-location-note i {
+    color: #d6d3d1;
 }
 
 .ad-map {
-    height: 320px;
-    margin-top: 14px;
+    height: 240px;
     border-radius: 16px;
     overflow: hidden;
     border: 1px solid #e7e0d6;
 }
 
+.ad-map-pin {
+    background: transparent;
+    border: 0;
+}
+
+.ad-map-pin span {
+    display: block;
+    width: 16px;
+    height: 16px;
+    margin-left: 3px;
+    border-radius: 50% 50% 50% 0;
+    background: #e11d48;
+    transform: rotate(-45deg);
+    box-shadow: 0 2px 6px rgba(28, 25, 23, 0.28);
+}
+
 .ad-map-note {
-    margin: 8px 0 0;
+    margin: 0 0 12px;
     color: #78716c;
 }
 
@@ -652,8 +753,7 @@ button, a, input, select, textarea, optgroup { font-family: "Poppins", sans-seri
 @media (max-width: 900px) {
     .ad-top,
     .ad-specs,
-    .ad-info .ad-specs,
-    .ad-split { grid-template-columns: 1fr; }
+    .ad-info .ad-specs { grid-template-columns: 1fr; }
 
     .ad-gallery { flex-direction: column; }
 
@@ -687,7 +787,11 @@ button, a, input, select, textarea, optgroup { font-family: "Poppins", sans-seri
 
     .ad-summary { padding: 16px; }
 
-    .ad-place-head { flex-direction: column; }
+    #ad-contact { display: none; }
+
+    .ad-split { grid-template-columns: 1fr; }
+
+    .ad-location-note { pointer-events: none; }
 
     .ad-dock {
         position: fixed;

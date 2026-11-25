@@ -3,9 +3,15 @@
 <th:block th:fragment="sidebar(activeMenu)">
 <aside class="sidebar" id="sidebar">
     <div class="sidebar-brand">
-        <span class="brand-mark"><i class="fa-solid fa-car"></i></span>
+        <img th:if="${businessProfile != null and businessProfile.hasLogo}"
+             class="brand-logo"
+             th:src="@{/configuration/business-logo(v=${businessProfile.logoStoredName})}"
+             alt="">
+        <span class="brand-mark" th:unless="${businessProfile != null and businessProfile.hasLogo}">
+            <i class="fa-solid fa-car"></i>
+        </span>
         <span class="brand-copy">
-            <strong>CAR ERP</strong>
+            <strong th:text="${businessProfile != null and businessProfile.hasName ? businessProfile.name : 'CAR ERP'}">CAR ERP</strong>
             <small>Import · Clearance · Prep</small>
         </span>
         <button type="button" class="icon-btn sidebar-close" id="sidebarClose" aria-label="Close menu">

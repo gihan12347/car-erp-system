@@ -1,15 +1,23 @@
 package com.carsale.erp.web;
 
+import java.io.IOException;
+
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.Resource;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.carsale.erp.report.DashboardService;
+import com.carsale.erp.shared.document.InlineDocumentResponse;
+import com.carsale.erp.shared.settings.BusinessProfile;
+import com.carsale.erp.shared.settings.BusinessProfileService;
 import com.carsale.erp.shared.settings.BusinessType;
 import com.carsale.erp.shared.settings.BusinessTypeService;
 import com.carsale.erp.shared.settings.SalesContactService;
@@ -21,6 +29,7 @@ public class AppPageController {
     private final DashboardService dashboardService;
     private final BusinessTypeService businessTypeService;
     private final SalesContactService salesContactService;
+    private final BusinessProfileService businessProfileService;
 
     @GetMapping("/")
     public String home() {
@@ -46,6 +55,45 @@ public class AppPageController {
         return "configuration";
     }
 
+    @GetMapping("/configuration/business")
+    public String businessDetails(Model model) {
+        model.addAttribute("pageTitle", "Business details");
+        model.addAttribute("activeMenu", "configuration");
+        return "configuration-business";
+    }
+
+    @GetMapping("/configuration/business-logo")
+    public ResponseEntity<Resource> businessLogo() throws IOException {
+        BusinessProfile profile = businessProfileService.current();
+        Resource resource = businessProfileService.loadLogo(profile);
+        if (resource == null || !profile.isHasLogo()) {
+            return ResponseEntity.notFound().build();
+        }
+        return InlineDocumentResponse.of(
+                resource,
+                profile.getLogoStoredName(),
+                BusinessProfileService.contentTypeFor(profile.getLogoStoredName())
+        );
+    }
+
+    @PostMapping("/configuration/business-details")
+    public String saveBusinessDetails(
+            @RequestParam(value = "businessName", required = false) String businessName,
+            @RequestParam(value = "logo", required = false) MultipartFile logo,
+            @RequestParam(value = "removeLogo", required = false) String removeLogo,
+            RedirectAttributes redirectAttributes
+    ) {
+        try {
+            businessProfileService.save(businessName, logo, removeLogo != null);
+            redirectAttributes.addFlashAttribute("successMessage", "Business details saved.");
+        } catch (IllegalArgumentException ex) {
+            redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
+        } catch (IOException ex) {
+            redirectAttributes.addFlashAttribute("errorMessage", "The logo could not be saved. Try a smaller image.");
+        }
+        return "redirect:/configuration/business";
+    }
+
     @PostMapping("/configuration/business-type")
     public String saveBusinessType(
             @RequestParam("businessType") String businessType,
@@ -57,7 +105,7 @@ public class AppPageController {
         } catch (IllegalArgumentException ex) {
             redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
         }
-        return "redirect:/configuration";
+        return "redirect:/configuration/business";
     }
 
     @PostMapping("/configuration/sales-contact")
@@ -72,7 +120,7 @@ public class AppPageController {
         } catch (IllegalArgumentException ex) {
             redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
         }
-        return "redirect:/configuration";
+        return "redirect:/configuration/business";
     }
 
     @GetMapping("/vehicles")

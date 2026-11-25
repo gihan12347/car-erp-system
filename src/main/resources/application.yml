@@ -108,6 +108,7 @@ app:
     registrationUploadDir: ${APP_REGISTRATION_DOCUMENTS_DIR:uploads/registration-certificates}
     idCardUploadDir: ${APP_ID_CARD_DOCUMENTS_DIR:uploads/id-cards}
     photoUploadDir: ${APP_PHOTO_DOCUMENTS_DIR:uploads/vehicle-photos}
+    logoUploadDir: ${APP_LOGO_DIR:uploads/business-logo}
 
 resilience4j:
   circuitbreaker:

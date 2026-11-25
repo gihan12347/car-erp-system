@@ -904,9 +904,12 @@ public class DatabaseSchemaUpdater implements CommandLineRunner {
             jdbcTemplate.execute(
                     "CREATE TABLE IF NOT EXISTS app_settings ("
                             + "setting_key VARCHAR(40) NOT NULL, "
-                            + "setting_value VARCHAR(40) NOT NULL, "
+                            + "setting_value VARCHAR(120) NOT NULL, "
                             + "PRIMARY KEY (setting_key)"
                             + ")"
+            );
+            jdbcTemplate.execute(
+                    "ALTER TABLE app_settings MODIFY COLUMN setting_value VARCHAR(120) NOT NULL"
             );
             log.info("Verified table app_settings");
         } catch (Exception ex) {
