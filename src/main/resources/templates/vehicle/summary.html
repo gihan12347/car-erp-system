@@ -88,7 +88,14 @@
                         <strong th:text="${summary.actualPrice != null ? summary.actualPrice : '—'}">—</strong>
                     </div>
                     <div class="summary-meter">
-                        <span>Total cost</span>
+                        <div class="summary-meter-top">
+                            <span>Total cost</span>
+                            <button type="button"
+                                    class="summary-price-edit extra-cost-open"
+                                    aria-label="Add extra cost">
+                                <i class="fa-solid fa-plus" aria-hidden="true"></i>
+                            </button>
+                        </div>
                         <strong th:text="${summary.totalCost != null ? summary.totalCost : '—'}">—</strong>
                     </div>
                     <div class="summary-meter">
@@ -265,11 +272,9 @@
 
                 <aside class="summary-side">
                     <article class="panel summary-block" id="prices">
-                        <div class="summary-block-head">
-                            <div>
-                                <h2>Prices</h2>
-                                <p>Landing, customs declaration, duty, worksheet, workshop, and sale figures.</p>
-                            </div>
+                        <div class="summary-block-head summary-prices-head">
+                            <h2>Prices</h2>
+                            <button type="button" class="panel-btn ghost summary-extra-add extra-cost-open">Add extra cost</button>
                         </div>
                         <div th:if="${summary.pricesEmpty}" class="summary-empty is-compact">
                             <p>No prices have been entered for this vehicle yet.</p>
@@ -312,6 +317,37 @@
                     </article>
                 </aside>
             </div>
+            <div class="yard-modal" id="extraCostModal">
+                <button type="button" class="yard-modal-backdrop" id="extraCostBackdrop" aria-label="Close"></button>
+                <form class="yard-modal-dialog panel summary-extra-form" id="extraCostForm" method="post"
+                      th:action="@{/vehicle/{c}/extra-costs(c=${summary.vehicle.chassisNo})}">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                    <input type="hidden" name="returnTo" th:value="${#request.requestURI}">
+                    <div class="panel-head">
+                        <h2>Add extra cost</h2>
+                        <button type="button" class="summary-price-close" id="extraCostClose" aria-label="Close">
+                            <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+                        </button>
+                    </div>
+                    <label>Date
+                        <input type="date" name="costDate" id="extraCostDate" required>
+                    </label>
+                    <label>Reason
+                        <input type="text" name="reason" id="extraCostReason" required maxlength="200" autocomplete="off">
+                    </label>
+                    <label>Cost
+                        <span class="money-field">
+                            <input type="text" name="cost" id="extraCostAmount" required
+                                   maxlength="40" inputmode="decimal" autocomplete="off" placeholder="0.00">
+                            <span class="money-currency" aria-hidden="true">LKR</span>
+                        </span>
+                    </label>
+                    <div class="yard-modal-actions">
+                        <button type="button" class="panel-btn ghost" id="extraCostCancel">Cancel</button>
+                        <button type="submit" class="panel-btn" id="extraCostSave">Add</button>
+                    </div>
+                </form>
+            </div>
             <div class="yard-modal" id="summaryPriceModal" th:if="${summary.pricesEditable}">
                 <button type="button" class="yard-modal-backdrop" id="summaryPriceBackdrop" aria-label="Close"></button>
                 <form class="yard-modal-dialog panel" id="summaryPriceForm" method="post"
@@ -345,6 +381,6 @@
 <div th:replace="shared/document-viewer :: documentViewer"></div>
 <script th:src="@{/js/shared/app.js(v=20261003s)}"></script>
 <script th:src="@{/js/shared/document-viewer.js(v=20260826d)}"></script>
-<script th:src="@{/js/vehicle/summary.js(v=20261126c)}"></script>
+<script th:src="@{/js/vehicle/summary.js(v=20261126e)}"></script>
 </body>
 </html>

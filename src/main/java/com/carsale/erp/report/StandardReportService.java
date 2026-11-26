@@ -53,6 +53,8 @@ import com.carsale.erp.readypipeline.model.VehicleRegistration;
 import com.carsale.erp.readypipeline.repository.SaleListingRepository;
 import com.carsale.erp.readypipeline.repository.VehicleRegistrationRepository;
 import com.carsale.erp.shared.vehicle.Vehicle;
+import com.carsale.erp.shared.vehicle.VehicleExtraCost;
+import com.carsale.erp.shared.vehicle.VehicleExtraCostRepository;
 import com.carsale.erp.shared.vehicle.VehicleIntake;
 import com.carsale.erp.shared.vehicle.VehicleService;
 import com.carsale.erp.shared.settings.BusinessTypeService;
@@ -91,6 +93,7 @@ public class StandardReportService {
     private final RegistrationCertificateRepository registrationCertificateRepository;
     private final InspectionCertificateRepository inspectionCertificateRepository;
     private final PreShipmentInspectionRepository preShipmentInspectionRepository;
+    private final VehicleExtraCostRepository vehicleExtraCostRepository;
     private final BusinessTypeService businessTypeService;
 
 
@@ -285,7 +288,7 @@ public class StandardReportService {
             row.cells.add(text(blank(vehicle.getYear(), "—")));
             row.cells.add(text(blank(vehicle.getMileage(), "—")));
             row.cells.add(text(location));
-            row.cells.add(costBreakdown(landing, cusdec, assessment, repair, total));
+            row.cells.add(costBreakdown(landing, cusdec, assessment, repair, cost.getExtra(), total));
             Cell daysCell = text(days == null ? "—" : String.valueOf(days));
             if (days != null && days > 90) {
                 daysCell.tone = "due";
@@ -299,7 +302,7 @@ public class StandardReportService {
         rows.sort((left, right) -> Integer.compare(right.sortDays, left.sortDays));
         List<Kpi> kpis = new ArrayList<Kpi>();
         kpis.add(new Kpi("On hand", String.valueOf(onHand), "Excludes sold units"));
-        kpis.add(new Kpi("Total cost", moneyOrDash(onHandTotal, anyOnHandTotal), "Landing + CUSDEC + assessment + repair"));
+        kpis.add(new Kpi("Total cost", moneyOrDash(onHandTotal, anyOnHandTotal), "Landing + CUSDEC + assessment + repair + extra"));
         kpis.add(new Kpi("On sale", String.valueOf(onSale), "Vehicles on a sale floor"));
         kpis.add(new Kpi("On yard", String.valueOf(onYard), "Vehicles in a yard bay"));
         kpis.add(new Kpi("Missing total cost", String.valueOf(missingCost), "Landing, CUSDEC, or assessment missing"));
@@ -308,7 +311,7 @@ public class StandardReportService {
                 "Vehicles still in stock, valued at total cost.",
                 "IAS 2 inventory listing",
                 query, kpis, columns, rows,
-                "Total cost is landing (shipping, LKR) plus the CUSDEC value in LKR plus assessment total tax plus workshop repair cost. "
+                "Total cost is landing (shipping, LKR) plus the CUSDEC value in LKR plus assessment total tax plus workshop repair cost plus extra costs. "
                         + "Repair cost is the actual amount, or the estimate when the actual is not set. "
                         + "A vehicle counts as missing a total cost when landing, CUSDEC, or assessment is absent. "
                         + "Days in stock uses the listing date, or the yard arrival date when the unit is not listed."
@@ -375,7 +378,7 @@ public class StandardReportService {
             row.cells.add(buyerDetails(listing));
             row.cells.add(placeDetails(listing));
             row.cells.add(text(sale == null ? "—" : ReportService.formatMoney(sale)));
-            row.cells.add(costBreakdown(landing, cusdec, assessment, repair, total));
+            row.cells.add(costBreakdown(landing, cusdec, assessment, repair, cost.getExtra(), total));
             row.cells.add(moneyCell(gp));
             row.cells.add(toneText(margin, gp));
             rows.add(row);
@@ -386,7 +389,7 @@ public class StandardReportService {
         List<Kpi> kpis = new ArrayList<Kpi>();
         kpis.add(new Kpi("Units sold", String.valueOf(soldCount), "All sold chassis"));
         kpis.add(new Kpi("Revenue", moneyOrDash(soldRevenue, anySoldRevenue), "Advertised, else asking"));
-        kpis.add(new Kpi("Total cost", moneyOrDash(soldCost, anySoldCost), "Landing + CUSDEC + assessment + repair"));
+        kpis.add(new Kpi("Total cost", moneyOrDash(soldCost, anySoldCost), "Landing + CUSDEC + assessment + repair + extra"));
         kpis.add(new Kpi("Gross profit", moneyOrDash(grossProfit, anyGrossProfit), "Revenue minus total cost"));
         kpis.add(new Kpi("Average sold", avg, missingPrice + " without a price"));
         return page(
@@ -394,7 +397,7 @@ public class StandardReportService {
                 "Completed sales, valued at total cost.",
                 "Dealer deal jacket",
                 query, kpis, columns, rows,
-                "Total cost is landing (shipping, LKR) plus the CUSDEC value in LKR plus assessment total tax plus workshop repair cost. "
+                "Total cost is landing (shipping, LKR) plus the CUSDEC value in LKR plus assessment total tax plus workshop repair cost plus extra costs. "
                         + "Repair cost is the actual amount, or the estimate when the actual is not set. "
                         + "Revenue is the advertised price, or the asking price when it is not set. "
                         + "Gross profit is revenue minus that total cost. "
@@ -886,6 +889,18 @@ public class StandardReportService {
                 snap.jobs.put(job.getChassisNo(), job);
             }
         }
+        for (VehicleExtraCost extra : vehicleExtraCostRepository.findAll()) {
+            if (extra.getChassisNo() == null) {
+                continue;
+            }
+            BigDecimal amount = ReportService.parseMoney(extra.getAmount());
+            if (amount == null) {
+                continue;
+            }
+            String chassis = extra.getChassisNo().trim();
+            BigDecimal soFar = snap.extras.get(chassis);
+            snap.extras.put(chassis, soFar == null ? amount : soFar.add(amount));
+        }
         for (YardRecord yard : yardRecordRepository.findAll()) {
             if (yard.getChassisNo() != null) {
                 snap.yards.put(yard.getChassisNo(), yard);
@@ -1233,7 +1248,11 @@ public class StandardReportService {
     }
 
     private static VehicleTotalCost totalCost(Snapshot snap, String chassis) {
-        return VehicleTotalCost.of(snap.customs.get(chassis), snap.jobs.get(chassis));
+        return VehicleTotalCost.of(
+                snap.customs.get(chassis),
+                snap.jobs.get(chassis),
+                snap.extras.get(chassis)
+        );
     }
 
     private static BigDecimal landingOf(CustomsDocument customs) {
@@ -1256,6 +1275,7 @@ public class StandardReportService {
             BigDecimal cusdec,
             BigDecimal assessment,
             BigDecimal repair,
+            BigDecimal extra,
             BigDecimal total
     ) {
         if (total == null) {
@@ -1266,6 +1286,7 @@ public class StandardReportService {
         addCostLine(lines, "CUSDEC", cusdec);
         addCostLine(lines, "Assessment", assessment);
         addCostLine(lines, "Repair", repair);
+        addCostLine(lines, "Extra", extra);
         addCostLine(lines, "Total", total);
         StringBuilder plain = new StringBuilder();
         for (CostLine line : lines) {
@@ -1810,6 +1831,7 @@ public class StandardReportService {
         private final Map<String, SaleListing> listings = new HashMap<>();
         private final Map<String, CustomsDocument> customs = new HashMap<>();
         private final Map<String, WorkshopJob> jobs = new HashMap<String, WorkshopJob>();
+        private final Map<String, BigDecimal> extras = new HashMap<String, BigDecimal>();
         private final Map<String, YardRecord> yards = new HashMap<String, YardRecord>();
         private final Map<String, VehicleRegistration> registrations = new HashMap<>();
         private final Map<String, ExportCertificate> exports = new HashMap<>();

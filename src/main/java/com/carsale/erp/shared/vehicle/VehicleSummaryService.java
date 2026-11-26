@@ -76,6 +76,7 @@ public class VehicleSummaryService {
     private final PreviousOwnerService previousOwnerService;
     private final SkippedStageService skippedStageService;
     private final WorkshopService workshopService;
+    private final VehicleExtraCostService vehicleExtraCostService;
 
 
     public VehicleSummary build(String chassisNo) {
@@ -91,10 +92,11 @@ public class VehicleSummaryService {
         CustomsDocument clearance = customsDocumentService.findByChassisNo(chassis);
         SaleListing listing = saleListingService.findByChassisNo(chassis);
         WorkshopJob workshop = workshopService.findByChassisNo(chassis);
+        List<VehicleExtraCost> extraCosts = vehicleExtraCostService.findByChassisNo(chassis);
 
         List<PhotoCard> photos = photosFor(chassis);
         List<DocumentCard> documents = documentsFor(vehicle, progress, clearance, photos, chassis);
-        List<PriceGroup> priceGroups = pricesFor(vehicle, clearance, listing, workshop);
+        List<PriceGroup> priceGroups = pricesFor(vehicle, clearance, listing, workshop, extraCosts);
 
         int onFile = 0;
         int pending = 0;
@@ -120,7 +122,7 @@ public class VehicleSummaryService {
                 pending,
                 skipped,
                 percent,
-                totalCost(clearance, workshop),
+                totalCost(clearance, workshop, extraCosts),
                 askingHighlight(listing),
                 actualHighlight(listing),
                 pricesEditable(listing),
@@ -524,7 +526,8 @@ public class VehicleSummaryService {
             Vehicle vehicle,
             CustomsDocument clearance,
             SaleListing listing,
-            WorkshopJob workshop
+            WorkshopJob workshop,
+            List<VehicleExtraCost> extraCosts
     ) {
         List<PriceGroup> groups = new ArrayList<PriceGroup>();
         PriceBuilder landing = new PriceBuilder("Landing");
@@ -532,6 +535,7 @@ public class VehicleSummaryService {
         PriceBuilder assessment = new PriceBuilder("Assessment");
         PriceBuilder worksheet = new PriceBuilder("Working sheet");
         PriceBuilder repairs = new PriceBuilder("Workshop");
+        PriceBuilder extras = new PriceBuilder("Extra costs");
         PriceBuilder sale = new PriceBuilder("Sale");
 
         if (clearance != null) {
@@ -573,6 +577,7 @@ public class VehicleSummaryService {
         }
 
         addWorkshop(repairs, workshop);
+        addExtraCosts(extras, extraCosts);
 
         sale.add("Recycle fee", vehicle.getRecycleFee());
         if (listing != null) {
@@ -586,8 +591,34 @@ public class VehicleSummaryService {
         addGroup(groups, assessment.build());
         addGroup(groups, worksheet.build());
         addGroup(groups, repairs.build());
+        addGroup(groups, extras.build());
         addGroup(groups, sale.build());
         return groups;
+    }
+
+    private static void addExtraCosts(PriceBuilder extras, List<VehicleExtraCost> costs) {
+        if (costs == null) {
+            return;
+        }
+        for (VehicleExtraCost cost : costs) {
+            if (cost == null) {
+                continue;
+            }
+            String reason = text(cost.getReason());
+            String date = slashDate(text(cost.getCostDate()));
+            String label = reason;
+            if (date != null && reason != null) {
+                label = date + " · " + reason;
+            } else if (date != null) {
+                label = date;
+            }
+            BigDecimal amount = ReportService.parseMoney(cost.getAmount());
+            extras.add(label, amount == null ? text(cost.getAmount()) : ReportService.formatMoney(amount));
+        }
+        BigDecimal total = VehicleExtraCostService.total(costs);
+        if (total != null) {
+            extras.addTotal("Extra costs total", ReportService.formatMoney(total));
+        }
     }
 
     private static void addWorkshop(PriceBuilder repairs, WorkshopJob workshop) {
@@ -796,8 +827,15 @@ public class VehicleSummaryService {
         return vehicle.getStage().getDisplayName();
     }
 
-    private static String totalCost(CustomsDocument clearance, WorkshopJob workshop) {
-        BigDecimal total = VehicleTotalCost.of(clearance, workshop).getTotal();
+    private static String totalCost(
+            CustomsDocument clearance,
+            WorkshopJob workshop,
+            List<VehicleExtraCost> extraCosts
+    ) {
+        BigDecimal total = VehicleTotalCost.sum(
+                VehicleTotalCost.of(clearance, workshop).getTotal(),
+                VehicleExtraCostService.total(extraCosts)
+        );
         return total == null ? null : ReportService.formatMoney(total);
     }
 
@@ -864,5 +902,12 @@ public class VehicleSummaryService {
         }
         String trimmed = value.trim();
         return trimmed.isEmpty() ? null : trimmed;
+    }
+
+    private static String slashDate(String value) {
+        if (value == null || !value.matches("\\d{4}-\\d{2}-\\d{2}")) {
+            return value;
+        }
+        return value.replace('-', '/');
     }
 }

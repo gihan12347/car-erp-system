@@ -33,6 +33,8 @@ import com.carsale.erp.readypipeline.service.SaleLocationService;
 import com.carsale.erp.readypipeline.util.Period;
 import com.carsale.erp.shared.pipeline.PipelineResumeService;
 import com.carsale.erp.shared.vehicle.Vehicle;
+import com.carsale.erp.shared.vehicle.VehicleExtraCost;
+import com.carsale.erp.shared.vehicle.VehicleExtraCostRepository;
 import com.carsale.erp.shared.vehicle.VehicleService;
 import com.carsale.erp.shared.vehicle.VehicleTotalCost;
 
@@ -51,6 +53,7 @@ public class DashboardService {
     private final YardRecordRepository yardRecordRepository;
     private final CustomsDocumentRepository customsDocumentRepository;
     private final WorkshopJobRepository workshopJobRepository;
+    private final VehicleExtraCostRepository vehicleExtraCostRepository;
     private final PipelineResumeService pipelineResumeService;
 
 
@@ -95,6 +98,7 @@ public class DashboardService {
         Map<String, Vehicle> vehiclesByChassis = vehiclesByChassis();
         Map<String, CustomsDocument> customsByChassis = customsByChassis();
         Map<String, WorkshopJob> jobsByChassis = jobsByChassis();
+        Map<String, BigDecimal> extrasByChassis = extrasByChassis();
         Map<String, String> arrivalByChassis = arrivalByChassis();
         List<ReportService.ReportRow> periodRows = new ArrayList<>();
 
@@ -173,7 +177,8 @@ public class DashboardService {
             }
             BigDecimal totalCost = VehicleTotalCost.of(
                     customsByChassis.get(row.getChassisNo()),
-                    jobsByChassis.get(row.getChassisNo())
+                    jobsByChassis.get(row.getChassisNo()),
+                    extrasByChassis.get(row.getChassisNo())
             ).getTotal();
             if (totalCost != null) {
                 stockCost = stockCost.add(totalCost);
@@ -445,6 +450,23 @@ public class DashboardService {
             }
         }
         return jobs;
+    }
+
+    private Map<String, BigDecimal> extrasByChassis() {
+        Map<String, BigDecimal> extras = new HashMap<String, BigDecimal>();
+        for (VehicleExtraCost extra : vehicleExtraCostRepository.findAll()) {
+            if (extra.getChassisNo() == null) {
+                continue;
+            }
+            BigDecimal amount = ReportService.parseMoney(extra.getAmount());
+            if (amount == null) {
+                continue;
+            }
+            String chassis = extra.getChassisNo().trim();
+            BigDecimal soFar = extras.get(chassis);
+            extras.put(chassis, soFar == null ? amount : soFar.add(amount));
+        }
+        return extras;
     }
 
     private Map<String, Vehicle> vehiclesByChassis() {

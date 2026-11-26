@@ -65,6 +65,7 @@ public class DatabaseSchemaUpdater implements CommandLineRunner {
         addClearanceInvoiceOtherColumn();
         createAppSettingsTable();
         createVehicleShareLinksTable();
+        createVehicleExtraCostsTable();
     }
 
     private void addClearanceInvoiceOtherColumn() {
@@ -931,6 +932,25 @@ public class DatabaseSchemaUpdater implements CommandLineRunner {
             log.info("Verified table app_settings");
         } catch (Exception ex) {
             log.warn("Could not create app_settings: {}", ex.getMessage());
+        }
+    }
+
+    private void createVehicleExtraCostsTable() {
+        try {
+            jdbcTemplate.execute(
+                    "CREATE TABLE IF NOT EXISTS vehicle_extra_costs ("
+                            + "id BIGINT NOT NULL AUTO_INCREMENT, "
+                            + "chassis_no VARCHAR(40) NOT NULL, "
+                            + "cost_date VARCHAR(10) NOT NULL, "
+                            + "reason VARCHAR(200) NOT NULL, "
+                            + "amount VARCHAR(40) NOT NULL, "
+                            + "PRIMARY KEY (id), "
+                            + "KEY idx_vehicle_extra_costs_chassis (chassis_no)"
+                            + ")"
+            );
+            log.info("Verified table vehicle_extra_costs");
+        } catch (Exception ex) {
+            log.warn("Could not create vehicle_extra_costs: {}", ex.getMessage());
         }
     }
 

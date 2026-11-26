@@ -15,13 +15,16 @@ public class VehicleSummaryController {
 
     private final VehicleSummaryService vehicleSummaryService;
     private final SaleListingService saleListingService;
+    private final VehicleExtraCostService vehicleExtraCostService;
 
     public VehicleSummaryController(
             VehicleSummaryService vehicleSummaryService,
-            SaleListingService saleListingService
+            SaleListingService saleListingService,
+            VehicleExtraCostService vehicleExtraCostService
     ) {
         this.vehicleSummaryService = vehicleSummaryService;
         this.saleListingService = saleListingService;
+        this.vehicleExtraCostService = vehicleExtraCostService;
     }
 
     @GetMapping("/vehicle/{chassisNo}")
@@ -48,6 +51,24 @@ public class VehicleSummaryController {
             saleListingService.updatePrice(chassisNo, priceKind, price);
             redirectAttributes.addFlashAttribute("notice",
                     "asking".equals(priceKind) ? "Asking price updated." : "Actual price updated.");
+        } catch (IllegalArgumentException ex) {
+            redirectAttributes.addFlashAttribute("error", ex.getMessage());
+        }
+        return "redirect:" + safeReturn(returnTo, chassisNo);
+    }
+
+    @PostMapping("/vehicle/{chassisNo}/extra-costs")
+    public String addExtraCost(
+            @PathVariable String chassisNo,
+            @RequestParam(value = "costDate", required = false) String costDate,
+            @RequestParam(value = "reason", required = false) String reason,
+            @RequestParam(value = "cost", required = false) String cost,
+            @RequestParam(value = "returnTo", required = false) String returnTo,
+            RedirectAttributes redirectAttributes
+    ) {
+        try {
+            vehicleExtraCostService.add(chassisNo, costDate, reason, cost);
+            redirectAttributes.addFlashAttribute("notice", "Extra cost added.");
         } catch (IllegalArgumentException ex) {
             redirectAttributes.addFlashAttribute("error", ex.getMessage());
         }

@@ -9722,6 +9722,46 @@ small.chassis-link {
     font-weight: 700;
 }
 
+.summary-prices-head {
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.summary-extra-add {
+    flex: 0 0 auto;
+    width: auto;
+    height: 32px;
+    margin-top: 0;
+    padding: 0 12px;
+    font-size: 12px;
+}
+
+.summary-extra-form label {
+    display: block;
+    margin-bottom: 10px;
+    color: var(--ink);
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.summary-extra-form input[type="text"],
+.summary-extra-form input[type="date"] {
+    display: block;
+    width: 100%;
+    height: 38px;
+    margin-top: 6px;
+    padding: 0 10px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: #fff;
+    font: inherit;
+    font-weight: 500;
+}
+
+.summary-extra-form .money-field input {
+    margin-top: 0;
+}
+
 .summary-progress {
     height: 4px;
     margin-top: 6px;

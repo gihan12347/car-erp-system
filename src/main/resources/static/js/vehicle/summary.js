@@ -322,6 +322,9 @@
 
         for (var p = 0; p < priceButtons.length; p++) {
             priceButtons[p].addEventListener("click", function () {
+                if (!this.getAttribute("data-price-kind")) {
+                    return;
+                }
                 openPriceModal(this);
             });
         }
@@ -351,6 +354,108 @@
                     priceValue.value = formatted;
                     var next = caretAfterDigits(formatted, before);
                     priceValue.setSelectionRange(next, next);
+                }
+            });
+        }
+    }
+
+    var extraModal = document.getElementById("extraCostModal");
+    var extraButtons = document.querySelectorAll(".extra-cost-open");
+    if (extraModal && extraButtons.length) {
+        var extraDate = document.getElementById("extraCostDate");
+        var extraReason = document.getElementById("extraCostReason");
+        var extraAmount = document.getElementById("extraCostAmount");
+        var extraForm = document.getElementById("extraCostForm");
+
+        function formatExtraCost(raw) {
+            var cleaned = String(raw || "").replace(/,/g, "").replace(/[^\d.]/g, "");
+            if (!cleaned) {
+                return "";
+            }
+            var dot = cleaned.indexOf(".");
+            var whole = dot === -1 ? cleaned : cleaned.slice(0, dot);
+            var fraction = dot === -1 ? null : cleaned.slice(dot + 1).replace(/\./g, "").slice(0, 2);
+            whole = whole.replace(/^0+(?=\d)/, "");
+            if (!whole) {
+                whole = fraction === null ? "" : "0";
+            }
+            var grouped = whole.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+            if (fraction === null) {
+                return grouped;
+            }
+            return grouped + "." + fraction;
+        }
+
+        function closeExtraCost() {
+            extraModal.classList.remove("is-open");
+            document.body.classList.remove("yard-modal-open");
+        }
+
+        function openExtraCost() {
+            if (extraForm) {
+                extraForm.reset();
+            }
+            extraModal.classList.add("is-open");
+            document.body.classList.add("yard-modal-open");
+            if (extraDate) {
+                extraDate.focus();
+            }
+        }
+
+        for (var e = 0; e < extraButtons.length; e++) {
+            extraButtons[e].addEventListener("click", openExtraCost);
+        }
+        var extraBackdrop = document.getElementById("extraCostBackdrop");
+        var extraCancel = document.getElementById("extraCostCancel");
+        var extraClose = document.getElementById("extraCostClose");
+        if (extraBackdrop) {
+            extraBackdrop.addEventListener("click", closeExtraCost);
+        }
+        if (extraCancel) {
+            extraCancel.addEventListener("click", closeExtraCost);
+        }
+        if (extraClose) {
+            extraClose.addEventListener("click", closeExtraCost);
+        }
+        document.addEventListener("keydown", function (event) {
+            if (event.key === "Escape" && extraModal.classList.contains("is-open")) {
+                closeExtraCost();
+            }
+        });
+        if (extraAmount) {
+            extraAmount.addEventListener("input", function () {
+                var start = extraAmount.selectionStart || 0;
+                var before = extraAmount.value.slice(0, start).replace(/[^\d.]/g, "").length;
+                var formatted = formatExtraCost(extraAmount.value);
+                if (extraAmount.value !== formatted) {
+                    extraAmount.value = formatted;
+                    var next = 0;
+                    var seen = 0;
+                    var i;
+                    for (i = 0; i < formatted.length; i++) {
+                        var ch = formatted.charAt(i);
+                        if ((ch >= "0" && ch <= "9") || ch === ".") {
+                            seen++;
+                            if (seen >= before) {
+                                next = i + 1;
+                                break;
+                            }
+                        }
+                    }
+                    if (before > 0 && next === 0) {
+                        next = formatted.length;
+                    }
+                    extraAmount.setSelectionRange(next, next);
+                }
+            });
+        }
+        if (extraForm) {
+            extraForm.addEventListener("submit", function (event) {
+                var date = extraDate ? String(extraDate.value || "").trim() : "";
+                var reason = extraReason ? String(extraReason.value || "").trim() : "";
+                var amount = extraAmount ? String(extraAmount.value || "").replace(/,/g, "").trim() : "";
+                if (!date || !reason || !amount || amount === "." || !(Number(amount) > 0)) {
+                    event.preventDefault();
                 }
             });
         }

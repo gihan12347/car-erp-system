@@ -9,7 +9,7 @@ import com.carsale.erp.report.ReportService;
 
 /**
  * Shared total cost for a vehicle.
- * Total cost = landing + CUSDEC + repair + assessment.
+ * Total cost = landing + CUSDEC + repair + assessment + extra costs.
  */
 public final class VehicleTotalCost {
 
@@ -17,25 +17,33 @@ public final class VehicleTotalCost {
     private final BigDecimal cusdec;
     private final BigDecimal assessment;
     private final BigDecimal repair;
+    private final BigDecimal extra;
 
     private VehicleTotalCost(
             BigDecimal landing,
             BigDecimal cusdec,
             BigDecimal assessment,
-            BigDecimal repair
+            BigDecimal repair,
+            BigDecimal extra
     ) {
         this.landing = landing;
         this.cusdec = cusdec;
         this.assessment = assessment;
         this.repair = repair;
+        this.extra = extra;
     }
 
     public static VehicleTotalCost of(CustomsDocument customs, WorkshopJob job) {
+        return of(customs, job, null);
+    }
+
+    public static VehicleTotalCost of(CustomsDocument customs, WorkshopJob job, BigDecimal extra) {
         return new VehicleTotalCost(
                 landingOf(customs),
                 cusdecOf(customs),
                 assessmentOf(customs),
-                repairOf(job)
+                repairOf(job),
+                extra
         );
     }
 
@@ -55,8 +63,12 @@ public final class VehicleTotalCost {
         return repair;
     }
 
+    public BigDecimal getExtra() {
+        return extra;
+    }
+
     public BigDecimal getTotal() {
-        return sum(landing, cusdec, repair, assessment);
+        return sum(landing, cusdec, repair, assessment, extra);
     }
 
     public boolean isMissingRequired() {

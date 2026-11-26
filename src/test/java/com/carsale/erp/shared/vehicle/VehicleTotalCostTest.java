@@ -34,6 +34,18 @@ class VehicleTotalCostTest {
         assertEquals(new BigDecimal("50"), cost.getAssessment());
         assertEquals(new BigDecimal("25"), cost.getRepair());
         assertEquals(new BigDecimal("1275.50"), cost.getTotal());
+        assertNull(cost.getExtra());
+    }
+
+    @Test
+    void extraCostIsIncludedInTheTotal() {
+        CustomsDocument customs = new CustomsDocument();
+        customs.setLandingCostLkr("1,000");
+
+        VehicleTotalCost cost = VehicleTotalCost.of(customs, null, new BigDecimal("50"));
+
+        assertEquals(new BigDecimal("50"), cost.getExtra());
+        assertEquals(new BigDecimal("1050"), cost.getTotal());
     }
 
     @Test
