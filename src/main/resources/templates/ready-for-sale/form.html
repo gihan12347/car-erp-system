@@ -104,7 +104,10 @@
                         <article class="panel">
                             <div class="panel-head"><h2>Sale</h2></div>
                             <div class="field-grid">
-                                <label>Selling price
+                                <label>Actual price
+                                    <input type="text" th:field="*{actualPrice}" id="actualPrice" placeholder="Rs." required>
+                                </label>
+                                <label>Asking price
                                     <input type="text" th:field="*{askingPrice}" id="sellingPrice" placeholder="Rs." required>
                                 </label>
                                 <label>Selling date
@@ -131,7 +134,7 @@
                         </label>
 
                         <div class="import-view-actions"
-                             th:with="saleComplete=${!#strings.isEmpty(record.buyerFullName) and !#strings.isEmpty(record.buyerNicNo) and !#strings.isEmpty(record.buyerDateOfBirth) and !#strings.isEmpty(record.buyerAddress) and !#strings.isEmpty(record.askingPrice) and !#strings.isEmpty(record.listedOn) and !#strings.isEmpty(record.saleCode) and !#strings.isEmpty(record.saleLocation)}">
+                             th:with="saleComplete=${!#strings.isEmpty(record.buyerFullName) and !#strings.isEmpty(record.buyerNicNo) and !#strings.isEmpty(record.buyerDateOfBirth) and !#strings.isEmpty(record.buyerAddress) and !#strings.isEmpty(record.actualPrice) and !#strings.isEmpty(record.askingPrice) and !#strings.isEmpty(record.listedOn) and !#strings.isEmpty(record.saleCode) and !#strings.isEmpty(record.saleLocation)}">
                             <a th:href="@{/ready-for-sale/{s}/{c}(s=${record.saleCode}, c=${vehicle.chassisNo})}"
                                class="panel-btn ghost import-form-submit">Back</a>
                             <button type="submit" class="panel-btn import-form-submit" id="sellSaveBtn"
@@ -158,6 +161,6 @@
 <div th:replace="shared/app-loader :: appLoader('fillLoader', 'Reading the identity card and filling fields...')"></div>
 <script th:src="@{/js/shared/app.js(v=20260905k)}"></script>
 <script th:src="@{/js/shared/document-viewer.js(v=20260826d)}"></script>
-<script th:src="@{/js/ready-for-sale/sell.js(v=20261018b)}"></script>
+<script th:src="@{/js/ready-for-sale/sell.js(v=20261126a)}"></script>
 </body>
 </html>

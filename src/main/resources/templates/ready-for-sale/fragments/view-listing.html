@@ -33,7 +33,8 @@
         <article class="panel">
             <div class="panel-head"><h2>Sale</h2></div>
             <div class="field-grid">
-                <label>Selling price <input type="text" th:value="${listing.askingPrice}" readonly class="readonly-field"></label>
+                <label>Actual price <input type="text" th:value="${listing.actualPrice}" readonly class="readonly-field"></label>
+                <label>Asking price <input type="text" th:value="${listing.askingPrice}" readonly class="readonly-field"></label>
                 <label>Selling date <input type="date" class="native-date readonly-field" th:value="${listing.listedOnIso}" readonly></label>
                 <label>Sale <input type="text" th:value="${listing.saleCode}" readonly class="readonly-field"></label>
                 <label>Location <input type="text" th:value="${listing.saleLocation}" readonly class="readonly-field"></label>

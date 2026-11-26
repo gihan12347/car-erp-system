@@ -47,13 +47,20 @@
                                                  data-name=${sale.saleName}">SL-01 · Showroom · 12 left</option>
                             </select>
                         </label>
-                        <label>Location
+                        <label class="span-2">Location
                             <input type="text" id="saleLocationDisplay" readonly required class="readonly-field"
                                    th:value="${record.saleLocation}">
                         </label>
-                        <label>Selling price
+                        <label>Actual price
                             <span class="money-field">
-                                <input type="text" th:field="*{askingPrice}" required
+                                <input type="text" th:field="*{actualPrice}" id="actualPrice" required
+                                       inputmode="decimal" autocomplete="off" placeholder="0.00">
+                                <span class="money-currency" aria-hidden="true">LKR</span>
+                            </span>
+                        </label>
+                        <label>Asking price
+                            <span class="money-field">
+                                <input type="text" th:field="*{askingPrice}" id="askingPrice" required
                                        inputmode="decimal" autocomplete="off" placeholder="0.00">
                                 <span class="money-currency" aria-hidden="true">LKR</span>
                             </span>
@@ -65,7 +72,7 @@
                 <div class="import-view-actions">
                     <a th:href="@{/yards/{code}(code=${yard.bayCode})}" class="panel-btn ghost import-form-submit">Back to yard</a>
                     <button type="submit" id="moveToSaleBtn" class="panel-btn import-form-submit"
-                            th:disabled="${#strings.isEmpty(record.listedOn) or #strings.isEmpty(record.saleCode) or #strings.isEmpty(record.saleLocation) or #strings.isEmpty(record.askingPrice)}">Move to sale</button>
+                            th:disabled="${#strings.isEmpty(record.listedOn) or #strings.isEmpty(record.saleCode) or #strings.isEmpty(record.saleLocation) or #strings.isEmpty(record.askingPrice) or #strings.isEmpty(record.actualPrice)}">Move to sale</button>
                 </div>
             </form>
         </main>
@@ -96,7 +103,7 @@
     })();
 </script>
 <script th:src="@{/js/shared/document-viewer.js(v=20260826d)}"></script>
-<script th:src="@{/js/vehicle/summary.js(v=20261125d)}"></script>
+<script th:src="@{/js/vehicle/summary.js(v=20261126c)}"></script>
 <script th:src="@{/js/shared/capacity-select.js(v=20260919a)}"></script>
 <script>
     window.bindCapacitySelect({
@@ -115,7 +122,8 @@
         var date = form.querySelector("[name='listedOn']");
         var sale = document.getElementById("saleLocationSelect");
         var location = document.getElementById("saleLocationValue");
-        var price = form.querySelector("[name='askingPrice']");
+        var asking = document.getElementById("askingPrice");
+        var actual = document.getElementById("actualPrice");
 
         function text(el) {
             return el ? String(el.value || "").trim() : "";
@@ -158,8 +166,8 @@
             return formatted.length;
         }
 
-        function priceReady() {
-            var raw = text(price).replace(/,/g, "");
+        function priceReady(field) {
+            var raw = text(field).replace(/,/g, "");
             if (!raw || raw === ".") {
                 return false;
             }
@@ -167,24 +175,58 @@
             return isFinite(amount) && amount > 0;
         }
 
-        if (price) {
-            price.addEventListener("input", function () {
-                var start = price.selectionStart || 0;
-                var before = price.value.slice(0, start).replace(/[^\d.]/g, "").length;
-                var formatted = formatPrice(price.value);
-                if (price.value !== formatted) {
-                    price.value = formatted;
-                    var next = caretAfterDigits(formatted, before);
-                    price.setSelectionRange(next, next);
+        function applyFormat(field) {
+            if (!field) {
+                return;
+            }
+            var start = field.selectionStart || 0;
+            var before = field.value.slice(0, start).replace(/[^\d.]/g, "").length;
+            var formatted = formatPrice(field.value);
+            if (field.value !== formatted) {
+                field.value = formatted;
+                var next = caretAfterDigits(formatted, before);
+                if (document.activeElement === field) {
+                    field.setSelectionRange(next, next);
                 }
-            });
-            if (price.value) {
-                price.value = formatPrice(price.value);
             }
         }
 
+        function bindMirroredPrice(source, target) {
+            if (!source || !target) {
+                return;
+            }
+            source.addEventListener("input", function () {
+                applyFormat(source);
+                source.dataset.locked = "1";
+                if (target.dataset.locked === "1") {
+                    return;
+                }
+                if (!text(target) || target.dataset.mirrored === "1") {
+                    target.value = source.value;
+                    target.dataset.mirrored = "1";
+                }
+            });
+        }
+
+        if (asking && actual) {
+            if (text(asking) && !text(actual)) {
+                actual.value = asking.value;
+                actual.dataset.mirrored = "1";
+            } else if (text(actual) && !text(asking)) {
+                asking.value = actual.value;
+                asking.dataset.mirrored = "1";
+            } else if (text(asking) && text(actual) && text(asking) !== text(actual)) {
+                asking.dataset.locked = "1";
+                actual.dataset.locked = "1";
+            }
+            applyFormat(asking);
+            applyFormat(actual);
+        }
+        bindMirroredPrice(asking, actual);
+        bindMirroredPrice(actual, asking);
+
         function sync() {
-            button.disabled = !(text(date) && text(sale) && text(location) && priceReady());
+            button.disabled = !(text(date) && text(sale) && text(location) && priceReady(asking) && priceReady(actual));
         }
 
         form.addEventListener("input", sync);

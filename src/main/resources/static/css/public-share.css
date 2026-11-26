@@ -286,6 +286,14 @@ button, a, input, select, textarea, optgroup { font-family: "Poppins", sans-seri
     opacity: 0.86;
 }
 
+.ad-price-card del {
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.2;
+    opacity: 0.78;
+    text-decoration: line-through;
+}
+
 .ad-price-card strong {
     font-size: 30px;
     font-weight: 800;

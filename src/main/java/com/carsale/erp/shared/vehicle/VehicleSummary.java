@@ -17,6 +17,8 @@ public class VehicleSummary {
     private final int progressPercent;
     private final String totalCost;
     private final String askingPrice;
+    private final String actualPrice;
+    private final boolean pricesEditable;
     private final List<SpecLine> highlights;
     private final List<SpecLine> specs;
     private final List<PhotoCard> photos;
@@ -37,6 +39,8 @@ public class VehicleSummary {
             int progressPercent,
             String totalCost,
             String askingPrice,
+            String actualPrice,
+            boolean pricesEditable,
             List<SpecLine> highlights,
             List<SpecLine> specs,
             List<PhotoCard> photos,
@@ -56,6 +60,8 @@ public class VehicleSummary {
         this.progressPercent = progressPercent;
         this.totalCost = totalCost;
         this.askingPrice = askingPrice;
+        this.actualPrice = actualPrice;
+        this.pricesEditable = pricesEditable;
         this.highlights = highlights;
         this.specs = specs;
         this.photos = photos;
@@ -108,6 +114,14 @@ public class VehicleSummary {
 
     public String getAskingPrice() {
         return askingPrice;
+    }
+
+    public String getActualPrice() {
+        return actualPrice;
+    }
+
+    public boolean isPricesEditable() {
+        return pricesEditable;
     }
 
     public List<SpecLine> getHighlights() {

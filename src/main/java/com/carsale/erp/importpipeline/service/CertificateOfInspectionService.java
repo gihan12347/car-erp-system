@@ -99,7 +99,10 @@ public class CertificateOfInspectionService {
                 copyFields(incoming, existing);
             }
         }
-        return certificateRepository.save(existing);
+        InspectionCertificate saved = certificateRepository.save(existing);
+        applyToAuctionLot(saved, vehicle);
+        vehicleRepository.save(vehicle);
+        return saved;
     }
 
     private void keepStoredDocument(InspectionCertificate incoming, InspectionCertificate existing) {
@@ -111,13 +114,58 @@ public class CertificateOfInspectionService {
         incoming.setDocumentContentType(existing.getDocumentContentType());
     }
 
+    private void applyToAuctionLot(InspectionCertificate certificate, Vehicle vehicle) {
+        setIfPresent(vehicle::setEngineSize, certificate.getEngineCapacity(), 40);
+        setIfPresent(vehicle::setModelCode, certificate.getModel(), 40);
+        setIfPresent(vehicle::setModel, vehicleName(certificate.getMake(), certificate.getModel()), 80);
+    }
+
+    private static String vehicleName(String make, String model) {
+        String makeText = trimToNull(make);
+        String modelText = trimToNull(model);
+        if (makeText == null || modelText == null) {
+            return null;
+        }
+        if (modelText.equalsIgnoreCase(makeText)
+                || modelText.regionMatches(true, 0, makeText + " ", 0, makeText.length() + 1)) {
+            return modelText;
+        }
+        return makeText + " " + modelText;
+    }
+
+    private static String trimToNull(String value) {
+        if (value == null) {
+            return null;
+        }
+        String trimmed = value.trim();
+        return trimmed.isEmpty() ? null : trimmed;
+    }
+
+    private static void setIfPresent(java.util.function.Consumer<String> setter, String value, int maxLength) {
+        String trimmed = trimToNull(value);
+        if (trimmed == null) {
+            return;
+        }
+        if (trimmed.length() > maxLength) {
+            trimmed = trimmed.substring(0, maxLength);
+        }
+        setter.accept(trimmed);
+    }
+
     private void prefillFromVehicle(InspectionCertificate record, Vehicle vehicle) {
-        record.setChassisVin(vehicle.getChassisNo());
-        record.setMake(vehicle.getMake());
-        record.setModel(vehicle.getModel());
-        record.setEngineCapacity(vehicle.getEngineSize());
-        record.setInspectedMileage(vehicle.getMileage());
-        record.setFirstRegistration(vehicle.getYear());
+        setIfBlank(record.getChassisVin(), record::setChassisVin, vehicle.getChassisNo());
+        setIfBlank(record.getMake(), record::setMake, vehicle.getMake());
+        setIfBlank(record.getModel(), record::setModel, vehicle.getModel());
+        setIfBlank(record.getEngineCapacity(), record::setEngineCapacity, vehicle.getEngineSize());
+        setIfBlank(record.getInspectedMileage(), record::setInspectedMileage, vehicle.getMileage());
+        setIfBlank(record.getFirstRegistration(), record::setFirstRegistration, vehicle.getYear());
+    }
+
+    private static void setIfBlank(String current, java.util.function.Consumer<String> setter, String value) {
+        if (current != null && !current.trim().isEmpty()) {
+            return;
+        }
+        setIfPresent(setter, value, Integer.MAX_VALUE);
     }
 
     private void copyFields(InspectionCertificate source, InspectionCertificate target) {

@@ -9676,6 +9676,52 @@ small.chassis-link {
 
 .summary-meter.is-alert strong { color: var(--brand); }
 
+.summary-meter-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+}
+
+.summary-meter-top span {
+    min-width: 0;
+}
+
+.summary-price-edit,
+.summary-price-close {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    width: 22px;
+    height: 22px;
+    padding: 0;
+    border: 0;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+}
+
+.summary-price-edit:hover,
+.summary-price-close:hover {
+    background: #f5f0e8;
+    color: var(--ink);
+}
+
+.summary-price-close {
+    width: 28px;
+    height: 28px;
+    font-size: 14px;
+}
+
+.summary-price-field {
+    display: block;
+    color: var(--ink);
+    font-size: 13px;
+    font-weight: 700;
+}
+
 .summary-progress {
     height: 4px;
     margin-top: 6px;

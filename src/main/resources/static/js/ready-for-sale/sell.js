@@ -599,6 +599,7 @@
             "buyerNicNo",
             "buyerDateOfBirth",
             "buyerAddress",
+            "actualPrice",
             "sellingPrice",
             "listedOn",
             "saleCode",

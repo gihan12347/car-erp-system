@@ -141,6 +141,8 @@ public class CustomsDocumentService {
         copyOdometerFields(incoming, existing);
         existing.setChassisNo(incoming.getChassisNo().trim());
         customsDocumentRepository.save(existing);
+        applyOdometerToAuctionLot(existing, vehicle);
+        vehicleRepository.save(vehicle);
     }
 
     @Transactional
@@ -177,6 +179,15 @@ public class CustomsDocumentService {
         copyFields(incoming, existing, WORKSHEET_FIELDS);
         existing.setChassisNo(incoming.getChassisNo().trim());
         customsDocumentRepository.save(existing);
+        applyWorksheetToAuctionLot(existing);
+    }
+
+    private void applyWorksheetToAuctionLot(CustomsDocument worksheet) {
+        Vehicle vehicle = vehicleRepository.findById(worksheet.getChassisNo())
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Vehicle not found for chassis " + worksheet.getChassisNo()));
+        setIfPresent(vehicle::setYear, worksheet.getWorksheetManufactureDate(), 40);
+        vehicleRepository.save(vehicle);
     }
 
     private CustomsDocument prepareStageSave(CustomsDocument incoming) {
@@ -282,10 +293,26 @@ public class CustomsDocumentService {
         }
     }
 
+    private void applyOdometerToAuctionLot(CustomsDocument certificate, Vehicle vehicle) {
+        setIfPresent(vehicle::setMileage, certificate.getJevicCurrentOdometer(), 40);
+    }
+
     private void setIfPresent(java.util.function.Consumer<String> setter, String value) {
-        if (value != null && !value.trim().isEmpty()) {
-            setter.accept(value.trim());
+        setIfPresent(setter, value, Integer.MAX_VALUE);
+    }
+
+    private void setIfPresent(java.util.function.Consumer<String> setter, String value, int maxLength) {
+        if (value == null) {
+            return;
         }
+        String trimmed = value.trim();
+        if (trimmed.isEmpty()) {
+            return;
+        }
+        if (trimmed.length() > maxLength) {
+            trimmed = trimmed.substring(0, maxLength);
+        }
+        setter.accept(trimmed);
     }
 
     private String buildDescription(Vehicle vehicle) {

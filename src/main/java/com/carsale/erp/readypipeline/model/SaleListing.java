@@ -22,6 +22,9 @@ public class SaleListing {
     @Column(length = 40)
     private String askingPrice;
 
+    @Column(name = "actual_price", length = 40)
+    private String actualPrice;
+
     @Column(length = 40)
     private String advertisedPrice;
 

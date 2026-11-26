@@ -10,6 +10,7 @@ public class PublicVehicleView {
 
     private final String title;
     private final String price;
+    private final String listPrice;
     private final String stockNo;
     private final String description;
     private final String registrationNo;
@@ -25,6 +26,7 @@ public class PublicVehicleView {
     public PublicVehicleView(
             String title,
             String price,
+            String listPrice,
             String stockNo,
             String description,
             String registrationNo,
@@ -39,6 +41,7 @@ public class PublicVehicleView {
     ) {
         this.title = title;
         this.price = price;
+        this.listPrice = listPrice;
         this.stockNo = stockNo;
         this.description = description;
         this.registrationNo = registrationNo;
@@ -58,6 +61,14 @@ public class PublicVehicleView {
 
     public String getPrice() {
         return price;
+    }
+
+    public String getListPrice() {
+        return listPrice;
+    }
+
+    public boolean isOffer() {
+        return listPrice != null;
     }
 
     public String getStockNo() {

@@ -252,4 +252,107 @@
             });
         });
     }
+
+    var priceModal = document.getElementById("summaryPriceModal");
+    var priceButtons = document.querySelectorAll(".summary-price-edit");
+    if (priceModal && priceButtons.length) {
+        var priceKind = document.getElementById("summaryPriceKind");
+        var priceTitle = document.getElementById("summaryPriceTitle");
+        var priceValue = document.getElementById("summaryPriceValue");
+
+        function formatSummaryPrice(raw) {
+            var cleaned = String(raw || "").replace(/,/g, "").replace(/[^\d.]/g, "");
+            if (!cleaned) {
+                return "";
+            }
+            var dot = cleaned.indexOf(".");
+            var whole = dot === -1 ? cleaned : cleaned.slice(0, dot);
+            var fraction = dot === -1 ? null : cleaned.slice(dot + 1).replace(/\./g, "").slice(0, 2);
+            whole = whole.replace(/^0+(?=\d)/, "");
+            if (!whole) {
+                whole = fraction === null ? "" : "0";
+            }
+            var grouped = whole.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+            if (fraction === null) {
+                return grouped;
+            }
+            return grouped + "." + fraction;
+        }
+
+        function caretAfterDigits(formatted, count) {
+            if (count <= 0) {
+                return 0;
+            }
+            var seen = 0;
+            var i;
+            for (i = 0; i < formatted.length; i++) {
+                var ch = formatted.charAt(i);
+                if ((ch >= "0" && ch <= "9") || ch === ".") {
+                    seen++;
+                    if (seen >= count) {
+                        return i + 1;
+                    }
+                }
+            }
+            return formatted.length;
+        }
+
+        function closePriceModal() {
+            priceModal.classList.remove("is-open");
+            document.body.classList.remove("yard-modal-open");
+        }
+
+        function openPriceModal(button) {
+            if (priceKind) {
+                priceKind.value = button.getAttribute("data-price-kind") || "actual";
+            }
+            if (priceTitle) {
+                priceTitle.textContent = button.getAttribute("data-price-label") || "Price";
+            }
+            if (priceValue) {
+                priceValue.value = formatSummaryPrice(button.getAttribute("data-price-value") || "");
+            }
+            priceModal.classList.add("is-open");
+            document.body.classList.add("yard-modal-open");
+            if (priceValue) {
+                priceValue.focus();
+                priceValue.select();
+            }
+        }
+
+        for (var p = 0; p < priceButtons.length; p++) {
+            priceButtons[p].addEventListener("click", function () {
+                openPriceModal(this);
+            });
+        }
+        var backdrop = document.getElementById("summaryPriceBackdrop");
+        var cancel = document.getElementById("summaryPriceCancel");
+        var close = document.getElementById("summaryPriceClose");
+        if (backdrop) {
+            backdrop.addEventListener("click", closePriceModal);
+        }
+        if (cancel) {
+            cancel.addEventListener("click", closePriceModal);
+        }
+        if (close) {
+            close.addEventListener("click", closePriceModal);
+        }
+        document.addEventListener("keydown", function (event) {
+            if (event.key === "Escape" && priceModal.classList.contains("is-open")) {
+                closePriceModal();
+            }
+        });
+        if (priceValue) {
+            priceValue.addEventListener("input", function () {
+                var start = priceValue.selectionStart || 0;
+                var before = priceValue.value.slice(0, start).replace(/[^\d.]/g, "").length;
+                var formatted = formatSummaryPrice(priceValue.value);
+                if (priceValue.value !== formatted) {
+                    priceValue.value = formatted;
+                    var next = caretAfterDigits(formatted, before);
+                    priceValue.setSelectionRange(next, next);
+                }
+            });
+        }
+    }
 })();

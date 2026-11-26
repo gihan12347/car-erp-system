@@ -12,6 +12,9 @@
                 <span>Back</span>
             </button>
 
+            <p th:if="${notice}" class="alert alert-ok" th:text="${notice}"></p>
+            <p th:if="${error}" class="alert alert-error" th:text="${error}"></p>
+
             <div class="summary-body" th:fragment="summaryBody">
             <section class="summary-hero">
                 <div class="summary-hero-copy">
@@ -69,16 +72,38 @@
                             <i th:style="'width:' + ${summary.progressPercent} + '%'"></i>
                         </div>
                     </div>
-                    <div class="summary-meter" th:classappend="${summary.pendingCount > 0} ? ' is-alert'">
-                        <span>Pending</span>
-                        <strong th:text="${summary.pendingCount}">4</strong>
+                    <div class="summary-meter">
+                        <div class="summary-meter-top">
+                            <span>Actual price</span>
+                            <button th:if="${summary.pricesEditable}"
+                                    type="button"
+                                    class="summary-price-edit"
+                                    aria-label="Edit actual price"
+                                    data-price-kind="actual"
+                                    data-price-label="Actual price"
+                                    th:attr="data-price-value=${summary.actualPrice}">
+                                <i class="fa-solid fa-pencil" aria-hidden="true"></i>
+                            </button>
+                        </div>
+                        <strong th:text="${summary.actualPrice != null ? summary.actualPrice : '—'}">—</strong>
                     </div>
                     <div class="summary-meter">
                         <span>Total cost</span>
                         <strong th:text="${summary.totalCost != null ? summary.totalCost : '—'}">—</strong>
                     </div>
                     <div class="summary-meter">
-                        <span>Asking price</span>
+                        <div class="summary-meter-top">
+                            <span>Asking price</span>
+                            <button th:if="${summary.pricesEditable}"
+                                    type="button"
+                                    class="summary-price-edit"
+                                    aria-label="Edit asking price"
+                                    data-price-kind="asking"
+                                    data-price-label="Asking price"
+                                    th:attr="data-price-value=${summary.askingPrice}">
+                                <i class="fa-solid fa-pencil" aria-hidden="true"></i>
+                            </button>
+                        </div>
                         <strong th:text="${summary.askingPrice != null ? summary.askingPrice : '—'}">—</strong>
                     </div>
                 </div>
@@ -287,6 +312,32 @@
                     </article>
                 </aside>
             </div>
+            <div class="yard-modal" id="summaryPriceModal" th:if="${summary.pricesEditable}">
+                <button type="button" class="yard-modal-backdrop" id="summaryPriceBackdrop" aria-label="Close"></button>
+                <form class="yard-modal-dialog panel" id="summaryPriceForm" method="post"
+                      th:action="@{/vehicle/{c}/prices(c=${summary.vehicle.chassisNo})}">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                    <input type="hidden" name="returnTo" th:value="${#request.requestURI}">
+                    <input type="hidden" name="priceKind" id="summaryPriceKind" value="actual">
+                    <div class="panel-head">
+                        <h2 id="summaryPriceTitle">Actual price</h2>
+                        <button type="button" class="summary-price-close" id="summaryPriceClose" aria-label="Close">
+                            <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+                        </button>
+                    </div>
+                    <label class="summary-price-field">Amount
+                        <span class="money-field">
+                            <input type="text" name="price" id="summaryPriceValue" required
+                                   maxlength="40" inputmode="decimal" autocomplete="off" placeholder="0.00">
+                            <span class="money-currency" aria-hidden="true">LKR</span>
+                        </span>
+                    </label>
+                    <div class="yard-modal-actions">
+                        <button type="button" class="panel-btn ghost" id="summaryPriceCancel">Cancel</button>
+                        <button type="submit" class="panel-btn">Update</button>
+                    </div>
+                </form>
+            </div>
             </div>
         </main>
     </div>
@@ -294,6 +345,6 @@
 <div th:replace="shared/document-viewer :: documentViewer"></div>
 <script th:src="@{/js/shared/app.js(v=20261003s)}"></script>
 <script th:src="@{/js/shared/document-viewer.js(v=20260826d)}"></script>
-<script th:src="@{/js/vehicle/summary.js(v=20261125d)}"></script>
+<script th:src="@{/js/vehicle/summary.js(v=20261126c)}"></script>
 </body>
 </html>

@@ -83,7 +83,10 @@ public class ExportCertificateService {
             }
         }
         formatDisplayDates(existing);
-        return certificateRepository.save(existing);
+        ExportCertificate saved = certificateRepository.save(existing);
+        applyToAuctionLot(saved, vehicle);
+        vehicleRepository.save(vehicle);
+        return saved;
     }
 
     private void keepStoredDocument(ExportCertificate incoming, ExportCertificate existing) {
@@ -95,10 +98,39 @@ public class ExportCertificateService {
         incoming.setDocumentContentType(existing.getDocumentContentType());
     }
 
+    private void applyToAuctionLot(ExportCertificate certificate, Vehicle vehicle) {
+        setIfPresent(vehicle::setFuel, certificate.getFuelType(), 40);
+        setIfPresent(vehicle::setSeats, certificate.getSeatingCapacity(), 20);
+        setIfPresent(vehicle::setLengthCm, certificate.getLengthCm(), 10);
+        setIfPresent(vehicle::setWidthCm, certificate.getWidthCm(), 10);
+        setIfPresent(vehicle::setHeightCm, certificate.getHeightCm(), 10);
+    }
+
+    private static void setIfPresent(java.util.function.Consumer<String> setter, String value, int maxLength) {
+        if (value == null) {
+            return;
+        }
+        String trimmed = value.trim();
+        if (trimmed.isEmpty()) {
+            return;
+        }
+        if (trimmed.length() > maxLength) {
+            trimmed = trimmed.substring(0, maxLength);
+        }
+        setter.accept(trimmed);
+    }
+
     private void prefillFromVehicle(ExportCertificate record, Vehicle vehicle) {
-        record.setChassisVin(vehicle.getChassisNo());
-        record.setMake(vehicle.getMake());
-        record.setModel(vehicle.getModel());
+        setIfBlank(record.getChassisVin(), record::setChassisVin, vehicle.getChassisNo());
+        setIfBlank(record.getMake(), record::setMake, vehicle.getMake());
+        setIfBlank(record.getModel(), record::setModel, vehicle.getModel());
+    }
+
+    private static void setIfBlank(String current, java.util.function.Consumer<String> setter, String value) {
+        if (current != null && !current.trim().isEmpty()) {
+            return;
+        }
+        setIfPresent(setter, value, Integer.MAX_VALUE);
     }
 
     private void copyFields(ExportCertificate source, ExportCertificate target) {

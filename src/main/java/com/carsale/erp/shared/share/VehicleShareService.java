@@ -119,9 +119,11 @@ public class VehicleShareService {
         String registrationNo = registration == null ? null : text(registration.getRegistrationNo());
         addSpec(specLines, "Registration", registrationNo, "fa-id-card", false);
         addSpec(specLines, "Condition", listing == null ? null : listing.getSaleCondition(), "fa-certificate", false);
+        SharePrice sharePrice = sharePrice(listing);
         return new PublicVehicleView(
                 title(vehicle),
-                price(listing),
+                sharePrice.price,
+                sharePrice.listPrice,
                 text(vehicle.getStockNo()),
                 text(vehicle.getSalesPoints()),
                 registrationNo,
@@ -327,19 +329,34 @@ public class VehicleShareService {
                 || name.endsWith(".webp") || name.endsWith(".gif");
     }
 
-    private static String price(SaleListing listing) {
+    static SharePrice sharePrice(SaleListing listing) {
         if (listing == null) {
-            return null;
+            return new SharePrice(null, null);
         }
-        String raw = text(listing.getAskingPrice());
-        if (raw == null) {
-            raw = text(listing.getAdvertisedPrice());
+        String askingRaw = text(listing.getAskingPrice());
+        if (askingRaw == null) {
+            askingRaw = text(listing.getAdvertisedPrice());
         }
-        if (raw == null) {
-            return null;
+        BigDecimal asking = ReportService.parseMoney(askingRaw);
+        BigDecimal actual = ReportService.parseMoney(text(listing.getActualPrice()));
+        String shown = asking != null ? ReportService.formatMoney(asking) : askingRaw;
+        if (shown == null) {
+            return new SharePrice(null, null);
         }
-        BigDecimal amount = ReportService.parseMoney(raw);
-        return amount == null ? raw : ReportService.formatMoney(amount);
+        if (asking != null && actual != null && asking.compareTo(actual) < 0) {
+            return new SharePrice(shown, ReportService.formatMoney(actual));
+        }
+        return new SharePrice(shown, null);
+    }
+
+    static final class SharePrice {
+        final String price;
+        final String listPrice;
+
+        private SharePrice(String price, String listPrice) {
+            this.price = price;
+            this.listPrice = listPrice;
+        }
     }
 
     private static String locationName(SaleLocation location, SaleListing listing) {

@@ -49,6 +49,9 @@ public class SaleListingService {
         if (listedOn != null) {
             record.setListedOn(listedOn);
         }
+        if (isBlank(record.getActualPrice()) && !isBlank(record.getAskingPrice())) {
+            record.setActualPrice(record.getAskingPrice().trim());
+        }
         String dateOfBirth = SaleListing.toIsoDate(record.getBuyerDateOfBirth());
         if (dateOfBirth != null) {
             record.setBuyerDateOfBirth(dateOfBirth);
@@ -194,7 +197,9 @@ public class SaleListingService {
                 && (isBlank(incoming.getSaleCode()) || isBlank(incoming.getListedOn()))) {
             throw new IllegalArgumentException("Select a date and an available sale to complete this step.");
         }
-        if (incoming.isAssignmentComplete() && isBlank(incoming.getAskingPrice())) {
+        String askingPrice = pairedPrice(incoming.getAskingPrice(), incoming.getActualPrice());
+        String actualPrice = pairedPrice(incoming.getActualPrice(), incoming.getAskingPrice());
+        if (incoming.isAssignmentComplete() && askingPrice == null) {
             throw new IllegalArgumentException("Enter a selling price.");
         }
 
@@ -202,7 +207,8 @@ public class SaleListingService {
         SaleListing target = existing != null ? existing : new SaleListing();
         target.setChassisNo(chassisNo);
         target.setListedOn(incoming.getListedOn());
-        target.setAskingPrice(isBlank(incoming.getAskingPrice()) ? null : incoming.getAskingPrice().trim());
+        target.setAskingPrice(askingPrice);
+        target.setActualPrice(actualPrice);
         target.setAssignmentComplete(incoming.isAssignmentComplete());
 
         if (!isBlank(incoming.getSaleCode())) {
@@ -218,6 +224,44 @@ public class SaleListingService {
     }
 
     @Transactional
+    public void updatePrice(String chassisNo, String kind, String value) {
+        if (isBlank(chassisNo)) {
+            throw new IllegalArgumentException("Chassis number is required.");
+        }
+        SaleListing listing = saleListingRepository.findById(chassisNo.trim())
+                .orElseThrow(() -> new IllegalArgumentException("Move the vehicle to a sale before setting prices."));
+        String price = trimToNull(value);
+        if (price == null) {
+            throw new IllegalArgumentException("Enter the price.");
+        }
+        price = limitPrice(price);
+        if ("actual".equals(kind)) {
+            listing.setActualPrice(price);
+        } else if ("asking".equals(kind)) {
+            listing.setAskingPrice(price);
+        } else {
+            throw new IllegalArgumentException("Choose actual price or asking price.");
+        }
+        saleListingRepository.save(listing);
+    }
+
+    static String pairedPrice(String preferred, String fallback) {
+        String value = trimToNull(preferred);
+        if (value != null) {
+            return limitPrice(value);
+        }
+        value = trimToNull(fallback);
+        return value == null ? null : limitPrice(value);
+    }
+
+    private static String limitPrice(String value) {
+        if (value.length() <= 40) {
+            return value;
+        }
+        return value.substring(0, 40);
+    }
+
+    @Transactional
     public SaleListing save(SaleListing incoming) {
         if (incoming == null || incoming.getChassisNo() == null || incoming.getChassisNo().trim().isEmpty()) {
             throw new IllegalArgumentException("Chassis number is required.");
@@ -226,10 +270,13 @@ public class SaleListingService {
         Vehicle vehicle = vehicleRepository.findById(chassisNo)
                 .orElseThrow(() -> new IllegalArgumentException("Vehicle not found for chassis " + chassisNo));
 
-        if (isBlank(incoming.getAskingPrice())) {
+        if (isBlank(incoming.getAskingPrice()) && isBlank(incoming.getActualPrice())) {
             throw new IllegalArgumentException("Enter the selling price.");
         }
-        incoming.setAskingPrice(incoming.getAskingPrice().trim());
+        String askingPrice = pairedPrice(incoming.getAskingPrice(), incoming.getActualPrice());
+        String actualPrice = pairedPrice(incoming.getActualPrice(), incoming.getAskingPrice());
+        incoming.setAskingPrice(askingPrice);
+        incoming.setActualPrice(actualPrice);
         String sellingDate = SaleListing.toIsoDate(incoming.getListedOn());
         if (sellingDate == null) {
             throw new IllegalArgumentException("Enter the selling date.");

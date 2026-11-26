@@ -128,6 +128,35 @@ class VehicleShareServiceTest {
     }
 
     @Test
+    void lowerAskingPriceIsShownAsAnOffer() {
+        SaleListing listing = new SaleListing();
+        listing.setActualPrice("7,209,327.09");
+        listing.setAskingPrice("6,500,000");
+
+        VehicleShareService.SharePrice price = VehicleShareService.sharePrice(listing);
+
+        assertEquals("Rs. 6,500,000", price.price);
+        assertEquals("Rs. 7,209,327.09", price.listPrice);
+    }
+
+    @Test
+    void equalOrHigherAskingPriceStaysASalePrice() {
+        SaleListing equal = new SaleListing();
+        equal.setActualPrice("7,200,000");
+        equal.setAskingPrice("7,200,000");
+        VehicleShareService.SharePrice same = VehicleShareService.sharePrice(equal);
+        assertEquals("Rs. 7,200,000", same.price);
+        assertNull(same.listPrice);
+
+        SaleListing higher = new SaleListing();
+        higher.setActualPrice("6,000,000");
+        higher.setAskingPrice("7,200,000");
+        VehicleShareService.SharePrice above = VehicleShareService.sharePrice(higher);
+        assertEquals("Rs. 7,200,000", above.price);
+        assertNull(above.listPrice);
+    }
+
+    @Test
     void equipmentChoicesOnlyKeepFittedOptions() {
         assertEquals("Air conditioning", VehicleShareService.featureLabel("Air conditioning", "YES"));
         assertEquals("Alloy wheels", VehicleShareService.featureLabel("Alloy wheels", "OK"));

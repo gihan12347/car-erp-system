@@ -122,6 +122,8 @@ public class VehicleSummaryService {
                 percent,
                 totalCost(clearance, workshop),
                 askingHighlight(listing),
+                actualHighlight(listing),
+                pricesEditable(listing),
                 highlightsFor(vehicle),
                 specsFor(vehicle),
                 photos,
@@ -185,9 +187,13 @@ public class VehicleSummaryService {
             location = text(sale.getLocation());
         }
         List<SpecLine> lines = new ArrayList<SpecLine>();
+        String actual = actualHighlight(listing);
+        if (actual != null) {
+            lines.add(new SpecLine("Actual price", actual));
+        }
         String price = askingHighlight(listing);
         if (price != null) {
-            lines.add(new SpecLine("Selling price", price));
+            lines.add(new SpecLine("Asking price", price));
         }
         String sellingDate = text(listing.getListedOn());
         if (sellingDate != null) {
@@ -570,7 +576,8 @@ public class VehicleSummaryService {
 
         sale.add("Recycle fee", vehicle.getRecycleFee());
         if (listing != null) {
-            sale.add("Selling price", listing.getAskingPrice());
+            sale.add("Actual price", listing.getActualPrice());
+            sale.add("Asking price", listing.getAskingPrice());
             sale.add("Advertised price", listing.getAdvertisedPrice());
         }
 
@@ -639,7 +646,7 @@ public class VehicleSummaryService {
         List<SpecLine> lines = new ArrayList<SpecLine>();
         addSpec(lines, "Year", vehicle.getYear());
         addSpec(lines, "Mileage", vehicle.getMileage());
-        addSpec(lines, "Grade", vehicle.getAuctionGrade());
+        addSpec(lines, "Grade", vehicle.getGrade());
         addSpec(lines, "Transmission", vehicle.getTransmissionLabel());
         addSpec(lines, "Fuel", vehicle.getFuel());
         return lines;
@@ -803,6 +810,21 @@ public class VehicleSummaryService {
             return asking;
         }
         return text(listing.getAdvertisedPrice());
+    }
+
+    private static String actualHighlight(SaleListing listing) {
+        if (listing == null) {
+            return null;
+        }
+        String actual = text(listing.getActualPrice());
+        if (actual != null) {
+            return actual;
+        }
+        return text(listing.getAskingPrice());
+    }
+
+    private static boolean pricesEditable(SaleListing listing) {
+        return listing != null && text(listing.getSaleCode()) != null;
     }
 
     private static String withCurrency(String amount, String currency) {

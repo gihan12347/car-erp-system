@@ -56,6 +56,7 @@ public class DatabaseSchemaUpdater implements CommandLineRunner {
         addSaleListingSaleColumns();
         addSaleListingAssignmentCompleteColumn();
         addSaleListingBuyerColumns();
+        addSaleListingActualPriceColumn();
         addCustomerIdBackColumns();
         createVehicleRegistrationsTable();
         createVehicleInspectionsTable();
@@ -206,6 +207,22 @@ public class DatabaseSchemaUpdater implements CommandLineRunner {
             );
         } catch (Exception ex) {
             log.warn("Could not backfill sale_listings.assignment_complete: {}", ex.getMessage());
+        }
+    }
+
+    private void addSaleListingActualPriceColumn() {
+        addSaleListingColumn(
+                "actual_price",
+                "ALTER TABLE sale_listings ADD COLUMN actual_price VARCHAR(40) NULL"
+        );
+        try {
+            jdbcTemplate.execute(
+                    "UPDATE sale_listings SET actual_price = asking_price "
+                            + "WHERE (actual_price IS NULL OR TRIM(actual_price) = '') "
+                            + "AND asking_price IS NOT NULL AND TRIM(asking_price) <> ''"
+            );
+        } catch (Exception ex) {
+            log.warn("Could not backfill sale_listings.actual_price: {}", ex.getMessage());
         }
     }
 

@@ -10,7 +10,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
-    <link rel="stylesheet" th:href="@{/css/public-share.css(v=20261125w)}">
+    <link rel="stylesheet" th:href="@{/css/public-share.css(v=20261126b)}">
 </head>
 <body class="share-page">
 <header class="share-top">
@@ -96,8 +96,10 @@
                     <span th:if="${vehicle.condition != null}" th:text="${vehicle.condition}">Used</span>
                 </p>
                 <h1 th:text="${vehicle.title}">Suzuki Wagon R</h1>
-                <div class="ad-price-card" th:if="${vehicle.price != null}">
-                    <span>Sale price</span>
+                <div class="ad-price-card" th:if="${vehicle.price != null}"
+                     th:classappend="${vehicle.offer} ? ' is-offer' : ''">
+                    <span th:text="${vehicle.offer} ? 'Offer' : 'Sale price'">Sale price</span>
+                    <del th:if="${vehicle.offer}" th:text="${vehicle.listPrice}">Rs. 0</del>
                     <strong th:text="${vehicle.price}">Rs. 0</strong>
                 </div>
                 <p class="ad-price is-quiet" th:if="${vehicle.price == null}">Price on request</p>
